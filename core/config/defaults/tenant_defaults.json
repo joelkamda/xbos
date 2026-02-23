@@ -1,0 +1,38 @@
+{
+  "CM": {
+    "currency": "XAF",
+    "timezone": "Africa/Douala",
+    "locale": "fr-CM",
+    "tax_rate": 19.25
+  },
+  "NG": {
+    "currency": "NGN",
+    "timezone": "Africa/Lagos",
+    "locale": "en-NG",
+    "tax_rate": 7.50
+  },
+  "GH": {
+    "currency": "GHS",
+    "timezone": "Africa/Accra",
+    "locale": "en-GH",
+    "tax_rate": 12.50
+  },
+  "KE": {
+    "currency": "KES",
+    "timezone": "Africa/Nairobi",
+    "locale": "en-KE",
+    "tax_rate": 16
+  },
+  "US": {
+    "currency": "USD",
+    "timezone": "America/New_York",
+    "locale": "en-US",
+    "tax_rate": 0
+  },
+  "AE": {
+    "currency": "AED",
+    "timezone": "Asia/Dubai",
+    "locale": "ar-AE",
+    "tax_rate": 5
+  }
+}
