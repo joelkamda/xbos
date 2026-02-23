@@ -25,6 +25,11 @@ class SaleStatus(str, enum.Enum):
     cancelled = "cancelled"               # terminal
 
 
+class PaymentMethod(str, enum.Enum):
+    cash = "cash"
+    xafpay = "xafpay"
+
+
 # =====================================================
 # Sale (header)
 # =====================================================
@@ -87,7 +92,7 @@ class Sale(Base):
         comment="SaleStatus enum value",
     )
 
-    initial_payment_method = Column(
+    payment_method = Column(
         String(32),
         nullable=False,
         comment="Initial payment method intent (PaymentMethod enum value)",
@@ -133,15 +138,9 @@ class Sale(Base):
         lazy="selectin",
     )
 
-    payment_intent_id = Column(
-        Integer,
-        ForeignKey("payment_intents.id", ondelete="SET NULL"),
-        nullable=True,
-        index=True,
-    )
-
-    payment_intent = relationship(
-        "PaymentIntent",
+    payments = relationship(
+        "Payment",
+        back_populates="sale",
         lazy="selectin",
     )
 

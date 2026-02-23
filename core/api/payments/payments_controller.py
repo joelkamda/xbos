@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 from settings import settings
 
 from core.domain.payments.models import PaymentMethod, PaymentProvider
-from core.domain.payments.repository import PaymentAttemptRepository
+from core.domain.payments.repository import PaymentRepository
 from core.domain.payments.service import PaymentService
 from core.domain.sales.repository import SaleRepository
 
@@ -71,7 +71,7 @@ class PaymentsController:
         print("🔥 SENDING PROVIDER TO GATEWAY:", provider_enum.value)
 
         # -------------------------------------------------
-        # 1️⃣ Create internal PaymentAttempt (PENDING)
+        # 1️⃣ Create internal Payment record (PENDING)
         # -------------------------------------------------
         payment = PaymentService.init_payment(
             db,
@@ -124,18 +124,17 @@ class PaymentsController:
                         "amount": float(payment.amount),
                         "currency": "XAF",
                         "provider": "tranzak",
-                        "requestedRail": channel_normalized,
-                        "description": f"{provider_enum.value} payment for Sale #{sale.id}",
-                        "customer": {
-                            "email": "pos@xbos.local",
-                            "phone": "670000000",
-                        },
-                        "externalId": str(payment.id),
-                        "returnUrl": return_url,
-                        "cancelUrl": cancel_url,
-                    },
-                )
-
+            "requestedRail": channel_normalized,  # rail layer
+            "description": f"{provider_enum.value} payment for Sale #{sale.id}",
+            "customer": {
+                "email": "pos@xbos.local",
+                "phone": "670000000",
+            },
+            "externalId": str(payment.id),
+            "returnUrl": return_url,
+            "cancelUrl": cancel_url,
+        },
+    )
             if response.status_code not in (200, 201):
                 print("❌ Gateway error:", response.text)
                 raise HTTPException(
@@ -167,7 +166,7 @@ class PaymentsController:
         # -------------------------------------------------
         # 5️⃣ Save reference
         # -------------------------------------------------
-        PaymentAttemptRepository.set_reference(
+        PaymentRepository.set_reference(
             payment=payment,
             reference=gateway_intent_id,
         )
@@ -178,6 +177,9 @@ class PaymentsController:
         print("✅ Gateway Intent Created:", gateway_intent_id)
         print("🌐 Payment URL:", payment_url)
 
+        # -------------------------------------------------
+        # 6️⃣ Return to frontend
+        # -------------------------------------------------
         status_value = (
             payment.status.value
             if hasattr(payment.status, "value")

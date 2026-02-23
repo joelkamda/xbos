@@ -4,11 +4,8 @@ from fastapi import Request, HTTPException, status
 from sqlalchemy.orm import Session
 
 from core.domain.sales.repository import SaleRepository
-from core.domain.payments.repository import (
-    PaymentIntentRepository,
-    PaymentAttemptRepository,
-)
-from core.domain.payments.models import PaymentAttemptStatus
+from core.domain.payments.repository import PaymentRepository
+from core.domain.payments.models import PaymentStatus
 from core.domain.sales.models import SaleStatus
 
 
@@ -19,7 +16,7 @@ class ReceiptsController:
     Responsibilities (LOCKED):
     - Tenant + branch safe fetch of Sale
     - Ensure Sale is PAID
-    - Fetch successful PaymentAttempts (supports split)
+    - Fetch successful Payments (supports split)
     - Assemble print-ready receipt payload
     - NO mutations
     """
@@ -71,19 +68,19 @@ class ReceiptsController:
             )
 
         # -------------------------------------------------
-        # Fetch successful payment attempts (split-ready)
+        # Fetch successful payments (split-ready)
         # -------------------------------------------------
-        payments = PaymentAttemptRepository.get_for_sale(
+        payments = PaymentRepository.get_for_sale(
             db,
             tenant_id=tenant_id,
             sale_id=sale.id,
         )
 
         successful_payments = [
-            p for p in payments if p.status == PaymentAttemptStatus.paid
+            p for p in payments if p.status == PaymentStatus.paid
         ]
 
-        # Defensive invariant: PAID sale must have PAID attempts
+        # Defensive invariant: PAID sale must have PAID payments
         if not successful_payments:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -126,8 +123,8 @@ class ReceiptsController:
             # -------------------------
             "payments": [
                 {
-                    "method": p.method,
-                    "provider": p.provider,
+                    "method": p.method,        # string
+                    "provider": p.provider,    # string | None
                     "amount": float(p.amount),
                 }
                 for p in successful_payments

@@ -1,29 +1,23 @@
 from typing import Optional, List
-from decimal import Decimal
 from datetime import datetime
 
 from sqlalchemy.orm import Session
 from sqlalchemy import select, func
 
-from core.domain.payments.models import (
-    PaymentIntent,
-    PaymentAttempt,
-    PaymentIntentStatus,
-    PaymentAttemptStatus,
-    PaymentMethod,
-)
+from core.domain.payments.models import Payment, PaymentStatus, PaymentMethod
 from core.domain.sales.models import Sale
 
 
-# =====================================================
-# PAYMENT INTENT REPOSITORY
-# =====================================================
-
-class PaymentIntentRepository:
+class PaymentRepository:
     """
-    Data-access layer for PaymentIntent.
+    Data-access layer for Payments.
 
-    NO business logic.
+    Responsibilities (LOCKED):
+    - Persist Payment records
+    - Fetch payments by sale or ID
+    - Mutate persisted fields only
+    - Enforce tenant isolation via Sale
+    - NO business logic
     """
 
     # -------------------------------------------------
@@ -35,15 +29,17 @@ class PaymentIntentRepository:
         db: Session,
         *,
         tenant_id: int,
-        intent_id: int,
-    ) -> Optional[PaymentIntent]:
-
+        payment_id: int,
+    ) -> Optional[Payment]:
+        """
+        Fetch a payment by ID (tenant-safe via Sale).
+        """
         stmt = (
-            select(PaymentIntent)
-            .where(PaymentIntent.id == intent_id)
-            .where(PaymentIntent.tenant_id == tenant_id)
+            select(Payment)
+            .join(Sale, Sale.id == Payment.sale_id)
+            .where(Payment.id == payment_id)
+            .where(Sale.tenant_id == tenant_id)
         )
-
         return db.execute(stmt).scalar_one_or_none()
 
     @staticmethod
@@ -52,192 +48,165 @@ class PaymentIntentRepository:
         *,
         tenant_id: int,
         sale_id: int,
-    ) -> Optional[PaymentIntent]:
-
+    ) -> List[Payment]:
+        """
+        Fetch all payments associated with a sale.
+        """
         stmt = (
-            select(PaymentIntent)
-            .where(PaymentIntent.payable_type == "sale")
-            .where(PaymentIntent.payable_id == sale_id)
-            .where(PaymentIntent.tenant_id == tenant_id)
+            select(Payment)
+            .join(Sale, Sale.id == Payment.sale_id)
+            .where(Payment.sale_id == sale_id)
+            .where(Sale.tenant_id == tenant_id)
+            .order_by(Payment.created_at.asc())
         )
-
-        return db.execute(stmt).scalar_one_or_none()
-
-    # -------------------------------------------------
-    # Persistence
-    # -------------------------------------------------
-
-    @staticmethod
-    def create(
-        db: Session,
-        *,
-        intent: PaymentIntent,
-    ) -> PaymentIntent:
-
-        db.add(intent)
-        return intent
-
-    # -------------------------------------------------
-    # Field mutations (no semantics)
-    # -------------------------------------------------
-
-    @staticmethod
-    def set_status(
-        *,
-        intent: PaymentIntent,
-        status: PaymentIntentStatus,
-    ) -> None:
-        intent.status = status
-
-    @staticmethod
-    def update_aggregates(
-        *,
-        intent: PaymentIntent,
-        total_paid: Decimal,
-        balance_due: Decimal,
-    ) -> None:
-        intent.total_paid = total_paid
-        intent.balance_due = balance_due
-
-
-# =====================================================
-# PAYMENT ATTEMPT REPOSITORY
-# =====================================================
-
-class PaymentAttemptRepository:
-    """
-    Data-access layer for PaymentAttempt.
-
-    NO business logic.
-    """
-
-    # -------------------------------------------------
-    # Fetches
-    # -------------------------------------------------
-
-    @staticmethod
-    def get_by_id(
-        db: Session,
-        *,
-        tenant_id: int,
-        attempt_id: int,
-    ) -> Optional[PaymentAttempt]:
-
-        stmt = (
-            select(PaymentAttempt)
-            .join(PaymentIntent, PaymentIntent.id == PaymentAttempt.payment_intent_id)
-            .where(PaymentAttempt.id == attempt_id)
-            .where(PaymentIntent.tenant_id == tenant_id)
-        )
-
-        return db.execute(stmt).scalar_one_or_none()
-
-    @staticmethod
-    def get_for_intent(
-        db: Session,
-        *,
-        tenant_id: int,
-        intent_id: int,
-    ) -> List[PaymentAttempt]:
-
-        stmt = (
-            select(PaymentAttempt)
-            .join(PaymentIntent, PaymentIntent.id == PaymentAttempt.payment_intent_id)
-            .where(PaymentAttempt.payment_intent_id == intent_id)
-            .where(PaymentIntent.tenant_id == tenant_id)
-            .order_by(PaymentAttempt.created_at.asc())
-        )
-
         return list(db.execute(stmt).scalars().all())
 
     @staticmethod
-    def get_latest_for_intent(
+    def get_latest_for_sale(
         db: Session,
         *,
         tenant_id: int,
-        intent_id: int,
-    ) -> Optional[PaymentAttempt]:
-
+        sale_id: int,
+    ) -> Optional[Payment]:
+        """
+        Fetch the most recent payment attempt for a sale.
+        """
         stmt = (
-            select(PaymentAttempt)
-            .join(PaymentIntent, PaymentIntent.id == PaymentAttempt.payment_intent_id)
-            .where(PaymentAttempt.payment_intent_id == intent_id)
-            .where(PaymentIntent.tenant_id == tenant_id)
-            .order_by(PaymentAttempt.created_at.desc())
+            select(Payment)
+            .join(Sale, Sale.id == Payment.sale_id)
+            .where(Payment.sale_id == sale_id)
+            .where(Sale.tenant_id == tenant_id)
+            .order_by(Payment.created_at.desc())
             .limit(1)
         )
-
         return db.execute(stmt).scalar_one_or_none()
 
     # -------------------------------------------------
-    # Creation
+    # Creation / persistence
     # -------------------------------------------------
 
     @staticmethod
     def create(
         db: Session,
         *,
-        attempt: PaymentAttempt,
-    ) -> PaymentAttempt:
-
-        db.add(attempt)
-        return attempt
+        payment: Payment,
+    ) -> Payment:
+        """
+        Persist a new Payment.
+        """
+        db.add(payment)
+        return payment
 
     # -------------------------------------------------
-    # Mutations (no semantics)
+    # Field mutations (NO semantics)
     # -------------------------------------------------
 
     @staticmethod
     def set_status(
         *,
-        attempt: PaymentAttempt,
-        status: PaymentAttemptStatus,
+        payment: Payment,
+        status: PaymentStatus,
     ) -> None:
-        attempt.status = status
+        """
+        Set payment status.
+
+        NOTE:
+        - Valid transitions enforced by service layer
+        """
+        payment.status = status
+
+    @staticmethod
+    def set_reference(
+        *,
+        payment: Payment,
+        reference: str | None,
+    ) -> None:
+        """
+        Persist external gateway reference.
+        """
+        payment.reference = reference
 
     @staticmethod
     def set_completed_at(
         *,
-        attempt: PaymentAttempt,
-        completed_at: Optional[datetime],
+        payment: Payment,
+        completed_at: datetime | None,
     ) -> None:
-        attempt.completed_at = completed_at
-
-    @staticmethod
-    def set_gateway_reference(
-        *,
-        attempt: PaymentAttempt,
-        reference: Optional[str],
-    ) -> None:
-        attempt.gateway_reference = reference
-
-    @staticmethod
-    def set_provider_reference(
-        *,
-        attempt: PaymentAttempt,
-        reference: Optional[str],
-    ) -> None:
-        attempt.provider_reference = reference
+        """
+        Set completion timestamp.
+        """
+        payment.completed_at = completed_at
 
     # -------------------------------------------------
-    # Aggregates
+    # Aggregates (used by service layer)
     # -------------------------------------------------
 
     @staticmethod
-    def sum_paid_for_intent(
+    def sum_paid_for_sale(
         db: Session,
         *,
         tenant_id: int,
-        intent_id: int,
-    ) -> Decimal:
+        sale_id: int,
+    ) -> float:
+        """
+        Sum all PAID payments for a sale.
 
+        GUARANTEES:
+        - Tenant-safe
+        - Returns 0.0 if no successful payments
+        - Used to determine sale settlement completeness
+        """
         stmt = (
-            select(func.coalesce(func.sum(PaymentAttempt.amount), 0))
-            .join(PaymentIntent, PaymentIntent.id == PaymentAttempt.payment_intent_id)
-            .where(PaymentAttempt.payment_intent_id == intent_id)
-            .where(PaymentAttempt.status == PaymentAttemptStatus.paid)
-            .where(PaymentIntent.tenant_id == tenant_id)
+            select(func.coalesce(func.sum(Payment.amount), 0))
+            .join(Sale, Sale.id == Payment.sale_id)
+            .where(Payment.sale_id == sale_id)
+            .where(Payment.status == PaymentStatus.paid)
+            .where(Sale.tenant_id == tenant_id)
         )
+        return float(db.execute(stmt).scalar_one())
 
-        result = db.execute(stmt).scalar_one()
-        return Decimal(result)
+    # -------------------------------------------------
+    # Queries (admin / reconciliation)
+    # -------------------------------------------------
+
+    @staticmethod
+    def list_by_status(
+        db: Session,
+        *,
+        tenant_id: int,
+        status: PaymentStatus,
+        limit: int = 50,
+    ) -> List[Payment]:
+        """
+        List payments by status (tenant-safe).
+        """
+        stmt = (
+            select(Payment)
+            .join(Sale, Sale.id == Payment.sale_id)
+            .where(Payment.status == status)
+            .where(Sale.tenant_id == tenant_id)
+            .order_by(Payment.created_at.desc())
+            .limit(limit)
+        )
+        return list(db.execute(stmt).scalars().all())
+
+    @staticmethod
+    def list_by_method(
+        db: Session,
+        *,
+        tenant_id: int,
+        method: PaymentMethod,
+        limit: int = 50,
+    ) -> List[Payment]:
+        """
+        List payments by method (cash vs xafpay).
+        """
+        stmt = (
+            select(Payment)
+            .join(Sale, Sale.id == Payment.sale_id)
+            .where(Payment.method == method)
+            .where(Sale.tenant_id == tenant_id)
+            .order_by(Payment.created_at.desc())
+            .limit(limit)
+        )
+        return list(db.execute(stmt).scalars().all())

@@ -8,19 +8,14 @@ from core.domain.sales.models import (
     Sale,
     SaleItem,
     SaleStatus,
-)
- 
-from core.domain.payments.models import (
-    PaymentIntent,
-    PaymentAttempt,
-    PaymentProvider,
     PaymentMethod,
 )
-from core.domain.sales.repository import SaleRepository
-from core.domain.payments.repository import (
-    PaymentIntentRepository, 
-    PaymentAttemptRepository,
+from core.domain.payments.models import (
+    Payment,
+    PaymentStatus,
 )
+from core.domain.sales.repository import SaleRepository
+from core.domain.payments.repository import PaymentRepository
 from core.domain.catalog.repository import BillableUnitRepository
 from core.domain.sales.receipt import generate_receipt_no
 
