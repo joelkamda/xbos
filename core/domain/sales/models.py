@@ -81,6 +81,12 @@ class Sale(Base):
         index=True,
     )
 
+    discount_total = Column(Numeric(12,2), nullable=False, default=0)
+    complimentary_total = Column(Numeric(12,2), nullable=False, default=0)
+    tendered_total = Column(Numeric(12,2), nullable=False, default=0)
+    change_amount = Column(Numeric(12,2), nullable=False, default=0)
+    unpaid_amount = Column(Numeric(12,2), nullable=False, default=0)
+
     # -------------------------
     # Commercial state
     # -------------------------

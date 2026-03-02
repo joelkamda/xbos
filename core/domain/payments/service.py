@@ -1,252 +1,288 @@
+from __future__ import annotations
+
+from dataclasses import dataclass
 from datetime import datetime
-from typing import Optional
+from decimal import Decimal
+from typing import Optional, Dict, Any
 
 from sqlalchemy.orm import Session
-
-from core.domain.payments.models import (
-    Payment,
-    PaymentStatus,
-    PaymentMethod,
-    PaymentProvider,
-)
-from core.domain.payments.repository import PaymentRepository
-from core.domain.sales.models import SaleStatus
-from core.domain.sales.repository import SaleRepository
 
 from core.shared.idempotency import (
     check_idempotency_key,
     record_idempotency_key,
 )
 
+from core.domain.sales.models import SaleStatus
+from core.domain.sales.repository import SaleRepository
+
+# ✅ NEW MODEL imports (adjust names if yours differ)
+from core.domain.payments.models import (
+    PaymentIntent,
+    PaymentAttempt,
+    PaymentIntentStatus,
+    PaymentAttemptStatus,
+)
+
+from core.domain.payments.repository import (
+    PaymentIntentRepository,
+    PaymentAttemptRepository,
+)
+
+
+@dataclass(frozen=True)
+class WebhookEvent:
+    event: str
+    status: str
+    amount: Decimal
+    currency: str
+    provider: str                # e.g. "tranzak"
+    gateway_intent_id: str       # UUID string
+    callback_reference: str      # event id
+    merchant_reference: Optional[str] = None  # e.g. sale_id string
+    provider_reference: Optional[str] = None  # e.g. Tranzak rid
+
 
 class PaymentService:
     """
-    Domain service for Payments — Tier-1 settlement authority.
+    Domain service for PaymentIntents + PaymentAttempts (Tier-1 settlement authority)
 
     GUARANTEES:
-    - Payments are immutable once PAID / FAILED
-    - Sale settlement is derived from payments (never assumed)
-    - Fully split-payment safe
+    - Webhook idempotency via callback_reference
+    - PaymentAttempt is append-only (no edits; new attempts represent retries)
+    - PaymentIntent totals are system-owned (recomputed by service only)
+    - Sale becomes PAID only when intent.balance_due <= 0 (split-safe)
     """
 
     # -------------------------------------------------
-    # Payment initialization
+    # Intent initialization (called from /xafpay/init)
     # -------------------------------------------------
-
     @staticmethod
-    def init_payment(
+    def init_intent(
         db: Session,
         *,
         tenant_id: int,
-        sale_id: int,
-        method: PaymentMethod,
-        provider: Optional[PaymentProvider],
-        amount: float,
-        client_reference: str,
-    ) -> Payment:
+        branch_id: int,
+        payable_type: str,     # "sale" for now
+        payable_id: int,       # sale_id
+        currency: str,
+        amount: Decimal,
+        channel: str,          # "xafpay" or "pos" etc.
+        created_by_user_id: int,
+        client_reference: str, # idempotency key from UI
+        gateway_intent_id: Optional[str] = None,
+        meta: Optional[Dict[str, Any]] = None,
+    ) -> PaymentIntent:
         """
-        Initialize a new payment attempt.
+        Creates a PaymentIntent (idempotent by client_reference).
         """
 
-        # Idempotency guard
-        existing = check_idempotency_key(
-            db,
-            key=client_reference,
-            scope="payment",
-        )
+        # Idempotency guard: if client_reference already created an intent, return it.
+        existing = check_idempotency_key(db, key=client_reference, scope="payment_intent")
         if existing:
-            payment = PaymentRepository.get_by_id(
-                db,
-                tenant_id=tenant_id,
-                payment_id=existing.reference_id,
+            intent = PaymentIntentRepository.get_by_id(
+                db, tenant_id=tenant_id, intent_id=existing.reference_id
             )
-            if payment:
-                return payment
+            if intent:
+                return intent
 
-        payment = Payment(
-            sale_id=sale_id,
-            method=method,
-            provider=provider,
+        intent = PaymentIntent(
+            tenant_id=tenant_id,
+            branch_id=branch_id,
+            payable_type=payable_type,
+            payable_id=payable_id,
+            currency=currency,
             amount=amount,
-            status=PaymentStatus.pending,
+            status=PaymentIntentStatus.pending,
+            channel=channel,
+            created_by_user_id=created_by_user_id,
+            gateway_intent_id=gateway_intent_id,
+            total_paid=Decimal("0"),
+            balance_due=amount,
+            meta=meta or {},
         )
 
-        PaymentRepository.create(db, payment=payment)
+        PaymentIntentRepository.create(db, intent=intent)
 
         record_idempotency_key(
             db,
             key=client_reference,
-            scope="payment",
-            reference_id=payment.id,
+            scope="payment_intent",
+            reference_id=intent.id,
         )
 
-        return payment
+        return intent
 
     # -------------------------------------------------
-    # Payment finalization — SUCCESS
+    # Attempt initialization (optional; if you create an attempt at init-time)
     # -------------------------------------------------
-
     @staticmethod
-    def mark_payment_success(
+    def create_attempt(
+        db: Session,
+        *,
+        intent: PaymentIntent,
+        amount: Decimal,
+        method: str,
+        provider: str,
+        settlement_mode: str,
+        client_reference: str,
+        provider_reference: Optional[str] = None,
+        status: PaymentAttemptStatus = PaymentAttemptStatus.pending,
+        meta: Optional[Dict[str, Any]] = None,
+    ) -> PaymentAttempt:
+
+        attempt = PaymentAttempt(
+            payment_intent_id=intent.id,
+            sale_id=intent.payable_id if intent.payable_type == "sale" else None,
+            method=method,
+            provider=provider,
+            settlement_mode=settlement_mode,
+            amount=amount,
+            status=status,
+            client_reference=client_reference,
+            provider_reference=provider_reference,
+            meta=meta or {},
+            created_at=datetime.utcnow(),
+        )
+
+        PaymentAttemptRepository.create(db, attempt=attempt)
+        return attempt
+
+    # -------------------------------------------------
+    # Totals recompute (system-owned)
+    # -------------------------------------------------
+    @staticmethod
+    def recompute_intent_totals(
+        db: Session,
+        *,
+        intent: PaymentIntent,
+    ) -> PaymentIntent:
+        """
+        Recompute total_paid and balance_due from successful attempts only.
+        """
+        total_paid = PaymentAttemptRepository.sum_succeeded_for_intent(
+            db,
+            intent_id=intent.id,
+        )
+
+        total_paid = Decimal(total_paid or 0)
+        balance_due = (Decimal(intent.amount) - total_paid)
+
+        PaymentIntentRepository.set_totals(
+            intent=intent,
+            total_paid=total_paid,
+            balance_due=balance_due,
+        )
+
+        return intent
+
+    # -------------------------------------------------
+    # Webhook settlement entrypoint
+    # -------------------------------------------------
+    @staticmethod
+    def apply_gateway_webhook(
         db: Session,
         *,
         tenant_id: int,
-        payment_id: int,
-        gateway_reference: Optional[str] = None,
-        callback_reference: Optional[str] = None,
-    ) -> Payment:
+        event: WebhookEvent,
+    ) -> PaymentIntent:
         """
-        Mark a payment as successful.
-
-        RULES (LOCKED):
-        - A payment is PAID exactly once
-        - A sale is PAID ONLY when total_paid >= sale.total
-        - Supports split payments natively
+        Main webhook handler: resolves intent by gateway_intent_id, appends attempt, recomputes totals,
+        settles sale if paid, idempotent by callback_reference.
         """
 
         # -------------------------
-        # Idempotency (gateway callback)
+        # Idempotency: callback_reference must be unique
         # -------------------------
-        if callback_reference:
+        if event.callback_reference:
             existing = check_idempotency_key(
                 db,
-                key=callback_reference,
-                scope="payment_callback",
+                key=event.callback_reference,
+                scope="gateway_callback",
             )
             if existing:
-                payment = PaymentRepository.get_by_id(
-                    db,
-                    tenant_id=tenant_id,
-                    payment_id=existing.reference_id,
+                intent = PaymentIntentRepository.get_by_id(
+                    db, tenant_id=tenant_id, intent_id=existing.reference_id
                 )
-                if payment:
-                    return payment
+                if intent:
+                    return intent
 
-        payment = PaymentRepository.get_by_id(
+        # -------------------------
+        # Find intent by gateway_intent_id
+        # -------------------------
+        intent = PaymentIntentRepository.get_by_gateway_id(
             db,
             tenant_id=tenant_id,
-            payment_id=payment_id,
+            gateway_intent_id=event.gateway_intent_id,
         )
-        if not payment:
-            raise ValueError("Payment not found")
-
-        if payment.status == PaymentStatus.paid:
-            return payment
-
-        if payment.status in (PaymentStatus.failed, PaymentStatus.cancelled):
-            raise ValueError("Cannot mark failed/cancelled payment as paid")
+        if not intent:
+            raise ValueError(f"PaymentIntent not found for gateway_intent_id={event.gateway_intent_id}")
 
         # -------------------------
-        # Mark payment PAID
+        # Append attempt from webhook
         # -------------------------
-        PaymentRepository.set_status(
-            payment=payment,
-            status=PaymentStatus.paid,
-        )
-        PaymentRepository.set_completed_at(
-            payment=payment,
-            completed_at=datetime.utcnow(),
+        attempt_status = (
+            PaymentAttemptStatus.succeeded if event.status == "SUCCEEDED" else PaymentAttemptStatus.failed
         )
 
-        if gateway_reference:
-            PaymentRepository.set_reference(
-                payment=payment,
-                reference=gateway_reference,
-            )
+        existing_attempt = db.query(PaymentAttempt).filter(
+            PaymentAttempt.client_reference == event.callback_reference
+        ).first()
+
+        if existing_attempt:
+            # Already processed this webhook
+            return intent
+            
+        PaymentService.create_attempt(
+            db,
+            intent=intent,
+            amount=event.amount,
+            method=intent.channel,               # usually "xafpay"
+            provider=event.provider,             # tranzak
+            settlement_mode="async",             # gateway flow
+            client_reference=event.callback_reference,
+            provider_reference=event.provider_reference,
+            status=attempt_status,
+            meta={
+                "event": event.event,
+                "currency": event.currency,
+                "occurred_at": datetime.utcnow().isoformat(),
+                "merchant_reference": event.merchant_reference,
+            },
+        )
 
         # -------------------------
-        # Re-evaluate Sale settlement (split-safe)
+        # Update intent status + totals
         # -------------------------
-        sale = payment.sale
+        PaymentService.recompute_intent_totals(db, intent=intent)
 
-        if sale.status != SaleStatus.paid:
-            total_paid = PaymentRepository.sum_paid_for_sale(
+        if intent.balance_due <= 0:
+            PaymentIntentRepository.set_status(intent=intent, status=PaymentIntentStatus.succeeded)
+        else:
+            # Still due -> keep pending/processing
+            PaymentIntentRepository.set_status(intent=intent, status=PaymentIntentStatus.processing)
+
+        # -------------------------
+        # Settle Sale if fully paid
+        # -------------------------
+        if intent.payable_type == "sale" and intent.balance_due <= 0:
+            sale = SaleRepository.get_by_id(
                 db,
                 tenant_id=tenant_id,
-                sale_id=sale.id,
+                sale_id=intent.payable_id,
             )
+            if sale and sale.status != SaleStatus.paid:
+                SaleRepository.update_status(sale=sale, new_status=SaleStatus.paid)
+                SaleRepository.set_paid_at(sale=sale, paid_at=datetime.utcnow())
 
-            if total_paid >= sale.total:
-                SaleRepository.update_status(
-                    sale=sale,
-                    new_status=SaleStatus.paid,
-                )
-                SaleRepository.set_paid_at(
-                    sale=sale,
-                    paid_at=datetime.utcnow(),
-                )
-
-        if callback_reference:
+        # -------------------------
+        # Record callback idempotency
+        # -------------------------
+        if event.callback_reference:
             record_idempotency_key(
                 db,
-                key=callback_reference,
-                scope="payment_callback",
-                reference_id=payment.id,
+                key=event.callback_reference,
+                scope="gateway_callback",
+                reference_id=intent.id,
             )
 
-        return payment
-
-    # -------------------------------------------------
-    # Payment finalization — FAILURE
-    # -------------------------------------------------
-
-    @staticmethod
-    def mark_payment_failed(
-        db: Session,
-        *,
-        tenant_id: int,
-        payment_id: int,
-        gateway_reference: Optional[str] = None,
-        callback_reference: Optional[str] = None,
-    ) -> Payment:
-
-        if callback_reference:
-            existing = check_idempotency_key(
-                db,
-                key=callback_reference,
-                scope="payment_callback",
-            )
-            if existing:
-                payment = PaymentRepository.get_by_id(
-                    db,
-                    tenant_id=tenant_id,
-                    payment_id=existing.reference_id,
-                )
-                if payment:
-                    return payment
-
-        payment = PaymentRepository.get_by_id(
-            db,
-            tenant_id=tenant_id,
-            payment_id=payment_id,
-        )
-        if not payment:
-            raise ValueError("Payment not found")
-
-        if payment.status == PaymentStatus.failed:
-            return payment
-
-        PaymentRepository.set_status(
-            payment=payment,
-            status=PaymentStatus.failed,
-        )
-        PaymentRepository.set_completed_at(
-            payment=payment,
-            completed_at=datetime.utcnow(),
-        )
-
-        if gateway_reference:
-            PaymentRepository.set_reference(
-                payment=payment,
-                reference=gateway_reference,
-            )
-
-        if callback_reference:
-            record_idempotency_key(
-                db,
-                key=callback_reference,
-                scope="payment_callback",
-                reference_id=payment.id,
-            )
-
-        return payment
+        return intent

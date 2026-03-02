@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Request, Depends, HTTPException, Header
 from typing import Dict, Any, Optional
+from decimal import Decimal
 import hmac
 import hashlib
 import json
@@ -7,7 +8,7 @@ import json
 from sqlalchemy.orm import Session
 
 from core.api.payments.payments_controller import PaymentsController
-from core.domain.payments.service import PaymentService
+from core.domain.payments.service import PaymentService, WebhookEvent
 from core.rbac.utils.permission_decorator import require_permissions
 from database import get_db
 
@@ -58,7 +59,7 @@ async def pay_cash(
 
 
 # -------------------------------------------------
-# 🚨 XAFPay Webhook (EXTERNAL SYSTEM — NO RBAC)
+# 🚨 XAFPay Webhook (INTENT-BASED ARCHITECTURE)
 # -------------------------------------------------
 
 @router.post("/xafpay/webhook")
@@ -70,13 +71,23 @@ async def xafpay_webhook(
 ):
     """
     Called by XafPay Gateway worker.
-    Must:
+
+    Responsibilities:
     - Verify signature
-    - Update payment state
-    - Never depend on RBAC
+    - Normalize payload
+    - Apply settlement via PaymentService.apply_gateway_webhook
+    - NEVER use RBAC
     """
 
-    raw_body = await request.body()
+    # -------------------------------------------------
+    # Safely read body
+    # -------------------------------------------------
+
+    try:
+        raw_body = await request.body()
+    except Exception:
+        raise HTTPException(status_code=400, detail="Invalid request body")
+
     body_str = raw_body.decode()
 
     # -------------------------------------------------
@@ -95,79 +106,68 @@ async def xafpay_webhook(
     if not hmac.compare_digest(expected_signature, x_xafpay_signature):
         raise HTTPException(status_code=400, detail="Invalid signature")
 
-    payload = json.loads(body_str)
+    # -------------------------------------------------
+    # Parse JSON safely
+    # -------------------------------------------------
+
+    try:
+        payload = json.loads(body_str)
+    except json.JSONDecodeError:
+        raise HTTPException(status_code=400, detail="Invalid JSON payload")
 
     print("✅ XAFPay Webhook Received")
     print("Event ID:", x_xafpay_event_id)
     print("Payload:", payload)
 
+    # -------------------------------------------------
+    # Normalize to WebhookEvent
+    # -------------------------------------------------
+
     try:
-        # DEV: Replace with proper tenant resolution later
-        tenant_id = 2
+        tenant_id = 2  # TODO: Replace with proper tenant resolution
 
-        payment_id = int(payload["payment_id"])
-        status = payload.get("status")
-        gateway_reference = payload.get("provider_ref")
-        callback_reference = payload.get("callback_reference")
+        gateway_intent_id = payload.get("gateway_intent_id")
+        if not gateway_intent_id:
+            raise ValueError("Missing gateway_intent_id")
 
-        if status == "SUCCEEDED":
-            PaymentService.mark_payment_success(
-                db,
-                tenant_id=tenant_id,
-                payment_id=payment_id,
-                gateway_reference=gateway_reference,
-                callback_reference=callback_reference,
-            )
-        else:
-            PaymentService.mark_payment_failed(
-                db,
-                tenant_id=tenant_id,
-                payment_id=payment_id,
-                gateway_reference=gateway_reference,
-                callback_reference=callback_reference,
-            )
+        event = WebhookEvent(
+            event=payload.get("event") or "payment.unknown",
+            status=payload.get("status") or "",
+            amount=Decimal(str(payload.get("amount") or "0")),
+            currency=payload.get("currency") or "XAF",
+            provider=payload.get("provider") or "unknown",
+            gateway_intent_id=gateway_intent_id,
+            callback_reference=payload.get("callback_reference")
+                or (x_xafpay_event_id or ""),
+            merchant_reference=payload.get("merchant_reference"),
+            provider_reference=payload.get("provider_reference"),
+        )
+
+        # -------------------------------------------------
+        # Apply settlement
+        # -------------------------------------------------
+
+        intent = PaymentService.apply_gateway_webhook(
+            db,
+            tenant_id=tenant_id,
+            event=event,
+        )
 
         db.commit()
+
+        return {
+            "status": "accepted",
+            "intent_id": intent.id,
+            "gateway_intent_id": gateway_intent_id,
+        }
 
     except Exception as e:
         db.rollback()
         print("❌ Webhook processing error:", str(e))
         raise HTTPException(status_code=500, detail="Webhook processing failed")
 
-    return {"status": "accepted"}
-
 
 # -------------------------------------------------
-# Manual success (internal use)
+# 🚫 Legacy manual success/failure endpoints removed
+# (Intent architecture handles settlement via webhook)
 # -------------------------------------------------
-
-@router.post("/success")
-@require_permissions("payments.receive")
-async def mark_payment_success(
-    request: Request,
-    payload: Dict[str, Any],
-    db: Session = Depends(get_db),
-):
-    return await controller.mark_payment_success(
-        request=request,
-        payload=payload,
-        db=db,
-    )
-
-
-# -------------------------------------------------
-# Manual failure (internal use)
-# -------------------------------------------------
-
-@router.post("/failed")
-@require_permissions("payments.receive")
-async def mark_payment_failed(
-    request: Request,
-    payload: Dict[str, Any],
-    db: Session = Depends(get_db),
-):
-    return await controller.mark_payment_failed(
-        request=request,
-        payload=payload,
-        db=db,
-    )

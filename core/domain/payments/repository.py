@@ -1,28 +1,27 @@
 from typing import Optional, List
-from datetime import datetime
+from decimal import Decimal
 
 from sqlalchemy.orm import Session
 from sqlalchemy import select, func
 
-from core.domain.payments.models import Payment, PaymentStatus, PaymentMethod
+from core.domain.payments.models import (
+    Payment,
+    PaymentStatus,
+    PaymentMethod,
+    PaymentIntent,
+    PaymentIntentStatus,
+    PaymentAttempt,
+    PaymentAttemptStatus,
+)
+
 from core.domain.sales.models import Sale
 
 
+# =========================================================
+# LEGACY PAYMENT REPOSITORY (kept for compatibility only)
+# =========================================================
+
 class PaymentRepository:
-    """
-    Data-access layer for Payments.
-
-    Responsibilities (LOCKED):
-    - Persist Payment records
-    - Fetch payments by sale or ID
-    - Mutate persisted fields only
-    - Enforce tenant isolation via Sale
-    - NO business logic
-    """
-
-    # -------------------------------------------------
-    # Core fetches
-    # -------------------------------------------------
 
     @staticmethod
     def get_by_id(
@@ -31,59 +30,15 @@ class PaymentRepository:
         tenant_id: int,
         payment_id: int,
     ) -> Optional[Payment]:
-        """
-        Fetch a payment by ID (tenant-safe via Sale).
-        """
+
         stmt = (
             select(Payment)
             .join(Sale, Sale.id == Payment.sale_id)
             .where(Payment.id == payment_id)
             .where(Sale.tenant_id == tenant_id)
         )
+
         return db.execute(stmt).scalar_one_or_none()
-
-    @staticmethod
-    def get_for_sale(
-        db: Session,
-        *,
-        tenant_id: int,
-        sale_id: int,
-    ) -> List[Payment]:
-        """
-        Fetch all payments associated with a sale.
-        """
-        stmt = (
-            select(Payment)
-            .join(Sale, Sale.id == Payment.sale_id)
-            .where(Payment.sale_id == sale_id)
-            .where(Sale.tenant_id == tenant_id)
-            .order_by(Payment.created_at.asc())
-        )
-        return list(db.execute(stmt).scalars().all())
-
-    @staticmethod
-    def get_latest_for_sale(
-        db: Session,
-        *,
-        tenant_id: int,
-        sale_id: int,
-    ) -> Optional[Payment]:
-        """
-        Fetch the most recent payment attempt for a sale.
-        """
-        stmt = (
-            select(Payment)
-            .join(Sale, Sale.id == Payment.sale_id)
-            .where(Payment.sale_id == sale_id)
-            .where(Sale.tenant_id == tenant_id)
-            .order_by(Payment.created_at.desc())
-            .limit(1)
-        )
-        return db.execute(stmt).scalar_one_or_none()
-
-    # -------------------------------------------------
-    # Creation / persistence
-    # -------------------------------------------------
 
     @staticmethod
     def create(
@@ -91,15 +46,8 @@ class PaymentRepository:
         *,
         payment: Payment,
     ) -> Payment:
-        """
-        Persist a new Payment.
-        """
         db.add(payment)
         return payment
-
-    # -------------------------------------------------
-    # Field mutations (NO semantics)
-    # -------------------------------------------------
 
     @staticmethod
     def set_status(
@@ -107,39 +55,7 @@ class PaymentRepository:
         payment: Payment,
         status: PaymentStatus,
     ) -> None:
-        """
-        Set payment status.
-
-        NOTE:
-        - Valid transitions enforced by service layer
-        """
         payment.status = status
-
-    @staticmethod
-    def set_reference(
-        *,
-        payment: Payment,
-        reference: str | None,
-    ) -> None:
-        """
-        Persist external gateway reference.
-        """
-        payment.reference = reference
-
-    @staticmethod
-    def set_completed_at(
-        *,
-        payment: Payment,
-        completed_at: datetime | None,
-    ) -> None:
-        """
-        Set completion timestamp.
-        """
-        payment.completed_at = completed_at
-
-    # -------------------------------------------------
-    # Aggregates (used by service layer)
-    # -------------------------------------------------
 
     @staticmethod
     def sum_paid_for_sale(
@@ -148,14 +64,7 @@ class PaymentRepository:
         tenant_id: int,
         sale_id: int,
     ) -> float:
-        """
-        Sum all PAID payments for a sale.
 
-        GUARANTEES:
-        - Tenant-safe
-        - Returns 0.0 if no successful payments
-        - Used to determine sale settlement completeness
-        """
         stmt = (
             select(func.coalesce(func.sum(Payment.amount), 0))
             .join(Sale, Sale.id == Payment.sale_id)
@@ -163,50 +72,145 @@ class PaymentRepository:
             .where(Payment.status == PaymentStatus.paid)
             .where(Sale.tenant_id == tenant_id)
         )
+
         return float(db.execute(stmt).scalar_one())
 
-    # -------------------------------------------------
-    # Queries (admin / reconciliation)
-    # -------------------------------------------------
+
+# =========================================================
+# PAYMENT INTENT REPOSITORY (PRIMARY ARCHITECTURE)
+# =========================================================
+
+class PaymentIntentRepository:
+
+    @staticmethod
+    def create(
+        db: Session,
+        *,
+        intent: PaymentIntent,
+    ) -> PaymentIntent:
+        db.add(intent)
+        return intent
+
+    @staticmethod
+    def get_by_id(
+        db: Session,
+        *,
+        tenant_id: int,
+        intent_id: int,
+    ) -> Optional[PaymentIntent]:
+
+        stmt = (
+            select(PaymentIntent)
+            .where(PaymentIntent.id == intent_id)
+            .where(PaymentIntent.tenant_id == tenant_id)
+        )
+
+        return db.execute(stmt).scalar_one_or_none()
+
+    @staticmethod
+    def get_by_gateway_id(
+        db: Session,
+        *,
+        tenant_id: int,
+        gateway_intent_id: str,
+    ) -> Optional[PaymentIntent]:
+
+        stmt = (
+            select(PaymentIntent)
+            .where(PaymentIntent.gateway_intent_id == gateway_intent_id)
+            .where(PaymentIntent.tenant_id == tenant_id)
+        )
+
+        return db.execute(stmt).scalar_one_or_none()
+
+    @staticmethod
+    def set_gateway_id(
+        *,
+        intent: PaymentIntent,
+        gateway_intent_id: str,
+    ) -> None:
+        intent.gateway_intent_id = gateway_intent_id
+
+    @staticmethod
+    def set_status(
+        *,
+        intent: PaymentIntent,
+        status: PaymentIntentStatus,
+    ) -> None:
+        intent.status = status
+
+    @staticmethod
+    def set_totals(
+        *,
+        intent: PaymentIntent,
+        total_paid: Decimal,
+        balance_due: Decimal,
+    ) -> None:
+        intent.total_paid = Decimal(total_paid)
+        intent.balance_due = Decimal(balance_due)
 
     @staticmethod
     def list_by_status(
         db: Session,
         *,
         tenant_id: int,
-        status: PaymentStatus,
+        status: PaymentIntentStatus,
         limit: int = 50,
-    ) -> List[Payment]:
-        """
-        List payments by status (tenant-safe).
-        """
+    ) -> List[PaymentIntent]:
+
         stmt = (
-            select(Payment)
-            .join(Sale, Sale.id == Payment.sale_id)
-            .where(Payment.status == status)
-            .where(Sale.tenant_id == tenant_id)
-            .order_by(Payment.created_at.desc())
+            select(PaymentIntent)
+            .where(PaymentIntent.tenant_id == tenant_id)
+            .where(PaymentIntent.status == status)
+            .order_by(PaymentIntent.created_at.desc())
             .limit(limit)
         )
+
         return list(db.execute(stmt).scalars().all())
 
+
+# =========================================================
+# PAYMENT ATTEMPT REPOSITORY
+# =========================================================
+
+class PaymentAttemptRepository:
+
     @staticmethod
-    def list_by_method(
+    def create(
         db: Session,
         *,
-        tenant_id: int,
-        method: PaymentMethod,
-        limit: int = 50,
-    ) -> List[Payment]:
-        """
-        List payments by method (cash vs xafpay).
-        """
+        attempt: PaymentAttempt,
+    ) -> PaymentAttempt:
+        db.add(attempt)
+        return attempt
+
+    @staticmethod
+    def sum_succeeded_for_intent(
+        db: Session,
+        *,
+        intent_id: int,
+    ) -> Decimal:
+
         stmt = (
-            select(Payment)
-            .join(Sale, Sale.id == Payment.sale_id)
-            .where(Payment.method == method)
-            .where(Sale.tenant_id == tenant_id)
-            .order_by(Payment.created_at.desc())
-            .limit(limit)
+            select(func.coalesce(func.sum(PaymentAttempt.amount), 0))
+            .where(PaymentAttempt.payment_intent_id == intent_id)
+            .where(PaymentAttempt.status == PaymentAttemptStatus.succeeded)
         )
+
+        result = db.execute(stmt).scalar_one()
+        return Decimal(result or 0)
+
+    @staticmethod
+    def list_for_intent(
+        db: Session,
+        *,
+        intent_id: int,
+    ) -> List[PaymentAttempt]:
+
+        stmt = (
+            select(PaymentAttempt)
+            .where(PaymentAttempt.payment_intent_id == intent_id)
+            .order_by(PaymentAttempt.created_at.asc())
+        )
+
         return list(db.execute(stmt).scalars().all())

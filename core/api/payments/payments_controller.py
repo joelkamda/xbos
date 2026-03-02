@@ -1,4 +1,5 @@
 import uuid
+from decimal import Decimal
 from typing import Any, Dict
 
 import httpx
@@ -7,13 +8,16 @@ from sqlalchemy.orm import Session
 
 from settings import settings
 
-from core.domain.payments.models import PaymentMethod, PaymentProvider
-from core.domain.payments.repository import PaymentRepository
 from core.domain.payments.service import PaymentService
+from core.domain.payments.repository import PaymentIntentRepository
 from core.domain.sales.repository import SaleRepository
 
 
 class PaymentsController:
+
+    # -------------------------------------------------
+    # XAFPAY INIT (PaymentIntent-based architecture)
+    # -------------------------------------------------
 
     async def init_xafpay_payment(
         self,
@@ -29,12 +33,14 @@ class PaymentsController:
             )
 
         tenant_id = ctx["tenant_id"]
+        branch_id = ctx["branch_id"]
+        user_id = ctx["user_id"]
 
         sale_id = payload.get("sale_id")
-        channel = payload.get("provider")
+        rail = payload.get("provider")  # mtn, orange, wallet
         client_reference = payload.get("client_reference") or str(uuid.uuid4())
 
-        if not sale_id or not channel:
+        if not sale_id or not rail:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="sale_id and provider are required",
@@ -56,31 +62,36 @@ class PaymentsController:
             )
 
         # -------------------------------------------------
-        # Normalize & Validate Provider
+        # Normalize rail (XBOS does NOT validate adapters)
         # -------------------------------------------------
-        channel_normalized = str(channel).strip().lower()
+        rail_normalized = str(rail).strip().lower()
 
-        try:
-            provider_enum = PaymentProvider(channel_normalized)
-        except Exception:
+        if not rail_normalized:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Unsupported provider: {channel}",
+                detail="Invalid payment rail",
             )
 
-        print("🔥 SENDING PROVIDER TO GATEWAY:", provider_enum.value)
+        print("🔥 SENDING RAIL TO GATEWAY:", rail_normalized)
 
         # -------------------------------------------------
-        # 1️⃣ Create internal Payment record (PENDING)
+        # 1️⃣ Create PaymentIntent (idempotent)
         # -------------------------------------------------
-        payment = PaymentService.init_payment(
+        intent = PaymentService.init_intent(
             db,
             tenant_id=tenant_id,
-            sale_id=sale.id,
-            method=PaymentMethod.xafpay,
-            provider=provider_enum,
-            amount=float(sale.total),
+            branch_id=branch_id,
+            payable_type="sale",
+            payable_id=sale.id,
+            currency="XAF",
+            amount=Decimal(str(sale.total)),
+            channel="xafpay",
+            created_by_user_id=user_id,
             client_reference=client_reference,
+            meta={
+                "rail": rail_normalized,
+                "sale_id": sale.id,
+            },
         )
 
         db.flush()
@@ -121,20 +132,21 @@ class PaymentsController:
                         "Idempotency-Key": idem_key,
                     },
                     json={
-                        "amount": float(payment.amount),
-                        "currency": "XAF",
-                        "provider": "tranzak",
-            "requestedRail": channel_normalized,  # rail layer
-            "description": f"{provider_enum.value} payment for Sale #{sale.id}",
-            "customer": {
-                "email": "pos@xbos.local",
-                "phone": "670000000",
-            },
-            "externalId": str(payment.id),
-            "returnUrl": return_url,
-            "cancelUrl": cancel_url,
-        },
-    )
+                        "amount": float(intent.amount),
+                        "currency": intent.currency,
+                        "provider": "tranzak",  # XBOS always uses XafPay channel
+                        "requestedRail": rail_normalized,
+                        "description": f"{rail_normalized} payment for Sale #{sale.id}",
+                        "customer": {
+                            "email": "pos@xbos.local",
+                            "phone": "670000000",
+                        },
+                        "externalId": str(intent.id),
+                        "returnUrl": return_url,
+                        "cancelUrl": cancel_url,
+                    },
+                )
+
             if response.status_code not in (200, 201):
                 print("❌ Gateway error:", response.text)
                 raise HTTPException(
@@ -164,15 +176,15 @@ class PaymentsController:
             )
 
         # -------------------------------------------------
-        # 5️⃣ Save reference
+        # 5️⃣ Save gateway reference on Intent
         # -------------------------------------------------
-        PaymentRepository.set_reference(
-            payment=payment,
-            reference=gateway_intent_id,
+        PaymentIntentRepository.set_gateway_id(
+            intent=intent,
+            gateway_intent_id=gateway_intent_id,
         )
 
         db.commit()
-        db.refresh(payment)
+        db.refresh(intent)
 
         print("✅ Gateway Intent Created:", gateway_intent_id)
         print("🌐 Payment URL:", payment_url)
@@ -180,16 +192,10 @@ class PaymentsController:
         # -------------------------------------------------
         # 6️⃣ Return to frontend
         # -------------------------------------------------
-        status_value = (
-            payment.status.value
-            if hasattr(payment.status, "value")
-            else str(payment.status)
-        )
-
         return {
-            "payment_id": payment.id,
+            "intent_id": intent.id,
             "sale_id": sale.id,
             "gateway_intent_id": gateway_intent_id,
             "paymentUrl": payment_url,
-            "status": status_value,
+            "status": intent.status,
         }
