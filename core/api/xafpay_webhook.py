@@ -10,6 +10,7 @@ from sqlalchemy.orm import Session
 
 from database import get_db
 from core.domain.payments.service import PaymentService, WebhookEvent
+from core.domain.payments.repository import PaymentIntentRepository
 
 router = APIRouter()
 
@@ -24,7 +25,7 @@ async def xafpay_webhook(
     db: Session = Depends(get_db),
 ):
     # -------------------------------------------------
-    # Safely read request body
+    # Read body safely
     # -------------------------------------------------
     try:
         raw_body = await request.body()
@@ -63,17 +64,19 @@ async def xafpay_webhook(
     print("Event ID:", x_xafpay_event_id)
     print("Payload:", payload)
 
-    # -------------------------------------------------
-    # Normalize + Apply Business Logic
-    # -------------------------------------------------
     try:
-        tenant_id = 2  # TODO: replace with proper tenant resolution
+        # -------------------------------------------------
+        # Extract required fields safely
+        # -------------------------------------------------
+        gateway_intent_id = (
+            payload.get("gateway_intent_id")
+            or payload.get("id")
+        )
 
-        gateway_intent_id = payload.get("gateway_intent_id")
         if not gateway_intent_id:
             raise ValueError("Missing gateway_intent_id")
 
-        raw_status = (payload.get("status") or "").upper()
+        raw_status = str(payload.get("status") or "").upper()
 
         # Normalize status
         if raw_status in ("SUCCEEDED", "SUCCESS", "PAID"):
@@ -83,32 +86,53 @@ async def xafpay_webhook(
         else:
             normalized_status = raw_status or "UNKNOWN"
 
-        # Safe Decimal conversion
         try:
             amount = Decimal(str(payload.get("amount") or "0"))
         except (InvalidOperation, TypeError):
             amount = Decimal("0")
 
         currency = payload.get("currency") or "XAF"
-        provider = payload.get("provider") or "unknown"
+        provider = payload.get("provider") or "xafpay"
 
+        callback_reference = (
+            payload.get("callback_reference")
+            or x_xafpay_event_id
+            or gateway_intent_id
+        )
+
+        # -------------------------------------------------
+        # Resolve tenant dynamically (🔥 IMPORTANT)
+        # -------------------------------------------------
+        intent = PaymentIntentRepository.get_by_gateway_id(
+            db,
+            tenant_id=payload.get("tenant_id") or 2,  # replace later with dynamic
+            gateway_intent_id=gateway_intent_id,
+        )
+
+        if not intent:
+            raise ValueError("PaymentIntent not found")
+
+        tenant_id = intent.tenant_id
+
+        # -------------------------------------------------
+        # Build WebhookEvent
+        # -------------------------------------------------
         event = WebhookEvent(
-            event=payload.get("event") or "payment.unknown",
+            event=payload.get("event") or "payment.updated",
             status=normalized_status,
             amount=amount,
             currency=currency,
             provider=provider,
             gateway_intent_id=gateway_intent_id,
-            callback_reference=payload.get("callback_reference")
-            or (x_xafpay_event_id or ""),
+            callback_reference=str(callback_reference),
             merchant_reference=payload.get("merchant_reference"),
             provider_reference=payload.get("provider_reference"),
         )
 
         # -------------------------------------------------
-        # Apply settlement logic
+        # Apply settlement (Financial Spine)
         # -------------------------------------------------
-        intent = PaymentService.apply_gateway_webhook(
+        updated_intent = PaymentService.apply_gateway_webhook(
             db,
             tenant_id=tenant_id,
             event=event,
@@ -118,8 +142,8 @@ async def xafpay_webhook(
 
         return {
             "status": "accepted",
-            "intent_id": intent.id,
-            "gateway_intent_id": gateway_intent_id,
+            "intent_id": updated_intent.id,
+            "balance_due": float(updated_intent.balance_due),
         }
 
     except Exception as e:

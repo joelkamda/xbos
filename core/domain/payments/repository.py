@@ -5,79 +5,15 @@ from sqlalchemy.orm import Session
 from sqlalchemy import select, func
 
 from core.domain.payments.models import (
-    Payment,
-    PaymentStatus,
-    PaymentMethod,
     PaymentIntent,
     PaymentIntentStatus,
     PaymentAttempt,
     PaymentAttemptStatus,
 )
 
-from core.domain.sales.models import Sale
-
 
 # =========================================================
-# LEGACY PAYMENT REPOSITORY (kept for compatibility only)
-# =========================================================
-
-class PaymentRepository:
-
-    @staticmethod
-    def get_by_id(
-        db: Session,
-        *,
-        tenant_id: int,
-        payment_id: int,
-    ) -> Optional[Payment]:
-
-        stmt = (
-            select(Payment)
-            .join(Sale, Sale.id == Payment.sale_id)
-            .where(Payment.id == payment_id)
-            .where(Sale.tenant_id == tenant_id)
-        )
-
-        return db.execute(stmt).scalar_one_or_none()
-
-    @staticmethod
-    def create(
-        db: Session,
-        *,
-        payment: Payment,
-    ) -> Payment:
-        db.add(payment)
-        return payment
-
-    @staticmethod
-    def set_status(
-        *,
-        payment: Payment,
-        status: PaymentStatus,
-    ) -> None:
-        payment.status = status
-
-    @staticmethod
-    def sum_paid_for_sale(
-        db: Session,
-        *,
-        tenant_id: int,
-        sale_id: int,
-    ) -> float:
-
-        stmt = (
-            select(func.coalesce(func.sum(Payment.amount), 0))
-            .join(Sale, Sale.id == Payment.sale_id)
-            .where(Payment.sale_id == sale_id)
-            .where(Payment.status == PaymentStatus.paid)
-            .where(Sale.tenant_id == tenant_id)
-        )
-
-        return float(db.execute(stmt).scalar_one())
-
-
-# =========================================================
-# PAYMENT INTENT REPOSITORY (PRIMARY ARCHITECTURE)
+# PAYMENT INTENT REPOSITORY (PRIMARY AUTHORITY)
 # =========================================================
 
 class PaymentIntentRepository:
@@ -104,7 +40,6 @@ class PaymentIntentRepository:
             .where(PaymentIntent.id == intent_id)
             .where(PaymentIntent.tenant_id == tenant_id)
         )
-
         return db.execute(stmt).scalar_one_or_none()
 
     @staticmethod
@@ -120,7 +55,25 @@ class PaymentIntentRepository:
             .where(PaymentIntent.gateway_intent_id == gateway_intent_id)
             .where(PaymentIntent.tenant_id == tenant_id)
         )
+        return db.execute(stmt).scalar_one_or_none()
 
+    @staticmethod
+    def get_by_payable(
+        db: Session,
+        *,
+        tenant_id: int,
+        payable_type: str,
+        payable_id: int,
+    ) -> Optional[PaymentIntent]:
+
+        stmt = (
+            select(PaymentIntent)
+            .where(PaymentIntent.tenant_id == tenant_id)
+            .where(PaymentIntent.payable_type == payable_type)
+            .where(PaymentIntent.payable_id == payable_id)
+            .order_by(PaymentIntent.id.desc())
+            .limit(1)
+        )
         return db.execute(stmt).scalar_one_or_none()
 
     @staticmethod
@@ -165,7 +118,6 @@ class PaymentIntentRepository:
             .order_by(PaymentIntent.created_at.desc())
             .limit(limit)
         )
-
         return list(db.execute(stmt).scalars().all())
 
 
@@ -185,6 +137,21 @@ class PaymentAttemptRepository:
         return attempt
 
     @staticmethod
+    def get_by_client_reference(
+        db: Session,
+        *,
+        client_reference: str,
+    ) -> Optional[PaymentAttempt]:
+
+        stmt = (
+            select(PaymentAttempt)
+            .where(PaymentAttempt.client_reference == client_reference)
+            .order_by(PaymentAttempt.id.desc())
+            .limit(1)
+        )
+        return db.execute(stmt).scalar_one_or_none()
+
+    @staticmethod
     def sum_succeeded_for_intent(
         db: Session,
         *,
@@ -196,7 +163,6 @@ class PaymentAttemptRepository:
             .where(PaymentAttempt.payment_intent_id == intent_id)
             .where(PaymentAttempt.status == PaymentAttemptStatus.succeeded)
         )
-
         result = db.execute(stmt).scalar_one()
         return Decimal(result or 0)
 
@@ -212,5 +178,4 @@ class PaymentAttemptRepository:
             .where(PaymentAttempt.payment_intent_id == intent_id)
             .order_by(PaymentAttempt.created_at.asc())
         )
-
         return list(db.execute(stmt).scalars().all())

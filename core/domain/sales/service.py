@@ -1,5 +1,8 @@
+from __future__ import annotations
+
 from typing import Dict, Any, List
 from datetime import datetime
+from decimal import Decimal
 
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
@@ -10,14 +13,11 @@ from core.domain.sales.models import (
     SaleStatus,
     PaymentMethod,
 )
-from core.domain.payments.models import (
-    Payment,
-    PaymentStatus,
-)
 from core.domain.sales.repository import SaleRepository
-from core.domain.payments.repository import PaymentRepository
 from core.domain.catalog.repository import BillableUnitRepository
 from core.domain.sales.receipt import generate_receipt_no
+
+from core.domain.payments.service import PaymentService
 
 from core.shared.idempotency import (
     check_idempotency_key,
@@ -25,14 +25,26 @@ from core.shared.idempotency import (
 )
 
 
+def _d(v: Any) -> Decimal:
+    try:
+        return Decimal(str(v))
+    except Exception:
+        return Decimal("0")
+
+
 class SaleService:
     """
-    Core POS engine — Tier-1 authority.
-    """
+    Core POS engine — Tier-1 authority (NEW SYSTEM).
 
-    # -------------------------------------------------
-    # READ
-    # -------------------------------------------------
+    Invariants:
+    - Sale ALWAYS has exactly ONE PaymentIntent (authoritative).
+    - Settlement is expressed as PaymentAttempts (split-safe, async-safe).
+    - NO legacy Payment table usage.
+
+    Totals:
+    - sale.subtotal = GROSS (sum of line totals)
+    - sale.total    = NET (gross - discount - complimentary)
+    """
 
     @staticmethod
     def list_sales(
@@ -49,10 +61,6 @@ class SaleService:
             limit=limit,
         )
 
-    # -------------------------------------------------
-    # WRITE
-    # -------------------------------------------------
-
     @staticmethod
     def create_sale(
         db: Session,
@@ -62,44 +70,59 @@ class SaleService:
         cashier_id: int,
         payload: Dict[str, Any],
     ) -> Sale:
-
         # -------------------------
-        # Idempotency
+        # Idempotency (sale)
         # -------------------------
         client_reference = payload.get("client_reference")
         if not client_reference:
             raise ValueError("client_reference is required")
 
-        existing = check_idempotency_key(
-            db,
-            key=client_reference,
-            scope="sale",
-        )
+        existing = check_idempotency_key(db, key=client_reference, scope="sale")
         if existing:
-            return SaleRepository.get_by_id(
+            sale = SaleRepository.get_by_id(
                 db,
                 tenant_id=tenant_id,
                 sale_id=existing.reference_id,
             )
+            if not sale:
+                raise ValueError("Idempotency key points to missing sale")
+            return sale
 
         # -------------------------
-        # Validate intent
+        # Validate items
         # -------------------------
         items_payload = payload.get("items")
         if not items_payload:
             raise ValueError("Sale must contain at least one item")
 
-        payment_method_raw = payload.get("payment_method")
+        # -------------------------
+        # payment_method (MAKE OPTIONAL)
+        # -------------------------
+        payment_method_raw = payload.get("payment_method") or "cash"
         if payment_method_raw not in PaymentMethod._value2member_map_:
             raise ValueError("Invalid payment_method")
-
         payment_method = PaymentMethod(payment_method_raw)
 
+        currency = (payload.get("currency") or "XAF").upper()
+
         # -------------------------
-        # Build SaleItems
+        # Discounts / Complimentary
+        # -------------------------
+        discount_total = _d(payload.get("discount_total") or 0)
+        discount_reason = payload.get("discount_reason")
+        complimentary_total = _d(payload.get("complimentary_total") or 0)
+        complimentary_items = payload.get("complimentary_items") or []
+
+        if discount_total < 0:
+            discount_total = Decimal("0")
+        if complimentary_total < 0:
+            complimentary_total = Decimal("0")
+
+        # -------------------------
+        # Build SaleItems (gross)
         # -------------------------
         sale_items: List[SaleItem] = []
-        subtotal = 0
+        gross_total = Decimal("0")
 
         for item in items_payload:
             billable_unit_id = item.get("billable_unit_id")
@@ -115,12 +138,10 @@ class SaleService:
             )
 
             if not billable_unit or not billable_unit.is_active:
-                raise ValueError(
-                    f"Invalid or inactive billable unit: {billable_unit_id}"
-                )
+                raise ValueError(f"Invalid or inactive billable unit: {billable_unit_id}")
 
-            unit_price = billable_unit.price
-            line_total = unit_price * quantity
+            unit_price = _d(billable_unit.price)
+            line_total = unit_price * Decimal(quantity)
 
             sale_items.append(
                 SaleItem(
@@ -131,14 +152,15 @@ class SaleService:
                     line_total=line_total,
                 )
             )
-
-            subtotal += line_total
-
-        total = subtotal
+            gross_total += line_total
 
         # -------------------------
-        # Create Sale
+        # NET total (client pays)
         # -------------------------
+        net_total = gross_total - discount_total - complimentary_total
+        if net_total < 0:
+            net_total = Decimal("0")
+
         now = datetime.utcnow()
 
         receipt_no = generate_receipt_no(
@@ -148,50 +170,57 @@ class SaleService:
             created_at=now,
         )
 
+        # New system: start pending; settlement will flip to paid
         sale = Sale(
             tenant_id=tenant_id,
             branch_id=branch_id,
             cashier_id=cashier_id,
             receipt_no=receipt_no,
-            status=(
-                SaleStatus.paid
-                if payment_method == PaymentMethod.cash
-                else SaleStatus.pending_payment
-            ),
+            status=SaleStatus.pending_payment,
             payment_method=payment_method.value,
-            subtotal=subtotal,
-            total=total,
+            subtotal=gross_total,
+            total=net_total,
             created_at=now,
         )
 
         try:
-            # 1️⃣ Persist Sale
             SaleRepository.create(db, sale=sale)
-
-            # 🔥 CRITICAL: ensure sale.id exists
             db.flush()
 
-            # 2️⃣ Persist items
-            for item in sale_items:
-                item.sale = sale
-
+            for si in sale_items:
+                si.sale = sale
             SaleRepository.create_items(db, items=sale_items)
 
-            # 3️⃣ CASH → immediate payment
-            if payment_method == PaymentMethod.cash:
-                PaymentRepository.create(
-                    db,
-                    payment=Payment(
-                        sale_id=sale.id,
-                        method=PaymentMethod.cash,
-                        provider=None,
-                        amount=total,
-                        status=PaymentStatus.paid,
-                        completed_at=now,
-                    ),
-                )
+            # Always create ONE intent per sale (amount = NET)
+            intent_client_ref = f"sale-intent:{tenant_id}:{branch_id}:{sale.id}"
 
-            # 4️⃣ Idempotency
+            PaymentService.init_intent(
+                db,
+                tenant_id=tenant_id,
+                branch_id=branch_id,
+                payable_type="sale",
+                payable_id=sale.id,
+                currency=currency,
+                amount=net_total,
+                channel="pos",
+                created_by_user_id=cashier_id,
+                client_reference=intent_client_ref,
+                meta={
+                    "receipt_no": sale.receipt_no,
+                    "source": "SaleService.create_sale",
+
+                    # receipt-critical
+                    "gross_total": float(gross_total),
+                    "discount_total": float(discount_total),
+                    "discount_reason": str(discount_reason) if discount_reason else None,
+                    "complimentary_total": float(complimentary_total),
+                    "complimentary_items": complimentary_items,
+                    "net_total": float(net_total),
+
+                    "initial_payment_method": payment_method.value,
+                },
+            )
+
             record_idempotency_key(
                 db,
                 key=client_reference,

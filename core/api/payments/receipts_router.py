@@ -4,7 +4,7 @@ from core.api.payments.receipts_controller import ReceiptsController
 from core.rbac.utils.permission_decorator import require_permissions
 from database import get_db
 
-router = APIRouter()
+router = APIRouter(tags=["Receipts"])
 controller = ReceiptsController()
 
 
@@ -13,10 +13,15 @@ controller = ReceiptsController()
 async def get_receipt(
     sale_id: int,
     request: Request,
-    db = Depends(get_db),
+    db=Depends(get_db),
 ):
     """
-    Fetch a printable receipt for a PAID sale.
+    Fetch printable receipt for a sale.
+
+    Financial authority:
+    - PaymentIntent.amount (NET due)
+    - PaymentIntent.total_paid
+    - PaymentIntent.balance_due
     """
     return await controller.get_receipt(
         request=request,
