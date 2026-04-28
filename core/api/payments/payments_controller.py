@@ -9,14 +9,184 @@ from sqlalchemy.orm import Session
 from settings import settings
 
 from core.domain.payments.service import PaymentService
-from core.domain.payments.repository import PaymentIntentRepository
+from core.domain.payments.repository import (
+    PaymentIntentRepository,
+    PaymentAttemptRepository,
+)
 from core.domain.sales.repository import SaleRepository
+from core.domain.sales.service import SaleService
+from core.domain.orders.repository import OrderRepository
+
+
+def _d(v: Any) -> Decimal:
+    try:
+        if v is None or v == "":
+            return Decimal("0")
+        return Decimal(str(v))
+    except Exception:
+        return Decimal("0")
 
 
 class PaymentsController:
+    # =====================================================
+    # INTERNAL HELPERS
+    # =====================================================
+
+    def _get_ctx(self, request: Request) -> Dict[str, Any]:
+        ctx = getattr(request.state, "user", None)
+
+        if not ctx:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Missing authentication context",
+            )
+
+        return ctx
+
+    def _resolve_sale_from_order(
+        self,
+        *,
+        db: Session,
+        tenant_id: int,
+        branch_id: int,
+        user_id: int,
+        order_id: int,
+    ):
+        sale = SaleRepository.get_by_order_id(
+            db,
+            tenant_id=tenant_id,
+            order_id=order_id,
+        )
+
+        if sale:
+            return sale
+
+        order = OrderRepository.get_by_id(db, order_id)
+
+        if not order:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Order not found",
+            )
+
+        if order.tenant_id != tenant_id or order.branch_id != branch_id:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Order does not belong to current tenant/branch",
+            )
+
+        return SaleService.create_sale_from_order(
+            db,
+            tenant_id=tenant_id,
+            branch_id=branch_id,
+            cashier_id=user_id,
+            order=order,
+        )
 
     # =====================================================
-    # POS SETTLEMENT (🔥 THIS WAS MISSING)
+    # LIST PAYMENTS (UI DASHBOARD)
+    # =====================================================
+
+    async def list_payments(self, request: Request, db: Session):
+        ctx = self._get_ctx(request)
+
+        tenant_id = ctx["tenant_id"]
+        branch_id = ctx["branch_id"]
+
+        intents = PaymentIntentRepository.list_recent(
+            db=db,
+            tenant_id=tenant_id,
+            branch_id=branch_id,
+            limit=50,
+        )
+
+        results = []
+
+        for intent in intents:
+            meta = intent.meta or {}
+
+            results.append(
+                {
+                    "id": str(intent.id),
+                    "sale_id": intent.payable_id
+                    if intent.payable_type == "sale"
+                    else meta.get("sale_id"),
+                    "payable_type": intent.payable_type,
+                    "payable_id": intent.payable_id,
+                    "customer_name": meta.get("customer_name"),
+                    "phone": meta.get("phone"),
+                    "amount": float(intent.amount or 0),
+                    "method": intent.channel,
+                    "status": intent.status.value
+                    if hasattr(intent.status, "value")
+                    else str(intent.status),
+                    "created_at": intent.created_at.isoformat()
+                    if intent.created_at
+                    else None,
+                }
+            )
+
+        return results
+
+    # =====================================================
+    # SINGLE PAYMENT (RIGHT PANEL)
+    # =====================================================
+
+    async def get_payment(self, request: Request, payment_id: str, db: Session):
+        ctx = self._get_ctx(request)
+
+        tenant_id = ctx["tenant_id"]
+
+        intent = PaymentIntentRepository.get_by_id(
+            db=db,
+            tenant_id=tenant_id,
+            intent_id=payment_id,
+        )
+
+        if not intent:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Payment not found",
+            )
+
+        attempts = PaymentAttemptRepository.list_by_intent(
+            db=db,
+            intent_id=intent.id,
+        )
+
+        return {
+            "id": str(intent.id),
+            "amount": float(intent.amount or 0),
+            "currency": intent.currency,
+            "status": intent.status.value
+            if hasattr(intent.status, "value")
+            else str(intent.status),
+            "total_paid": float(intent.total_paid or 0),
+            "balance_due": float(intent.balance_due or 0),
+            "created_at": intent.created_at.isoformat()
+            if intent.created_at
+            else None,
+            "meta": intent.meta or {},
+            "attempts": [
+                {
+                    "id": str(a.id),
+                    "provider": a.provider,
+                    "method": a.method,
+                    "settlement_mode": a.settlement_mode,
+                    "amount": float(a.amount or 0),
+                    "status": a.status.value
+                    if hasattr(a.status, "value")
+                    else str(a.status),
+                    "created_at": a.created_at.isoformat()
+                    if a.created_at
+                    else None,
+                }
+                for a in attempts
+            ],
+        }
+
+    # =====================================================
+    # POS SETTLEMENT (ORDER-DRIVEN / MANUAL)
     # =====================================================
 
     async def pos_settle(
@@ -25,99 +195,204 @@ class PaymentsController:
         payload: Dict[str, Any],
         db: Session,
     ):
-        """
-        Apply POS settlement (cash / mtn / orange / split / unpaid).
-
-        This updates:
-        - payment_attempts
-        - payment_intents.total_paid
-        - payment_intents.balance_due
-        - sale.status
-        """
-
-        ctx = getattr(request.state, "user", None)
-        if not ctx or not isinstance(ctx, dict):
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Missing authentication context",
-            )
+        ctx = self._get_ctx(request)
 
         tenant_id = ctx["tenant_id"]
         branch_id = ctx["branch_id"]
         user_id = ctx["user_id"]
 
-        sale_id = payload.get("sale_id")
+        order_id = payload.get("order_id")
         client_reference = payload.get("client_reference")
         lines: List[Dict[str, Any]] = payload.get("lines") or []
+
+        # =====================================================
+        # 🔥 EXTRACT + NORMALIZE CHANGE MODEL
+        # =====================================================
+
+        receipt_meta = payload.get("receipt_meta") or {}
+
+        tendered_total = payload.get("tendered_total")
+        change_amount = payload.get("change_amount")
+        change_given_now = payload.get("change_given_now")
+        tip_amount = payload.get("tip_amount")
+        unpaid_amount = payload.get("unpaid_amount")
         note = payload.get("note")
 
-        if not sale_id:
-            raise HTTPException(status_code=400, detail="sale_id is required")
+        change_amount_d = _d(change_amount)
+        change_given_now_d = _d(change_given_now)
+        tip_amount_d = _d(tip_amount)
+
+        safe_given_d = min(change_given_now_d, change_amount_d)
+
+        safe_tip_d = min(
+            tip_amount_d,
+            max(Decimal("0"), change_amount_d - safe_given_d),
+        )
+
+        change_remaining_d = max(
+            Decimal("0"),
+            change_amount_d - (safe_given_d + safe_tip_d),
+        )
+
+        # 🔥 WRITE NORMALIZED VALUES
+        receipt_meta = {
+            **receipt_meta,
+            "tendered_total": float(_d(tendered_total))
+            if tendered_total is not None
+            else float(_d(receipt_meta.get("tendered_total"))),
+            "change_amount": float(change_amount_d),
+            "change_given_now": float(safe_given_d),
+            "change_remaining": float(change_remaining_d),
+            "tip_amount": float(safe_tip_d),
+            "unpaid_amount": float(_d(unpaid_amount))
+            if unpaid_amount is not None
+            else float(_d(receipt_meta.get("unpaid_amount"))),
+        }
+
+        # 🔥 CRITICAL: overwrite variables passed to service
+        change_given_now = safe_given_d
+        tip_amount = safe_tip_d
+        change_remaining = change_remaining_d
+
+        is_manual = bool(receipt_meta.get("manual"))
 
         if not client_reference:
-            raise HTTPException(status_code=400, detail="client_reference is required")
-
-        if not isinstance(lines, list) or len(lines) == 0:
-            raise HTTPException(status_code=400, detail="lines[] required")
-
-        # -------------------------------------------------
-        # Validate Sale
-        # -------------------------------------------------
-        sale = SaleRepository.get_by_id(
-            db,
-            tenant_id=tenant_id,
-            sale_id=sale_id,
-        )
-
-        if not sale:
-            raise HTTPException(status_code=404, detail="Sale not found")
-
-        # -------------------------------------------------
-        # Ensure intent exists
-        # -------------------------------------------------
-        intent = PaymentIntentRepository.get_by_payable(
-            db,
-            tenant_id=tenant_id,
-            payable_type="sale",
-            payable_id=sale.id,
-        )
-
-        if not intent:
             raise HTTPException(
-                status_code=500,
-                detail="PaymentIntent missing for sale",
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="client_reference required",
             )
 
-        # -------------------------------------------------
-        # Apply settlement (CORE ENGINE)
-        # -------------------------------------------------
-        intent = PaymentService.apply_pos_settlement(
-            db,
-            tenant_id=tenant_id,
-            branch_id=branch_id,
-            sale_id=sale.id,
-            created_by_user_id=user_id,
-            client_reference=str(client_reference),
-            lines=lines,
-            note=note,
-        )
+        if not lines:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="lines required",
+            )
+
+        # =====================================================
+        # ORDER FLOW
+        # =====================================================
+        if order_id:
+            sale = self._resolve_sale_from_order(
+                db=db,
+                tenant_id=tenant_id,
+                branch_id=branch_id,
+                user_id=user_id,
+                order_id=int(order_id),
+            )
+
+            intent = PaymentIntentRepository.get_by_payable(
+                db,
+                tenant_id=tenant_id,
+                payable_type="sale",
+                payable_id=sale.id,
+            )
+
+            if not intent:
+                raise HTTPException(
+                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    detail="PaymentIntent missing for resolved sale",
+                )
+
+            intent = PaymentService.apply_pos_settlement(
+                db=db,
+                tenant_id=tenant_id,
+                branch_id=branch_id,
+                sale_id=sale.id,
+                created_by_user_id=user_id,
+                client_reference=str(client_reference),
+                lines=lines,
+                tendered_total=_d(tendered_total)
+                if tendered_total is not None
+                else None,
+                change_amount=_d(change_amount)
+                if change_amount is not None
+                else None,
+                change_given_now=_d(change_given_now)
+                if change_given_now is not None
+                else None,
+                change_remaining=_d(change_remaining)
+                if change_remaining is not None
+                else None,
+                tip_amount=_d(tip_amount)
+                if tip_amount is not None
+                else None,
+                unpaid_amount=_d(unpaid_amount)
+                if unpaid_amount is not None
+                else None,
+                note=note,
+                receipt_meta=receipt_meta,
+            )
+
+            if float(intent.balance_due or 0) <= 0:
+                order = OrderRepository.get_by_id(db, int(order_id))
+                if order:
+                    OrderRepository.mark_paid(order)
+
+        # =====================================================
+        # MANUAL FLOW
+        # =====================================================
+        else:
+            if not is_manual:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="order_id required (or manual mode)",
+                )
+
+            intent = PaymentService.apply_pos_settlement(
+                db=db,
+                tenant_id=tenant_id,
+                branch_id=branch_id,
+                sale_id=None,
+                created_by_user_id=user_id,
+                client_reference=str(client_reference),
+                lines=lines,
+                tendered_total=_d(tendered_total)
+                if tendered_total is not None
+                else None,
+                change_amount=_d(change_amount)
+                if change_amount is not None
+                else None,
+                change_given_now=_d(change_given_now)
+                if change_given_now is not None
+                else None,
+                change_remaining=_d(change_remaining)
+                if change_remaining is not None
+                else None,
+                tip_amount=_d(tip_amount)
+                if tip_amount is not None
+                else None,
+                unpaid_amount=_d(unpaid_amount)
+                if unpaid_amount is not None
+                else None,
+                note=note,
+                receipt_meta={
+                    **receipt_meta,
+                    "manual": True,
+                },
+            )
 
         db.commit()
         db.refresh(intent)
 
         return {
             "status": "ok",
-            "sale_id": sale.id,
+            "order_id": int(order_id) if order_id else None,
+            "sale_id": intent.payable_id
+            if intent.payable_type == "sale"
+            else None,
+            "payable_type": intent.payable_type,
+            "payable_id": intent.payable_id,
             "intent_id": intent.id,
             "total_paid": float(intent.total_paid or 0),
             "balance_due": float(intent.balance_due or 0),
+            "receipt_meta": intent.meta or {},
             "intent_status": intent.status.value
             if hasattr(intent.status, "value")
             else str(intent.status),
         }
 
     # =====================================================
-    # XAFPAY INIT (authoritative intent flow)
+    # XAFPAY INIT (ORDER-DRIVEN)
     # =====================================================
 
     async def init_xafpay_payment(
@@ -126,56 +401,29 @@ class PaymentsController:
         payload: Dict[str, Any],
         db: Session,
     ):
-
-        ctx = getattr(request.state, "user", None)
-        if not ctx or not isinstance(ctx, dict):
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Missing authentication context",
-            )
+        ctx = self._get_ctx(request)
 
         tenant_id = ctx["tenant_id"]
         branch_id = ctx["branch_id"]
         user_id = ctx["user_id"]
 
-        sale_id = payload.get("sale_id")
+        order_id = payload.get("order_id")
         rail = payload.get("provider")
-        client_reference = payload.get("client_reference") or str(uuid.uuid4())
 
-        if not sale_id or not rail:
+        if not order_id or not rail:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="sale_id and provider are required",
+                detail="order_id and provider required",
             )
 
-        # -------------------------------------------------
-        # Validate Sale
-        # -------------------------------------------------
-        sale = SaleRepository.get_by_id(
-            db,
+        sale = self._resolve_sale_from_order(
+            db=db,
             tenant_id=tenant_id,
-            sale_id=sale_id,
+            branch_id=branch_id,
+            user_id=user_id,
+            order_id=int(order_id),
         )
 
-        if not sale:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Sale not found",
-            )
-
-        # -------------------------------------------------
-        # Normalize rail
-        # -------------------------------------------------
-        rail_normalized = str(rail).strip().lower()
-        if not rail_normalized:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Invalid payment rail",
-            )
-
-        # -------------------------------------------------
-        # Ensure ONE intent per sale
-        # -------------------------------------------------
         intent = PaymentIntentRepository.get_by_payable(
             db,
             tenant_id=tenant_id,
@@ -185,47 +433,38 @@ class PaymentsController:
 
         if not intent:
             intent = PaymentService.init_intent(
-                db,
+                db=db,
                 tenant_id=tenant_id,
                 branch_id=branch_id,
                 payable_type="sale",
                 payable_id=sale.id,
                 currency="XAF",
-                amount=Decimal(str(sale.total)),  # NET ONLY
+                amount=Decimal(str(sale.total or 0)),
                 channel="xafpay",
                 created_by_user_id=user_id,
-                client_reference=f"sale-intent:{tenant_id}:{branch_id}:{sale.id}",
+                client_reference=str(uuid.uuid4()),
                 meta={
                     "sale_id": sale.id,
-                    "source": "PaymentsController.init_xafpay_payment",
+                    "order_id": int(order_id),
+                    "receipt_no": getattr(sale, "receipt_no", None),
                 },
             )
             db.flush()
 
-        # -------------------------------------------------
-        # Redirect URLs
-        # -------------------------------------------------
-        web_base = getattr(
-            settings,
-            "WEB_BASE_URL",
-            "http://localhost:5173",
-        ).rstrip("/")
+        web_base = settings.WEB_BASE_URL.rstrip("/")
 
-        return_url = str(
+        return_url = (
             payload.get("returnUrl")
-            or f"{web_base}/result?status=success&saleId={sale.id}&intentId={intent.id}"
+            or f"{web_base}/result?status=success&orderId={order_id}&saleId={sale.id}&intentId={intent.id}"
         )
 
-        cancel_url = str(
+        cancel_url = (
             payload.get("cancelUrl")
-            or f"{web_base}/result?status=failure&saleId={sale.id}"
+            or f"{web_base}/result?status=failure&orderId={order_id}&saleId={sale.id}"
         )
 
-        # -------------------------------------------------
-        # Call Gateway
-        # -------------------------------------------------
         try:
-            async with httpx.AsyncClient(timeout=20.0) as client:
+            async with httpx.AsyncClient(timeout=20) as client:
                 response = await client.post(
                     f"{settings.GATEWAY_BASE_URL}/api/v1/payment-intents",
                     headers={
@@ -234,15 +473,10 @@ class PaymentsController:
                         "Idempotency-Key": str(uuid.uuid4()),
                     },
                     json={
-                        "amount": float(intent.amount),  # NET
+                        "amount": float(intent.amount or 0),
                         "currency": intent.currency,
                         "provider": "tranzak",
-                        "requestedRail": rail_normalized,
-                        "description": f"{rail_normalized} payment for Sale #{sale.id}",
-                        "customer": {
-                            "email": "pos@xbos.local",
-                            "phone": "670000000",
-                        },
+                        "requestedRail": rail,
                         "externalId": str(intent.id),
                         "returnUrl": return_url,
                         "cancelUrl": cancel_url,
@@ -260,17 +494,11 @@ class PaymentsController:
         except httpx.RequestError:
             raise HTTPException(
                 status_code=status.HTTP_502_BAD_GATEWAY,
-                detail="Failed to connect to XafPay Gateway",
+                detail="Gateway connection failed",
             )
 
         gateway_intent_id = gateway_data.get("id")
         payment_url = gateway_data.get("paymentUrl")
-
-        if not gateway_intent_id or not payment_url:
-            raise HTTPException(
-                status_code=status.HTTP_502_BAD_GATEWAY,
-                detail="Invalid Gateway response",
-            )
 
         PaymentIntentRepository.set_gateway_id(
             intent=intent,
@@ -278,12 +506,11 @@ class PaymentsController:
         )
 
         db.commit()
-        db.refresh(intent)
 
         return {
             "intent_id": intent.id,
+            "order_id": int(order_id),
             "sale_id": sale.id,
             "gateway_intent_id": gateway_intent_id,
             "paymentUrl": payment_url,
-            "status": intent.status.value,
         }

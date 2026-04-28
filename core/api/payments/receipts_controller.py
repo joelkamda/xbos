@@ -1,7 +1,7 @@
 from typing import Dict, Any
 from decimal import Decimal
 
-from fastapi import Request, HTTPException, status
+from fastapi import Request, HTTPException
 from sqlalchemy.orm import Session
 
 from core.domain.sales.repository import SaleRepository
@@ -14,21 +14,14 @@ from core.domain.payments.models import PaymentAttemptStatus
 
 def _d(v: Any) -> Decimal:
     try:
+        if v is None:
+            return Decimal("0")
         return Decimal(str(v))
     except Exception:
         return Decimal("0")
 
 
 class ReceiptsController:
-    """
-    Receipt rendering controller (FINANCIAL AUTHORITY SAFE).
-
-    Truth hierarchy:
-    1. PaymentIntent.amount       → NET due (Client Pays)
-    2. PaymentIntent.total_paid   → Tendered
-    3. PaymentIntent.balance_due  → Unpaid / Store credit
-    4. meta fields                → display extras only
-    """
 
     async def get_receipt(
         self,
@@ -38,22 +31,13 @@ class ReceiptsController:
         db: Session,
     ) -> Dict[str, Any]:
 
-        # -------------------------------------------------
-        # Auth Context
-        # -------------------------------------------------
         ctx = getattr(request.state, "user", None)
-        if not ctx or not isinstance(ctx, dict):
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Missing authentication context",
-            )
+        if not ctx:
+            raise HTTPException(status_code=401)
 
         tenant_id = ctx["tenant_id"]
         branch_id = ctx["branch_id"]
 
-        # -------------------------------------------------
-        # Sale
-        # -------------------------------------------------
         sale = SaleRepository.get_by_id(
             db,
             tenant_id=tenant_id,
@@ -61,14 +45,8 @@ class ReceiptsController:
         )
 
         if not sale or sale.branch_id != branch_id:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Sale not found",
-            )
+            raise HTTPException(status_code=404, detail="Sale not found")
 
-        # -------------------------------------------------
-        # PaymentIntent (authoritative financial layer)
-        # -------------------------------------------------
         intent = PaymentIntentRepository.get_by_payable(
             db,
             tenant_id=tenant_id,
@@ -77,14 +55,54 @@ class ReceiptsController:
         )
 
         if not intent:
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="PaymentIntent not found for sale",
-            )
+            raise HTTPException(status_code=500)
 
-        # -------------------------------------------------
-        # Attempts
-        # -------------------------------------------------
+        return await self._build_receipt_from_intent(
+            intent=intent,
+            sale=sale,
+            ctx=ctx,
+            db=db,
+        )
+
+    async def get_manual_receipt(
+        self,
+        *,
+        request: Request,
+        intent_id: int,
+        db: Session,
+    ) -> Dict[str, Any]:
+
+        ctx = getattr(request.state, "user", None)
+        if not ctx:
+            raise HTTPException(status_code=401)
+
+        tenant_id = ctx["tenant_id"]
+
+        intent = PaymentIntentRepository.get_by_id(
+            db,
+            tenant_id=tenant_id,
+            intent_id=intent_id,
+        )
+
+        if not intent:
+            raise HTTPException(404, "PaymentIntent not found")
+
+        return await self._build_receipt_from_intent(
+            intent=intent,
+            sale=None,
+            ctx=ctx,
+            db=db,
+        )
+
+    async def _build_receipt_from_intent(
+        self,
+        *,
+        intent,
+        sale,
+        ctx,
+        db,
+    ) -> Dict[str, Any]:
+
         attempts = PaymentAttemptRepository.list_for_intent(
             db,
             intent_id=intent.id,
@@ -95,34 +113,80 @@ class ReceiptsController:
             if a.status == PaymentAttemptStatus.succeeded
         ]
 
-        # -------------------------------------------------
-        # Intent financial truth
-        # -------------------------------------------------
-        net_due = _d(intent.amount)              # what client must pay
-        total_paid = _d(intent.total_paid or 0)  # what was paid
+        net_due = _d(intent.amount)
+        total_paid = _d(intent.total_paid or 0)
         balance_due = _d(intent.balance_due or 0)
 
-        unpaid_amount = balance_due if balance_due > 0 else Decimal("0")
-        store_credit_amount = abs(balance_due) if balance_due < 0 else Decimal("0")
+        if balance_due < 0:
+            balance_due = Decimal("0")
 
-        # -------------------------------------------------
-        # Meta (display-only enhancements)
-        # -------------------------------------------------
         meta = intent.meta or {}
 
-        gross_total = _d(meta.get("gross_total", sale.subtotal))
+        # 🔥 RAW VALUES
+        change_amount = _d(meta.get("change_amount", 0))
+        change_given_now = _d(meta.get("change_given_now", 0))
+        tip_amount = _d(meta.get("tip_amount", 0))
+
+        # 🔥 HARD BACKEND RECOMPUTE (FINAL SOURCE OF TRUTH)
+        safe_given = min(change_given_now, change_amount)
+
+        safe_tip = min(
+            tip_amount,
+            max(Decimal("0"), change_amount - safe_given)
+        )
+
+        change_remaining = max(
+            Decimal("0"),
+            change_amount - (safe_given + safe_tip)
+        )
+
+        # 🔥 WRITE BACK (ensures consistency everywhere)
+        meta["change_given_now"] = float(safe_given)
+        meta["tip_amount"] = float(safe_tip)
+        meta["change_remaining"] = float(change_remaining)
+
+        description = meta.get("description")
+        reference = meta.get("reference")
+
+        customer = meta.get("customer")
+        if isinstance(customer, dict):
+            customer_payload = {"name": customer.get("name")}
+        elif isinstance(customer, str):
+            customer_payload = {"name": customer}
+        else:
+            customer_payload = None
+
+        gross_total = _d(meta.get("gross_total", net_due))
         discount_total = _d(meta.get("discount_total", 0))
         complimentary_total = _d(meta.get("complimentary_total", 0))
 
-        tendered_meta = _d(meta.get("tendered_total", total_paid))
-        change_meta = _d(meta.get("change_amount", store_credit_amount))
+        tendered_total = _d(meta.get("tendered_total", total_paid))
 
-        unpaid_notes = meta.get("unpaid_notes", [])
-        pos_note = meta.get("pos_note")
+        if sale:
+            items = [
+                {
+                    "name": item.name_snapshot,
+                    "unit_price": float(_d(item.unit_price)),
+                    "quantity": item.quantity,
+                    "line_total": float(_d(item.line_total)),
+                }
+                for item in sale.items
+            ]
+            receipt_no = sale.receipt_no
+            created_at = sale.created_at.isoformat()
+        else:
+            items = meta.get("items") or [
+                {
+                    "name": description or reference or "Payment",
+                    "unit_price": float(net_due),
+                    "quantity": 1,
+                    "line_total": float(net_due),
+                }
+            ]
 
-        # -------------------------------------------------
-        # Payment breakdown
-        # -------------------------------------------------
+            receipt_no = f"MP-{intent.id}"
+            created_at = intent.created_at.isoformat()
+
         payments_payload = [
             {
                 "method": str(a.method),
@@ -132,67 +196,42 @@ class ReceiptsController:
             for a in successful_attempts
         ]
 
-        # -------------------------------------------------
-        # Final Receipt Payload
-        # -------------------------------------------------
         return {
-            "receipt_no": sale.receipt_no,
+            "receipt_no": receipt_no,
             "tenant_name": ctx.get("tenant_name", "Company"),
-            "branch_name": ctx.get("branch_name", f"Branch {branch_id}"),
-            "created_at": sale.created_at.isoformat(),
+            "branch_name": ctx.get("branch_name", ""),
 
-            "items": [
-                {
-                    "name": item.name_snapshot,
-                    "unit_price": float(_d(item.unit_price)),
-                    "quantity": item.quantity,
-                    "line_total": float(_d(item.line_total)),
-                }
-                for item in sale.items
-            ],
+            "customer": customer_payload,
+            "description": description,
+            "reference": reference,
 
-            # -------------------------------------------------
-            # Core Totals (correct semantics)
-            # -------------------------------------------------
+            "created_at": created_at,
+            "items": items,
+
             "gross_total": float(gross_total),
             "subtotal": float(gross_total),
 
-            # 🔥 Client Pays = NET due
             "client_total": float(net_due),
             "total": float(net_due),
 
-            # 🔥 Paid
-            "tendered_total": float(total_paid),
+            "tendered_total": float(tendered_total),
             "total_paid": float(total_paid),
 
-            # 🔥 Unpaid / Credit
             "balance_due": float(balance_due),
-            "unpaid_amount": float(unpaid_amount),
-            "store_credit_amount": float(store_credit_amount),
+            "unpaid_amount": float(balance_due),
 
-            "has_outstanding_debt": unpaid_amount > 0,
-            "has_store_credit": store_credit_amount > 0,
-
-            # -------------------------------------------------
-            # Discounts & Complimentary
-            # -------------------------------------------------
             "discount_total": float(discount_total),
-            "discount_reason": meta.get("discount_reason"),
             "complimentary_total": float(complimentary_total),
-            "complimentary_items": meta.get("complimentary_items") or [],
 
-            # -------------------------------------------------
-            # POS Enhancements
-            # -------------------------------------------------
-            "change_amount": float(change_meta),
-            "unpaid_notes": unpaid_notes,
-            "pos_note": pos_note,
+            # 🔥 FINAL TRUSTED VALUES
+            "change_amount": float(change_amount),
+            "change_given_now": float(safe_given),
+            "change_remaining": float(change_remaining),
 
-            # -------------------------------------------------
-            # Payment breakdown
-            # -------------------------------------------------
+            "tip_amount": float(safe_tip),
+
             "payments": payments_payload,
 
-            "footer": "Thank you for your business",
+            "footer": "Thank you! Come again to your Happy Home.",
             "powered_by": "XBOS",
         }

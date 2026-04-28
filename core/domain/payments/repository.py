@@ -119,8 +119,23 @@ class PaymentIntentRepository:
             .limit(limit)
         )
         return list(db.execute(stmt).scalars().all())
+    @staticmethod
+    def list_recent(db: Session, tenant_id: int, branch_id: int, limit: int = 50):
+        """
+        Return recent payment intents for dashboard.
+        """
 
-
+        return (
+            db.query(PaymentIntent)
+            .filter(
+                PaymentIntent.tenant_id == tenant_id,
+                PaymentIntent.branch_id == branch_id,
+            )
+            .order_by(PaymentIntent.created_at.desc())
+            .limit(limit)
+            .all()
+        )
+    
 # =========================================================
 # PAYMENT ATTEMPT REPOSITORY
 # =========================================================

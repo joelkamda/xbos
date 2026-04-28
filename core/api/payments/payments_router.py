@@ -1,9 +1,8 @@
-from fastapi import APIRouter, Request, Depends, HTTPException
+from fastapi import APIRouter, Request, Depends
 from typing import Dict, Any
 from sqlalchemy.orm import Session
 
 from core.api.payments.payments_controller import PaymentsController
-from core.domain.payments.service import PaymentService
 from core.rbac.utils.permission_decorator import require_permissions
 from database import get_db
 
@@ -12,7 +11,49 @@ controller = PaymentsController()
 
 
 # -------------------------------------------------
-# Initialize XafPay payment
+# List payments (for Payments dashboard)
+# -------------------------------------------------
+
+@router.get("/")
+@require_permissions("payments.view")
+async def list_payments(
+    request: Request,
+    db: Session = Depends(get_db),
+):
+    """
+    Return recent payments for the Payments dashboard.
+
+    Supports tenant + branch isolation through request context.
+    """
+    return await controller.list_payments(
+        request=request,
+        db=db,
+    )
+
+
+# -------------------------------------------------
+# Get single payment
+# -------------------------------------------------
+
+@router.get("/{payment_id}")
+@require_permissions("payments.view")
+async def get_payment(
+    payment_id: str,
+    request: Request,
+    db: Session = Depends(get_db),
+):
+    """
+    Return a single payment with attempts and settlement info.
+    """
+    return await controller.get_payment(
+        payment_id=payment_id,
+        request=request,
+        db=db,
+    )
+
+
+# -------------------------------------------------
+# XafPay payment initialization
 # -------------------------------------------------
 
 @router.post("/xafpay/init")
@@ -22,6 +63,12 @@ async def init_xafpay_payment(
     payload: Dict[str, Any],
     db: Session = Depends(get_db),
 ):
+    """
+    Start XafPay payment flow.
+
+    Creates or reuses a PaymentIntent
+    and returns a gateway checkout URL.
+    """
     return await controller.init_xafpay_payment(
         request=request,
         payload=payload,
@@ -30,7 +77,7 @@ async def init_xafpay_payment(
 
 
 # -------------------------------------------------
-# POS Manual Settlement (Cash / Split / Unpaid)
+# POS Settlement (Cash / MTN / Orange / Split / Unpaid)
 # -------------------------------------------------
 
 @router.post("/pos/settle")
@@ -40,38 +87,14 @@ async def pos_settle(
     payload: Dict[str, Any],
     db: Session = Depends(get_db),
 ):
-    ctx = getattr(request.state, "user", None)
-    if not ctx or not isinstance(ctx, dict):
-        raise HTTPException(status_code=401, detail="Missing authentication context")
+    """
+    Manual POS settlement.
 
-    tenant_id = ctx["tenant_id"]
-    branch_id = ctx["branch_id"]
-    user_id = ctx["user_id"]
-
-    sale_id = payload.get("sale_id")
-    client_reference = payload.get("client_reference")
-    lines = payload.get("lines") or []
-    note = payload.get("note")
-
-    if not sale_id or not client_reference:
-        raise HTTPException(status_code=400, detail="sale_id and client_reference are required")
-
-    intent = PaymentService.apply_pos_settlement(
-        db,
-        tenant_id=tenant_id,
-        branch_id=branch_id,
-        sale_id=int(sale_id),
-        created_by_user_id=user_id,
-        client_reference=str(client_reference),
-        lines=lines,
-        note=note,
+    Delegates all financial logic to PaymentService
+    through the controller.
+    """
+    return await controller.pos_settle(
+        request=request,
+        payload=payload,
+        db=db,
     )
-
-    db.commit()
-
-    return {
-        "status": "ok",
-        "intent_id": intent.id,
-        "total_paid": float(intent.total_paid or 0),
-        "balance_due": float(intent.balance_due or 0),
-    }

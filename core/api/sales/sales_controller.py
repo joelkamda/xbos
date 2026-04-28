@@ -37,15 +37,31 @@ class SalesController:
                 detail="Missing authentication context",
             )
 
+        # ✅ Extract optional filters (important for pending screen)
+        status_filter = request.query_params.get("status")
+
         sales = SaleService.list_sales(
             db,
             tenant_id=ctx["tenant_id"],
             branch_id=ctx["branch_id"],
+            status=status_filter,  # 👈 PASS FILTER DOWN
         )
+
+        # -------------------------------------------------
+        # 🔥 CRITICAL FIX: DEDUPE AT CONTROLLER LEVEL
+        # -------------------------------------------------
+
+        unique_map: Dict[int, Sale] = {}
+
+        for sale in sales:
+            if sale.id not in unique_map:
+                unique_map[sale.id] = sale
+
+        unique_sales = list(unique_map.values())
 
         return [
             SalesController._sale_response(sale)
-            for sale in sales
+            for sale in unique_sales
         ]
 
     # -------------------------------------------------
@@ -118,7 +134,6 @@ class SalesController:
             )
 
         except Exception as e:
-            # ✅ CORRECT: APIError takes ONE positional argument
             raise APIError(f"Failed to create sale: {str(e)}") from e
 
     # -------------------------------------------------
@@ -133,18 +148,20 @@ class SalesController:
             "receipt_no": sale.receipt_no,
             "status": sale.status,
             "payment_method": sale.payment_method,
-            "subtotal": float(sale.subtotal),
-            "total": float(sale.total),
+            "subtotal": float(sale.subtotal or 0),
+            "total": float(sale.total or 0),
             "created_at": sale.created_at.isoformat(),
             "paid_at": sale.paid_at.isoformat() if sale.paid_at else None,
+
+            # ✅ SAFE ITEMS HANDLING
             "items": [
                 {
-                    "billable_unit_id": item.billable_unit_id,
+                    "atomic_unit_id": item.atomic_unit_id,
                     "name": item.name_snapshot,
-                    "unit_price": float(item.unit_price),
+                    "unit_price": float(item.unit_price or 0),
                     "quantity": item.quantity,
-                    "line_total": float(item.line_total),
+                    "line_total": float(item.line_total or 0),
                 }
-                for item in sale.items
+                for item in (sale.items or [])
             ],
         }

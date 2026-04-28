@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 import hashlib
 from dataclasses import dataclass
 from datetime import datetime
@@ -14,7 +15,6 @@ from core.shared.idempotency import (
 
 from core.domain.sales.models import SaleStatus
 from core.domain.sales.repository import SaleRepository
-
 from core.domain.payments.models import (
     PaymentIntent,
     PaymentAttempt,
@@ -27,17 +27,33 @@ from core.domain.payments.repository import (
     PaymentAttemptRepository,
 )
 
+from core.domain.accounting.emitter import FinancialEventEmitter
+
+
+# =====================================================
+# HELPERS
+# =====================================================
 
 def _d(v: Any) -> Decimal:
     try:
+        if v is None:
+            return Decimal("0")
         return Decimal(str(v))
     except Exception:
         return Decimal("0")
 
 
-# =========================================================
-# Webhook Event DTO
-# =========================================================
+def _enum_value(v: Any) -> Any:
+    return getattr(v, "value", v)
+
+
+def _to_float(v: Any) -> float:
+    return float(_d(v))
+
+
+# =====================================================
+# WEBHOOK EVENT MODEL
+# =====================================================
 
 @dataclass(frozen=True)
 class WebhookEvent:
@@ -52,24 +68,15 @@ class WebhookEvent:
     provider_reference: Optional[str] = None
 
 
-# =========================================================
-# PAYMENT SERVICE (Financial Authority)
-# =========================================================
+# =====================================================
+# PAYMENT SERVICE
+# =====================================================
 
 class PaymentService:
-    """
-    Tier-1 settlement authority.
 
-    GUARANTEES:
-    - Intent init is idempotent (client_reference scoped).
-    - Attempts are append-only + idempotent by attempt client_reference.
-    - Intent totals are system-owned.
-    - Sale becomes PAID only when balance_due <= 0.
-    """
-
-    # -------------------------------------------------
-    # INTENT INIT (idempotent)
-    # -------------------------------------------------
+    # =====================================================
+    # INIT INTENT
+    # =====================================================
 
     @staticmethod
     def init_intent(
@@ -88,7 +95,12 @@ class PaymentService:
         meta: Optional[Dict[str, Any]] = None,
     ) -> PaymentIntent:
 
-        existing = check_idempotency_key(db, key=client_reference, scope="payment_intent")
+        existing = check_idempotency_key(
+            db,
+            key=client_reference,
+            scope="payment_intent",
+        )
+
         if existing:
             intent = PaymentIntentRepository.get_by_id(
                 db,
@@ -98,25 +110,27 @@ class PaymentService:
             if intent:
                 return intent
 
+        amt = _d(amount)
+
         intent = PaymentIntent(
             tenant_id=tenant_id,
             branch_id=branch_id,
             payable_type=payable_type,
             payable_id=payable_id,
             currency=currency,
-            amount=_d(amount),
-            status=PaymentIntentStatus.pending,
+            amount=amt,
+            status=_enum_value(PaymentIntentStatus.pending),
             channel=channel,
             created_by_user_id=created_by_user_id,
             gateway_intent_id=gateway_intent_id,
             total_paid=Decimal("0"),
-            balance_due=_d(amount),
+            balance_due=amt,
             meta=meta or {},
             created_at=datetime.utcnow(),
         )
 
         PaymentIntentRepository.create(db, intent=intent)
-        db.flush()  # ensure intent.id exists
+        db.flush()
 
         record_idempotency_key(
             db,
@@ -124,11 +138,12 @@ class PaymentService:
             scope="payment_intent",
             reference_id=intent.id,
         )
+
         return intent
 
-    # -------------------------------------------------
-    # ATTEMPT CREATION (append-only + idempotent)
-    # -------------------------------------------------
+    # =====================================================
+    # CREATE ATTEMPT
+    # =====================================================
 
     @staticmethod
     def create_attempt(
@@ -141,7 +156,7 @@ class PaymentService:
         settlement_mode: str,
         client_reference: str,
         provider_reference: Optional[str] = None,
-        status: PaymentAttemptStatus = PaymentAttemptStatus.pending,
+        status: Any = PaymentAttemptStatus.pending,
         meta: Optional[Dict[str, Any]] = None,
     ) -> PaymentAttempt:
 
@@ -159,7 +174,7 @@ class PaymentService:
             provider=str(provider) if provider else None,
             settlement_mode=str(settlement_mode),
             amount=_d(amount),
-            status=status,
+            status=_enum_value(status),
             client_reference=str(client_reference),
             provider_reference=provider_reference,
             meta=meta or {},
@@ -167,36 +182,13 @@ class PaymentService:
         )
 
         PaymentAttemptRepository.create(db, attempt=attempt)
+        db.flush()
+
         return attempt
 
-    # -------------------------------------------------
-    # TOTALS RECOMPUTE (system-owned)
-    # -------------------------------------------------
-
-    @staticmethod
-    def recompute_intent_totals(
-        db: Session,
-        *,
-        intent: PaymentIntent,
-    ) -> PaymentIntent:
-
-        total_paid = PaymentAttemptRepository.sum_succeeded_for_intent(
-            db,
-            intent_id=intent.id,
-        )
-        total_paid = _d(total_paid or 0)
-        balance_due = _d(intent.amount) - total_paid
-
-        PaymentIntentRepository.set_totals(
-            intent=intent,
-            total_paid=total_paid,
-            balance_due=balance_due,
-        )
-        return intent
-
-    # -------------------------------------------------
-    # POS MANUAL SETTLEMENT (fixes receipts)
-    # -------------------------------------------------
+    # =====================================================
+    # POS SETTLEMENT
+    # =====================================================
 
     @staticmethod
     def apply_pos_settlement(
@@ -204,44 +196,34 @@ class PaymentService:
         *,
         tenant_id: int,
         branch_id: int,
-        sale_id: int,
         created_by_user_id: int,
         client_reference: str,
         lines: List[Dict[str, Any]],
+        sale_id: Optional[int] = None,
+        payable_type: str = "sale",
+        payable_id: Optional[int] = None,
+        currency: str = "XAF",
         tendered_total: Optional[Decimal] = None,
         change_amount: Optional[Decimal] = None,
+        change_given_now: Optional[Decimal] = None,
+        change_remaining: Optional[Decimal] = None,
+        tip_amount: Optional[Decimal] = None,
         unpaid_amount: Optional[Decimal] = None,
         note: Optional[str] = None,
         receipt_meta: Optional[Dict[str, Any]] = None,
     ) -> PaymentIntent:
-        """
-        Manual/instant settlement entrypoint.
-
-        lines example:
-        [
-          {"method":"cash","amount":5000},
-          {"method":"mtn","amount":2000},
-          {"method":"orange","amount":1000},
-          {"method":"unpaid","amount":500,"meta":{"note":"John owes"}}
-        ]
-
-        receipt_meta: any extra receipt fields you want attached:
-          - gross_total, discount_total, complimentary_total, discount_reason, complimentary_items, etc
-        """
 
         if not client_reference:
             raise ValueError("client_reference is required")
 
-        intent = PaymentIntentRepository.get_by_payable(
-            db,
-            tenant_id=tenant_id,
-            payable_type="sale",
-            payable_id=sale_id,
-        )
-        if not intent:
-            raise ValueError("PaymentIntent missing for sale")
+        if not lines or not isinstance(lines, list):
+            raise ValueError("lines are required")
 
-        existing = check_idempotency_key(db, key=client_reference, scope="pos_settlement")
+        existing = check_idempotency_key(
+            db,
+            key=client_reference,
+            scope="pos_settlement",
+        )
         if existing:
             existing_intent = PaymentIntentRepository.get_by_id(
                 db,
@@ -251,157 +233,303 @@ class PaymentService:
             if existing_intent:
                 return existing_intent
 
-        unpaid_total = Decimal("0")
+        receipt_meta = receipt_meta or {}
+
+        description = receipt_meta.get("description")
+        customer = receipt_meta.get("customer") or {}
+        reference = receipt_meta.get("reference")
+
+        if not description and lines:
+            description = lines[0].get("name") or "Payment"
+
+        if not customer and lines:
+            meta_customer = lines[0].get("meta", {}).get("customer_name")
+            if meta_customer:
+                customer = {"name": meta_customer}
+
+        normalized_meta = {
+            **receipt_meta,
+            "description": description,
+            "customer": customer,
+            "reference": reference,
+        }
+
+        sale = None
+        intent = None
+
+        if sale_id:
+            payable_type = "sale"
+            payable_id = sale_id
+
+            sale = SaleRepository.get_by_id(
+                db,
+                tenant_id=tenant_id,
+                sale_id=sale_id,
+            )
+            if not sale:
+                raise ValueError(f"Sale not found: {sale_id}")
+
+            intent = PaymentIntentRepository.get_by_payable(
+                db,
+                tenant_id=tenant_id,
+                payable_type="sale",
+                payable_id=sale_id,
+            )
+            if not intent:
+                raise ValueError("PaymentIntent missing for sale")
+
+        else:
+            payable_type = "manual"
+            payable_id = payable_id or 0
+
+            gross_total = sum(
+                _d(line.get("amount"))
+                for line in lines
+                if _d(line.get("amount")) > 0
+            )
+
+            currency = (currency or "XAF").upper()
+
+            intent = PaymentService.init_intent(
+                db,
+                tenant_id=tenant_id,
+                branch_id=branch_id,
+                payable_type="manual",
+                payable_id=payable_id,
+                currency=currency,
+                amount=gross_total,
+                channel="pos",
+                created_by_user_id=created_by_user_id,
+                client_reference=f"{client_reference}:intent",
+                meta={
+                    **normalized_meta,
+                    "manual_payment": True,
+                    "source": "payments_screen",
+                },
+            )
+
+        intent_meta = dict(intent.meta or {})
+        intent_meta.update(normalized_meta)
+
+        # =========================
+        # 🔥 PRESERVE POS FINANCIAL TRUTH
+        # =========================
+
+        if tendered_total is not None:
+            intent_meta["tendered_total"] = _to_float(tendered_total)
+
+        if change_amount is not None:
+            intent_meta["change_amount"] = _to_float(change_amount)
+
+        if change_given_now is not None:
+            intent_meta["change_given_now"] = _to_float(change_given_now)
+
+        if change_remaining is not None:
+            intent_meta["change_remaining"] = _to_float(change_remaining)
+
+        if tip_amount is not None:
+            intent_meta["tip_amount"] = _to_float(tip_amount)
+
+        if unpaid_amount is not None:
+            intent_meta["unpaid_amount"] = _to_float(unpaid_amount)
+
+        # =========================
+        # 🔥 FORCE FINANCIAL FIELDS (CRITICAL FIX)
+        # =========================
+
+        discount_total = _d(
+            intent_meta.get("discount_total")
+            or receipt_meta.get("discount_total")
+            or 0
+        )
+
+        complimentary_total = _d(
+            intent_meta.get("complimentary_total")
+            or receipt_meta.get("complimentary_total")
+            or 0
+        )
+
+        gross_total = _d(
+            intent_meta.get("gross_total")
+            or receipt_meta.get("gross_total")
+            or intent.amount
+        )
+
+        # 🔒 WRITE BACK — SINGLE SOURCE OF TRUTH
+        intent_meta["discount_total"] = float(discount_total)
+        intent_meta["complimentary_total"] = float(complimentary_total)
+        intent_meta["gross_total"] = float(gross_total)
+
+        # =========================
+        # ITEMS FALLBACK
+        # =========================
+
+        if "items" not in intent_meta:
+            intent_meta["items"] = [
+                {
+                    "name": description or "Payment",
+                    "quantity": 1,
+                    "unit_price": float(_d(intent.amount)),
+                    "line_total": float(_d(intent.amount)),
+                }
+            ]
+
+        net_total = gross_total - discount_total - complimentary_total
+        if net_total < 0:
+            net_total = Decimal("0")
+
+        intent.amount = net_total
+        currency = (intent.currency or currency or "XAF").upper()
+
         unpaid_notes: List[str] = []
+        # 🔥 EXTRACT RAW DECIMALS
+        change_amount_d = _d(intent_meta.get("change_amount"))
+        change_given_now_d = _d(intent_meta.get("change_given_now"))
+        tip_amount_d = _d(intent_meta.get("tip_amount"))
+
+        # 🔥 ENFORCE HARD CONSTRAINTS (BACKEND FINAL AUTHORITY)
+        safe_given_d = min(change_given_now_d, change_amount_d)
+
+        safe_tip_d = min(
+            tip_amount_d,
+            max(Decimal("0"), change_amount_d - safe_given_d)
+        )
+
+        # 🔥 FINAL STORE CREDIT (CHANGE OWED)
+        store_credit = max(
+            Decimal("0"),
+            change_amount_d - (safe_given_d + safe_tip_d)
+        )
+
+        # 🔥 WRITE BACK NORMALIZED VALUES (FINAL SOURCE OF TRUTH)
+
+        # Ensure Decimal → float conversion is safe and consistent
+        final_given = float(safe_given_d)
+        final_tip = float(safe_tip_d)
+        final_change_remaining = float(store_credit)
+
+        # 🔥 HARD SYNC — NO DRIFT ALLOWED
+        intent_meta.update({
+            "change_amount": float(change_amount_d),   # keep full trace
+            "change_given_now": final_given,
+            "tip_amount": final_tip,
+            "change_remaining": final_change_remaining,
+            "store_credit_amount": final_change_remaining,
+        })
+
+        # 🔥 OPTIONAL DEBUG (REMOVE AFTER VERIFYING)
+        print("FINAL META (SERVICE):", intent_meta)
 
         for idx, line in enumerate(lines or []):
-            method = str(line.get("method") or "").strip().lower()
-            amount = _d(line.get("amount") or 0)
-            provider = line.get("provider")
+            method = str(line.get("method") or "").lower()
+            amount = _d(line.get("amount"))
             meta = line.get("meta") or {}
 
             if amount <= 0:
                 continue
 
             if method == "unpaid":
-                unpaid_total += amount
-                if meta.get("note"):
-                    unpaid_notes.append(str(meta["note"]))
+                if meta.get("tag") == "CHANGE_OWED":
+                    store_credit += amount
+                else:
+                    if meta.get("note"):
+                        unpaid_notes.append(meta["note"])
                 continue
 
-            if method in ("cash", "mtn", "orange", "wallet", "card"):
-                raw = f"{client_reference}|{idx}|{method}|{amount}"
-                digest = hashlib.sha1(raw.encode("utf-8")).hexdigest()[:16]
-                attempt_ref = f"ps:{sale_id}:{idx}:{method}:{digest}"  # <= 64 chars
+            raw = f"{client_reference}|{idx}|{method}|{amount}"
+            digest = hashlib.sha1(raw.encode()).hexdigest()[:16]
 
-                PaymentService.create_attempt(
-                    db,
-                    intent=intent,
-                    amount=amount,
-                    method=method,
-                    provider=provider,
-                    settlement_mode="manual",
-                    client_reference=attempt_ref,
-                    status=PaymentAttemptStatus.succeeded,
-                    meta=meta,
-                )
+            attempt = PaymentService.create_attempt(
+                db,
+                intent=intent,
+                amount=amount,
+                method=method,
+                provider=line.get("provider"),
+                settlement_mode="manual",
+                client_reference=f"ps:{intent.id}:{idx}:{digest}",
+                status=PaymentAttemptStatus.succeeded,
+                meta=meta,
+            )
 
-        # -------------------------
-        # Attach receipt-critical meta
-        # -------------------------
-        intent_meta = dict(intent.meta or {})
+            FinancialEventEmitter.payment_received(
+                db,
+                tenant_id=tenant_id,
+                branch_id=branch_id,
+                attempt_id=attempt.id,
+                amount=attempt.amount,
+                currency=currency,
+                channel=attempt.method,
+                meta={
+                    "sale_id": sale_id,
+                    "payment_intent_id": intent.id,
+                    "manual_payment": payable_type == "manual",
+                    "tendered_total": intent_meta.get("tendered_total"),
+                    "change_amount": intent_meta.get("change_amount"),
+                    "change_given_now": intent_meta.get("change_given_now"),
+                    "change_remaining": intent_meta.get("change_remaining"),
+                    "tip_amount": intent_meta.get("tip_amount"),
+                },
+            )
 
-        # Preserve existing fields from sale creation (gross/discount/complimentary/etc)
-        if receipt_meta:
-            for k, v in receipt_meta.items():
-                intent_meta[k] = v
-
-        # POS fields
-        if unpaid_amount is not None:
-            intent_meta["unpaid_total"] = float(_d(unpaid_amount))
-        elif unpaid_total > 0:
-            intent_meta["unpaid_total"] = float(unpaid_total)
-
-        if unpaid_notes:
-            intent_meta["unpaid_notes"] = unpaid_notes
-
-        if tendered_total is not None:
-            intent_meta["tendered_total"] = float(_d(tendered_total))
-
-        if change_amount is not None:
-            intent_meta["change_amount"] = float(_d(change_amount))
-
-        if note:
-            intent_meta["pos_note"] = str(note)
-
-        intent.meta = intent_meta
-
-        # recompute totals
-        PaymentService.recompute_intent_totals(db, intent=intent)
-
-        # update intent status
-        if intent.balance_due <= 0:
-            PaymentIntentRepository.set_status(intent=intent, status=PaymentIntentStatus.succeeded)
-        elif intent.total_paid > 0:
-            PaymentIntentRepository.set_status(intent=intent, status=PaymentIntentStatus.processing)
-        else:
-            PaymentIntentRepository.set_status(intent=intent, status=PaymentIntentStatus.pending)
-
-        # settle sale
-        if intent.payable_type == "sale" and intent.balance_due <= 0:
-            sale = SaleRepository.get_by_id(db, tenant_id=tenant_id, sale_id=intent.payable_id)
-            if sale and sale.status != SaleStatus.paid:
-                SaleRepository.update_status(sale=sale, new_status=SaleStatus.paid)
-                SaleRepository.set_paid_at(sale=sale, paid_at=datetime.utcnow())
-
-        record_idempotency_key(db, key=client_reference, scope="pos_settlement", reference_id=intent.id)
-        return intent
-
-    # -------------------------------------------------
-    # GATEWAY WEBHOOK SETTLEMENT
-    # -------------------------------------------------
-
-    @staticmethod
-    def apply_gateway_webhook(
-        db: Session,
-        *,
-        tenant_id: int,
-        event: WebhookEvent,
-    ) -> PaymentIntent:
-
-        if event.callback_reference:
-            existing = check_idempotency_key(db, key=event.callback_reference, scope="gateway_callback")
-            if existing:
-                intent = PaymentIntentRepository.get_by_id(db, tenant_id=tenant_id, intent_id=existing.reference_id)
-                if intent:
-                    return intent
-
-        intent = PaymentIntentRepository.get_by_gateway_id(
-            db,
-            tenant_id=tenant_id,
-            gateway_intent_id=event.gateway_intent_id,
-        )
-        if not intent:
-            raise ValueError(f"PaymentIntent not found for gateway_intent_id={event.gateway_intent_id}")
-
-        attempt_status = (
-            PaymentAttemptStatus.succeeded
-            if str(event.status).upper() == "SUCCEEDED"
-            else PaymentAttemptStatus.failed
+        total_paid = _d(
+            PaymentAttemptRepository.sum_succeeded_for_intent(
+                db,
+                intent_id=intent.id,
+            ) or 0
         )
 
-        PaymentService.create_attempt(
-            db,
+        balance_due = net_total - total_paid
+        if balance_due < 0:
+            balance_due = Decimal("0")
+
+        
+        intent.meta = {
+            **intent_meta,
+            "net_total": float(net_total),
+            "total_paid": float(total_paid),
+            "balance_due": float(balance_due),
+            "unpaid_notes": unpaid_notes,
+            "store_credit_amount": float(store_credit),
+            "manual_payment": payable_type == "manual",
+        }
+
+        PaymentIntentRepository.set_totals(
             intent=intent,
-            amount=_d(event.amount),
-            method="xafpay",
-            provider=event.provider,
-            settlement_mode="async",
-            client_reference=event.callback_reference,
-            provider_reference=event.provider_reference,
-            status=attempt_status,
-            meta={
-                "event": event.event,
-                "currency": event.currency,
-                "merchant_reference": event.merchant_reference,
-                "occurred_at": datetime.utcnow().isoformat(),
-            },
+            total_paid=total_paid,
+            balance_due=balance_due,
         )
 
-        PaymentService.recompute_intent_totals(db, intent=intent)
-
-        if intent.balance_due <= 0:
-            PaymentIntentRepository.set_status(intent=intent, status=PaymentIntentStatus.succeeded)
+        if balance_due <= 0:
+            PaymentIntentRepository.set_status(
+                intent=intent,
+                status=PaymentIntentStatus.succeeded,
+            )
+        elif total_paid > 0:
+            PaymentIntentRepository.set_status(
+                intent=intent,
+                status=PaymentIntentStatus.processing,
+            )
         else:
-            PaymentIntentRepository.set_status(intent=intent, status=PaymentIntentStatus.processing)
+            PaymentIntentRepository.set_status(
+                intent=intent,
+                status=PaymentIntentStatus.pending,
+            )
 
-        if intent.payable_type == "sale" and intent.balance_due <= 0:
-            sale = SaleRepository.get_by_id(db, tenant_id=tenant_id, sale_id=intent.payable_id)
-            if sale and sale.status != SaleStatus.paid:
-                SaleRepository.update_status(sale=sale, new_status=SaleStatus.paid)
-                SaleRepository.set_paid_at(sale=sale, paid_at=datetime.utcnow())
+        if sale and balance_due <= 0 and sale.status != SaleStatus.paid:
+            SaleRepository.update_status(
+                sale=sale,
+                new_status=SaleStatus.paid,
+            )
+            SaleRepository.set_paid_at(
+                sale=sale,
+                paid_at=datetime.utcnow(),
+            )
 
-        if event.callback_reference:
-            record_idempotency_key(db, key=event.callback_reference, scope="gateway_callback", reference_id=intent.id)
+        record_idempotency_key(
+            db,
+            key=client_reference,
+            scope="pos_settlement",
+            reference_id=intent.id,
+        )
 
         return intent
