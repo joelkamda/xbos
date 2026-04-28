@@ -1,0 +1,70 @@
+CREATE OR REPLACE FUNCTION xbos_taxonomy_tree(p_domain_id INT)
+RETURNS TABLE(tree_line TEXT, path TEXT)
+LANGUAGE SQL
+AS
+$$
+
+WITH RECURSIVE taxo_tree AS (
+
+    -- Root node
+    SELECT
+        id,
+        name,
+        parent_id,
+        sort_order,
+        name::text AS path,
+        0 AS depth
+    FROM taxonomy_nodes
+    WHERE id = p_domain_id
+
+    UNION ALL
+
+    -- Child nodes
+    SELECT
+        tn.id,
+        tn.name,
+        tn.parent_id,
+        tn.sort_order,
+        tt.path || '.' || LPAD(tn.sort_order::text,3,'0'),
+        tt.depth + 1
+    FROM taxonomy_nodes tn
+    JOIN taxo_tree tt
+        ON tn.parent_id = tt.id
+),
+
+tree_lines AS (
+
+    SELECT
+        CASE
+            WHEN depth = 0 THEN name
+            WHEN depth = 1 THEN '├── ' || name
+            WHEN depth = 2 THEN '│   ├── ' || name
+        END AS tree_line,
+        path,
+        id,
+        depth
+    FROM taxo_tree
+),
+
+atomic_lines AS (
+
+    SELECT
+        '│   │   └── ' || au.name AS tree_line,
+        tl.path || '.999' AS path
+    FROM tree_lines tl
+    JOIN atomic_unit_taxonomy aut
+        ON aut.taxonomy_node_id = tl.id
+    JOIN atomic_units au
+        ON au.id = aut.atomic_unit_id
+    WHERE tl.depth = 2
+)
+
+SELECT tree_line, path
+FROM (
+    SELECT tree_line, path FROM tree_lines
+    UNION ALL
+    SELECT tree_line, path FROM atomic_lines
+) t
+ORDER BY path;
+
+$$;

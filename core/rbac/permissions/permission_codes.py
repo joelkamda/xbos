@@ -2,6 +2,7 @@
 # STANDARDIZED PERMISSION CODES FOR XBOS RBAC
 # ============================================================
 
+
 # ----------------------------
 # SALES
 # ----------------------------
@@ -12,6 +13,7 @@ SALE_REFUND        = "sale.refund"
 SALE_CANCEL        = "sale.cancel"
 SALE_VOID          = "sale.void"
 SALE_DISCOUNT      = "sale.discount"
+
 
 # ----------------------------
 # INVENTORY
@@ -24,6 +26,7 @@ INV_RECEIVE        = "inventory.receive"
 INV_CONSUME        = "inventory.consume"
 INV_RECONCILE      = "inventory.reconcile"
 
+
 # ----------------------------
 # PAYMENTS
 # ----------------------------
@@ -34,24 +37,30 @@ PAY_REFUND         = "payments.refund"
 PAY_CANCEL         = "payments.cancel"
 PAY_RECONCILE      = "payments.reconcile"
 
+
 # ----------------------------
-# ACCOUNTING
+# ACCOUNTING / TREASURY
 # ----------------------------
 ACC_VIEW           = "accounting.view"
 ACC_POST           = "accounting.post"
 ACC_RECONCILE      = "accounting.reconcile"
+ACC_EXPORT         = "accounting.export"
+ACC_CLOSE_PERIOD   = "accounting.close_period"
+
 
 # ----------------------------
 # REPORTS (GENERIC + DOMAIN)
 # ----------------------------
-REPORT_VIEW              = "report.view"
-REPORT_EXPORT            = "report.export"
-REPORT_SALES             = "report.sales"
-REPORT_FINANCE_VIEW      = "report.finance.view"
-REPORT_FINANCIAL         = "report.financial"
-REPORT_FINANCIAL_OVERVIEW= "report.financial.overview"
-REPORT_FINANCIAL_EXPORT  = "report.financial.export"
-REPORT_FINANCIAL_AUDIT   = "report.financial.audit"
+REPORT_VIEW               = "report.view"
+REPORT_EXPORT             = "report.export"
+REPORT_SALES              = "report.sales"
+
+REPORT_FINANCE_VIEW       = "report.finance.view"
+REPORT_FINANCIAL          = "report.financial"
+REPORT_FINANCIAL_OVERVIEW = "report.financial.overview"
+REPORT_FINANCIAL_EXPORT   = "report.financial.export"
+REPORT_FINANCIAL_AUDIT    = "report.financial.audit"
+
 
 # ----------------------------
 # POS / ORDER OPERATIONS
@@ -62,6 +71,7 @@ ORDER_UPDATE          = "order.update"
 ORDER_DELETE          = "order.delete"
 ORDER_UPDATE_STATUS   = "order.update_status"
 ORDER_EXPORT          = "order.export"
+
 
 # ----------------------------
 # CATALOG / TAXONOMY
@@ -76,6 +86,7 @@ TAXONOMY_CREATE     = "taxonomy.create"
 TAXONOMY_EDIT       = "taxonomy.edit"
 TAXONOMY_DELETE     = "taxonomy.delete"
 
+
 # ----------------------------
 # CUSTOMER MANAGEMENT
 # ----------------------------
@@ -86,6 +97,7 @@ CUSTOMER_DELETE     = "customer.delete"
 CUSTOMER_VERIFY     = "customer.verify"
 CUSTOMER_EXPORT     = "customer.export"
 
+
 # ----------------------------
 # TRANSACTION MANAGEMENT
 # ----------------------------
@@ -94,6 +106,7 @@ TRANSACTION_CREATE    = "transaction.create"
 TRANSACTION_UPDATE    = "transaction.update"
 TRANSACTION_DELETE    = "transaction.delete"
 TRANSACTION_EXPORT    = "transaction.export"
+
 
 # ----------------------------
 # WALLET MANAGEMENT
@@ -105,11 +118,13 @@ WALLET_TRANSACTION_EXPORT  = "wallet.transaction.export"
 WALLET_FREEZE              = "wallet.freeze"
 WALLET_UNFREEZE            = "wallet.unfreeze"
 
+
 # ----------------------------
 # HR
 # ----------------------------
 HR_VIEW           = "hr.view"
 HR_EDIT           = "hr.edit"
+
 
 # ----------------------------
 # RBAC / SYSTEM ADMIN

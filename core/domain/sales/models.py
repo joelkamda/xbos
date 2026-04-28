@@ -10,19 +10,21 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
+from sqlalchemy.dialects.postgresql import JSON
+
 import enum
 
 from database import Base
 
 
 # =====================================================
-# Enums (application-level, stored as STRING values)
+# Enums
 # =====================================================
 
 class SaleStatus(str, enum.Enum):
-    pending_payment = "pending_payment"   # bill issued
-    paid = "paid"                         # receipt issued
-    cancelled = "cancelled"               # terminal
+    pending_payment = "pending_payment"
+    paid = "paid"
+    cancelled = "cancelled"
 
 
 class PaymentMethod(str, enum.Enum):
@@ -35,17 +37,6 @@ class PaymentMethod(str, enum.Enum):
 # =====================================================
 
 class Sale(Base):
-    """
-    Represents a finalized commercial intent.
-
-    INVARIANTS (LOCKED):
-    - Created once
-    - Receipt number immutable
-    - Items immutable
-    - Status transitions driven ONLY by Payments
-    - Commercial truth limited to subtotal / total
-    """
-
     __tablename__ = "sales"
 
     # -------------------------
@@ -57,7 +48,6 @@ class Sale(Base):
     receipt_no = Column(
         String(32),
         nullable=False,
-        comment="Human-readable receipt / bill number",
     )
 
     tenant_id = Column(
@@ -81,11 +71,30 @@ class Sale(Base):
         index=True,
     )
 
-    discount_total = Column(Numeric(12,2), nullable=False, default=0)
-    complimentary_total = Column(Numeric(12,2), nullable=False, default=0)
-    tendered_total = Column(Numeric(12,2), nullable=False, default=0)
-    change_amount = Column(Numeric(12,2), nullable=False, default=0)
-    unpaid_amount = Column(Numeric(12,2), nullable=False, default=0)
+    # 🔥 CRITICAL FIX (DB ALREADY HAS THIS)
+    order_id = Column(
+        Integer,
+        nullable=True,
+        unique=True,
+        index=True,
+        comment="Link back to originating order",
+    )
+
+    # -------------------------
+    # Financial breakdown
+    # -------------------------
+
+    discount_total = Column(Numeric(12, 2), nullable=False, default=0)
+    complimentary_total = Column(Numeric(12, 2), nullable=False, default=0)
+    tendered_total = Column(Numeric(12, 2), nullable=False, default=0)
+    change_amount = Column(Numeric(12, 2), nullable=False, default=0)
+    unpaid_amount = Column(Numeric(12, 2), nullable=False, default=0)
+
+    payment_summary = Column(
+        JSON,
+        nullable=True,
+        comment="Breakdown of payment methods (UI/analytics only)",
+    )
 
     # -------------------------
     # Commercial state
@@ -95,28 +104,19 @@ class Sale(Base):
         String(32),
         nullable=False,
         index=True,
-        comment="SaleStatus enum value",
     )
 
     payment_method = Column(
         String(32),
         nullable=False,
-        comment="Initial payment method intent (PaymentMethod enum value)",
     )
 
     # -------------------------
-    # Money (commercial truth)
+    # Money (truth)
     # -------------------------
 
-    subtotal = Column(
-        Numeric(12, 2),
-        nullable=False,
-    )
-
-    total = Column(
-        Numeric(12, 2),
-        nullable=False,
-    )
+    subtotal = Column(Numeric(12, 2), nullable=False)
+    total = Column(Numeric(12, 2), nullable=False)
 
     # -------------------------
     # Timestamps
@@ -155,7 +155,8 @@ class Sale(Base):
     # -------------------------
 
     __table_args__ = (
-        # Receipt uniqueness per tenant + branch
+
+        # Receipt uniqueness
         Index(
             "ux_sales_receipt_no",
             "tenant_id",
@@ -163,19 +164,30 @@ class Sale(Base):
             "receipt_no",
             unique=True,
         ),
-        # Operational query index
+
+        # Query optimization
         Index(
             "ix_sales_tenant_branch_created",
             "tenant_id",
             "branch_id",
             "created_at",
         ),
+
+        # 🔥 Financial integrity
+        CheckConstraint("subtotal >= 0", name="ck_sales_subtotal_non_negative"),
+        CheckConstraint("total >= 0", name="ck_sales_total_non_negative"),
+        CheckConstraint("discount_total >= 0", name="ck_sales_discount_non_negative"),
+        CheckConstraint("complimentary_total >= 0", name="ck_sales_complimentary_non_negative"),
+        CheckConstraint("tendered_total >= 0", name="ck_sales_tendered_non_negative"),
+        CheckConstraint("change_amount >= 0", name="ck_sales_change_non_negative"),
+        CheckConstraint("unpaid_amount >= 0", name="ck_sales_unpaid_non_negative"),
     )
 
     def __repr__(self) -> str:
         return (
             f"<Sale id={self.id} "
             f"receipt_no={self.receipt_no} "
+            f"order_id={self.order_id} "
             f"status={self.status} "
             f"total={self.total}>"
         )
@@ -186,15 +198,6 @@ class Sale(Base):
 # =====================================================
 
 class SaleItem(Base):
-    """
-    Immutable snapshot of a billable unit at time of sale.
-
-    GUARANTEES:
-    - Name never changes
-    - Unit price never changes
-    - quantity × unit_price = line_total
-    """
-
     __tablename__ = "sale_items"
 
     id = Column(Integer, primary_key=True)
@@ -206,32 +209,20 @@ class SaleItem(Base):
         index=True,
     )
 
-    billable_unit_id = Column(
+    atomic_unit_id = Column(
         Integer,
-        ForeignKey("billable_units.id"),
+        ForeignKey("atomic_units.id"),
         nullable=False,
         index=True,
     )
 
-    name_snapshot = Column(
-        String,
-        nullable=False,
-    )
+    name_snapshot = Column(String, nullable=False)
 
-    unit_price = Column(
-        Numeric(12, 2),
-        nullable=False,
-    )
+    unit_price = Column(Numeric(12, 2), nullable=False)
 
-    quantity = Column(
-        Integer,
-        nullable=False,
-    )
+    quantity = Column(Integer, nullable=False)
 
-    line_total = Column(
-        Numeric(12, 2),
-        nullable=False,
-    )
+    line_total = Column(Numeric(12, 2), nullable=False)
 
     sale = relationship(
         "Sale",
@@ -240,10 +231,9 @@ class SaleItem(Base):
 
     __table_args__ = (
         Index("ix_sale_items_sale", "sale_id"),
-        CheckConstraint(
-            "quantity > 0",
-            name="ck_sale_item_quantity_positive",
-        ),
+        CheckConstraint("quantity > 0", name="ck_sale_item_quantity_positive"),
+        CheckConstraint("unit_price >= 0", name="ck_sale_item_price_non_negative"),
+        CheckConstraint("line_total >= 0", name="ck_sale_item_total_non_negative"),
     )
 
     def __repr__(self) -> str:

@@ -25,12 +25,12 @@ async def catalog_summary(
 
 
 # -------------------------------------------------
-# List billable units by subcategory (POS use)
+# List atomic units by subcategory (POS use)
 # -------------------------------------------------
 
-@router.get("/billable-units")
+@router.get("/atomic-units")
 @require_permissions("catalog.view")
-async def list_billable_units_by_subcategory(
+async def list_atomic_units_by_subcategory(
     request: Request,
     subcategory_id: int = Query(...),
     db: Session = Depends(get_db),
@@ -43,7 +43,7 @@ async def list_billable_units_by_subcategory(
 
 
 # -------------------------------------------------
-# List all billable units (admin / backoffice)
+# List all atomic units (admin / backoffice)
 # -------------------------------------------------
 
 @router.get("/")
@@ -52,7 +52,7 @@ async def list_catalog(
     request: Request,
     db: Session = Depends(get_db),
 ):
-    return await controller.list_billable_units(
+    return await controller.list_atomic_units(
         request=request,
         db=db,
     )

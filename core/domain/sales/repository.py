@@ -140,3 +140,20 @@ class SaleRepository:
             .limit(limit)
         )
         return list(db.execute(stmt).scalars().all())
+
+    @staticmethod
+    def get_by_order_id(
+        db: Session,
+        *,
+        tenant_id: int,
+        order_id: int,
+    ) -> Optional[Sale]:
+        """
+        Resolve sale from originating order.
+        """
+        stmt = (
+            select(Sale)
+            .where(Sale.tenant_id == tenant_id)
+            .where(Sale.order_id == order_id)
+        )
+        return db.execute(stmt).scalar_one_or_none()

@@ -34,12 +34,12 @@ async def list_inventory(
 @require_permissions("inventory.view")
 async def list_inventory_movements(
     request: Request,
-    billable_unit_id: Optional[str] = None,
+    atomic_unit_id: Optional[str] = None,
     db: Session = Depends(get_db),
 ):
     return await controller.list_movements(
         request=request,
-        billable_unit_id=billable_unit_id,
+        atomic_unit_id=atomic_unit_id,
         db=db,
     )
 

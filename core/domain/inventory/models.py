@@ -9,7 +9,7 @@ from sqlalchemy import (
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
-from database import Base   # ✅ FIXED import
+from database import Base
 
 
 # -------------------------------------------------
@@ -18,9 +18,10 @@ from database import Base   # ✅ FIXED import
 
 class InventoryItem(Base):
     """
-    Cached inventory state for a BillableUnit at a specific branch.
+    Cached inventory state for an AtomicUnit at a specific branch.
 
-    IMPORTANT:
+    IMPORTANT RULES
+    ----------------
     - quantity_on_hand is a CACHE
     - authoritative truth is InventoryMovement
     - quantity_on_hand MUST ONLY change inside the same transaction
@@ -43,9 +44,9 @@ class InventoryItem(Base):
         index=True,
     )
 
-    billable_unit_id = Column(
+    atomic_unit_id = Column(
         Integer,
-        ForeignKey("billable_units.id"),
+        ForeignKey("atomic_units.id"),
         nullable=False,
         index=True,
     )
@@ -71,8 +72,8 @@ class InventoryItem(Base):
     # Relationships
     # -------------------------
 
-    billable_unit = relationship(
-        "BillableUnit",
+    atomic_unit = relationship(
+        "AtomicUnit",
         lazy="joined",
     )
 
@@ -88,12 +89,16 @@ class InventoryItem(Base):
     # -------------------------
 
     __table_args__ = (
+
+        # one inventory record per unit per branch
         Index(
             "uq_inventory_item_branch_unit",
             "branch_id",
-            "billable_unit_id",
+            "atomic_unit_id",
             unique=True,
         ),
+
+        # tenant + branch lookup
         Index(
             "ix_inventory_item_tenant_branch",
             "tenant_id",
@@ -104,7 +109,7 @@ class InventoryItem(Base):
     def __repr__(self) -> str:
         return (
             f"<InventoryItem id={self.id} "
-            f"billable_unit_id={self.billable_unit_id} "
+            f"atomic_unit_id={self.atomic_unit_id} "
             f"branch_id={self.branch_id} "
             f"qty={self.quantity_on_hand}>"
         )
@@ -118,11 +123,12 @@ class InventoryMovement(Base):
     """
     Authoritative ledger entry for inventory changes.
 
-    Rules:
+    RULES
+    ------
     - Inventory is NEVER updated without a movement
     - Sale movements are created ONLY after payment success
     - quantity_delta can be positive or negative
-    - movement_type and source are validated in service layer
+    - movement_type validated in service layer
     """
 
     __tablename__ = "inventory_movements"
@@ -148,9 +154,9 @@ class InventoryMovement(Base):
         index=True,
     )
 
-    billable_unit_id = Column(
+    atomic_unit_id = Column(
         Integer,
-        ForeignKey("billable_units.id"),
+        ForeignKey("atomic_units.id"),
         nullable=False,
         index=True,
     )
@@ -160,7 +166,7 @@ class InventoryMovement(Base):
         nullable=False,
     )
 
-    # Stored as STRING; validated by service layer
+    # validated by service layer
     movement_type = Column(
         String,
         nullable=False,
@@ -173,7 +179,7 @@ class InventoryMovement(Base):
         default="system",
     )
 
-    # Reference to originating entity (e.g. sale_id)
+    # reference to originating entity
     reference_type = Column(
         String,
         nullable=True,
@@ -200,8 +206,8 @@ class InventoryMovement(Base):
         back_populates="movements",
     )
 
-    billable_unit = relationship(
-        "BillableUnit",
+    atomic_unit = relationship(
+        "AtomicUnit",
         lazy="joined",
     )
 
@@ -213,7 +219,7 @@ class InventoryMovement(Base):
         Index(
             "ix_inventory_movement_branch_unit_time",
             "branch_id",
-            "billable_unit_id",
+            "atomic_unit_id",
             "created_at",
         ),
     )
@@ -223,12 +229,12 @@ class InventoryMovement(Base):
             f"<InventoryMovement id={self.id} "
             f"type={self.movement_type} "
             f"delta={self.quantity_delta} "
-            f"billable_unit_id={self.billable_unit_id}>"
+            f"atomic_unit_id={self.atomic_unit_id}>"
         )
 
 
 # -------------------------------------------------
-# Explicit exports (CRITICAL for Alembic)
+# Explicit exports (important for Alembic)
 # -------------------------------------------------
 
 __all__ = [

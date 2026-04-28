@@ -47,7 +47,7 @@ class InventoryController:
 
             return [
                 {
-                    "billable_unit_id": i.billable_unit_id,
+                    "atomic_unit_id": i.atomic_unit_id,
                     "quantity_on_hand": i.quantity_on_hand,
                 }
                 for i in items
@@ -66,7 +66,7 @@ class InventoryController:
     async def list_movements(
         self,
         request: Request,
-        billable_unit_id: str | None,
+        atomic_unit_id: str | None,
         db: Session,
     ):
         tenant_id = getattr(request.state, "tenant_id", None)
@@ -83,12 +83,12 @@ class InventoryController:
                 db,
                 tenant_id=tenant_id,
                 branch_id=branch_id,
-                billable_unit_id=billable_unit_id,
+                atomic_unit_id=atomic_unit_id,
             )
 
             return [
                 {
-                    "billable_unit_id": m.billable_unit_id,
+                    "atomic_unit_id": m.atomic_unit_id,
                     "quantity_delta": m.quantity_delta,
                     "movement_type": m.movement_type.value,
                     "reference_type": m.reference_type,
@@ -123,13 +123,13 @@ class InventoryController:
                 detail="Missing tenant or branch context",
             )
 
-        billable_unit_id = payload.get("billable_unit_id")
+        atomic_unit_id = payload.get("atomic_unit_id")
         quantity_delta = payload.get("quantity_delta")
 
-        if not billable_unit_id or quantity_delta is None:
+        if not atomic_unit_id or quantity_delta is None:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="billable_unit_id and quantity_delta are required",
+                detail="atomic_unit_id and quantity_delta are required",
             )
 
         try:
@@ -137,13 +137,13 @@ class InventoryController:
                 db,
                 tenant_id=tenant_id,
                 branch_id=branch_id,
-                billable_unit_id=billable_unit_id,
+                atomic_unit_id=atomic_unit_id,
                 quantity_delta=int(quantity_delta),
             )
 
             return {
                 "movement_id": movement.id,
-                "billable_unit_id": movement.billable_unit_id,
+                "atomic_unit_id": movement.atomic_unit_id,
                 "quantity_delta": movement.quantity_delta,
                 "movement_type": movement.movement_type.value,
                 "created_at": movement.created_at.isoformat(),

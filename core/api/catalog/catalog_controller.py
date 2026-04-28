@@ -7,7 +7,7 @@ from core.errors.api_error import APIError
 
 class CatalogController:
     """
-    HTTP controller for Catalog (Billable Units).
+    HTTP controller for Catalog (Atomic Units).
 
     Responsibilities:
     - Extract tenant context
@@ -97,7 +97,7 @@ class CatalogController:
                     {
                         "id": u.id,
                         "name": u.name,
-                        "price": float(u.price),
+                        "unit_price": float(u.unit_price),
                         "sku": u.sku,
                         "unit_type": u.unit_type,
                     }
@@ -109,10 +109,10 @@ class CatalogController:
             raise APIError("CATALOG_SUBCATEGORY_LIST_FAILED") from e
 
     # -------------------------------------------------
-    # List all billable units (admin/backoffice)
+    # List all atomic units (admin/backoffice)
     # -------------------------------------------------
 
-    async def list_billable_units(
+    async def list_atomic_units(
         self,
         request: Request,
         db: Session,
@@ -136,7 +136,7 @@ class CatalogController:
                 {
                     "id": u.id,
                     "name": u.name,
-                    "price": float(u.price),
+                    "unit_price": float(u.unit_price),
                     "sku": u.sku,
                     "unit_type": u.unit_type,
                 }
@@ -176,7 +176,7 @@ class CatalogController:
                 {
                     "id": u.id,
                     "name": u.name,
-                    "price": float(u.price),
+                    "unit_price": float(u.unit_price),
                     "sku": u.sku,
                     "unit_type": u.unit_type,
                 }
@@ -219,7 +219,7 @@ class CatalogController:
                 {
                     "id": u.id,
                     "name": u.name,
-                    "price": float(u.price),
+                    "unit_price": float(u.unit_price),
                     "sku": u.sku,
                     "unit_type": u.unit_type,
                 }

@@ -47,7 +47,7 @@ class PermissionRegistry:
             ("DELETE", "/kernel/taxonomy/{id}"): "taxonomy.delete",
 
             # ----------------------------
-            # CATALOG (Billable Units)
+            # CATALOG (Atomic Units)
             # ----------------------------
             ("GET",  "/kernel/catalog/"): "catalog.view",
             ("POST", "/kernel/catalog/"): "catalog.create",

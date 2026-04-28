@@ -5,7 +5,7 @@ from sqlalchemy import select, and_
 
 from core.domain.taxonomy.models import (
     TaxonomyNode,
-    BillableUnitTaxonomy,
+    AtomicUnitTaxonomy,
 )
 
 
@@ -16,7 +16,7 @@ class TaxonomyRepository:
     Responsibilities:
     - Fetch taxonomy nodes
     - Traverse taxonomy trees
-    - Resolve billable-unit mappings
+    - Resolve atomic-unit mappings
     - Enforce tenant isolation
     - NO business logic
     """
@@ -150,7 +150,7 @@ class TaxonomyRepository:
         return db.execute(stmt).all()
 
     # -------------------------------------------------
-    # BillableUnit ↔ Taxonomy mapping
+    # AtomicUnit ↔ Taxonomy mapping
     # -------------------------------------------------
 
     @staticmethod
@@ -159,14 +159,14 @@ class TaxonomyRepository:
         *,
         tenant_id: int,
         taxonomy_node_id: int,
-    ) -> List[BillableUnitTaxonomy]:
+    ) -> List[AtomicUnitTaxonomy]:
         stmt = (
-            select(BillableUnitTaxonomy)
+            select(AtomicUnitTaxonomy)
             .join(
                 TaxonomyNode,
-                TaxonomyNode.id == BillableUnitTaxonomy.taxonomy_node_id,
+                TaxonomyNode.id == AtomicUnitTaxonomy.taxonomy_node_id,
             )
-            .where(BillableUnitTaxonomy.taxonomy_node_id == taxonomy_node_id)
+            .where(AtomicUnitTaxonomy.taxonomy_node_id == taxonomy_node_id)
             .where(TaxonomyNode.tenant_id == tenant_id)
         )
         return list(db.execute(stmt).scalars().all())
@@ -176,15 +176,15 @@ class TaxonomyRepository:
         db: Session,
         *,
         tenant_id: int,
-        billable_unit_id: int,
-    ) -> List[BillableUnitTaxonomy]:
+        atomic_unit_id: int,
+    ) -> List[AtomicUnitTaxonomy]:
         stmt = (
-            select(BillableUnitTaxonomy)
+            select(AtomicUnitTaxonomy)
             .join(
                 TaxonomyNode,
-                TaxonomyNode.id == BillableUnitTaxonomy.taxonomy_node_id,
+                TaxonomyNode.id == AtomicUnitTaxonomy.taxonomy_node_id,
             )
-            .where(BillableUnitTaxonomy.billable_unit_id == billable_unit_id)
+            .where(AtomicUnitTaxonomy.atomic_unit_id == atomic_unit_id)
             .where(TaxonomyNode.tenant_id == tenant_id)
         )
         return list(db.execute(stmt).scalars().all())
@@ -193,8 +193,8 @@ class TaxonomyRepository:
     def create_mapping(
         db: Session,
         *,
-        mapping: BillableUnitTaxonomy,
-    ) -> BillableUnitTaxonomy:
+        mapping: AtomicUnitTaxonomy,
+    ) -> AtomicUnitTaxonomy:
         db.add(mapping)
         return mapping
 
@@ -203,17 +203,17 @@ class TaxonomyRepository:
         db: Session,
         *,
         tenant_id: int,
-        billable_unit_id: int,
+        atomic_unit_id: int,
         taxonomy_node_id: int,
     ) -> None:
         stmt = (
-            select(BillableUnitTaxonomy)
+            select(AtomicUnitTaxonomy)
             .join(
                 TaxonomyNode,
-                TaxonomyNode.id == BillableUnitTaxonomy.taxonomy_node_id,
+                TaxonomyNode.id == AtomicUnitTaxonomy.taxonomy_node_id,
             )
-            .where(BillableUnitTaxonomy.billable_unit_id == billable_unit_id)
-            .where(BillableUnitTaxonomy.taxonomy_node_id == taxonomy_node_id)
+            .where(AtomicUnitTaxonomy.atomic_unit_id == atomic_unit_id)
+            .where(AtomicUnitTaxonomy.taxonomy_node_id == taxonomy_node_id)
             .where(TaxonomyNode.tenant_id == tenant_id)
         )
 

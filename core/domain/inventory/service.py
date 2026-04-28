@@ -12,7 +12,7 @@ from core.domain.inventory.models import (
 )
 from core.domain.inventory.repository import InventoryRepository
 from core.domain.sales.models import Sale
-from core.domain.catalog.models import BillableUnit
+from core.domain.taxonomy.models import AtomicUnit
 
 
 class InventoryService:
@@ -53,7 +53,7 @@ class InventoryService:
                 db=db,
                 tenant_id=sale.tenant_id,
                 branch_id=sale.branch_id,
-                billable_unit_id=item.billable_unit_id,
+                atomic_unit_id=item.atomic_unit_id,
                 quantity=item.quantity,
                 reference_id=sale.id,
             )
@@ -68,7 +68,7 @@ class InventoryService:
         *,
         tenant_id: str,
         branch_id: str,
-        billable_unit_id: str,
+        atomic_unit_id: str,
         quantity: int,
         reference_id: str,
     ) -> None:
@@ -81,7 +81,7 @@ class InventoryService:
             db,
             tenant_id=tenant_id,
             branch_id=branch_id,
-            billable_unit_id=billable_unit_id,
+            atomic_unit_id=atomic_unit_id,
         )
 
         if not inventory_item:
@@ -89,7 +89,7 @@ class InventoryService:
                 id=str(uuid4()),
                 tenant_id=tenant_id,
                 branch_id=branch_id,
-                billable_unit_id=billable_unit_id,
+                atomic_unit_id=atomic_unit_id,
                 quantity_on_hand=0,
                 created_at=datetime.utcnow(),
             )
@@ -107,7 +107,7 @@ class InventoryService:
             tenant_id=tenant_id,
             branch_id=branch_id,
             inventory_item_id=inventory_item.id,
-            billable_unit_id=billable_unit_id,
+            atomic_unit_id=atomic_unit_id,
             quantity_delta=-quantity,
             movement_type=InventoryMovementType.sale,
             source=InventorySource.system,
@@ -136,7 +136,7 @@ class InventoryService:
         *,
         tenant_id: str,
         branch_id: str,
-        billable_unit_id: str,
+        atomic_unit_id: str,
         quantity_delta: int,
         source: InventorySource = InventorySource.manual,
         note: Optional[str] = None,
@@ -154,7 +154,7 @@ class InventoryService:
             db,
             tenant_id=tenant_id,
             branch_id=branch_id,
-            billable_unit_id=billable_unit_id,
+            atomic_unit_id=atomic_unit_id,
         )
 
         if not inventory_item:
@@ -162,7 +162,7 @@ class InventoryService:
                 id=str(uuid4()),
                 tenant_id=tenant_id,
                 branch_id=branch_id,
-                billable_unit_id=billable_unit_id,
+                atomic_unit_id=atomic_unit_id,
                 quantity_on_hand=0,
                 created_at=datetime.utcnow(),
             )
@@ -178,7 +178,7 @@ class InventoryService:
             tenant_id=tenant_id,
             branch_id=branch_id,
             inventory_item_id=inventory_item.id,
-            billable_unit_id=billable_unit_id,
+            atomic_unit_id=atomic_unit_id,
             quantity_delta=quantity_delta,
             movement_type=InventoryMovementType.adjustment,
             source=source,

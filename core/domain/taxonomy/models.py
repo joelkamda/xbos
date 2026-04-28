@@ -3,10 +3,13 @@ from sqlalchemy import (
     String,
     Boolean,
     Integer,
+    Numeric,
     ForeignKey,
     Index,
     UniqueConstraint,
+    JSON,
 )
+
 from sqlalchemy.orm import relationship
 
 from database import Base
@@ -14,7 +17,7 @@ from database import Base
 
 class TaxonomyNode(Base):
     """
-    Flexible taxonomy node for organizing billable units.
+    Flexible taxonomy node for organizing system entities.
 
     - Arbitrary depth via parent_id
     - Semantics are hints only
@@ -44,6 +47,9 @@ class TaxonomyNode(Base):
     # semantic hint only — never authoritative
     semantic_level = Column(String, nullable=True)
 
+    # 🔥 ADD THIS (missing in ORM but exists in DB)
+    taxonomy_type = Column(String, nullable=True)
+
     sort_order = Column(Integer, default=0, nullable=False)
 
     is_active = Column(Boolean, default=True, nullable=False)
@@ -59,10 +65,11 @@ class TaxonomyNode(Base):
         lazy="selectin",
     )
 
-    billable_units = relationship(
-        "BillableUnitTaxonomy",
+    atomic_units = relationship(
+        "AtomicUnitTaxonomy",
         back_populates="taxonomy_node",
         cascade="all, delete-orphan",
+        lazy="selectin",
     )
 
     # -------------------------
@@ -79,7 +86,7 @@ class TaxonomyNode(Base):
         ),
     )
 
-    def __repr__(self) -> str:
+    def __repr__(self):
         return (
             f"<TaxonomyNode id={self.id} "
             f"name={self.name} "
@@ -88,18 +95,104 @@ class TaxonomyNode(Base):
         )
 
 
-class BillableUnitTaxonomy(Base):
+class AtomicUnit(Base):
     """
-    Many-to-many mapping between BillableUnits and TaxonomyNodes.
+    Canonical operational entity in XBOS.
+
+    Represents the smallest operational unit that can participate
+    in system activity such as:
+
+    - Sale line item
+    - Inventory item
+    - Medical service
+    - Expense entry
+    - Adjustment
+    - Fee or discount
+
+    Atomic units are domain-neutral and linked to taxonomy
+    for classification.
+    """
+
+    __tablename__ = "atomic_units"
+
+    id = Column(Integer, primary_key=True)
+
+    tenant_id = Column(
+        Integer,
+        ForeignKey("tenants.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+
+    name = Column(String, nullable=False)
+
+    # Optional human / machine identifier
+    sku = Column(String, nullable=True)
+
+    # Optional base price
+    unit_price = Column(
+        Numeric(12, 2),
+        nullable=True,
+    )
+
+    # Semantic hint only
+    # Examples: product, service, expense, adjustment
+    unit_type = Column(String, nullable=True)
+
+    is_active = Column(Boolean, default=True, nullable=False)
+
+    # Flexible extension point for domain-specific attributes
+    meta = Column(JSON, nullable=True)
+
+    # -------------------------
+    # Relationships
+    # -------------------------
+
+    taxonomy_links = relationship(
+        "AtomicUnitTaxonomy",
+        back_populates="atomic_unit",
+        cascade="all, delete-orphan",
+        lazy="selectin",
+    )
+
+    # -------------------------
+    # Indexes / Constraints
+    # -------------------------
+
+    __table_args__ = (
+        Index(
+            "ix_atomic_unit_tenant_active",
+            "tenant_id",
+            "is_active",
+        ),
+        UniqueConstraint(
+            "tenant_id",
+            "sku",
+            name="uq_atomic_unit_sku_per_tenant",
+        ),
+    )
+
+    def __repr__(self):
+        return (
+            f"<AtomicUnit id={self.id} "
+            f"name={self.name} "
+            f"unit_price={self.unit_price} "
+            f"tenant_id={self.tenant_id}>"
+        )
+
+
+class AtomicUnitTaxonomy(Base):
+    """
+    Many-to-many mapping between AtomicUnits and TaxonomyNodes.
 
     Taxonomy is navigational, not accounting.
     """
 
-    __tablename__ = "billable_unit_taxonomy"
+    __tablename__ = "atomic_unit_taxonomy"
 
-    billable_unit_id = Column(
+    atomic_unit_id = Column(
         Integer,
-        ForeignKey("billable_units.id", ondelete="CASCADE"),
+        ForeignKey("atomic_units.id", ondelete="CASCADE"),
         primary_key=True,
     )
 
@@ -109,20 +202,39 @@ class BillableUnitTaxonomy(Base):
         primary_key=True,
     )
 
-    billable_unit = relationship(
-        "BillableUnit",
+    # -------------------------
+    # Relationships
+    # -------------------------
+
+    atomic_unit = relationship(
+        "AtomicUnit",
         back_populates="taxonomy_links",
     )
 
     taxonomy_node = relationship(
         "TaxonomyNode",
-        back_populates="billable_units",
+        back_populates="atomic_units",
         lazy="selectin",
     )
 
-    def __repr__(self) -> str:
+    # -------------------------
+    # Indexes
+    # -------------------------
+
+    __table_args__ = (
+        Index(
+            "ix_atomic_unit_taxonomy_unit",
+            "atomic_unit_id",
+        ),
+        Index(
+            "ix_atomic_unit_taxonomy_node",
+            "taxonomy_node_id",
+        ),
+    )
+
+    def __repr__(self):
         return (
-            f"<BillableUnitTaxonomy "
-            f"billable_unit_id={self.billable_unit_id} "
+            f"<AtomicUnitTaxonomy "
+            f"atomic_unit_id={self.atomic_unit_id} "
             f"taxonomy_node_id={self.taxonomy_node_id}>"
         )

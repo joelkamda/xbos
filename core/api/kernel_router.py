@@ -3,9 +3,11 @@ from fastapi import APIRouter, Request, Depends, HTTPException
 # Subsystems
 from core.auth.auth_controller import auth_router
 from core.api.tenant_controller import router as tenant_router
+from core.api.orders.orders_router import router as orders_router
 from core.api.sales.sales_router import router as sales_router
 from core.api.taxonomy.taxonomy_router import router as taxonomy_router
 from core.api.catalog.catalog_router import router as catalog_router
+from core.api.accounting.accounting_router import router as accounting_router
 
 # Payments & Receipts
 from core.api.payments.payments_router import router as payments_router
@@ -117,4 +119,16 @@ kernel_router.include_router(
     catalog_router,
     prefix="/catalog",
     tags=["Catalog"],
+)
+
+kernel_router.include_router(
+    accounting_router,
+    prefix="/accounting",
+    tags=["Accounting"],
+)
+
+kernel_router.include_router(
+    orders_router,
+    prefix="/orders",
+    tags=["Orders"],
 )

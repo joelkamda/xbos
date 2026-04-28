@@ -53,6 +53,7 @@ class AuthMiddleware(BaseHTTPMiddleware):
                     "sale.create",
                     "sale.view",
                     "payments.receive",
+                    "payments.view",
                     "order.create",
                     "order.view",
                 ],

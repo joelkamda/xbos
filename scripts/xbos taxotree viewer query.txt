@@ -1,0 +1,14 @@
+2️⃣ Usage
+Revenue tree
+SELECT tree_line
+FROM xbos_taxonomy_tree(66);
+
+
+Expense tree
+SELECT tree_line
+FROM xbos_taxonomy_tree(67);
+
+
+Commerce / Inventory tree
+SELECT tree_line
+FROM xbos_taxonomy_tree(56);

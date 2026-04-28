@@ -1,8 +1,8 @@
 from typing import List, Optional
 from sqlalchemy.orm import Session
 
-from core.domain.catalog.models import BillableUnit
-from core.domain.catalog.repository import BillableUnitRepository
+from core.domain.taxonomy.models import AtomicUnit
+from core.domain.catalog.repository import AtomicUnitRepository
 from core.domain.taxonomy.repository import TaxonomyRepository
 
 
@@ -11,7 +11,7 @@ class CatalogService:
     Domain service for catalog access.
 
     Responsibilities:
-    - Fetch billable units for POS
+    - Fetch atomic units for POS
     - Apply tenant scoping
     - Orchestrate taxonomy-based filtering
     - NO pricing logic
@@ -23,16 +23,19 @@ class CatalogService:
     # -------------------------------------------------
 
     @staticmethod
-    def get_billable_unit(
+    def get_atomic_unit(
         db: Session,
         *,
         tenant_id: int,
-        billable_unit_id: int,
-    ) -> Optional[BillableUnit]:
-        return BillableUnitRepository.get_by_id(
+        atomic_unit_id: int,
+    ) -> Optional[AtomicUnit]:
+        """
+        Fetch a single atomic unit by ID.
+        """
+        return AtomicUnitRepository.get_by_id(
             db,
             tenant_id=tenant_id,
-            billable_unit_id=billable_unit_id,
+            atomic_unit_id=atomic_unit_id,
         )
 
     @staticmethod
@@ -41,15 +44,18 @@ class CatalogService:
         *,
         tenant_id: int,
         active_only: bool = True,
-    ) -> List[BillableUnit]:
-        return BillableUnitRepository.list_all(
+    ) -> List[AtomicUnit]:
+        """
+        List all atomic units for a tenant.
+        """
+        return AtomicUnitRepository.list_all(
             db,
             tenant_id=tenant_id,
             active_only=active_only,
         )
 
     # -------------------------------------------------
-    # ✅ Catalog summary (DELEGATED – FIXED)
+    # Catalog summary (POS navigation)
     # -------------------------------------------------
 
     @staticmethod
@@ -59,18 +65,23 @@ class CatalogService:
         tenant_id: int,
     ):
         """
-        Returns flattened rows:
-        category_id, category_name, subcategory_id, subcategory_name
+        Returns flattened POS navigation rows:
 
-        Delegated to TaxonomyRepository to avoid self-join ambiguity.
+        category_id
+        category_name
+        subcategory_id
+        subcategory_name
+
+        Delegates to AtomicUnitRepository so POS
+        remains isolated from full taxonomy traversal.
         """
-        return TaxonomyRepository.catalog_summary(
+        return AtomicUnitRepository.catalog_summary(
             db,
             tenant_id=tenant_id,
         )
 
     # -------------------------------------------------
-    # List by subcategory (POS-optimized)
+    # List by subcategory (POS optimized)
     # -------------------------------------------------
 
     @staticmethod
@@ -80,8 +91,23 @@ class CatalogService:
         tenant_id: int,
         subcategory_id: int,
         active_only: bool = True,
-    ) -> List[BillableUnit]:
-        return BillableUnitRepository.list_by_taxonomy(
+    ) -> List[AtomicUnit]:
+        """
+        Return atomic units belonging to a specific
+        POS subcategory.
+        """
+
+        # Ensure subcategory exists
+        node = TaxonomyRepository.get_by_id(
+            db,
+            tenant_id=tenant_id,
+            taxonomy_node_id=subcategory_id,
+        )
+
+        if not node:
+            return []
+
+        return AtomicUnitRepository.list_by_taxonomy(
             db,
             tenant_id=tenant_id,
             taxonomy_node_id=subcategory_id,
@@ -89,7 +115,7 @@ class CatalogService:
         )
 
     # -------------------------------------------------
-    # Taxonomy-based access (generic)
+    # Generic taxonomy access
     # -------------------------------------------------
 
     @staticmethod
@@ -99,16 +125,22 @@ class CatalogService:
         tenant_id: int,
         taxonomy_node_id: int,
         active_only: bool = True,
-    ) -> List[BillableUnit]:
+    ) -> List[AtomicUnit]:
+        """
+        Return atomic units mapped to any taxonomy node.
+        Used by advanced catalog tooling.
+        """
+
         node = TaxonomyRepository.get_by_id(
             db,
             tenant_id=tenant_id,
             taxonomy_node_id=taxonomy_node_id,
         )
+
         if not node:
             return []
 
-        return BillableUnitRepository.list_by_taxonomy(
+        return AtomicUnitRepository.list_by_taxonomy(
             db,
             tenant_id=tenant_id,
             taxonomy_node_id=taxonomy_node_id,
@@ -127,11 +159,15 @@ class CatalogService:
         query: str,
         active_only: bool = True,
         limit: int = 50,
-    ) -> List[BillableUnit]:
+    ) -> List[AtomicUnit]:
+        """
+        Search atomic units by name or SKU.
+        """
+
         if not query or not query.strip():
             return []
 
-        return BillableUnitRepository.search(
+        return AtomicUnitRepository.search(
             db,
             tenant_id=tenant_id,
             query=query,

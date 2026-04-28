@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 
 from core.domain.taxonomy.models import (
     TaxonomyNode,
-    BillableUnitTaxonomy,
+    AtomicUnitTaxonomy,
 )
 from core.domain.taxonomy.repository import TaxonomyRepository
 
@@ -91,25 +91,25 @@ class TaxonomyService:
         )
 
     # -------------------------------------------------
-    # BillableUnit ↔ Taxonomy mapping
+    # AtomicUnit ↔ Taxonomy mapping
     # -------------------------------------------------
 
     @staticmethod
-    def attach_billable_unit(
+    def attach_atomic_unit(
         db: Session,
         *,
-        billable_unit_id: str,
+        atomic_unit_id: str,
         taxonomy_node_id: str,
-    ) -> BillableUnitTaxonomy:
+    ) -> AtomicUnitTaxonomy:
         """
-        Attach a BillableUnit to a TaxonomyNode.
+        Attach a AtomicUnit to a TaxonomyNode.
 
         NOTE:
-        - Does not validate existence of BillableUnit
+        - Does not validate existence of AtomicUnit
         - Controller / higher service should validate if needed
         """
-        mapping = BillableUnitTaxonomy(
-            billable_unit_id=billable_unit_id,
+        mapping = AtomicUnitTaxonomy(
+            atomic_unit_id=atomic_unit_id,
             taxonomy_node_id=taxonomy_node_id,
         )
 
@@ -119,17 +119,17 @@ class TaxonomyService:
         )
 
     @staticmethod
-    def detach_billable_unit(
+    def detach_atomic_unit(
         db: Session,
         *,
-        billable_unit_id: str,
+        atomic_unit_id: str,
         taxonomy_node_id: str,
     ) -> None:
         """
-        Detach a BillableUnit from a TaxonomyNode.
+        Detach a AtomicUnit from a TaxonomyNode.
         """
         TaxonomyRepository.delete_mapping(
             db,
-            billable_unit_id=billable_unit_id,
+            atomic_unit_id=atomic_unit_id,
             taxonomy_node_id=taxonomy_node_id,
         )

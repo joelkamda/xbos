@@ -14,8 +14,8 @@ from core.rbac.roles.role_model import Role
 # -------------------------
 # Tier-1 (Business Layer)
 # -------------------------
-from core.domain.catalog.models import BillableUnit
-from core.domain.taxonomy.models import TaxonomyNode, BillableUnitTaxonomy
+
+from core.domain.taxonomy.models import TaxonomyNode, AtomicUnitTaxonomy, AtomicUnit
 from core.domain.sales.models import Sale, SaleItem
 from core.domain.payments.models import Payment
 from core.domain.inventory.models import InventoryItem, InventoryMovement

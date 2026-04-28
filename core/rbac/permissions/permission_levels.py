@@ -100,7 +100,7 @@ PERMISSION_LEVELS = {
     "wallet.unfreeze": HIGH,
 
     # ----------------------------
-    # CATALOG (Billable Units)
+    # CATALOG (Atomic Units)
     # ----------------------------
     "catalog.view": LOW,
     "catalog.create": MEDIUM,

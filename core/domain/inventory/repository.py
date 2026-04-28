@@ -30,16 +30,16 @@ class InventoryRepository:
         *,
         tenant_id: int,
         branch_id: int,
-        billable_unit_id: int,
+        atomic_unit_id: int,
     ) -> Optional[InventoryItem]:
         """
-        Fetch inventory item for a billable unit at a branch.
+        Fetch inventory item for a atomic unit at a branch.
         """
         stmt = (
             select(InventoryItem)
             .where(InventoryItem.tenant_id == tenant_id)
             .where(InventoryItem.branch_id == branch_id)
-            .where(InventoryItem.billable_unit_id == billable_unit_id)
+            .where(InventoryItem.atomic_unit_id == atomic_unit_id)
         )
         return db.execute(stmt).scalar_one_or_none()
 
@@ -57,7 +57,7 @@ class InventoryRepository:
             select(InventoryItem)
             .where(InventoryItem.tenant_id == tenant_id)
             .where(InventoryItem.branch_id == branch_id)
-            .order_by(InventoryItem.billable_unit_id.asc())
+            .order_by(InventoryItem.atomic_unit_id.asc())
         )
         return list(db.execute(stmt).scalars().all())
 
@@ -110,7 +110,7 @@ class InventoryRepository:
         *,
         tenant_id: int,
         branch_id: Optional[int] = None,
-        billable_unit_id: Optional[int] = None,
+        atomic_unit_id: Optional[int] = None,
         movement_type: Optional[str] = None,
         limit: int = 100,
     ) -> List[InventoryMovement]:
@@ -127,9 +127,9 @@ class InventoryRepository:
         if branch_id is not None:
             stmt = stmt.where(InventoryMovement.branch_id == branch_id)
 
-        if billable_unit_id is not None:
+        if atomic_unit_id is not None:
             stmt = stmt.where(
-                InventoryMovement.billable_unit_id == billable_unit_id
+                InventoryMovement.atomic_unit_id == atomic_unit_id
             )
 
         if movement_type is not None:
