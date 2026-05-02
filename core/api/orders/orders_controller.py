@@ -1,4 +1,4 @@
-from fastapi import Request
+from fastapi import Request, HTTPException
 from sqlalchemy.orm import Session
 
 from core.domain.orders.service import OrderService
@@ -14,12 +14,15 @@ class OrdersController:
     async def create_order(self, request: Request, payload: dict, db: Session):
         ctx = request.state.user
 
-        return OrderService.create_order(
-            db,
-            tenant_id=ctx["tenant_id"],
-            branch_id=ctx["branch_id"],
-            payload=payload,
-        )
+        try:
+            return OrderService.create_order(
+                db,
+                tenant_id=ctx["tenant_id"],
+                branch_id=ctx["branch_id"],
+                payload=payload,
+            )
+        except ValueError as e:
+            raise HTTPException(status_code=400, detail=str(e))
 
     # =====================================================
     # LIST PENDING ORDERS
@@ -35,7 +38,7 @@ class OrdersController:
         )
 
     # =====================================================
-    # 🔥 GET SINGLE ORDER (CRITICAL FOR PAYMENT FLOW)
+    # GET SINGLE ORDER
     # =====================================================
 
     async def get_order(self, request: Request, order_id: int, db: Session):
@@ -45,12 +48,12 @@ class OrdersController:
         order = OrderRepository.get_by_id(db, order_id)
 
         if not order:
-            return {"error": "Order not found"}
+            raise HTTPException(status_code=404, detail="Order not found")
 
-        # 🔐 Optional auth check (safe)
+        # 🔐 Optional auth check
         if ctx:
             if order.tenant_id != ctx.get("tenant_id"):
-                return {"error": "Unauthorized"}
+                raise HTTPException(status_code=403, detail="Unauthorized")
 
         return {
             "id": order.id,
@@ -70,3 +73,85 @@ class OrdersController:
                 for i in (order.items or [])
             ],
         }
+
+    # =====================================================
+    # UPDATE PENDING ORDER
+    # =====================================================
+
+    async def update_order(
+        self,
+        request: Request,
+        order_id: int,
+        payload: dict,
+        db: Session,
+    ):
+        ctx = request.state.user
+
+        try:
+            order = OrderService.update_order(
+                db,
+                tenant_id=ctx["tenant_id"],
+                branch_id=ctx["branch_id"],
+                order_id=order_id,
+                payload=payload,
+            )
+
+            return {
+                "id": order.id,
+                "status": order.status,
+                "subtotal": float(order.subtotal or 0),
+                "total": float(order.total or 0),
+                "message": "Order updated successfully",
+                "items": [
+                    {
+                        "atomic_unit_id": i.atomic_unit_id,
+                        "name_snapshot": i.name_snapshot,
+                        "unit_price": float(i.unit_price or 0),
+                        "quantity": i.quantity,
+                        "line_total": float(i.line_total or 0),
+                    }
+                    for i in (order.items or [])
+                ],
+            }
+
+        except ValueError as e:
+            detail = str(e)
+
+            if detail == "Order not found":
+                raise HTTPException(status_code=404, detail=detail)
+
+            raise HTTPException(status_code=400, detail=detail)
+
+    # =====================================================
+    # CANCEL PENDING ORDER
+    # =====================================================
+
+    async def cancel_order(
+        self,
+        request: Request,
+        order_id: int,
+        db: Session,
+    ):
+        ctx = request.state.user
+
+        try:
+            order = OrderService.cancel_order(
+                db,
+                tenant_id=ctx["tenant_id"],
+                branch_id=ctx["branch_id"],
+                order_id=order_id,
+            )
+
+            return {
+                "id": order.id,
+                "status": order.status,
+                "message": "Order cancelled successfully",
+            }
+
+        except ValueError as e:
+            detail = str(e)
+
+            if detail == "Order not found":
+                raise HTTPException(status_code=404, detail=detail)
+
+            raise HTTPException(status_code=400, detail=detail)

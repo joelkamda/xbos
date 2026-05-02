@@ -27,6 +27,19 @@ def _d(v: Any) -> Decimal:
         return Decimal("0")
 
 
+def _status_ui(value: Any) -> str:
+    raw = getattr(value, "value", value)
+    raw = str(raw or "").lower()
+
+    if raw in {"succeeded", "success", "completed", "complete", "paid"}:
+        return "COMPLETED"
+
+    if raw in {"failed", "failure", "cancelled", "canceled", "error"}:
+        return "FAILED"
+
+    return "PENDING"
+
+
 class PaymentsController:
     # =====================================================
     # INTERNAL HELPERS
@@ -105,6 +118,41 @@ class PaymentsController:
         for intent in intents:
             meta = intent.meta or {}
 
+            attempts = PaymentAttemptRepository.list_for_intent(
+                db=db,
+                intent_id=intent.id,
+            )
+
+            last_attempt = attempts[-1] if attempts else None
+            successful_attempts = [
+                a
+                for a in attempts
+                if str(getattr(a.status, "value", a.status)).lower()
+                in {"succeeded", "success", "completed", "complete", "paid"}
+            ]
+
+            methods = {
+                str(a.method).lower()
+                for a in successful_attempts
+                if getattr(a, "method", None)
+            }
+
+            if len(methods) > 1:
+                method = "split"
+            elif last_attempt and last_attempt.method:
+                method = str(last_attempt.method).lower()
+            else:
+                method = intent.channel
+
+            provider = last_attempt.provider if last_attempt else None
+
+            enriched_meta = {
+                **meta,
+                "total_paid": float(intent.total_paid or 0),
+                "balance_due": float(intent.balance_due or 0),
+                "amount": float(intent.amount or 0),
+            }
+
             results.append(
                 {
                     "id": str(intent.id),
@@ -113,16 +161,24 @@ class PaymentsController:
                     else meta.get("sale_id"),
                     "payable_type": intent.payable_type,
                     "payable_id": intent.payable_id,
-                    "customer_name": meta.get("customer_name"),
-                    "phone": meta.get("phone"),
+                    "customer_name": (
+                        meta.get("customer_name")
+                        or (meta.get("customer") or {}).get("name")
+                    ),
+                    "phone": (
+                        meta.get("phone")
+                        or (meta.get("customer") or {}).get("phone")
+                    ),
                     "amount": float(intent.amount or 0),
-                    "method": intent.channel,
-                    "status": intent.status.value
-                    if hasattr(intent.status, "value")
-                    else str(intent.status),
+                    "total_paid": float(intent.total_paid or 0),
+                    "balance_due": float(intent.balance_due or 0),
+                    "method": method,
+                    "provider": provider,
+                    "status": _status_ui(intent.status),
                     "created_at": intent.created_at.isoformat()
                     if intent.created_at
                     else None,
+                    "meta": enriched_meta,
                 }
             )
 
@@ -149,24 +205,32 @@ class PaymentsController:
                 detail="Payment not found",
             )
 
-        attempts = PaymentAttemptRepository.list_by_intent(
+        attempts = PaymentAttemptRepository.list_for_intent(
             db=db,
             intent_id=intent.id,
         )
 
         return {
             "id": str(intent.id),
+            "sale_id": intent.payable_id
+            if intent.payable_type == "sale"
+            else None,
+            "payable_type": intent.payable_type,
+            "payable_id": intent.payable_id,
             "amount": float(intent.amount or 0),
             "currency": intent.currency,
-            "status": intent.status.value
-            if hasattr(intent.status, "value")
-            else str(intent.status),
+            "method": intent.channel,
+            "status": _status_ui(intent.status),
             "total_paid": float(intent.total_paid or 0),
             "balance_due": float(intent.balance_due or 0),
             "created_at": intent.created_at.isoformat()
             if intent.created_at
             else None,
-            "meta": intent.meta or {},
+            "meta": {
+                **(intent.meta or {}),
+                "total_paid": float(intent.total_paid or 0),
+                "balance_due": float(intent.balance_due or 0),
+            },
             "attempts": [
                 {
                     "id": str(a.id),
@@ -174,19 +238,18 @@ class PaymentsController:
                     "method": a.method,
                     "settlement_mode": a.settlement_mode,
                     "amount": float(a.amount or 0),
-                    "status": a.status.value
-                    if hasattr(a.status, "value")
-                    else str(a.status),
+                    "status": _status_ui(a.status),
                     "created_at": a.created_at.isoformat()
                     if a.created_at
                     else None,
+                    "meta": a.meta or {},
                 }
                 for a in attempts
             ],
         }
 
     # =====================================================
-    # POS SETTLEMENT (ORDER-DRIVEN / MANUAL)
+    # POS SETTLEMENT (ORDER-DRIVEN / MANUAL / BALANCE)
     # =====================================================
 
     async def pos_settle(
@@ -205,11 +268,27 @@ class PaymentsController:
         client_reference = payload.get("client_reference")
         lines: List[Dict[str, Any]] = payload.get("lines") or []
 
-        # =====================================================
-        # 🔥 EXTRACT + NORMALIZE CHANGE MODEL
-        # =====================================================
-
         receipt_meta = payload.get("receipt_meta") or {}
+
+        existing_intent_id = (
+            payload.get("existing_intent_id")
+            or payload.get("parent_intent_id")
+            or receipt_meta.get("existing_intent_id")
+            or receipt_meta.get("parent_intent_id")
+        )
+
+        complete_balance = bool(
+            payload.get("complete_balance") or receipt_meta.get("complete_balance")
+        )
+
+        settle_failed_intent = bool(
+            payload.get("settle_failed_intent")
+            or receipt_meta.get("settle_failed_intent")
+        )
+
+        # =====================================================
+        # CHANGE MODEL
+        # =====================================================
 
         tendered_total = payload.get("tendered_total")
         change_amount = payload.get("change_amount")
@@ -234,7 +313,6 @@ class PaymentsController:
             change_amount_d - (safe_given_d + safe_tip_d),
         )
 
-        # 🔥 WRITE NORMALIZED VALUES
         receipt_meta = {
             **receipt_meta,
             "tendered_total": float(_d(tendered_total))
@@ -247,9 +325,12 @@ class PaymentsController:
             "unpaid_amount": float(_d(unpaid_amount))
             if unpaid_amount is not None
             else float(_d(receipt_meta.get("unpaid_amount"))),
+            "existing_intent_id": existing_intent_id,
+            "parent_intent_id": existing_intent_id,
+            "complete_balance": complete_balance or None,
+            "settle_failed_intent": settle_failed_intent or None,
         }
 
-        # 🔥 CRITICAL: overwrite variables passed to service
         change_given_now = safe_given_d
         tip_amount = safe_tip_d
         change_remaining = change_remaining_d
@@ -298,6 +379,9 @@ class PaymentsController:
                 tenant_id=tenant_id,
                 branch_id=branch_id,
                 sale_id=sale.id,
+                existing_intent_id=existing_intent_id,
+                complete_balance=complete_balance,
+                settle_failed_intent=settle_failed_intent,
                 created_by_user_id=user_id,
                 client_reference=str(client_reference),
                 lines=lines,
@@ -329,7 +413,7 @@ class PaymentsController:
                     OrderRepository.mark_paid(order)
 
         # =====================================================
-        # MANUAL FLOW
+        # MANUAL / DIRECT PAY FLOW
         # =====================================================
         else:
             if not is_manual:
@@ -343,6 +427,9 @@ class PaymentsController:
                 tenant_id=tenant_id,
                 branch_id=branch_id,
                 sale_id=None,
+                existing_intent_id=existing_intent_id,
+                complete_balance=complete_balance,
+                settle_failed_intent=settle_failed_intent,
                 created_by_user_id=user_id,
                 client_reference=str(client_reference),
                 lines=lines,
@@ -386,9 +473,8 @@ class PaymentsController:
             "total_paid": float(intent.total_paid or 0),
             "balance_due": float(intent.balance_due or 0),
             "receipt_meta": intent.meta or {},
-            "intent_status": intent.status.value
-            if hasattr(intent.status, "value")
-            else str(intent.status),
+            "intent_status": _status_ui(intent.status),
+            "completed_existing_intent": bool(existing_intent_id),
         }
 
     # =====================================================

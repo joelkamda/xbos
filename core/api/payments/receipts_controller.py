@@ -9,16 +9,57 @@ from core.domain.payments.repository import (
     PaymentIntentRepository,
     PaymentAttemptRepository,
 )
-from core.domain.payments.models import PaymentAttemptStatus
 
 
 def _d(v: Any) -> Decimal:
     try:
-        if v is None:
+        if v is None or v == "":
             return Decimal("0")
         return Decimal(str(v))
     except Exception:
         return Decimal("0")
+
+
+def _status_value(v: Any) -> str:
+    """
+    Normalize enum/string statuses safely.
+
+    Handles:
+    - PaymentAttemptStatus.succeeded
+    - "succeeded"
+    - "PaymentAttemptStatus.succeeded"
+    - "SUCCEEDED"
+    """
+    raw = getattr(v, "value", v)
+    text = str(raw or "").strip().lower()
+
+    if "." in text:
+        text = text.split(".")[-1]
+
+    return text
+
+
+def _is_success_status(v: Any) -> bool:
+    return _status_value(v) in {
+        "succeeded",
+        "success",
+        "paid",
+        "settled",
+        "completed",
+    }
+
+
+def _customer_payload(customer: Any):
+    if isinstance(customer, dict):
+        return {
+            "name": customer.get("name"),
+            "phone": customer.get("phone"),
+        }
+
+    if isinstance(customer, str) and customer.strip():
+        return {"name": customer.strip()}
+
+    return None
 
 
 class ReceiptsController:
@@ -55,7 +96,10 @@ class ReceiptsController:
         )
 
         if not intent:
-            raise HTTPException(status_code=500)
+            raise HTTPException(
+                status_code=500,
+                detail="PaymentIntent missing for sale",
+            )
 
         return await self._build_receipt_from_intent(
             intent=intent,
@@ -85,7 +129,10 @@ class ReceiptsController:
         )
 
         if not intent:
-            raise HTTPException(404, "PaymentIntent not found")
+            raise HTTPException(
+                status_code=404,
+                detail="PaymentIntent not found",
+            )
 
         return await self._build_receipt_from_intent(
             intent=intent,
@@ -110,57 +157,88 @@ class ReceiptsController:
 
         successful_attempts = [
             a for a in attempts
-            if a.status == PaymentAttemptStatus.succeeded
+            if _is_success_status(a.status)
         ]
 
-        net_due = _d(intent.amount)
-        total_paid = _d(intent.total_paid or 0)
-        balance_due = _d(intent.balance_due or 0)
+        meta = dict(intent.meta or {})
 
+        # =====================================================
+        # CORE TOTALS
+        # =====================================================
+
+        net_due = _d(intent.amount)
+
+        attempts_paid = sum(
+            (_d(a.amount) for a in successful_attempts),
+            Decimal("0"),
+        )
+
+        stored_total_paid = _d(intent.total_paid or 0)
+
+        # Backend receipt truth:
+        # - use persisted total_paid when correct
+        # - recover from successful attempts when persisted total is stale/zero
+        # - cap applied amount to net_due so receipt does not over-apply tender
+        total_paid = max(
+            stored_total_paid,
+            min(net_due, attempts_paid),
+        )
+
+        if total_paid < 0:
+            total_paid = Decimal("0")
+
+        balance_due = net_due - total_paid
         if balance_due < 0:
             balance_due = Decimal("0")
 
-        meta = intent.meta or {}
+        # =====================================================
+        # CHANGE / TIP MODEL
+        # =====================================================
 
-        # 🔥 RAW VALUES
         change_amount = _d(meta.get("change_amount", 0))
         change_given_now = _d(meta.get("change_given_now", 0))
         tip_amount = _d(meta.get("tip_amount", 0))
 
-        # 🔥 HARD BACKEND RECOMPUTE (FINAL SOURCE OF TRUTH)
         safe_given = min(change_given_now, change_amount)
 
         safe_tip = min(
             tip_amount,
-            max(Decimal("0"), change_amount - safe_given)
+            max(Decimal("0"), change_amount - safe_given),
         )
 
         change_remaining = max(
             Decimal("0"),
-            change_amount - (safe_given + safe_tip)
+            change_amount - (safe_given + safe_tip),
         )
 
-        # 🔥 WRITE BACK (ensures consistency everywhere)
+        # Keep returned meta consistent. We do not commit here; this endpoint
+        # returns canonical receipt values without turning the receipt read path
+        # into a write-heavy operation.
         meta["change_given_now"] = float(safe_given)
         meta["tip_amount"] = float(safe_tip)
         meta["change_remaining"] = float(change_remaining)
 
+        # =====================================================
+        # DESCRIPTIVE FIELDS
+        # =====================================================
+
         description = meta.get("description")
         reference = meta.get("reference")
-
-        customer = meta.get("customer")
-        if isinstance(customer, dict):
-            customer_payload = {"name": customer.get("name")}
-        elif isinstance(customer, str):
-            customer_payload = {"name": customer}
-        else:
-            customer_payload = None
+        customer_payload = _customer_payload(meta.get("customer"))
 
         gross_total = _d(meta.get("gross_total", net_due))
         discount_total = _d(meta.get("discount_total", 0))
         complimentary_total = _d(meta.get("complimentary_total", 0))
 
-        tendered_total = _d(meta.get("tendered_total", total_paid))
+        # Tendered total is customer-facing tender, not applied amount.
+        # If absent/stale, recover from attempts.
+        tendered_total = _d(meta.get("tendered_total", 0))
+        if tendered_total <= 0:
+            tendered_total = attempts_paid if attempts_paid > 0 else total_paid
+
+        # =====================================================
+        # ITEMS / RECEIPT ID
+        # =====================================================
 
         if sale:
             items = [
@@ -172,29 +250,74 @@ class ReceiptsController:
                 }
                 for item in sale.items
             ]
+
             receipt_no = sale.receipt_no
             created_at = sale.created_at.isoformat()
-        else:
-            items = meta.get("items") or [
-                {
-                    "name": description or reference or "Payment",
-                    "unit_price": float(net_due),
-                    "quantity": 1,
-                    "line_total": float(net_due),
-                }
-            ]
 
-            receipt_no = f"MP-{intent.id}"
-            created_at = intent.created_at.isoformat()
+        else:
+            raw_items = meta.get("items")
+
+            if isinstance(raw_items, list) and raw_items:
+                items = raw_items
+            else:
+                items = [
+                    {
+                        "name": description or reference or "Payment",
+                        "unit_price": float(net_due),
+                        "quantity": 1,
+                        "line_total": float(net_due),
+                    }
+                ]
+
+            receipt_no = (
+                meta.get("receipt_no")
+                or meta.get("reference")
+                or f"MP-{intent.id}"
+            )
+
+            created_at = (
+                intent.created_at.isoformat()
+                if getattr(intent, "created_at", None)
+                else None
+            )
+
+        # =====================================================
+        # PAYMENTS PAYLOAD
+        # =====================================================
 
         payments_payload = [
             {
                 "method": str(a.method),
                 "provider": str(a.provider) if a.provider else None,
                 "amount": float(_d(a.amount)),
+                "settlement_mode": str(a.settlement_mode)
+                if getattr(a, "settlement_mode", None)
+                else None,
+                "status": _status_value(a.status),
+                "created_at": a.created_at.isoformat()
+                if getattr(a, "created_at", None)
+                else None,
             }
             for a in successful_attempts
         ]
+
+        # If an old/manual payment somehow has no attempts but persisted
+        # total_paid is correct, still return a displayable payment line.
+        if not payments_payload and total_paid > 0:
+            payments_payload = [
+                {
+                    "method": str(intent.channel or "pos"),
+                    "provider": None,
+                    "amount": float(total_paid),
+                    "settlement_mode": "manual",
+                    "status": "succeeded",
+                    "created_at": created_at,
+                }
+            ]
+
+        # =====================================================
+        # CANONICAL RECEIPT DTO
+        # =====================================================
 
         return {
             "receipt_no": receipt_no,
@@ -223,15 +346,22 @@ class ReceiptsController:
             "discount_total": float(discount_total),
             "complimentary_total": float(complimentary_total),
 
-            # 🔥 FINAL TRUSTED VALUES
             "change_amount": float(change_amount),
             "change_given_now": float(safe_given),
             "change_remaining": float(change_remaining),
-
             "tip_amount": float(safe_tip),
 
             "payments": payments_payload,
 
-            "footer": "Thank you! Come again to your Happy Home.",
-            "powered_by": "XBOS",
+            "payment_intent_id": str(intent.id),
+            "payable_type": intent.payable_type,
+            "payable_id": intent.payable_id,
+            "status": _status_value(intent.status),
+            "currency": intent.currency,
+
+            "footer": meta.get(
+                "footer",
+                "Thank you! Come again to your Happy Home.",
+            ),
+            "powered_by": meta.get("powered_by", "XBOS"),
         }
