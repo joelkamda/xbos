@@ -3,24 +3,336 @@ from sqlalchemy.orm import Session
 
 from core.domain.orders.service import OrderService
 from core.domain.orders.repository import OrderRepository
+from core.domain.taxonomy.models import AtomicUnitTaxonomy, TaxonomyNode
+
+
+# =====================================================
+# WND V1 FULFILLMENT ROUTING RULES
+# =====================================================
+# Temporary V1 rule.
+# Later this should move into tenant configuration:
+# taxonomy_node.meta["fulfillment_queue"] = "kitchen"
+# taxonomy_node.meta["requires_fulfillment"] = true
+# or tenant_fulfillment_rules table.
+# =====================================================
+
+KITCHEN_ROUTE_NAMES = {
+    "MAIN DISH",
+    "BREAKFAST",
+    "COMPLEMENT",
+    "DESERT",
+    "DESSERT",
+    "HOT DRINKS",
+    "FOOD",
+    "KITCHEN",
+    "PREP",
+}
+
+NON_KITCHEN_ROUTE_NAMES = {
+    "BEER",
+    "SOFT DRINKS",
+    "ENERGY DRINKS",
+    "WHISKY",
+    "WHISKEY",
+    "WINE",
+    "CHAMPAGNE",
+    "LIQUOR",
+    "CIGARETTES",
+    "SHISHA",
+}
 
 
 class OrdersController:
+
+    # =====================================================
+    # CONTEXT
+    # =====================================================
+
+    def _ctx(self, request: Request):
+        ctx = getattr(request.state, "user", None)
+
+        if not ctx or not isinstance(ctx, dict):
+            raise HTTPException(status_code=401, detail="Missing auth context")
+
+        return {
+            "tenant_id": int(ctx["tenant_id"]),
+            "branch_id": int(ctx["branch_id"]),
+            "user_id": int(ctx["user_id"]),
+            "role": ctx.get("role"),
+        }
+
+    # =====================================================
+    # TAXONOMY / FULFILLMENT HELPERS
+    # =====================================================
+
+    def _taxonomy_node(self, db: Session, tenant_id: int, node_id: int):
+        return (
+            db.query(TaxonomyNode)
+            .filter(
+                TaxonomyNode.id == node_id,
+                TaxonomyNode.tenant_id == tenant_id,
+                TaxonomyNode.is_active.is_(True),
+            )
+            .first()
+        )
+
+    def _taxonomy_path_for_atomic_unit(
+        self,
+        db: Session,
+        *,
+        tenant_id: int,
+        atomic_unit_id: int,
+    ) -> dict:
+        """
+        Returns best-effort taxonomy path for an atomic unit.
+
+        Output shape:
+        {
+          "domain": "Inventory",
+          "category": "MAIN DISH",
+          "subcategory": "SAUCE",
+          "names": ["Inventory", "MAIN DISH", "SAUCE"]
+        }
+        """
+
+        mapped_rows = (
+            db.query(AtomicUnitTaxonomy)
+            .filter(AtomicUnitTaxonomy.atomic_unit_id == atomic_unit_id)
+            .all()
+        )
+
+        if not mapped_rows:
+            return {
+                "domain": None,
+                "category": None,
+                "subcategory": None,
+                "names": [],
+            }
+
+        best_path = {
+            "domain": None,
+            "category": None,
+            "subcategory": None,
+            "names": [],
+        }
+
+        for mapping in mapped_rows:
+            node = self._taxonomy_node(
+                db,
+                tenant_id=tenant_id,
+                node_id=mapping.taxonomy_node_id,
+            )
+
+            if not node:
+                continue
+
+            nodes = []
+            cursor = node
+            guard = 0
+
+            while cursor and guard < 10:
+                nodes.append(cursor)
+
+                if not cursor.parent_id:
+                    break
+
+                cursor = self._taxonomy_node(
+                    db,
+                    tenant_id=tenant_id,
+                    node_id=cursor.parent_id,
+                )
+
+                guard += 1
+
+            # Root → leaf order
+            nodes = list(reversed(nodes))
+
+            path = {
+                "domain": None,
+                "category": None,
+                "subcategory": None,
+                "names": [],
+            }
+
+            for n in nodes:
+                name = str(n.name or "").strip()
+
+                if name:
+                    path["names"].append(name)
+
+                level = str(n.semantic_level or "").lower()
+
+                if level == "domain":
+                    path["domain"] = name
+                elif level == "category":
+                    path["category"] = name
+                elif level == "subcategory":
+                    path["subcategory"] = name
+
+            names_upper = {str(x).upper() for x in path["names"]}
+
+            # Prefer Inventory path if available
+            if "INVENTORY" in names_upper:
+                return path
+
+            # Otherwise keep first usable path as fallback
+            if path["names"] and not best_path["names"]:
+                best_path = path
+
+        return best_path
+
+    def _fulfillment_payload_for_item(
+        self,
+        db: Session,
+        *,
+        tenant_id: int,
+        atomic_unit_id: int,
+        stored_status: str | None = None,
+    ) -> dict:
+        """
+        Converts taxonomy path into routing metadata.
+
+        Important:
+        - Routing can still be taxonomy-derived.
+        - Status must come from DB when available.
+        """
+
+        path = self._taxonomy_path_for_atomic_unit(
+            db,
+            tenant_id=tenant_id,
+            atomic_unit_id=atomic_unit_id,
+        )
+
+        names_upper = {
+            str(name or "").strip().upper()
+            for name in path.get("names", [])
+            if str(name or "").strip()
+        }
+
+        category_upper = str(path.get("category") or "").strip().upper()
+        subcategory_upper = str(path.get("subcategory") or "").strip().upper()
+
+        has_explicit_non_kitchen = bool(
+            names_upper.intersection(NON_KITCHEN_ROUTE_NAMES)
+        )
+
+        has_kitchen_match = bool(
+            names_upper.intersection(KITCHEN_ROUTE_NAMES)
+            or category_upper in KITCHEN_ROUTE_NAMES
+            or subcategory_upper in KITCHEN_ROUTE_NAMES
+        )
+
+        requires_fulfillment = bool(
+            has_kitchen_match and not has_explicit_non_kitchen
+        )
+
+        final_status = str(stored_status or "waiting").strip().lower()
+
+        if requires_fulfillment:
+            return {
+                "requires_fulfillment": True,
+                "requires_preparation": True,
+                "fulfillment_queue": "kitchen",
+                "fulfillment_station": "kitchen",
+                "fulfillment_status": final_status,
+                "show_queue_qualifier": True,
+                "commerce_category": path.get("category"),
+                "commerce_subcategory": path.get("subcategory"),
+            }
+
+        return {
+            "requires_fulfillment": False,
+            "requires_preparation": False,
+            "fulfillment_queue": None,
+            "fulfillment_station": None,
+            "fulfillment_status": final_status if final_status != "waiting" else None,
+            "show_queue_qualifier": False,
+            "commerce_category": path.get("category"),
+            "commerce_subcategory": path.get("subcategory"),
+        }
+
+    # =====================================================
+    # SERIALIZATION
+    # =====================================================
+
+    def _serialize_order_item(
+        self,
+        item,
+        *,
+        db: Session,
+        tenant_id: int,
+    ):
+        stored_status = getattr(item, "fulfillment_status", None)
+
+        fulfillment = self._fulfillment_payload_for_item(
+            db,
+            tenant_id=tenant_id,
+            atomic_unit_id=item.atomic_unit_id,
+            stored_status=stored_status,
+        )
+
+        return {
+            "id": item.id,
+            "order_item_id": item.id,
+            "atomic_unit_id": item.atomic_unit_id,
+            "name_snapshot": item.name_snapshot,
+            "name": item.name_snapshot,
+            "unit_price": float(item.unit_price or 0),
+            "quantity": item.quantity,
+            "line_total": float(item.line_total or 0),
+            "fulfilled_at": item.fulfilled_at.isoformat()
+            if getattr(item, "fulfilled_at", None)
+            else None,
+            "fulfilled_by_user_id": getattr(item, "fulfilled_by_user_id", None),
+            **fulfillment,
+        }
+
+    def _serialize_order(
+        self,
+        order,
+        *,
+        db: Session,
+    ):
+        return {
+            "id": order.id,
+            "tenant_id": order.tenant_id,
+            "branch_id": order.branch_id,
+            "status": order.status,
+            "subtotal": float(order.subtotal or 0),
+            "total": float(order.total or 0),
+            "created_at": order.created_at.isoformat()
+            if order.created_at
+            else None,
+            "paid_at": order.paid_at.isoformat() if order.paid_at else None,
+            "items": [
+                self._serialize_order_item(
+                    item,
+                    db=db,
+                    tenant_id=order.tenant_id,
+                )
+                for item in (order.items or [])
+            ],
+        }
 
     # =====================================================
     # CREATE ORDER
     # =====================================================
 
     async def create_order(self, request: Request, payload: dict, db: Session):
-        ctx = request.state.user
+        ctx = self._ctx(request)
 
         try:
-            return OrderService.create_order(
+            order = OrderService.create_order(
                 db,
                 tenant_id=ctx["tenant_id"],
                 branch_id=ctx["branch_id"],
                 payload=payload,
             )
+
+            order = OrderRepository.get_by_id(db, order.id)
+
+            return self._serialize_order(order, db=db)
+
         except ValueError as e:
             raise HTTPException(status_code=400, detail=str(e))
 
@@ -29,50 +341,38 @@ class OrdersController:
     # =====================================================
 
     async def list_orders(self, request: Request, db: Session):
-        ctx = request.state.user
+        ctx = self._ctx(request)
 
-        return OrderRepository.list_pending(
+        orders = OrderRepository.list_pending(
             db,
             tenant_id=ctx["tenant_id"],
             branch_id=ctx["branch_id"],
         )
+
+        return [
+            self._serialize_order(order, db=db)
+            for order in orders
+        ]
 
     # =====================================================
     # GET SINGLE ORDER
     # =====================================================
 
     async def get_order(self, request: Request, order_id: int, db: Session):
-
-        ctx = getattr(request.state, "user", None)
+        ctx = self._ctx(request)
 
         order = OrderRepository.get_by_id(db, order_id)
 
         if not order:
             raise HTTPException(status_code=404, detail="Order not found")
 
-        # 🔐 Optional auth check
-        if ctx:
-            if order.tenant_id != ctx.get("tenant_id"):
-                raise HTTPException(status_code=403, detail="Unauthorized")
+        if order.tenant_id != ctx["tenant_id"]:
+            raise HTTPException(status_code=403, detail="Unauthorized")
 
-        return {
-            "id": order.id,
-            "status": order.status,
-            "subtotal": float(order.subtotal or 0),
-            "total": float(order.total or 0),
-            "created_at": order.created_at.isoformat() if order.created_at else None,
-            "paid_at": order.paid_at.isoformat() if order.paid_at else None,
-            "items": [
-                {
-                    "atomic_unit_id": i.atomic_unit_id,
-                    "name_snapshot": i.name_snapshot,
-                    "unit_price": float(i.unit_price or 0),
-                    "quantity": i.quantity,
-                    "line_total": float(i.line_total or 0),
-                }
-                for i in (order.items or [])
-            ],
-        }
+        if order.branch_id != ctx["branch_id"]:
+            raise HTTPException(status_code=403, detail="Unauthorized")
+
+        return self._serialize_order(order, db=db)
 
     # =====================================================
     # UPDATE PENDING ORDER
@@ -85,7 +385,7 @@ class OrdersController:
         payload: dict,
         db: Session,
     ):
-        ctx = request.state.user
+        ctx = self._ctx(request)
 
         try:
             order = OrderService.update_order(
@@ -96,28 +396,70 @@ class OrdersController:
                 payload=payload,
             )
 
-            return {
-                "id": order.id,
-                "status": order.status,
-                "subtotal": float(order.subtotal or 0),
-                "total": float(order.total or 0),
-                "message": "Order updated successfully",
-                "items": [
-                    {
-                        "atomic_unit_id": i.atomic_unit_id,
-                        "name_snapshot": i.name_snapshot,
-                        "unit_price": float(i.unit_price or 0),
-                        "quantity": i.quantity,
-                        "line_total": float(i.line_total or 0),
-                    }
-                    for i in (order.items or [])
-                ],
-            }
+            order = OrderRepository.get_by_id(db, order.id)
+
+            response = self._serialize_order(order, db=db)
+            response["message"] = "Order updated successfully"
+
+            return response
 
         except ValueError as e:
             detail = str(e)
 
             if detail == "Order not found":
+                raise HTTPException(status_code=404, detail=detail)
+
+            raise HTTPException(status_code=400, detail=detail)
+
+    # =====================================================
+    # UPDATE ITEM FULFILLMENT STATUS
+    # =====================================================
+
+    async def update_item_fulfillment_status(
+        self,
+        request: Request,
+        order_id: int,
+        order_item_id: int,
+        payload: dict,
+        db: Session,
+    ):
+        ctx = self._ctx(request)
+
+        status = payload.get("status")
+
+        if not status:
+            raise HTTPException(status_code=400, detail="Missing status")
+
+        try:
+            item = OrderService.update_item_fulfillment_status(
+                db,
+                tenant_id=ctx["tenant_id"],
+                branch_id=ctx["branch_id"],
+                order_id=order_id,
+                order_item_id=order_item_id,
+                status=status,
+                user_id=ctx.get("user_id"),
+            )
+
+            return {
+                "id": item.id,
+                "order_item_id": item.id,
+                "order_id": item.order_id,
+                "atomic_unit_id": item.atomic_unit_id,
+                "name_snapshot": item.name_snapshot,
+                "quantity": item.quantity,
+                "fulfillment_status": item.fulfillment_status,
+                "fulfilled_at": item.fulfilled_at.isoformat()
+                if item.fulfilled_at
+                else None,
+                "fulfilled_by_user_id": item.fulfilled_by_user_id,
+                "message": "Item fulfillment status updated successfully",
+            }
+
+        except ValueError as e:
+            detail = str(e)
+
+            if detail in {"Order not found", "Order item not found"}:
                 raise HTTPException(status_code=404, detail=detail)
 
             raise HTTPException(status_code=400, detail=detail)
@@ -132,7 +474,7 @@ class OrdersController:
         order_id: int,
         db: Session,
     ):
-        ctx = request.state.user
+        ctx = self._ctx(request)
 
         try:
             order = OrderService.cancel_order(

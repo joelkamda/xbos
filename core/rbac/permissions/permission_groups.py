@@ -43,12 +43,14 @@ PERMISSION_GROUPS = {
     ],
 
     # ============================================================
-    # ACCOUNTING
+    # ACCOUNTING / TREASURY
     # ============================================================
     "accounting": [
         ACC_VIEW,
         ACC_POST,
         ACC_RECONCILE,
+        ACC_EXPORT,
+        ACC_CLOSE_PERIOD,
     ],
 
     # ============================================================
@@ -58,8 +60,8 @@ PERMISSION_GROUPS = {
         REPORT_VIEW,
         REPORT_EXPORT,
         REPORT_SALES,
-        REPORT_FINANCIAL,
         REPORT_FINANCE_VIEW,
+        REPORT_FINANCIAL,
         REPORT_FINANCIAL_OVERVIEW,
         REPORT_FINANCIAL_EXPORT,
         REPORT_FINANCIAL_AUDIT,
@@ -73,6 +75,7 @@ PERMISSION_GROUPS = {
         ORDER_CREATE,
         ORDER_UPDATE,
         ORDER_DELETE,
+        ORDER_CANCEL,
         ORDER_UPDATE_STATUS,
         ORDER_EXPORT,
     ],
@@ -104,6 +107,17 @@ PERMISSION_GROUPS = {
         CUSTOMER_DELETE,
         CUSTOMER_VERIFY,
         CUSTOMER_EXPORT,
+    ],
+
+    # ============================================================
+    # USER MANAGEMENT
+    # ============================================================
+    "users": [
+        USER_VIEW,
+        USER_CREATE,
+        USER_EDIT,
+        USER_DISABLE,
+        USER_RESET_PASSWORD,
     ],
 
     # ============================================================

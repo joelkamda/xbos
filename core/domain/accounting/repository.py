@@ -1,8 +1,8 @@
 from typing import Optional, Dict, Any, List
-from datetime import datetime, date, time, timedelta
+from datetime import datetime
 
 from sqlalchemy.orm import Session
-from sqlalchemy import select, desc
+from sqlalchemy import select, desc, or_
 
 from core.domain.accounting.models import TreasuryLog
 
@@ -28,7 +28,6 @@ class TreasuryRepository:
         )
 
         return db.execute(stmt).scalar_one_or_none()
-
 
     # =========================================================
     # LEDGER WRITE (EMITTER ONLY)
@@ -73,7 +72,6 @@ class TreasuryRepository:
 
         return log
 
-
     # =========================================================
     # INTERNAL BASE QUERY
     # =========================================================
@@ -100,7 +98,6 @@ class TreasuryRepository:
             q = q.filter(TreasuryLog.occurred_at < end)
 
         return q
-
 
     # =========================================================
     # GENERIC LEDGER QUERIES
@@ -134,7 +131,6 @@ class TreasuryRepository:
 
         return rows
 
-
     @staticmethod
     def list_by_event_types(
         db: Session,
@@ -165,6 +161,9 @@ class TreasuryRepository:
 
         return rows
 
+    # =========================================================
+    # DOCUMENT-SPECIFIC LEDGER QUERIES
+    # =========================================================
 
     @staticmethod
     def get_sale_logs(
@@ -174,21 +173,59 @@ class TreasuryRepository:
         branch_id: int,
         sale_id: int,
     ) -> List[TreasuryLog]:
+        """
+        Return the complete accounting event family for a sale.
+
+        Important:
+        Some sale events are direct sale references:
+            reference_type = "sale"
+            reference_id = sale_id
+
+        But payment collection events usually reference payment attempts:
+            reference_type = "payment_attempt"
+            reference_id = attempt_id
+
+        Those payment rows still carry the sale identity inside JSON meta:
+            meta.sale_id = sale_id
+
+        The Income screen settlement panel needs both families so it can show:
+            Gross Revenue
+            Collection
+            Discount / Comp
+            A/R
+            A/P
+            Tips
+            Unallocated
+        """
+
+        sale_id_str = str(sale_id)
 
         rows = (
             db.query(TreasuryLog)
             .filter(
                 TreasuryLog.tenant_id == tenant_id,
                 TreasuryLog.branch_id == branch_id,
-                TreasuryLog.reference_type == "sale",
-                TreasuryLog.reference_id == sale_id,
+            )
+            .filter(
+                or_(
+                    # Direct sale ledger rows:
+                    # SALE_REVENUE_GROSS, DISCOUNT_APPLIED,
+                    # COMPLIMENTARY_APPLIED, DEBT_CREATED, etc.
+                    (
+                        (TreasuryLog.reference_type == "sale")
+                        & (TreasuryLog.reference_id == sale_id)
+                    ),
+
+                    # Payment attempt / intent rows that carry sale_id in JSON meta.
+                    # PostgreSQL JSONB path via SQLAlchemy index operator.
+                    TreasuryLog.meta.op("->>")("sale_id") == sale_id_str,
+                )
             )
             .order_by(desc(TreasuryLog.occurred_at), desc(TreasuryLog.id))
             .all()
         )
 
         return rows
-
 
     @staticmethod
     def get_attempt_logs(
@@ -212,7 +249,6 @@ class TreasuryRepository:
         )
 
         return rows
-
 
     # =========================================================
     # UI VIEW → DAILY ACCOUNTING SCREEN
@@ -246,6 +282,7 @@ class TreasuryRepository:
                 "SALE_REVENUE_GROSS": "income",
                 "TIP_REVENUE": "income",
                 "SERVICE_REVENUE": "income",
+                "OTHER_INCOME": "income",
 
                 "DISCOUNT_APPLIED": "expense",
                 "COMPLIMENTARY_APPLIED": "expense",
@@ -264,12 +301,16 @@ class TreasuryRepository:
                 "SALE_REVENUE_GROSS": "Sales Revenue · Restaurant",
                 "TIP_REVENUE": "Other Income · Tips / Service",
                 "SERVICE_REVENUE": "Service Revenue",
+                "OTHER_INCOME": "Other Income",
 
                 "DISCOUNT_APPLIED": "Discount Applied",
                 "COMPLIMENTARY_APPLIED": "Complimentary Item",
+                "EXPENSE_POSTED": "Expense",
+                "COGS_RECOGNIZED": "COGS Recognized",
                 "REFUND_PAID": "Refund Paid",
 
                 "PAYMENT_RECEIVED": "Customer Payment",
+                "CASH_MOVE": "Cash Movement",
                 "DEBT_CREATED": "Customer Debt",
                 "DEBT_REPAYMENT": "Debt Repayment",
                 "STORE_CREDIT_CREATED": "Store Credit Issued",
@@ -295,7 +336,6 @@ class TreasuryRepository:
             )
 
         return rows
-
 
     # =========================================================
     # SUMMARY (TOP CARDS IN UI)

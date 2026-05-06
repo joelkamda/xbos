@@ -1,7 +1,12 @@
+# core/users/user_model.py
+
 from sqlalchemy import Column, String, Integer, Boolean, DateTime, ForeignKey
 from sqlalchemy.orm import relationship
 from database import Base
 import datetime
+
+# Tenant and Branch both live in core.tenants.tenant_model
+from core.tenants.tenant_model import Tenant, Branch
 
 
 class User(Base):
@@ -20,7 +25,7 @@ class User(Base):
     # RBAC role ("staff", "cashier", "manager", "admin")
     role = Column(String(50), default="staff")
 
-    # Multi-tenant FKs (string → replaced with correct Integer FK)
+    # Multi-tenant FKs
     tenant_id = Column(Integer, ForeignKey("tenants.id"), nullable=False)
     branch_id = Column(Integer, ForeignKey("branches.id"), nullable=False)
 

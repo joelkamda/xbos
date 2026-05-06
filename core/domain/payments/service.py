@@ -16,6 +16,8 @@ from core.shared.idempotency import (
 
 from core.domain.sales.models import SaleStatus
 from core.domain.sales.repository import SaleRepository
+from core.domain.inventory.service import InventoryService
+
 from core.domain.payments.models import (
     PaymentIntent,
     PaymentAttempt,
@@ -53,28 +55,20 @@ def _to_float(v: Any) -> float:
 
 
 def _json_safe(value: Any) -> Any:
-    """
-    Recursively convert values to JSON-safe primitives.
-
-    This protects:
-    - PaymentAttempt.meta JSON column
-    - PaymentIntent.meta JSON column
-    - treasury_logs.meta JSON column emitted through FinancialEventEmitter
-    """
     if isinstance(value, Decimal):
-      return float(value)
+        return float(value)
 
     if isinstance(value, datetime):
-      return value.isoformat()
+        return value.isoformat()
 
     if isinstance(value, dict):
-      return {str(k): _json_safe(v) for k, v in value.items()}
+        return {str(k): _json_safe(v) for k, v in value.items()}
 
     if isinstance(value, list):
-      return [_json_safe(v) for v in value]
+        return [_json_safe(v) for v in value]
 
     if isinstance(value, tuple):
-      return [_json_safe(v) for v in value]
+        return [_json_safe(v) for v in value]
 
     return value
 
@@ -98,6 +92,79 @@ def _idempotency_reference_id(existing: Any) -> Optional[Any]:
 def _status_succeeded(status_value: Any) -> bool:
     raw = str(getattr(status_value, "value", status_value) or "").lower()
     return raw in {"succeeded", "success", "completed", "complete", "paid"}
+
+
+def _clean_label(value: Any) -> str:
+    return str(value or "").strip()
+
+
+def _discount_classification(discount_type: Any) -> Dict[str, Any]:
+    """
+    V1 static mapping.
+
+    Later this should resolve to real expense taxonomy nodes:
+    - taxonomy_node_id
+    - category_id
+    - subcategory_id
+    """
+    raw = _clean_label(discount_type)
+    key = raw.lower().replace("_", " ").replace("-", " ")
+
+    if key == "staff subsidy":
+        return {
+            "allowance_class": "staff_subsidy",
+            "category_name": "Staff Welfare",
+            "subcategory_name": "Staff Subsidy",
+            "expense_family": "staff_expense",
+            "display_label": "Staff Subsidy",
+        }
+
+    if key == "loyalty discount":
+        return {
+            "allowance_class": "loyalty_discount",
+            "category_name": "Customer Retention",
+            "subcategory_name": "Loyalty Discount",
+            "expense_family": "customer_retention",
+            "display_label": "Loyalty Discount",
+        }
+
+    if key == "marketing promo":
+        return {
+            "allowance_class": "marketing_promo",
+            "category_name": "Marketing",
+            "subcategory_name": "Promotional Discount",
+            "expense_family": "marketing_expense",
+            "display_label": "Marketing Promo",
+        }
+
+    if key == "manager override":
+        return {
+            "allowance_class": "manager_override",
+            "category_name": "Sales Allowances",
+            "subcategory_name": "Manager Override",
+            "expense_family": "sales_allowance",
+            "display_label": "Manager Override",
+        }
+
+    return {
+        "allowance_class": "other_discount",
+        "category_name": "Sales Allowances",
+        "subcategory_name": raw or "Other Discount",
+        "expense_family": "sales_allowance",
+        "display_label": raw or "Other",
+    }
+
+
+def _complimentary_classification(reason: Any = None) -> Dict[str, Any]:
+    raw = _clean_label(reason)
+
+    return {
+        "allowance_class": "complimentary",
+        "category_name": "Marketing",
+        "subcategory_name": raw or "Complimentary Items",
+        "expense_family": "marketing_expense",
+        "display_label": raw or "Complimentary",
+    }
 
 
 # =====================================================
@@ -238,6 +305,172 @@ class PaymentService:
         return attempt
 
     # =====================================================
+    # ACCOUNTING EMISSION AFTER SETTLEMENT
+    # =====================================================
+
+    @staticmethod
+    def _emit_settlement_accounting_events(
+        db: Session,
+        *,
+        tenant_id: int,
+        branch_id: int,
+        intent: PaymentIntent,
+        sale_id: Optional[int],
+        payable_type: str,
+        currency: str,
+        gross_total: Decimal,
+        net_total: Decimal,
+        discount_total: Decimal,
+        discount_type: Optional[str],
+        complimentary_total: Decimal,
+        complimentary_reason: Optional[str],
+        complimentary_items: Any,
+        total_paid: Decimal,
+        balance_due: Decimal,
+        store_credit: Decimal,
+        tip_amount: Decimal,
+        change_given_now: Decimal,
+        current_tendered_total: Decimal,
+        complete_balance: bool,
+        settle_failed_intent: bool,
+        meta: Optional[Dict[str, Any]] = None,
+    ) -> None:
+        """
+        Emits settlement-side accounting events.
+
+        Important rule:
+        - change_given_now is NOT emitted as expense or separate ledger cash-out.
+        - same-moment change is local cashier settlement.
+        - payment_received is already reduced to the retained cash amount.
+        """
+
+        base_meta = _json_safe(
+            {
+                **(meta or {}),
+                "sale_id": sale_id,
+                "payment_intent_id": int(intent.id),
+                "payable_type": payable_type,
+                "payable_id": intent.payable_id,
+                "gross_total": gross_total,
+                "net_total": net_total,
+                "discount_total": discount_total,
+                "discount_type": discount_type,
+                "complimentary_total": complimentary_total,
+                "complimentary_reason": complimentary_reason,
+                "complimentary_items": complimentary_items,
+                "total_paid": total_paid,
+                "balance_due": balance_due,
+                "store_credit_amount": store_credit,
+                "tip_amount": tip_amount,
+                "change_given_now": change_given_now,
+                "tendered_total": current_tendered_total,
+                "complete_balance": bool(complete_balance),
+                "settle_failed_intent": bool(settle_failed_intent),
+                "source": "pos_settlement",
+            }
+        )
+
+        # -------------------------------------------------
+        # Discount / Allowance
+        # -------------------------------------------------
+        if payable_type == "sale" and sale_id and discount_total > 0:
+            classification = _discount_classification(discount_type)
+
+            FinancialEventEmitter.sale_discount(
+                db,
+                tenant_id=tenant_id,
+                branch_id=branch_id,
+                sale_id=sale_id,
+                amount=discount_total,
+                currency=currency,
+                meta={
+                    **base_meta,
+                    **classification,
+                    "event_reason": "discount_applied_at_settlement",
+                    "discount_reason": discount_type,
+                    "allowance_type": "discount",
+                },
+            )
+
+        # -------------------------------------------------
+        # Complimentary / Comp Allowance
+        # -------------------------------------------------
+        if payable_type == "sale" and sale_id and complimentary_total > 0:
+            classification = _complimentary_classification(complimentary_reason)
+
+            FinancialEventEmitter.sale_complimentary(
+                db,
+                tenant_id=tenant_id,
+                branch_id=branch_id,
+                sale_id=sale_id,
+                amount=complimentary_total,
+                currency=currency,
+                meta={
+                    **base_meta,
+                    **classification,
+                    "event_reason": "complimentary_applied_at_settlement",
+                    "complimentary_reason": complimentary_reason,
+                    "allowance_type": "complimentary",
+                },
+            )
+
+        # -------------------------------------------------
+        # Debt / A-R
+        # -------------------------------------------------
+        if payable_type == "sale" and sale_id and balance_due > 0:
+            FinancialEventEmitter.debt_created(
+                db,
+                tenant_id=tenant_id,
+                branch_id=branch_id,
+                sale_id=sale_id,
+                amount=balance_due,
+                currency=currency,
+                meta={
+                    **base_meta,
+                    "event_reason": "sale_partially_unpaid",
+                },
+            )
+
+        # -------------------------------------------------
+        # Store credit / A-P / change owed
+        # -------------------------------------------------
+        if payable_type == "sale" and sale_id and store_credit > 0:
+            FinancialEventEmitter.store_credit_created(
+                db,
+                tenant_id=tenant_id,
+                branch_id=branch_id,
+                sale_id=sale_id,
+                amount=store_credit,
+                currency=currency,
+                meta={
+                    **base_meta,
+                    "event_reason": "change_remaining_as_store_credit",
+                },
+            )
+
+        # -------------------------------------------------
+        # Tip revenue
+        # -------------------------------------------------
+        if tip_amount > 0:
+            FinancialEventEmitter.emit(
+                db,
+                tenant_id=tenant_id,
+                branch_id=branch_id,
+                idempotency_key=f"tip_revenue:intent:{intent.id}",
+                direction="credit",
+                event_type="TIP_REVENUE",
+                amount=tip_amount,
+                currency=currency,
+                channel=None,
+                reference_type="payment_intent",
+                reference_id=int(intent.id),
+                meta={
+                    **base_meta,
+                    "event_reason": "tip_recorded",
+                },
+            )
+
+    # =====================================================
     # POS SETTLEMENT
     # =====================================================
 
@@ -321,9 +554,6 @@ class PaymentService:
 
         # =====================================================
         # EXISTING INTENT FLOW
-        # - Used by Complete Balance and Settle Another Way
-        # - Must NOT create a new PaymentIntent
-        # - Must add a new PaymentAttempt under the existing intent
         # =====================================================
 
         if is_existing_intent_flow:
@@ -436,12 +666,8 @@ class PaymentService:
 
             intent_meta["followup_payments"] = followups
             intent_meta["last_followup_payment"] = incoming_meta
-
-            # Do not overwrite original description/items/gross_total.
-            # Only preserve current tender/change trace.
             intent_meta["last_followup_description"] = incoming_meta.get("description")
             intent_meta["last_followup_reference"] = incoming_meta.get("reference")
-
         else:
             intent_meta.update(incoming_meta)
 
@@ -476,6 +702,25 @@ class PaymentService:
         # =====================================================
         # ORIGINAL FINANCIAL BASIS
         # =====================================================
+
+        discount_type = (
+            intent_meta.get("discount_type")
+            or intent_meta.get("discount_reason")
+            or receipt_meta.get("discount_type")
+            or receipt_meta.get("discount_reason")
+        )
+
+        complimentary_reason = (
+            intent_meta.get("complimentary_reason")
+            or receipt_meta.get("complimentary_reason")
+            or receipt_meta.get("comp_reason")
+        )
+
+        complimentary_items = (
+            intent_meta.get("complimentary_items")
+            or receipt_meta.get("complimentary_items")
+            or []
+        )
 
         if is_existing_intent_flow:
             discount_total = _d(intent_meta.get("discount_total") or 0)
@@ -522,7 +767,11 @@ class PaymentService:
         currency = (intent.currency or currency or "XAF").upper()
 
         intent_meta["discount_total"] = float(discount_total)
+        intent_meta["discount_type"] = discount_type
+        intent_meta["discount_reason"] = discount_type
         intent_meta["complimentary_total"] = float(complimentary_total)
+        intent_meta["complimentary_reason"] = complimentary_reason
+        intent_meta["complimentary_items"] = complimentary_items
         intent_meta["gross_total"] = float(gross_total)
         intent_meta["original_total"] = float(gross_total)
         intent_meta["net_total"] = float(net_total)
@@ -551,6 +800,11 @@ class PaymentService:
         change_amount_d = _d(intent_meta.get("change_amount"))
         change_given_now_d = _d(intent_meta.get("change_given_now"))
         tip_amount_d = _d(intent_meta.get("tip_amount"))
+        explicit_change_remaining_d = _d(
+            change_remaining
+            if change_remaining is not None
+            else intent_meta.get("change_remaining")
+        )
 
         safe_given_d = min(change_given_now_d, change_amount_d)
 
@@ -559,10 +813,13 @@ class PaymentService:
             max(Decimal("0"), change_amount_d - safe_given_d),
         )
 
-        store_credit = max(
+        computed_store_credit = max(
             Decimal("0"),
             change_amount_d - (safe_given_d + safe_tip_d),
         )
+
+        change_owed_line_total = Decimal("0")
+        store_credit = computed_store_credit
 
         intent_meta.update(
             {
@@ -575,8 +832,10 @@ class PaymentService:
         )
 
         # =====================================================
-        # CREATE PAYMENT ATTEMPTS
+        # CREATE PAYMENT ATTEMPTS + RETAINED COLLECTION LEDGER
         # =====================================================
+
+        change_given_remaining = safe_given_d
 
         for idx, line in enumerate(lines or []):
             method = str(line.get("method") or "").lower()
@@ -588,7 +847,7 @@ class PaymentService:
 
             if method == "unpaid":
                 if meta.get("tag") == "CHANGE_OWED":
-                    store_credit += amount
+                    change_owed_line_total += amount
                 else:
                     if meta.get("note"):
                         unpaid_notes.append(meta["note"])
@@ -619,31 +878,70 @@ class PaymentService:
                 ),
             )
 
-            FinancialEventEmitter.payment_received(
-                db,
-                tenant_id=tenant_id,
-                branch_id=branch_id,
-                attempt_id=attempt.id,
-                amount=attempt.amount,
-                currency=currency,
-                channel=attempt.method,
-                meta=_json_safe(
-                    {
-                        "sale_id": sale_id,
-                        "payment_intent_id": int(intent.id),
-                        "manual_payment": payable_type == "manual",
-                        "tendered_total": current_tendered_total
-                        if current_tendered_total > 0
-                        else intent_meta.get("tendered_total"),
-                        "change_amount": intent_meta.get("change_amount"),
-                        "change_given_now": intent_meta.get("change_given_now"),
-                        "change_remaining": intent_meta.get("change_remaining"),
-                        "tip_amount": intent_meta.get("tip_amount"),
-                        "complete_balance": bool(complete_balance),
-                        "settle_failed_intent": bool(settle_failed_intent),
-                    }
-                ),
-            )
+            ledger_amount = attempt.amount
+            retained_adjustment = Decimal("0")
+
+            # Same-moment cash change is local cashier settlement.
+            # It should not create expense, A/P, or a separate CHANGE_RETURNED row.
+            # Instead, only the retained cash amount is posted as PAYMENT_RECEIVED.
+            if method == "cash" and change_given_remaining > 0:
+                retained_adjustment = min(ledger_amount, change_given_remaining)
+                ledger_amount = ledger_amount - retained_adjustment
+                change_given_remaining = change_given_remaining - retained_adjustment
+
+            if ledger_amount > 0:
+                FinancialEventEmitter.payment_received(
+                    db,
+                    tenant_id=tenant_id,
+                    branch_id=branch_id,
+                    attempt_id=attempt.id,
+                    amount=ledger_amount,
+                    currency=currency,
+                    channel=attempt.method,
+                    meta=_json_safe(
+                        {
+                            "sale_id": sale_id,
+                            "payment_intent_id": int(intent.id),
+                            "manual_payment": payable_type == "manual",
+                            "tendered_attempt_amount": amount,
+                            "retained_collection_amount": ledger_amount,
+                            "change_given_applied_to_cash": retained_adjustment,
+                            "tendered_total": current_tendered_total
+                            if current_tendered_total > 0
+                            else intent_meta.get("tendered_total"),
+                            "change_amount": intent_meta.get("change_amount"),
+                            "change_given_now": intent_meta.get("change_given_now"),
+                            "change_remaining": intent_meta.get("change_remaining"),
+                            "tip_amount": intent_meta.get("tip_amount"),
+                            "complete_balance": bool(complete_balance),
+                            "settle_failed_intent": bool(settle_failed_intent),
+                        }
+                    ),
+                )
+
+        # =====================================================
+        # FINALIZE CHANGE / STORE CREDIT AFTER LINE INSPECTION
+        # =====================================================
+
+        store_credit = max(
+            computed_store_credit,
+            explicit_change_remaining_d,
+            change_owed_line_total,
+        )
+
+        intent_meta.update(
+            {
+                "change_amount": float(change_amount_d),
+                "change_given_now": float(safe_given_d),
+                "tip_amount": float(safe_tip_d),
+                "change_remaining": float(store_credit),
+                "store_credit_amount": float(store_credit),
+                "change_owed_line_total": float(change_owed_line_total),
+                "computed_store_credit": float(computed_store_credit),
+                "explicit_change_remaining": float(explicit_change_remaining_d),
+                "cash_change_given_not_posted_to_ledger": float(safe_given_d),
+            }
+        )
 
         # =====================================================
         # CUMULATIVE TOTALS
@@ -705,6 +1003,48 @@ class PaymentService:
                 status=PaymentIntentStatus.pending,
             )
 
+        # =====================================================
+        # ADDITIONAL ACCOUNTING EVENTS
+        # =====================================================
+
+        PaymentService._emit_settlement_accounting_events(
+            db,
+            tenant_id=tenant_id,
+            branch_id=branch_id,
+            intent=intent,
+            sale_id=sale_id,
+            payable_type=payable_type,
+            currency=currency,
+            gross_total=gross_total,
+            net_total=net_total,
+            discount_total=discount_total,
+            discount_type=discount_type,
+            complimentary_total=complimentary_total,
+            complimentary_reason=complimentary_reason,
+            complimentary_items=complimentary_items,
+            total_paid=total_paid,
+            balance_due=balance_due,
+            store_credit=store_credit,
+            tip_amount=safe_tip_d,
+            change_given_now=safe_given_d,
+            current_tendered_total=cumulative_tendered_total,
+            complete_balance=complete_balance,
+            settle_failed_intent=settle_failed_intent,
+            meta={
+                "description": description,
+                "reference": reference,
+                "customer": customer,
+                "receipt_no": intent_meta.get("receipt_no"),
+                "unpaid_notes": unpaid_notes,
+                "change_owed_line_total": change_owed_line_total,
+                "computed_store_credit": computed_store_credit,
+                "explicit_change_remaining": explicit_change_remaining_d,
+            },
+        )
+
+        # =====================================================
+        # FINALIZE SALE + INVENTORY
+        # =====================================================
         if sale and balance_due <= 0 and sale.status != SaleStatus.paid:
             SaleRepository.update_status(
                 sale=sale,
@@ -713,6 +1053,16 @@ class PaymentService:
             SaleRepository.set_paid_at(
                 sale=sale,
                 paid_at=datetime.utcnow(),
+            )
+
+            # Inventory finalization rule:
+            # - If sale came from an order, order stock was already withheld.
+            #   This creates zero-delta sale_commit markers only.
+            # - If sale has no reservation, this deducts as direct sale.
+            # - It is idempotent and prevents double deduction.
+            InventoryService.finalize_sale_inventory(
+                db,
+                sale=sale,
             )
 
         try:

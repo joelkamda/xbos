@@ -69,6 +69,7 @@ ORDER_VIEW            = "order.view"
 ORDER_CREATE          = "order.create"
 ORDER_UPDATE          = "order.update"
 ORDER_DELETE          = "order.delete"
+ORDER_CANCEL          = "order.cancel"
 ORDER_UPDATE_STATUS   = "order.update_status"
 ORDER_EXPORT          = "order.export"
 
@@ -96,6 +97,16 @@ CUSTOMER_UPDATE     = "customer.update"
 CUSTOMER_DELETE     = "customer.delete"
 CUSTOMER_VERIFY     = "customer.verify"
 CUSTOMER_EXPORT     = "customer.export"
+
+
+# ----------------------------
+# USER MANAGEMENT
+# ----------------------------
+USER_VIEW           = "user.view"
+USER_CREATE         = "user.create"
+USER_EDIT           = "user.edit"
+USER_DISABLE        = "user.disable"
+USER_RESET_PASSWORD = "user.reset_password"
 
 
 # ----------------------------

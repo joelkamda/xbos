@@ -1,3 +1,5 @@
+# core/api/kernel_router.py
+
 from fastapi import APIRouter, Request, Depends, HTTPException
 
 # Subsystems
@@ -8,12 +10,18 @@ from core.api.sales.sales_router import router as sales_router
 from core.api.taxonomy.taxonomy_router import router as taxonomy_router
 from core.api.catalog.catalog_router import router as catalog_router
 from core.api.accounting.accounting_router import router as accounting_router
+from core.api.reports.reports_router import router as reports_router
+from core.api.inventory.inventory_router import router as inventory_router
+
+# Users / Roles
+from core.users.user_controller import router as users_router
+from core.rbac.roles.role_controller import router as roles_router
 
 # Payments & Receipts
 from core.api.payments.payments_router import router as payments_router
 from core.api.payments.receipts_router import router as receipts_router
 
-# 🔥 XAFPay Webhook Router
+# XAFPay Webhook Router
 from core.api.xafpay_webhook import router as xafpay_webhook_router
 
 
@@ -36,13 +44,20 @@ def kernel_db_check():
     return {"database": "connected"}
 
 
+@kernel_router.get("/whoami", tags=["Kernel"])
+def whoami(request: Request):
+    return request.state.user
+
+
 # ====================================================
-# 🔐 ADMIN-ONLY TEST ENDPOINT (RBAC PROBE)
+# ADMIN-ONLY TEST ENDPOINT (RBAC PROBE)
 # ====================================================
 def require_admin(request: Request):
     user = request.state.user
+
     if not user or user.get("role") != "admin":
         raise HTTPException(status_code=403, detail="FORBIDDEN")
+
     return user
 
 
@@ -78,6 +93,20 @@ kernel_router.include_router(
     tags=["Tenants"],
 )
 
+# Users → /kernel/users/*
+kernel_router.include_router(
+    users_router,
+    prefix="/users",
+    tags=["Users"],
+)
+
+# Roles → /kernel/roles/*
+kernel_router.include_router(
+    roles_router,
+    prefix="/roles",
+    tags=["Roles"],
+)
+
 # Sales → /kernel/sales/*
 kernel_router.include_router(
     sales_router,
@@ -99,8 +128,8 @@ kernel_router.include_router(
     tags=["Receipts"],
 )
 
-# 🔥 XAFPay Webhook → /kernel/payments/xafpay/webhook
-# (Route inside webhook file MUST be: @router.post("/xafpay/webhook"))
+# XAFPay Webhook → /kernel/payments/xafpay/webhook
+# Route inside webhook file MUST be: @router.post("/xafpay/webhook")
 kernel_router.include_router(
     xafpay_webhook_router,
     prefix="/payments",
@@ -121,12 +150,28 @@ kernel_router.include_router(
     tags=["Catalog"],
 )
 
+# Accounting → /kernel/accounting/*
 kernel_router.include_router(
     accounting_router,
     prefix="/accounting",
     tags=["Accounting"],
 )
 
+# Reports → /kernel/reports/*
+kernel_router.include_router(
+    reports_router,
+    prefix="/reports",
+    tags=["Reports"],
+)
+
+# Inventory → /kernel/inventory/*
+kernel_router.include_router(
+    inventory_router,
+    prefix="/inventory",
+    tags=["Inventory"],
+)
+
+# Orders → /kernel/orders/*
 kernel_router.include_router(
     orders_router,
     prefix="/orders",

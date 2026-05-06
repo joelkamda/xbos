@@ -18,9 +18,9 @@ LEVEL_ORDER = {
 # PERMISSION → LEVEL MAPPING
 # ============================================================
 # Rule of thumb:
-# - LOW     → read / view / harmless actions
+# - LOW     → read / view / harmless frontline actions
 # - MEDIUM  → create / edit / operational writes
-# - HIGH    → destructive, financial, irreversible actions
+# - HIGH    → destructive, financial, irreversible, admin actions
 # ============================================================
 
 PERMISSION_LEVELS = {
@@ -31,7 +31,10 @@ PERMISSION_LEVELS = {
     "sale.view": LOW,
     "sale.create": LOW,
     "sale.edit": MEDIUM,
-    "sale.refund": MEDIUM,
+    "sale.refund": HIGH,
+    "sale.cancel": MEDIUM,
+    "sale.void": HIGH,
+    "sale.discount": MEDIUM,
 
     # ----------------------------
     # INVENTORY
@@ -40,13 +43,28 @@ PERMISSION_LEVELS = {
     "inventory.edit": MEDIUM,
     "inventory.adjust": MEDIUM,
     "inventory.transfer": HIGH,
+    "inventory.receive": MEDIUM,
+    "inventory.consume": MEDIUM,
+    "inventory.reconcile": HIGH,
 
     # ----------------------------
     # PAYMENTS
     # ----------------------------
+    "payments.view": LOW,
     "payments.receive": LOW,
     "payments.send": MEDIUM,
+    "payments.refund": HIGH,
+    "payments.cancel": MEDIUM,
     "payments.reconcile": HIGH,
+
+    # ----------------------------
+    # ACCOUNTING / TREASURY
+    # ----------------------------
+    "accounting.view": MEDIUM,
+    "accounting.post": MEDIUM,
+    "accounting.reconcile": HIGH,
+    "accounting.export": HIGH,
+    "accounting.close_period": HIGH,
 
     # ----------------------------
     # REPORTS (GENERIC + FINANCIAL)
@@ -54,8 +72,8 @@ PERMISSION_LEVELS = {
     "report.view": MEDIUM,
     "report.export": MEDIUM,
     "report.sales": MEDIUM,
-    "report.financial": HIGH,
     "report.finance.view": HIGH,
+    "report.financial": HIGH,
     "report.financial.overview": HIGH,
     "report.financial.export": HIGH,
     "report.financial.audit": HIGH,
@@ -66,9 +84,26 @@ PERMISSION_LEVELS = {
     "order.view": LOW,
     "order.create": LOW,
     "order.update": MEDIUM,
-    "order.update_status": MEDIUM,
     "order.delete": HIGH,
+    "order.cancel": MEDIUM,
+    "order.update_status": MEDIUM,
     "order.export": MEDIUM,
+
+    # ----------------------------
+    # CATALOG (Atomic Units)
+    # ----------------------------
+    "catalog.view": LOW,
+    "catalog.create": MEDIUM,
+    "catalog.edit": MEDIUM,
+    "catalog.delete": HIGH,
+
+    # ----------------------------
+    # TAXONOMY (Structure / Classification)
+    # ----------------------------
+    "taxonomy.view": LOW,
+    "taxonomy.create": MEDIUM,
+    "taxonomy.edit": MEDIUM,
+    "taxonomy.delete": HIGH,
 
     # ----------------------------
     # CUSTOMERS
@@ -79,6 +114,15 @@ PERMISSION_LEVELS = {
     "customer.delete": HIGH,
     "customer.verify": MEDIUM,
     "customer.export": MEDIUM,
+
+    # ----------------------------
+    # USER MANAGEMENT
+    # ----------------------------
+    "user.view": HIGH,
+    "user.create": HIGH,
+    "user.edit": HIGH,
+    "user.disable": HIGH,
+    "user.reset_password": HIGH,
 
     # ----------------------------
     # TRANSACTIONS
@@ -100,18 +144,18 @@ PERMISSION_LEVELS = {
     "wallet.unfreeze": HIGH,
 
     # ----------------------------
-    # CATALOG (Atomic Units)
+    # HUMAN RESOURCES
     # ----------------------------
-    "catalog.view": LOW,
-    "catalog.create": MEDIUM,
-    "catalog.edit": MEDIUM,
-    "catalog.delete": HIGH,
+    "hr.view": MEDIUM,
+    "hr.edit": HIGH,
 
     # ----------------------------
-    # TAXONOMY (Structure / Classification)
+    # RBAC / SYSTEM ADMINISTRATION
     # ----------------------------
-    "taxonomy.view": LOW,
-    "taxonomy.create": MEDIUM,
-    "taxonomy.edit": MEDIUM,
-    "taxonomy.delete": HIGH,
+    "rbac.role.view": HIGH,
+    "rbac.role.edit": HIGH,
+    "rbac.permission.view": HIGH,
+
+    "system.settings.view": HIGH,
+    "system.settings.edit": HIGH,
 }

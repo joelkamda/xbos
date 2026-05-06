@@ -42,4 +42,8 @@ class OrderItem(Base):
     quantity = Column(Integer)
     line_total = Column(Numeric(12, 2))
 
+    fulfillment_status = Column(String(50), default="waiting")
+    fulfilled_at = Column(DateTime, nullable=True)
+    fulfilled_by_user_id = Column(Integer, nullable=True)
+
     order = relationship("Order", back_populates="items")

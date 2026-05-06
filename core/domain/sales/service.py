@@ -17,6 +17,7 @@ from core.domain.sales.repository import SaleRepository
 from core.domain.catalog.repository import AtomicUnitRepository
 from core.domain.sales.receipt import generate_receipt_no
 from core.domain.payments.service import PaymentService
+from core.domain.accounting.emitter import FinancialEventEmitter
 from core.shared.idempotency import (
     check_idempotency_key,
     record_idempotency_key,
@@ -44,10 +45,17 @@ class SaleService:
     Totals:
     - subtotal = GROSS
     - total    = NET
+
+    Accounting:
+    - Sale creation emits non-cashflow revenue events:
+        SALE_REVENUE_GROSS
+        DISCOUNT_APPLIED
+        COMPLIMENTARY_APPLIED
+    - Payment collection remains handled by PaymentService / PaymentAttempts.
     """
 
     # =====================================================
-    # ORDER → SALE (FIXED)
+    # ORDER → SALE
     # =====================================================
 
     @staticmethod
@@ -56,7 +64,7 @@ class SaleService:
         if not order:
             raise ValueError("order is required")
 
-        # 🔥 HARD GUARD: prevent duplicate sale
+        # HARD GUARD: prevent duplicate sale for same order
         existing_sale = SaleRepository.get_by_order_id(
             db,
             tenant_id=tenant_id,
@@ -67,7 +75,7 @@ class SaleService:
 
         payload = {
             "client_reference": f"order:{order.id}",
-            "order_id": order.id,  # 🔥 CRITICAL LINK
+            "order_id": order.id,
             "items": [
                 {
                     "atomic_unit_id": i.atomic_unit_id,
@@ -117,7 +125,90 @@ class SaleService:
         return query.limit(limit).all()
 
     # =====================================================
-    # CREATE SALE (FINAL)
+    # ACCOUNTING EMISSION
+    # =====================================================
+
+    @staticmethod
+    def _emit_sale_accounting_events(
+        db: Session,
+        *,
+        tenant_id: int,
+        branch_id: int,
+        cashier_id: int,
+        sale: Sale,
+        gross_total: Decimal,
+        discount_total: Decimal,
+        discount_reason: Any,
+        complimentary_total: Decimal,
+        complimentary_items: Any,
+        net_total: Decimal,
+        currency: str,
+    ) -> None:
+        """
+        Emit non-cashflow accounting events for the commercial sale.
+
+        Important:
+        - These events recognize the sale economics.
+        - Actual collection is emitted later by PaymentService as PAYMENT_RECEIVED.
+        - Emitter is idempotent, so retrying sale creation does not duplicate ledger rows.
+        """
+
+        base_meta = {
+            "sale_id": sale.id,
+            "receipt_no": sale.receipt_no,
+            "cashier_id": cashier_id,
+            "gross_total": float(gross_total),
+            "discount_total": float(discount_total),
+            "complimentary_total": float(complimentary_total),
+            "net_total": float(net_total),
+            "source": "sale_creation",
+        }
+
+        FinancialEventEmitter.sale_revenue_gross(
+            db,
+            tenant_id=tenant_id,
+            branch_id=branch_id,
+            sale_id=sale.id,
+            amount=gross_total,
+            currency=currency,
+            meta={
+                **base_meta,
+                "event_reason": "gross_sale_created",
+            },
+        )
+
+        if discount_total > 0:
+            FinancialEventEmitter.sale_discount(
+                db,
+                tenant_id=tenant_id,
+                branch_id=branch_id,
+                sale_id=sale.id,
+                amount=discount_total,
+                currency=currency,
+                meta={
+                    **base_meta,
+                    "event_reason": "discount_applied",
+                    "discount_reason": discount_reason,
+                },
+            )
+
+        if complimentary_total > 0:
+            FinancialEventEmitter.sale_complimentary(
+                db,
+                tenant_id=tenant_id,
+                branch_id=branch_id,
+                sale_id=sale.id,
+                amount=complimentary_total,
+                currency=currency,
+                meta={
+                    **base_meta,
+                    "event_reason": "complimentary_applied",
+                    "complimentary_items": complimentary_items,
+                },
+            )
+
+    # =====================================================
+    # CREATE SALE
     # =====================================================
 
     @staticmethod
@@ -180,7 +271,7 @@ class SaleService:
         currency = (payload.get("currency") or "XAF").upper()
 
         # -------------------------
-        # Discounts
+        # Discounts / complimentary
         # -------------------------
         discount_total = _d(payload.get("discount_total") or 0)
         discount_reason = payload.get("discount_reason")
@@ -262,8 +353,10 @@ class SaleService:
             payment_method=payment_method.value,
             subtotal=gross_total,
             total=net_total,
+            discount_total=discount_total,
+            complimentary_total=complimentary_total,
             created_at=now,
-            order_id=order_id,  # 🔥 CRITICAL FIX
+            order_id=order_id,
         )
 
         try:
@@ -295,9 +388,30 @@ class SaleService:
                     "receipt_no": sale.receipt_no,
                     "gross_total": float(gross_total),
                     "discount_total": float(discount_total),
+                    "discount_reason": discount_reason,
                     "complimentary_total": float(complimentary_total),
+                    "complimentary_items": complimentary_items,
                     "net_total": float(net_total),
+                    "source": "sale_creation",
                 },
+            )
+
+            # -------------------------
+            # Accounting events
+            # -------------------------
+            SaleService._emit_sale_accounting_events(
+                db,
+                tenant_id=tenant_id,
+                branch_id=branch_id,
+                cashier_id=cashier_id,
+                sale=sale,
+                gross_total=gross_total,
+                discount_total=discount_total,
+                discount_reason=discount_reason,
+                complimentary_total=complimentary_total,
+                complimentary_items=complimentary_items,
+                net_total=net_total,
+                currency=currency,
             )
 
             # -------------------------
@@ -318,7 +432,7 @@ class SaleService:
         except IntegrityError:
             db.rollback()
 
-            # 🔥 recover existing sale (race-safe)
+            # Race-safe recovery for order-driven sale creation
             if order_id:
                 existing_sale = SaleRepository.get_by_order_id(
                     db,

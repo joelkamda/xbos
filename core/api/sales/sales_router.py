@@ -1,8 +1,10 @@
+# core/api/sales/sales_router.py
+
 from fastapi import APIRouter, Request, Depends, HTTPException, status, Body
 
 from core.api.sales.sales_controller import SalesController
-from core.domain.sales.repository import SaleRepository   # ← ADD THIS
-from core.domain.sales.models import SaleStatus           # ← if not already present
+from core.domain.sales.repository import SaleRepository
+from core.domain.sales.models import SaleStatus
 from core.rbac.utils.permission_decorator import require_permissions
 from database import get_db
 
@@ -17,7 +19,6 @@ async def list_sales(
     db=Depends(get_db),
     sale_status: str | None = None,
 ):
-
     ctx = getattr(request.state, "user", None)
 
     if not ctx or not isinstance(ctx, dict):
@@ -27,7 +28,6 @@ async def list_sales(
         )
 
     if sale_status:
-
         try:
             sale_status_enum = SaleStatus(sale_status)
         except Exception:
@@ -43,7 +43,6 @@ async def list_sales(
         )
 
     else:
-
         sales = SaleRepository.list_for_branch(
             db,
             tenant_id=ctx["tenant_id"],
@@ -60,20 +59,17 @@ async def list_sales(
 # CREATE SALE
 # =================================================
 @router.post("/")
-# RBAC temporarily disabled for debugging
-# @require_permissions("sale.create")
+@require_permissions("sale.create", "order.create")
 async def create_sale(
     request: Request,
     payload: dict = Body(...),
     db=Depends(get_db),
 ):
-
     print("\n========== CREATE SALE ==========")
     print("🔥 USER:", getattr(request.state, "user", None))
     print("🔥 PAYLOAD:", payload)
 
     try:
-
         sale = await controller.create_sale(
             request=request,
             payload=payload,
@@ -85,7 +81,6 @@ async def create_sale(
         return sale
 
     except Exception as e:
-
         print("❌ CREATE SALE ERROR:", str(e))
 
         raise HTTPException(
@@ -95,7 +90,7 @@ async def create_sale(
 
 
 # =================================================
-# GET SINGLE SALE (FOR POLLING / PAYMENT SCREEN)
+# GET SINGLE SALE
 # =================================================
 @router.get("/{sale_id}")
 @require_permissions("sale.view")
@@ -104,7 +99,6 @@ async def get_sale(
     request: Request,
     db=Depends(get_db),
 ):
-
     print("\n========== GET SALE ==========")
     print("🔥 SALE ID:", sale_id)
     print("🔥 USER:", getattr(request.state, "user", None))
@@ -116,7 +110,6 @@ async def get_sale(
     )
 
     if not sale:
-
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Sale not found",
