@@ -65,6 +65,7 @@ PERMISSION_LEVELS = {
     "accounting.reconcile": HIGH,
     "accounting.export": HIGH,
     "accounting.close_period": HIGH,
+    "accounting.edit": HIGH,
 
     # ----------------------------
     # REPORTS (GENERIC + FINANCIAL)

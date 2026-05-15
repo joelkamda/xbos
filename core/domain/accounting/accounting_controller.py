@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 
 from core.domain.accounting.reports import AccountingReportsService
 from core.domain.accounting.emitter import FinancialEventEmitter
+from core.domain.accounting.repository import TreasuryRepository
 from core.domain.taxonomy.models import (
     TaxonomyNode,
     AtomicUnit,
@@ -22,7 +23,14 @@ from core.domain.catalog.repository import AtomicUnitRepository
 def _parse_dt(v: Optional[str]) -> Optional[datetime]:
     if not v:
         return None
-    return datetime.fromisoformat(v)
+
+    safe_value = str(v).strip()
+
+    # Browser/JS may send ISO strings ending with Z.
+    if safe_value.endswith("Z"):
+        safe_value = safe_value.replace("Z", "+00:00")
+
+    return datetime.fromisoformat(safe_value)
 
 
 def _d(v: Any) -> Decimal:
@@ -111,7 +119,13 @@ def _entry_label(log) -> str:
         return "Other Income · Tips / Service"
 
     if event_type == "SERVICE_REVENUE":
-        return meta.get("category_name") or "Service Revenue"
+        category = meta.get("category_name")
+        item = meta.get("item_name") or meta.get("subcategory_name")
+        if category and item:
+            return f"{category} · {item}"
+        if category:
+            return category
+        return "Service Revenue"
 
     if event_type == "OTHER_INCOME":
         category = meta.get("category_name")
@@ -221,6 +235,31 @@ def _serialize_atomic_unit(unit: AtomicUnit) -> Dict[str, Any]:
         "unit_type": unit.unit_type,
         "is_active": unit.is_active,
         "meta": unit.meta or {},
+    }
+
+
+def _recompute_recon_row(row: Dict[str, Any]) -> Dict[str, Any]:
+    opening = _d(row.get("opening"))
+    income = _d(row.get("income"))
+    expense = _d(row.get("expense"))
+    cash_in = _d(row.get("cashIn"))
+    cash_out = _d(row.get("cashOut"))
+
+    expected = opening + income - expense + cash_in - cash_out
+    actual = _d(row.get("actual", expected))
+    variance = actual - expected
+
+    return {
+        **row,
+        "opening": float(opening),
+        "income": float(income),
+        "expense": float(expense),
+        "cashIn": float(cash_in),
+        "cashOut": float(cash_out),
+        "expected": float(expected),
+        "actual": float(actual),
+        "variance": float(variance),
+        "note": row.get("note") or "",
     }
 
 
@@ -351,6 +390,7 @@ class AccountingController:
         db: Session,
         start: Optional[str] = None,
         end: Optional[str] = None,
+        shift: str = "full24",
         limit: int = 500,
         offset: int = 0,
     ):
@@ -362,9 +402,236 @@ class AccountingController:
             branch_id=ctx["branch_id"],
             start=_parse_dt(start),
             end=_parse_dt(end),
+            shift=shift,
             limit=limit,
             offset=offset,
         )
+  
+    @staticmethod
+    def save_reconciliation_draft(
+        *,
+        request: Request,
+        db: Session,
+        payload: Dict[str, Any],
+    ):
+        """
+        Persist a draft reconciliation window.
+
+        Rule:
+        - Saves counted actual amounts and notes for review.
+        - Does NOT close the window.
+        - Does NOT create final carry-forward closing logic.
+        - Same tenant/branch/shift/window/channel rows are updated, not duplicated.
+        """
+
+        ctx = _ctx(request)
+
+        tenant_id = ctx["tenant_id"]
+        branch_id = ctx["branch_id"]
+        user_id = ctx.get("id") or ctx.get("user_id")
+
+        start_dt = _parse_dt(payload.get("start"))
+        end_dt = _parse_dt(payload.get("end"))
+        shift = str(payload.get("shift") or "full24").strip() or "full24"
+        rows = payload.get("rows") or []
+
+        if not start_dt or not end_dt:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="start and end are required",
+            )
+
+        if end_dt <= start_dt:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="end must be after start",
+            )
+
+        if not isinstance(rows, list) or len(rows) == 0:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="At least one reconciliation row is required",
+            )
+
+        cleaned_rows: List[Dict[str, Any]] = []
+
+        for incoming in rows:
+            if not isinstance(incoming, dict):
+                continue
+
+            channel = str(incoming.get("channel") or "").strip().lower()
+            if not channel:
+                continue
+
+            clean = _recompute_recon_row(
+                {
+                    **incoming,
+                    "channel": channel,
+                    "note": incoming.get("note") or "",
+                    "status": "draft",
+                }
+            )
+
+            cleaned_rows.append(clean)
+
+        if not cleaned_rows:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="No valid reconciliation rows were provided",
+            )
+
+        try:
+            saved = TreasuryRepository.upsert_reconciliation_rows(
+                db,
+                tenant_id=tenant_id,
+                branch_id=branch_id,
+                shift=shift,
+                window_start=start_dt,
+                window_end=end_dt,
+                rows=cleaned_rows,
+                closed_by_user_id=user_id,
+                status="draft",
+            )
+
+            db.commit()
+
+            for row in saved:
+                db.refresh(row)
+
+            return {
+                "ok": True,
+                "status": "draft",
+                "shift": shift,
+                "window_start": start_dt.isoformat(),
+                "window_end": end_dt.isoformat(),
+                "rows": [
+                    TreasuryRepository.serialize_reconciliation_sheet(row)
+                    for row in saved
+                ],
+            }
+
+        except HTTPException:
+            db.rollback()
+            raise
+
+        except Exception as exc:
+            db.rollback()
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Failed to save reconciliation draft: {exc}",
+            )
+ 
+    @staticmethod
+    def close_reconciliation(
+        *,
+        request: Request,
+        db: Session,
+        payload: Dict[str, Any],
+    ):
+        """
+        Persist a closed reconciliation window.
+
+        Rule:
+        - actual_closing_amount becomes the next cycle's opening amount.
+        - Same tenant/branch/shift/window/channel rows are updated, not duplicated.
+        """
+
+        ctx = _ctx(request)
+
+        tenant_id = ctx["tenant_id"]
+        branch_id = ctx["branch_id"]
+        user_id = ctx.get("id") or ctx.get("user_id")
+
+        start_dt = _parse_dt(payload.get("start"))
+        end_dt = _parse_dt(payload.get("end"))
+        shift = str(payload.get("shift") or "full24").strip() or "full24"
+        rows = payload.get("rows") or []
+
+        if not start_dt or not end_dt:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="start and end are required",
+            )
+
+        if end_dt <= start_dt:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="end must be after start",
+            )
+
+        if not isinstance(rows, list) or len(rows) == 0:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="At least one reconciliation row is required",
+            )
+
+        cleaned_rows: List[Dict[str, Any]] = []
+
+        for incoming in rows:
+            if not isinstance(incoming, dict):
+                continue
+
+            channel = str(incoming.get("channel") or "").strip().lower()
+            if not channel:
+                continue
+
+            clean = _recompute_recon_row(
+                {
+                    **incoming,
+                    "channel": channel,
+                    "note": incoming.get("note") or "",
+                    "status": "closed",
+                }
+            )
+
+            cleaned_rows.append(clean)
+
+        if not cleaned_rows:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="No valid reconciliation rows were provided",
+            )
+
+        try:
+            saved = TreasuryRepository.upsert_reconciliation_rows(
+                db,
+                tenant_id=tenant_id,
+                branch_id=branch_id,
+                shift=shift,
+                window_start=start_dt,
+                window_end=end_dt,
+                rows=cleaned_rows,
+                closed_by_user_id=user_id,
+                status="closed",
+            )
+
+            db.commit()
+
+            for row in saved:
+                db.refresh(row)
+
+            return {
+                "ok": True,
+                "status": "closed",
+                "shift": shift,
+                "window_start": start_dt.isoformat(),
+                "window_end": end_dt.isoformat(),
+                "rows": [
+                    TreasuryRepository.serialize_reconciliation_sheet(row)
+                    for row in saved
+                ],
+            }
+
+        except HTTPException:
+            db.rollback()
+            raise
+
+        except Exception as exc:
+            db.rollback()
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Failed to close reconciliation: {exc}",
+            )
 
     # ========================================================
     # TAXONOMY HELPERS

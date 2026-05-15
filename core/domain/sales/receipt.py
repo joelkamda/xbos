@@ -15,6 +15,11 @@ def generate_receipt_no(
     R-{TT}{BB}-{MM}{YY}-{XXXXX}
 
     Sequence is branch-scoped and resets monthly.
+
+    Safer than COUNT(*) + 1:
+    - reads the highest existing receipt serial for the month
+    - increments it
+    - avoids duplicate receipt numbers when failed/pending attempts exist
     """
 
     mm = created_at.strftime("%m")
@@ -23,14 +28,17 @@ def generate_receipt_no(
     tt = str(tenant_id).zfill(2)
     bb = str(branch_id).zfill(2)
 
-    # Get next monthly sequence for branch
+    prefix = f"R-{tt}{bb}-{mm}{yy}-"
+
     seq_query = text("""
-        SELECT COUNT(*) + 1
+        SELECT COALESCE(
+            MAX(CAST(RIGHT(receipt_no, 5) AS INTEGER)),
+            0
+        ) + 1
         FROM sales
         WHERE tenant_id = :tenant_id
           AND branch_id = :branch_id
-          AND EXTRACT(MONTH FROM created_at) = :month
-          AND EXTRACT(YEAR FROM created_at) = :year
+          AND receipt_no LIKE :prefix
     """)
 
     result = db.execute(
@@ -38,11 +46,10 @@ def generate_receipt_no(
         {
             "tenant_id": tenant_id,
             "branch_id": branch_id,
-            "month": int(mm),
-            "year": int("20" + yy),
+            "prefix": f"{prefix}%",
         },
     ).scalar()
 
     serial = str(result).zfill(5)
 
-    return f"R-{tt}{bb}-{mm}{yy}-{serial}"
+    return f"{prefix}{serial}"

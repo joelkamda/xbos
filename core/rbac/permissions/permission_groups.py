@@ -48,6 +48,7 @@ PERMISSION_GROUPS = {
     "accounting": [
         ACC_VIEW,
         ACC_POST,
+        ACC_EDIT,
         ACC_RECONCILE,
         ACC_EXPORT,
         ACC_CLOSE_PERIOD,

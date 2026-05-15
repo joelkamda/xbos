@@ -1,12 +1,30 @@
 from decimal import Decimal
 from typing import Dict, Any, List
-from datetime import datetime
+from datetime import datetime, timezone
 
 from sqlalchemy.orm import Session, selectinload
 
-from core.domain.orders.models import Order, OrderItem
+from core.domain.orders.models import Order, OrderItem, OrderItemModifier
 from core.domain.catalog.repository import AtomicUnitRepository
 from core.domain.inventory.service import InventoryService
+
+
+def _utc_now_naive() -> datetime:
+    """
+    Canonical order timestamp for the current orders table.
+
+    Important:
+    - orders.created_at / orders.paid_at are currently timestamp WITHOUT time zone.
+    - Some optional order fields such as updated_at/cancelled_at/fulfilled_at may
+      follow the same model/table convention.
+    - So we store UTC wall-clock as naive for now.
+
+    Long-term preferred migration:
+    - Convert order timestamps to timestamptz.
+    - Then use datetime.now(timezone.utc) directly.
+    """
+
+    return datetime.now(timezone.utc).replace(tzinfo=None)
 
 
 def _d(v) -> Decimal:
@@ -14,6 +32,79 @@ def _d(v) -> Decimal:
         return Decimal(str(v or 0))
     except Exception:
         return Decimal("0")
+
+
+def _clean_modifier_type(value) -> str:
+    clean = str(value or "side").strip().lower()
+    return clean or "side"
+
+
+def _clean_modifier_name(value) -> str:
+    return str(value or "").strip()
+
+
+def _clean_modifier_quantity(value) -> int:
+    try:
+        qty = int(value or 1)
+    except Exception:
+        qty = 1
+
+    return max(qty, 1)
+
+
+def _build_modifiers_for_item(item_payload: Dict[str, Any]) -> List[OrderItemModifier]:
+    """
+    Build modifier child rows for an order item.
+
+    V1 use case:
+    - Free side dish attached to a food item.
+
+    Payload shape:
+    modifiers: [
+        {
+            "modifier_type": "side",
+            "name_snapshot": "Gari",
+            "price_delta": 0,
+            "quantity": 1
+        }
+    ]
+
+    Notes:
+    - Main item price remains catalog-controlled.
+    - Modifier price_delta is supported for future paid extras.
+    - Empty modifier names are ignored.
+    """
+
+    modifiers_payload = item_payload.get("modifiers") or []
+
+    if not isinstance(modifiers_payload, list):
+        return []
+
+    modifier_rows: List[OrderItemModifier] = []
+
+    for modifier in modifiers_payload:
+        if not isinstance(modifier, dict):
+            continue
+
+        modifier_name = _clean_modifier_name(
+            modifier.get("name_snapshot") or modifier.get("name")
+        )
+
+        if not modifier_name:
+            continue
+
+        modifier_rows.append(
+            OrderItemModifier(
+                modifier_type=_clean_modifier_type(
+                    modifier.get("modifier_type") or modifier.get("type")
+                ),
+                name_snapshot=modifier_name,
+                price_delta=_d(modifier.get("price_delta", 0)),
+                quantity=_clean_modifier_quantity(modifier.get("quantity", 1)),
+            )
+        )
+
+    return modifier_rows
 
 
 class OrderService:
@@ -28,6 +119,7 @@ class OrderService:
         *,
         tenant_id: int,
         branch_id: int,
+        created_by_user_id: int | None,
         payload: Dict[str, Any],
     ) -> Order:
 
@@ -40,7 +132,7 @@ class OrderService:
         subtotal = Decimal("0")
 
         # =================================================
-        # BUILD ITEMS (SOURCE OF TRUTH = CATALOG)
+        # BUILD ITEMS — SOURCE OF TRUTH = CATALOG
         # =================================================
 
         for item in items_payload:
@@ -75,12 +167,12 @@ class OrderService:
                 line_total=line_total,
             )
 
-            # If fulfillment columns exist on the model, initialize safely.
             if hasattr(order_item, "fulfillment_status"):
                 order_item.fulfillment_status = "waiting"
 
-            order_items.append(order_item)
+            order_item.modifiers = _build_modifiers_for_item(item)
 
+            order_items.append(order_item)
             subtotal += line_total
 
         # =================================================
@@ -90,6 +182,8 @@ class OrderService:
         order = Order(
             tenant_id=tenant_id,
             branch_id=branch_id,
+            created_by_user_id=created_by_user_id,
+            status="pending_payment",
             subtotal=subtotal,
             total=subtotal,
         )
@@ -102,8 +196,6 @@ class OrderService:
         # - flush to get order.id
         # - reserve inventory immediately
         # - commit together
-        #
-        # If stock reservation fails, order creation rolls back.
         # =================================================
 
         try:
@@ -140,27 +232,16 @@ class OrderService:
         """
         Updates an existing pending order.
 
-        Used by:
-        PendingOrdersScreen / PaymentScreen
-            → Edit
-            → SalesAndCartScreen edit mode
-            → Save Order
-
-        Important invariant:
+        Important:
         - This updates the existing order.
         - It must NOT create a new order.
         - Only pending/unpaid orders may be edited.
-
-        Inventory behavior:
-        - Old order quantities are compared to new quantities.
-        - Only the reservation delta is applied.
-        - Increasing quantity reserves more stock.
-        - Reducing/removing quantity releases stock.
+        - Original created_by_user_id is preserved for commission tracking.
         """
 
         order = (
             db.query(Order)
-            .options(selectinload(Order.items))
+            .options(selectinload(Order.items).selectinload(OrderItem.modifiers))
             .filter(
                 Order.id == order_id,
                 Order.tenant_id == tenant_id,
@@ -194,8 +275,6 @@ class OrderService:
 
         # =================================================
         # BUILD REPLACEMENT ITEMS
-        # Source of truth remains catalog.
-        # Frontend snapshots are accepted as hints only.
         # =================================================
 
         replacement_items: List[OrderItem] = []
@@ -234,12 +313,12 @@ class OrderService:
                 line_total=line_total,
             )
 
-            # New/replaced order lines start as waiting if the column exists.
             if hasattr(replacement_item, "fulfillment_status"):
                 replacement_item.fulfillment_status = "waiting"
 
-            replacement_items.append(replacement_item)
+            replacement_item.modifiers = _build_modifiers_for_item(item)
 
+            replacement_items.append(replacement_item)
             subtotal += line_total
 
         new_items_snapshot = [
@@ -255,9 +334,7 @@ class OrderService:
         # - adjust inventory reservation delta
         # - replace old items
         # - update totals
-        # - commit together
-        #
-        # If extra stock reservation fails, the order edit rolls back.
+        # - preserve order creator
         # =================================================
 
         try:
@@ -281,7 +358,7 @@ class OrderService:
             order.total = subtotal
 
             if hasattr(order, "updated_at"):
-                order.updated_at = datetime.utcnow()
+                order.updated_at = _utc_now_naive()
 
             db.add(order)
             db.commit()
@@ -311,24 +388,13 @@ class OrderService:
         """
         Updates readiness/prep status for one order item.
 
-        Intended for kitchen workflow:
-        PATCH /kernel/orders/{order_id}/items/{order_item_id}/fulfillment-status
-
         Valid statuses:
         - waiting
         - preparing
+        - in_progress
         - ready
         - served
         - cancelled
-
-        Important:
-        - This updates one exact order item line.
-        - It uses order_item_id, not atomic_unit_id.
-        - This requires fulfillment columns to exist on OrderItem model/table
-          for persistence:
-            fulfillment_status
-            fulfilled_at
-            fulfilled_by_user_id
         """
 
         clean_status = str(status or "").strip().lower()
@@ -347,7 +413,7 @@ class OrderService:
 
         order = (
             db.query(Order)
-            .options(selectinload(Order.items))
+            .options(selectinload(Order.items).selectinload(OrderItem.modifiers))
             .filter(
                 Order.id == order_id,
                 Order.tenant_id == tenant_id,
@@ -377,10 +443,6 @@ class OrderService:
         if not order_item:
             raise ValueError("Order item not found")
 
-        # -------------------------------------------------
-        # Persist item status if model/table supports it
-        # -------------------------------------------------
-
         if hasattr(order_item, "fulfillment_status"):
             order_item.fulfillment_status = clean_status
         else:
@@ -389,9 +451,11 @@ class OrderService:
                 "Run migration and update model before using kitchen status."
             )
 
+        now = _utc_now_naive()
+
         if clean_status == "ready":
             if hasattr(order_item, "fulfilled_at"):
-                order_item.fulfilled_at = datetime.utcnow()
+                order_item.fulfilled_at = now
 
             if hasattr(order_item, "fulfilled_by_user_id"):
                 order_item.fulfilled_by_user_id = user_id
@@ -403,16 +467,8 @@ class OrderService:
             if hasattr(order_item, "fulfilled_by_user_id"):
                 order_item.fulfilled_by_user_id = None
 
-        # -------------------------------------------------
-        # Optional order-level rollup
-        # -------------------------------------------------
-        # If every fulfillment-capable item is ready later,
-        # the controller/frontend can show order as ready.
-        # For now, do not mark the whole order paid/complete here.
-        # -------------------------------------------------
-
         if hasattr(order, "updated_at"):
-            order.updated_at = datetime.utcnow()
+            order.updated_at = now
 
         try:
             db.add(order_item)
@@ -444,16 +500,12 @@ class OrderService:
         Important:
         - This is not a hard delete.
         - Paid/completed orders must not be cancelled here.
-
-        Inventory behavior:
-        - Releases active reservation for the order.
-        - Then marks order cancelled.
-        - Happens in one transaction.
+        - Original created_by_user_id remains preserved for audit.
         """
 
         order = (
             db.query(Order)
-            .options(selectinload(Order.items))
+            .options(selectinload(Order.items).selectinload(OrderItem.modifiers))
             .filter(
                 Order.id == order_id,
                 Order.tenant_id == tenant_id,
@@ -474,13 +526,15 @@ class OrderService:
                 order=order,
             )
 
+            now = _utc_now_naive()
+
             order.status = "cancelled"
 
             if hasattr(order, "cancelled_at"):
-                order.cancelled_at = datetime.utcnow()
+                order.cancelled_at = now
 
             if hasattr(order, "updated_at"):
-                order.updated_at = datetime.utcnow()
+                order.updated_at = now
 
             db.add(order)
             db.commit()

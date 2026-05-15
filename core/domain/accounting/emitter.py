@@ -1,10 +1,35 @@
 from decimal import Decimal
 from typing import Optional, Dict, Any
-from datetime import datetime
+from datetime import datetime, timezone
 
 from sqlalchemy.orm import Session
 
 from core.domain.accounting.repository import TreasuryRepository
+
+
+# ============================================================
+# CONSTANTS
+# ============================================================
+
+SETTLEMENT_CHANNELS = {"cash", "mtn", "orange", "xafpay", "bank"}
+
+
+# ============================================================
+# HELPERS
+# ============================================================
+
+def _utc_now() -> datetime:
+    """
+    Canonical ledger timestamp.
+
+    The database stores treasury log timestamps as timestamptz.
+    Therefore this emitter writes timezone-aware UTC instants.
+
+    Display conversion to Africa/Douala belongs in the API serializer/UI,
+    not inside the stored ledger value.
+    """
+
+    return datetime.now(timezone.utc)
 
 
 def _d(v) -> Decimal:
@@ -22,10 +47,84 @@ def _safe_channel(channel: Optional[str]) -> Optional[str]:
 
     ch = str(channel).strip().lower()
 
-    if ch in {"cash", "mtn", "orange", "xafpay", "bank"}:
+    if ch in SETTLEMENT_CHANNELS:
         return ch
 
     return ch
+
+
+def _safe_settlement_channel(channel: Optional[str], *, fallback: str = "cash") -> str:
+    ch = str(channel or fallback).strip().lower()
+
+    if ch not in SETTLEMENT_CHANNELS:
+        raise ValueError(
+            "Invalid settlement channel. "
+            "Allowed values are: cash, mtn, orange, xafpay, bank"
+        )
+
+    return ch
+
+
+def _json_safe(value: Any) -> Any:
+    """
+    Make ledger metadata safe for JSON columns.
+
+    This prevents accidental JSON serialization failures when a service passes
+    Decimal or datetime values inside meta.
+    """
+
+    if isinstance(value, Decimal):
+        return float(value)
+
+    if isinstance(value, datetime):
+        if value.tzinfo is None:
+            return value.replace(tzinfo=timezone.utc).isoformat()
+        return value.astimezone(timezone.utc).isoformat()
+
+    if isinstance(value, dict):
+        return {str(k): _json_safe(v) for k, v in value.items()}
+
+    if isinstance(value, list):
+        return [_json_safe(v) for v in value]
+
+    if isinstance(value, tuple):
+        return [_json_safe(v) for v in value]
+
+    return value
+
+
+def _clean_meta(meta: Optional[Dict[str, Any]]) -> Dict[str, Any]:
+    if not meta:
+        return {}
+
+    if isinstance(meta, dict):
+        return _json_safe(dict(meta))
+
+    return {}
+
+
+def _normalize_occurred_at(value: Optional[datetime]) -> datetime:
+    """
+    Normalize event occurrence time for timestamptz storage.
+
+    Rules:
+    - Missing value: use current UTC-aware instant.
+    - Aware datetime: convert to UTC.
+    - Naive datetime: treat as UTC wall-clock and attach UTC.
+
+    Why:
+    PostgreSQL timestamptz is correct for ledger timestamps, but naive values
+    are dangerous if the DB/session timezone is not UTC. This helper prevents
+    the old +7 hour future-time problem.
+    """
+
+    if value is None:
+        return _utc_now()
+
+    if value.tzinfo is None:
+        return value.replace(tzinfo=timezone.utc)
+
+    return value.astimezone(timezone.utc)
 
 
 class FinancialEventEmitter:
@@ -35,7 +134,7 @@ class FinancialEventEmitter:
     Guarantees:
     • Idempotent ledger writes
     • Decimal safety
-    • Consistent timestamps
+    • UTC-aware event timestamps
     • Canonical financial event taxonomy
 
     Design:
@@ -44,6 +143,8 @@ class FinancialEventEmitter:
     - Manual income/expense/cash-movement helpers support accounting modals.
     - CASH_MOVE uses direction="credit" because treasury_logs.direction only
       allows credit/debit. The movement meaning is carried by event_type and meta.
+    - A/R repayment is a transfer: A/R mv out, payment channel mv in.
+    - Future A/P return/change settlement should mirror this idea in reverse.
     - All helpers ultimately call emit().
     """
 
@@ -69,7 +170,6 @@ class FinancialEventEmitter:
         occurred_at: Optional[datetime] = None,
         meta: Optional[Dict[str, Any]] = None,
     ):
-
         amount = _d(amount)
 
         if amount == Decimal("0"):
@@ -101,8 +201,8 @@ class FinancialEventEmitter:
             reference_type=reference_type,
             reference_id=reference_id,
             taxonomy_node_id=taxonomy_node_id,
-            occurred_at=occurred_at or datetime.utcnow(),
-            meta=meta or {},
+            occurred_at=_normalize_occurred_at(occurred_at),
+            meta=_clean_meta(meta),
         )
 
     # =========================================================
@@ -171,7 +271,7 @@ class FinancialEventEmitter:
             taxonomy_node_id=taxonomy_node_id,
             occurred_at=occurred_at,
             meta={
-                **(meta or {}),
+                **_clean_meta(meta),
                 "client_reference": client_reference,
                 "source": "manual_income_modal",
             },
@@ -230,7 +330,7 @@ class FinancialEventEmitter:
             taxonomy_node_id=taxonomy_node_id,
             occurred_at=occurred_at,
             meta={
-                **(meta or {}),
+                **_clean_meta(meta),
                 "client_reference": client_reference,
                 "source": "expense_modal",
             },
@@ -259,7 +359,7 @@ class FinancialEventEmitter:
         Important:
         - This is not income.
         - This is not expense.
-        - A/R and A/P are not allowed as ordinary movement channels.
+        - A/R and A/P are not allowed as ordinary manual movement channels.
         - direction remains "credit" to satisfy DB constraint.
         - reconciliation uses event_type + source/target metadata.
         """
@@ -272,22 +372,14 @@ class FinancialEventEmitter:
         if not client_reference:
             raise ValueError("client_reference is required")
 
-        source = _safe_channel(source_channel)
-        target = _safe_channel(target_channel)
-
-        allowed = {"cash", "mtn", "orange", "xafpay", "bank"}
-
-        if source not in allowed:
-            raise ValueError("Invalid source_channel for cash movement")
-
-        if target not in allowed:
-            raise ValueError("Invalid target_channel for cash movement")
+        source = _safe_settlement_channel(source_channel)
+        target = _safe_settlement_channel(target_channel)
 
         if source == target:
             raise ValueError("source_channel and target_channel cannot be the same")
 
         movement_meta = {
-            **(meta or {}),
+            **_clean_meta(meta),
             "client_reference": client_reference,
             "source": "cash_movement_modal",
             "source_channel": source,
@@ -326,8 +418,8 @@ class FinancialEventEmitter:
         amount,
         currency="XAF",
         meta=None,
+        occurred_at: Optional[datetime] = None,
     ):
-
         return FinancialEventEmitter.emit(
             db,
             tenant_id=tenant_id,
@@ -339,6 +431,7 @@ class FinancialEventEmitter:
             currency=currency,
             reference_type="sale",
             reference_id=sale_id,
+            occurred_at=occurred_at,
             meta=meta,
         )
 
@@ -352,8 +445,8 @@ class FinancialEventEmitter:
         amount,
         currency="XAF",
         meta=None,
+        occurred_at: Optional[datetime] = None,
     ):
-
         if _d(amount) <= 0:
             return None
 
@@ -368,6 +461,7 @@ class FinancialEventEmitter:
             currency=currency,
             reference_type="sale",
             reference_id=sale_id,
+            occurred_at=occurred_at,
             meta=meta,
         )
 
@@ -381,8 +475,8 @@ class FinancialEventEmitter:
         amount,
         currency="XAF",
         meta=None,
+        occurred_at: Optional[datetime] = None,
     ):
-
         if _d(amount) <= 0:
             return None
 
@@ -397,6 +491,7 @@ class FinancialEventEmitter:
             currency=currency,
             reference_type="sale",
             reference_id=sale_id,
+            occurred_at=occurred_at,
             meta=meta,
         )
 
@@ -415,7 +510,9 @@ class FinancialEventEmitter:
         currency="XAF",
         channel=None,
         meta=None,
+        occurred_at: Optional[datetime] = None,
     ):
+        safe_channel = _safe_settlement_channel(channel)
 
         return FinancialEventEmitter.emit(
             db,
@@ -426,10 +523,16 @@ class FinancialEventEmitter:
             event_type="PAYMENT_RECEIVED",
             amount=amount,
             currency=currency,
-            channel=channel,
+            channel=safe_channel,
             reference_type="payment_attempt",
             reference_id=attempt_id,
-            meta=meta,
+            occurred_at=occurred_at,
+            meta={
+                **_clean_meta(meta),
+                "source_channel": safe_channel,
+                "target_channel": safe_channel,
+                "movement_direction": "payment_collection",
+            },
         )
 
     # =========================================================
@@ -447,10 +550,12 @@ class FinancialEventEmitter:
         currency="XAF",
         channel="cash",
         meta=None,
+        occurred_at: Optional[datetime] = None,
     ):
-
         if _d(amount) <= 0:
             return None
+
+        safe_channel = _safe_settlement_channel(channel)
 
         return FinancialEventEmitter.emit(
             db,
@@ -461,10 +566,16 @@ class FinancialEventEmitter:
             event_type="CHANGE_RETURNED",
             amount=amount,
             currency=currency,
-            channel=channel or "cash",
+            channel=safe_channel,
             reference_type="payment_intent",
             reference_id=payment_intent_id,
-            meta=meta,
+            occurred_at=occurred_at,
+            meta={
+                **_clean_meta(meta),
+                "source_channel": safe_channel,
+                "target_channel": "customer",
+                "movement_direction": "change_returned",
+            },
         )
 
     # =========================================================
@@ -481,7 +592,16 @@ class FinancialEventEmitter:
         amount,
         currency="XAF",
         meta=None,
+        occurred_at: Optional[datetime] = None,
     ):
+        """
+        Creates A/R.
+
+        Accounting meaning:
+        - New debt is unrealized income parked in A/R.
+        - Reconciliation should map:
+            A/R income += amount
+        """
 
         if _d(amount) <= 0:
             return None
@@ -495,9 +615,16 @@ class FinancialEventEmitter:
             event_type="DEBT_CREATED",
             amount=amount,
             currency=currency,
+            channel="ar",
             reference_type="sale",
             reference_id=sale_id,
-            meta=meta,
+            occurred_at=occurred_at,
+            meta={
+                **_clean_meta(meta),
+                "source": "accounts_receivable",
+                "target_channel": "ar",
+                "movement_direction": "ar_created",
+            },
         )
 
     @staticmethod
@@ -511,7 +638,37 @@ class FinancialEventEmitter:
         currency="XAF",
         channel=None,
         meta=None,
+        occurred_at: Optional[datetime] = None,
     ):
+        """
+        Repays A/R.
+
+        Accounting meaning:
+        - This is NOT new income.
+        - This is NOT expense.
+        - This is a transfer:
+            A/R account      movement out
+            Payment channel  movement in
+
+        Reconciliation should map:
+            rows["ar"]["cashOut"] += amount
+            rows[channel]["cashIn"] += amount
+        """
+
+        amount_d = _d(amount)
+
+        if amount_d <= 0:
+            return None
+
+        target_channel = _safe_settlement_channel(channel)
+
+        movement_meta = {
+            **_clean_meta(meta),
+            "source": "accounts_receivable_repayment",
+            "source_channel": "ar",
+            "target_channel": target_channel,
+            "movement_direction": "ar_repayment_transfer",
+        }
 
         return FinancialEventEmitter.emit(
             db,
@@ -520,16 +677,17 @@ class FinancialEventEmitter:
             idempotency_key=f"debt_repaid:{repayment_id}",
             direction="credit",
             event_type="DEBT_REPAYMENT",
-            amount=amount,
+            amount=amount_d,
             currency=currency,
-            channel=channel,
+            channel=target_channel,
             reference_type="debt_repayment",
             reference_id=repayment_id,
-            meta=meta,
+            occurred_at=occurred_at,
+            meta=movement_meta,
         )
 
     # =========================================================
-    # STORE CREDIT (LIABILITY)
+    # STORE CREDIT / ACCOUNTS PAYABLE-LIKE LIABILITY
     # =========================================================
 
     @staticmethod
@@ -542,7 +700,24 @@ class FinancialEventEmitter:
         amount,
         currency="XAF",
         meta=None,
+        occurred_at: Optional[datetime] = None,
     ):
+        """
+        Creates A/P-like customer liability / store credit.
+
+        Current meaning:
+        - Customer change due is parked in A/P-like liability.
+        - It is not income.
+        - It is not an expense at creation.
+        - It represents value owed to customer.
+
+        Future A/P reconciliation model:
+        - Creation should increase A/P.
+        - Actual cash is already retained in the payment channel at settlement.
+        - Returning change should reduce A/P and create cashOut from the channel.
+        - If store credit is consumed by goods later, it should reduce A/P and
+          may become sale settlement value, depending on the final design.
+        """
 
         if _d(amount) <= 0:
             return None
@@ -556,9 +731,16 @@ class FinancialEventEmitter:
             event_type="STORE_CREDIT_CREATED",
             amount=amount,
             currency=currency,
+            channel="ap",
             reference_type="sale",
             reference_id=sale_id,
-            meta=meta,
+            occurred_at=occurred_at,
+            meta={
+                **_clean_meta(meta),
+                "source": "accounts_payable_like_store_credit",
+                "target_channel": "ap",
+                "movement_direction": "ap_created",
+            },
         )
 
     # =========================================================
@@ -576,7 +758,14 @@ class FinancialEventEmitter:
         currency="XAF",
         channel=None,
         meta=None,
+        occurred_at: Optional[datetime] = None,
     ):
+        amount_d = _d(amount)
+
+        if amount_d <= 0:
+            return None
+
+        safe_channel = _safe_settlement_channel(channel)
 
         return FinancialEventEmitter.emit(
             db,
@@ -585,12 +774,18 @@ class FinancialEventEmitter:
             idempotency_key=f"refund:{refund_id}",
             direction="debit",
             event_type="REFUND_PAID",
-            amount=amount,
+            amount=amount_d,
             currency=currency,
-            channel=channel,
+            channel=safe_channel,
             reference_type="refund",
             reference_id=refund_id,
-            meta=meta,
+            occurred_at=occurred_at,
+            meta={
+                **_clean_meta(meta),
+                "source_channel": safe_channel,
+                "target_channel": "customer",
+                "movement_direction": "refund_paid",
+            },
         )
 
     # =========================================================
@@ -609,20 +804,25 @@ class FinancialEventEmitter:
         target_channel: str,
         currency="XAF",
         meta=None,
+        occurred_at: Optional[datetime] = None,
     ):
+        amount_d = _d(amount)
 
-        meta = meta or {}
+        if amount_d <= 0:
+            return None
 
-        source = _safe_channel(source_channel)
-        target = _safe_channel(target_channel)
+        source = _safe_settlement_channel(source_channel)
+        target = _safe_settlement_channel(target_channel)
 
-        meta.update(
-            {
-                "source_channel": source,
-                "target_channel": target,
-                "movement_direction": "transfer",
-            }
-        )
+        if source == target:
+            raise ValueError("source_channel and target_channel cannot be the same")
+
+        movement_meta = {
+            **_clean_meta(meta),
+            "source_channel": source,
+            "target_channel": target,
+            "movement_direction": "transfer",
+        }
 
         return FinancialEventEmitter.emit(
             db,
@@ -631,10 +831,11 @@ class FinancialEventEmitter:
             idempotency_key=f"cash_move:{move_id}",
             direction="credit",
             event_type="CASH_MOVE",
-            amount=amount,
+            amount=amount_d,
             currency=currency,
             channel=target,
             reference_type="cash_move",
             reference_id=move_id,
-            meta=meta,
+            occurred_at=occurred_at,
+            meta=movement_meta,
         )

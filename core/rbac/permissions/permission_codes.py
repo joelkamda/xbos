@@ -43,10 +43,10 @@ PAY_RECONCILE      = "payments.reconcile"
 # ----------------------------
 ACC_VIEW           = "accounting.view"
 ACC_POST           = "accounting.post"
+ACC_EDIT           = "accounting.edit"
 ACC_RECONCILE      = "accounting.reconcile"
 ACC_EXPORT         = "accounting.export"
 ACC_CLOSE_PERIOD   = "accounting.close_period"
-
 
 # ----------------------------
 # REPORTS (GENERIC + DOMAIN)

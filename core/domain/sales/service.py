@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 from typing import Dict, Any, List
-from datetime import datetime
+from datetime import datetime, timezone
 from decimal import Decimal
 
+from sqlalchemy import text
 from sqlalchemy.orm import Session, selectinload
 from sqlalchemy.exc import IntegrityError
 
@@ -24,6 +25,18 @@ from core.shared.idempotency import (
 )
 
 
+def _utc_now() -> datetime:
+    """
+    Canonical sale timestamp.
+
+    sales.created_at and sales.paid_at are timestamptz columns, so sale-service
+    timestamps must be timezone-aware UTC instants. Display conversion to
+    Africa/Douala belongs in the API/UI layer.
+    """
+
+    return datetime.now(timezone.utc)
+
+
 def _d(v: Any) -> Decimal:
     try:
         if v is None:
@@ -40,7 +53,7 @@ class SaleService:
     Invariants:
     - Sale ALWAYS has exactly ONE PaymentIntent
     - Settlement handled via PaymentAttempts
-    - Sale is immutable after creation (except status)
+    - Sale is immutable after creation except controlled status changes
 
     Totals:
     - subtotal = GROSS
@@ -59,12 +72,18 @@ class SaleService:
     # =====================================================
 
     @staticmethod
-    def create_sale_from_order(db, *, tenant_id, branch_id, cashier_id, order):
+    def create_sale_from_order(
+        db,
+        *,
+        tenant_id,
+        branch_id,
+        cashier_id,
+        order,
+    ):
 
         if not order:
             raise ValueError("order is required")
 
-        # HARD GUARD: prevent duplicate sale for same order
         existing_sale = SaleRepository.get_by_order_id(
             db,
             tenant_id=tenant_id,
@@ -125,6 +144,103 @@ class SaleService:
         return query.limit(limit).all()
 
     # =====================================================
+    # STALE IDEMPOTENCY RECOVERY
+    # =====================================================
+
+    @staticmethod
+    def _idempotency_value(existing: Any, field: str):
+        """
+        Safely read values from an ORM object, dict, or SQLAlchemy row-like object.
+        """
+        if not existing:
+            return None
+
+        if hasattr(existing, field):
+            return getattr(existing, field)
+
+        if isinstance(existing, dict):
+            return existing.get(field)
+
+        try:
+            return existing[field]
+        except Exception:
+            return None
+
+    @staticmethod
+    def _recover_from_broken_idempotency(
+        db: Session,
+        *,
+        existing,
+        tenant_id: int,
+        order_id: int | None,
+        client_reference: str,
+    ) -> Sale | None:
+        """
+        Handles stale/broken idempotency rows safely.
+
+        Scenario:
+        - idempotency_keys has scope='sale', key='order:<id>'
+        - reference_id points to a sale that no longer exists
+        - retrying settlement previously crashed with:
+            ValueError("Broken idempotency reference")
+
+        Recovery:
+        1. If this is order-driven, try finding a sale by order_id.
+        2. If no sale exists, delete the stale idempotency row using SQL.
+        3. Continue creating a fresh sale.
+        """
+
+        if order_id:
+            existing_sale = SaleRepository.get_by_order_id(
+                db,
+                tenant_id=tenant_id,
+                order_id=order_id,
+            )
+            if existing_sale:
+                return existing_sale
+
+        stale_key = (
+            SaleService._idempotency_value(existing, "key")
+            or client_reference
+        )
+
+        stale_scope = (
+            SaleService._idempotency_value(existing, "scope")
+            or "sale"
+        )
+
+        stale_reference_id = SaleService._idempotency_value(
+            existing,
+            "reference_id",
+        )
+
+        print(
+            "[XBOS] Recovering stale sale idempotency row:",
+            {
+                "key": stale_key,
+                "scope": stale_scope,
+                "reference_id": stale_reference_id,
+                "order_id": order_id,
+            },
+        )
+
+        db.execute(
+            text("""
+                DELETE FROM idempotency_keys
+                WHERE scope = :scope
+                  AND "key" = :key
+            """),
+            {
+                "scope": stale_scope,
+                "key": stale_key,
+            },
+        )
+
+        db.flush()
+
+        return None
+
+    # =====================================================
     # ACCOUNTING EMISSION
     # =====================================================
 
@@ -143,6 +259,7 @@ class SaleService:
         complimentary_items: Any,
         net_total: Decimal,
         currency: str,
+        occurred_at: datetime,
     ) -> None:
         """
         Emit non-cashflow accounting events for the commercial sale.
@@ -151,6 +268,8 @@ class SaleService:
         - These events recognize the sale economics.
         - Actual collection is emitted later by PaymentService as PAYMENT_RECEIVED.
         - Emitter is idempotent, so retrying sale creation does not duplicate ledger rows.
+        - occurred_at is passed explicitly so sale.created_at and sale revenue
+          ledger events share the same UTC-aware instant.
         """
 
         base_meta = {
@@ -171,6 +290,7 @@ class SaleService:
             sale_id=sale.id,
             amount=gross_total,
             currency=currency,
+            occurred_at=occurred_at,
             meta={
                 **base_meta,
                 "event_reason": "gross_sale_created",
@@ -185,6 +305,7 @@ class SaleService:
                 sale_id=sale.id,
                 amount=discount_total,
                 currency=currency,
+                occurred_at=occurred_at,
                 meta={
                     **base_meta,
                     "event_reason": "discount_applied",
@@ -200,6 +321,7 @@ class SaleService:
                 sale_id=sale.id,
                 amount=complimentary_total,
                 currency=currency,
+                occurred_at=occurred_at,
                 meta={
                     **base_meta,
                     "event_reason": "complimentary_applied",
@@ -226,32 +348,13 @@ class SaleService:
             raise ValueError("client_reference is required")
 
         # -------------------------
-        # Idempotency
-        # -------------------------
-        existing = check_idempotency_key(db, key=client_reference, scope="sale")
-        if existing:
-            sale = SaleRepository.get_by_id(
-                db,
-                tenant_id=tenant_id,
-                sale_id=existing.reference_id,
-            )
-            if not sale:
-                raise ValueError("Broken idempotency reference")
-            return sale
-
-        # -------------------------
-        # Validate items
-        # -------------------------
-        items_payload = payload.get("items")
-        if not items_payload:
-            raise ValueError("Sale must contain at least one item")
-
-        # -------------------------
         # Order linkage
         # -------------------------
         order_id = payload.get("order_id")
 
         if order_id:
+            order_id = int(order_id)
+
             existing_sale = SaleRepository.get_by_order_id(
                 db,
                 tenant_id=tenant_id,
@@ -259,6 +362,50 @@ class SaleService:
             )
             if existing_sale:
                 return existing_sale
+
+        # -------------------------
+        # Idempotency
+        # -------------------------
+        existing = check_idempotency_key(db, key=client_reference, scope="sale")
+
+        if existing:
+            existing_reference_id = SaleService._idempotency_value(
+                existing,
+                "reference_id",
+            )
+
+            sale = None
+
+            if existing_reference_id:
+                sale = SaleRepository.get_by_id(
+                    db,
+                    tenant_id=tenant_id,
+                    sale_id=existing_reference_id,
+                )
+
+            if sale:
+                return sale
+
+            recovered_sale = SaleService._recover_from_broken_idempotency(
+                db,
+                existing=existing,
+                tenant_id=tenant_id,
+                order_id=order_id,
+                client_reference=client_reference,
+            )
+
+            if recovered_sale:
+                return recovered_sale
+
+            # If no sale was recovered, continue and create a fresh sale.
+            # The stale idempotency row has been deleted/flushed above.
+
+        # -------------------------
+        # Validate items
+        # -------------------------
+        items_payload = payload.get("items")
+        if not items_payload:
+            raise ValueError("Sale must contain at least one item")
 
         # -------------------------
         # Payment method
@@ -332,7 +479,7 @@ class SaleService:
         if net_total < 0:
             net_total = Decimal("0")
 
-        now = datetime.utcnow()
+        now = _utc_now()
 
         receipt_no = generate_receipt_no(
             db,
@@ -393,6 +540,7 @@ class SaleService:
                     "complimentary_items": complimentary_items,
                     "net_total": float(net_total),
                     "source": "sale_creation",
+                    "order_id": order_id,
                 },
             )
 
@@ -412,6 +560,7 @@ class SaleService:
                 complimentary_items=complimentary_items,
                 net_total=net_total,
                 currency=currency,
+                occurred_at=now,
             )
 
             # -------------------------

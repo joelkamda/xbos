@@ -4,7 +4,6 @@ from fastapi import APIRouter, Request, Depends, Body
 from sqlalchemy.orm import Session
 
 from database import get_db
-
 from core.api.orders.orders_controller import OrdersController
 from core.rbac.utils.permission_decorator import require_permissions
 
@@ -65,6 +64,7 @@ async def update_order(
 #   "status": "ready"
 # }
 # =====================================================
+
 @router.patch("/{order_id}/items/{order_item_id}/fulfillment-status")
 @require_permissions("order.update_status")
 async def update_item_fulfillment_status(

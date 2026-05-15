@@ -16,6 +16,9 @@ from core.domain.payments.repository import (
 from core.domain.sales.repository import SaleRepository
 from core.domain.sales.service import SaleService
 from core.domain.orders.repository import OrderRepository
+from core.domain.accounting.accounts_receivable.service import (
+    AccountsReceivableService,
+)
 
 
 def _d(v: Any) -> Decimal:
@@ -38,6 +41,55 @@ def _status_ui(value: Any) -> str:
         return "FAILED"
 
     return "PENDING"
+
+
+def _clean_text(value: Any) -> str | None:
+    text = str(value or "").strip()
+    return text or None
+
+
+def _extract_customer_name(receipt_meta: Dict[str, Any]) -> str | None:
+    customer = receipt_meta.get("customer")
+
+    if isinstance(customer, dict):
+        return _clean_text(
+            customer.get("name")
+            or customer.get("full_name")
+            or customer.get("customer_name")
+        )
+
+    return _clean_text(
+        receipt_meta.get("customer_name")
+        or receipt_meta.get("client_name")
+        or customer
+    )
+
+
+def _extract_customer_phone(receipt_meta: Dict[str, Any]) -> str | None:
+    customer = receipt_meta.get("customer")
+
+    if isinstance(customer, dict):
+        return _clean_text(
+            customer.get("phone")
+            or customer.get("telephone")
+            or customer.get("mobile")
+            or customer.get("customer_phone")
+        )
+
+    return _clean_text(
+        receipt_meta.get("customer_phone")
+        or receipt_meta.get("phone")
+        or receipt_meta.get("telephone")
+    )
+
+
+def _extract_note(receipt_meta: Dict[str, Any], fallback_note: Any = None) -> str | None:
+    return _clean_text(
+        receipt_meta.get("notes")
+        or receipt_meta.get("note")
+        or receipt_meta.get("unpaid_note")
+        or fallback_note
+    )
 
 
 class PaymentsController:
@@ -95,6 +147,70 @@ class PaymentsController:
             cashier_id=user_id,
             order=order,
         )
+
+    def _apply_order_settlement_status_and_ar(
+        self,
+        *,
+        db: Session,
+        tenant_id: int,
+        branch_id: int,
+        user_id: int,
+        order_id: int,
+        sale,
+        intent,
+        receipt_meta: Dict[str, Any],
+        note: Any = None,
+    ):
+        """
+        Finalizes order destination after settlement.
+
+        Full payment:
+        - order.status = paid
+        - no active A/R row
+
+        Unpaid / partial:
+        - create or update accounts_receivable
+        - order.status = receivable
+        - PendingOrdersScreen clears because it only shows pending_payment
+        """
+
+        order = OrderRepository.get_by_id(db, int(order_id))
+
+        if not order:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Order not found during settlement finalization",
+            )
+
+        balance_due_d = _d(getattr(intent, "balance_due", 0))
+        total_paid_d = _d(getattr(intent, "total_paid", 0))
+        original_amount_d = _d(getattr(intent, "amount", None) or getattr(sale, "total", 0))
+
+        if balance_due_d <= 0:
+            OrderRepository.mark_paid(order)
+            db.add(order)
+            return None
+
+        ar = AccountsReceivableService.create_or_update_from_settlement(
+            db,
+            tenant_id=tenant_id,
+            branch_id=branch_id,
+            order_id=int(order_id),
+            sale_id=getattr(sale, "id", None),
+            payment_intent_id=str(getattr(intent, "id", "") or ""),
+            original_amount=original_amount_d,
+            paid_amount=total_paid_d,
+            balance_due=balance_due_d,
+            customer_name=_extract_customer_name(receipt_meta),
+            customer_phone=_extract_customer_phone(receipt_meta),
+            note=_extract_note(receipt_meta, note),
+            created_by_user_id=user_id,
+        )
+
+        OrderRepository.mark_receivable(order)
+        db.add(order)
+
+        return ar
 
     # =====================================================
     # LIST PAYMENTS (UI DASHBOARD)
@@ -315,6 +431,7 @@ class PaymentsController:
 
         receipt_meta = {
             **receipt_meta,
+            "document_type": "receipt",
             "tendered_total": float(_d(tendered_total))
             if tendered_total is not None
             else float(_d(receipt_meta.get("tendered_total"))),
@@ -348,6 +465,8 @@ class PaymentsController:
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="lines required",
             )
+
+        ar = None
 
         # =====================================================
         # ORDER FLOW
@@ -407,10 +526,17 @@ class PaymentsController:
                 receipt_meta=receipt_meta,
             )
 
-            if float(intent.balance_due or 0) <= 0:
-                order = OrderRepository.get_by_id(db, int(order_id))
-                if order:
-                    OrderRepository.mark_paid(order)
+            ar = self._apply_order_settlement_status_and_ar(
+                db=db,
+                tenant_id=tenant_id,
+                branch_id=branch_id,
+                user_id=user_id,
+                order_id=int(order_id),
+                sale=sale,
+                intent=intent,
+                receipt_meta=receipt_meta,
+                note=note,
+            )
 
         # =====================================================
         # MANUAL / DIRECT PAY FLOW
@@ -455,6 +581,7 @@ class PaymentsController:
                 receipt_meta={
                     **receipt_meta,
                     "manual": True,
+                    "document_type": "receipt",
                 },
             )
 
@@ -475,6 +602,8 @@ class PaymentsController:
             "receipt_meta": intent.meta or {},
             "intent_status": _status_ui(intent.status),
             "completed_existing_intent": bool(existing_intent_id),
+            "ar_id": ar.id if ar else None,
+            "ar_status": ar.status if ar else None,
         }
 
     # =====================================================

@@ -10,7 +10,6 @@ ROLE_DEFAULT_LEVEL = {
     # Rule: execute operations, no authority to alter systems
     # ============================================================
 
-    "cashier": LOW,
     "waiter": LOW,
     "sales_rep": LOW,
     "inventory_clerk": LOW,
@@ -26,6 +25,7 @@ ROLE_DEFAULT_LEVEL = {
     # Rule: manage people, stock, workflows; limited financial power
     # ============================================================
 
+    "cashier": MEDIUM,
     "shift_supervisor": MEDIUM,
     "store_manager": MEDIUM,
     "branch_manager": MEDIUM,

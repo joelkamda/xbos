@@ -67,7 +67,7 @@ def _month_bounds(yyyymm: str) -> Tuple[datetime, datetime]:
 
 
 def _year_month_keys(year: int) -> List[str]:
-    return [f"{year}-{str(i).padStart(2, '0')}" for i in range(1, 13)]
+    return [f"{year}-{str(i).zfill(2)}" for i in range(1, 13)]
 
 
 def _py_month_keys(year: int) -> List[str]:
@@ -98,15 +98,12 @@ def _meta(log: TreasuryLog) -> Dict[str, Any]:
 
 def _cost_from_meta(meta: Optional[Dict[str, Any]]) -> Decimal:
     """
-    Bar / drinks COGS is computed from sale quantity × cost.
+    Legacy helper for cost lookup from AtomicUnit.meta.
 
-    Cost lookup priority:
-    1. buying_price
-    2. cost_price
-    3. unit_cost
-    4. purchase_price
-
-    If missing, return 0 and caller will add a warning.
+    Monthly statements no longer auto-calculate bar/drinks COGS
+    from sold quantities. COGS now comes only from explicit
+    TreasuryLog COGS entries. This helper is kept for backward
+    compatibility in case older/private helpers still reference it.
     """
 
     m = meta or {}
@@ -265,9 +262,9 @@ class ReportsService:
     - Sales Revenue source of truth = SALE_REVENUE_GROSS TreasuryLog.
     - Sales grouping detail comes from SaleItem + COMMERCE taxonomy.
     - Other Income comes from OTHER_INCOME / SERVICE_REVENUE TreasuryLog.
-    - COGS uses hybrid model:
-        C1 kitchen/manual COGS from TreasuryLog COGS classification.
-        C2 bar/drinks COGS from SaleItem quantity × AtomicUnit seeded cost.
+    - COGS source of truth = explicit TreasuryLog COGS classification.
+    - Inventory stock-in does not automatically create monthly statement COGS.
+    - Bar/drinks COGS must be manually posted like other COGS entries.
     - Operating Expenses come from EXPENSE_POSTED excluding COGS.
     """
 
@@ -460,7 +457,7 @@ class ReportsService:
             "rules": {
                 "salesRevenue": "SALE_REVENUE_GROSS treasury events are the financial source of truth.",
                 "otherIncome": "OTHER_INCOME and SERVICE_REVENUE treasury events.",
-                "cogs": "Hybrid COGS: kitchen/manual from treasury COGS classification; bar/drinks from sold quantity × atomic unit cost.",
+                "cogs": "COGS comes only from explicit TreasuryLog COGS entries. Inventory stock-in and drink sales do not automatically create COGS.",
                 "opex": "EXPENSE_POSTED excluding COGS classification.",
                 "depth": "Formal statement depth is Section → Group → Subcategory. Deeper rows are reserved for drilldown.",
             },
@@ -799,6 +796,22 @@ class ReportsService:
         sale_ids: List[int],
         atomic_paths: Dict[int, Dict[str, Any]],
     ) -> Tuple[List[Dict[str, Any]], Decimal, List[Dict[str, Any]]]:
+        """
+        Build COGS strictly from explicit accounting / treasury entries.
+
+        V1 policy:
+        - COGS must be manually posted through TreasuryLog.
+        - Drinks/bar COGS is NOT auto-calculated from sold units anymore.
+        - Inventory stock-in remains an inventory movement only unless a
+          separate manual expense/COGS entry is posted.
+
+        sale_ids and atomic_paths are intentionally kept in the signature so
+        existing callers do not break, but they are no longer used for COGS.
+        """
+
+        _ = sale_ids
+        _ = atomic_paths
+
         acc = _TreeAccumulator("cogs")
         warnings: List[Dict[str, Any]] = []
 
@@ -812,17 +825,7 @@ class ReportsService:
             warnings=warnings,
         )
 
-        bar_total = ReportsService._add_bar_calculated_cogs(
-            db,
-            tenant_id=tenant_id,
-            branch_id=branch_id,
-            sale_ids=sale_ids,
-            atomic_paths=atomic_paths,
-            acc=acc,
-            warnings=warnings,
-        )
-
-        return acc.nodes(), manual_total + bar_total, warnings
+        return acc.nodes(), manual_total, warnings
 
     @staticmethod
     def _is_cogs_log(log: TreasuryLog) -> bool:
@@ -850,10 +853,10 @@ class ReportsService:
     @staticmethod
     def _manual_cogs_group(subcategory: str) -> str:
         """
-        Manual COGS normally represents kitchen / food input COGS.
+        Group manual COGS into Kitchen or Bar for statement presentation.
 
-        If an operator deliberately posts bar/drinks COGS manually, keep it visible
-        under Bar but warn because bar COGS is usually calculated from sold units.
+        Bar/drinks COGS is now expected to be manually posted, so no
+        double-counting warning is produced here.
         """
 
         s = str(subcategory or "").lower()
@@ -901,20 +904,6 @@ class ReportsService:
 
             group = ReportsService._manual_cogs_group(subcategory)
 
-            if group == "Bar":
-                warnings.append(
-                    {
-                        "code": "MANUAL_BAR_COGS_PRESENT",
-                        "message": (
-                            "A manual COGS entry appears to belong to Bar/Drinks. "
-                            "Bar COGS is also calculated from sold drink units, so review for possible double-counting."
-                        ),
-                        "treasury_log_id": log.id,
-                        "subcategory": subcategory,
-                        "amount": _f(amount),
-                    }
-                )
-
             acc.add(
                 group_label=group,
                 child_label=subcategory,
@@ -941,6 +930,14 @@ class ReportsService:
         acc: _TreeAccumulator,
         warnings: List[Dict[str, Any]],
     ) -> Decimal:
+        """
+        Legacy helper.
+
+        This method is intentionally no longer called by monthly_statement().
+        It is kept temporarily to avoid breaking any old/debug code that may
+        import or call private helpers during transition.
+        """
+
         if not sale_ids:
             return Decimal("0")
 

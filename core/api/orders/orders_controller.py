@@ -4,16 +4,11 @@ from sqlalchemy.orm import Session
 from core.domain.orders.service import OrderService
 from core.domain.orders.repository import OrderRepository
 from core.domain.taxonomy.models import AtomicUnitTaxonomy, TaxonomyNode
+from core.users.user_model import User
 
 
 # =====================================================
 # WND V1 FULFILLMENT ROUTING RULES
-# =====================================================
-# Temporary V1 rule.
-# Later this should move into tenant configuration:
-# taxonomy_node.meta["fulfillment_queue"] = "kitchen"
-# taxonomy_node.meta["requires_fulfillment"] = true
-# or tenant_fulfillment_rules table.
 # =====================================================
 
 KITCHEN_ROUTE_NAMES = {
@@ -60,6 +55,34 @@ class OrdersController:
             "user_id": int(ctx["user_id"]),
             "role": ctx.get("role"),
         }
+
+    # =====================================================
+    # USER / AUTHOR HELPERS
+    # =====================================================
+
+    def _user_display_name(
+        self,
+        db: Session,
+        *,
+        tenant_id: int,
+        user_id: int | None,
+    ) -> str | None:
+        if not user_id:
+            return None
+
+        user = (
+            db.query(User)
+            .filter(
+                User.id == user_id,
+                User.tenant_id == tenant_id,
+            )
+            .first()
+        )
+
+        if not user:
+            return None
+
+        return user.full_name or user.username or f"User #{user.id}"
 
     # =====================================================
     # TAXONOMY / FULFILLMENT HELPERS
@@ -144,7 +167,6 @@ class OrdersController:
 
                 guard += 1
 
-            # Root → leaf order
             nodes = list(reversed(nodes))
 
             path = {
@@ -171,11 +193,9 @@ class OrdersController:
 
             names_upper = {str(x).upper() for x in path["names"]}
 
-            # Prefer Inventory path if available
             if "INVENTORY" in names_upper:
                 return path
 
-            # Otherwise keep first usable path as fallback
             if path["names"] and not best_path["names"]:
                 best_path = path
 
@@ -255,6 +275,17 @@ class OrdersController:
     # SERIALIZATION
     # =====================================================
 
+    def _serialize_modifier(self, modifier):
+        return {
+            "id": modifier.id,
+            "modifier_type": modifier.modifier_type,
+            "type": modifier.modifier_type,
+            "name_snapshot": modifier.name_snapshot,
+            "name": modifier.name_snapshot,
+            "price_delta": float(modifier.price_delta or 0),
+            "quantity": modifier.quantity or 1,
+        }
+
     def _serialize_order_item(
         self,
         item,
@@ -271,6 +302,11 @@ class OrdersController:
             stored_status=stored_status,
         )
 
+        modifiers = [
+            self._serialize_modifier(modifier)
+            for modifier in (getattr(item, "modifiers", None) or [])
+        ]
+
         return {
             "id": item.id,
             "order_item_id": item.id,
@@ -280,6 +316,15 @@ class OrdersController:
             "unit_price": float(item.unit_price or 0),
             "quantity": item.quantity,
             "line_total": float(item.line_total or 0),
+            "modifiers": modifiers,
+            "side": next(
+                (
+                    m["name_snapshot"]
+                    for m in modifiers
+                    if str(m.get("modifier_type") or "").lower() == "side"
+                ),
+                None,
+            ),
             "fulfilled_at": item.fulfilled_at.isoformat()
             if getattr(item, "fulfilled_at", None)
             else None,
@@ -293,10 +338,23 @@ class OrdersController:
         *,
         db: Session,
     ):
+        created_by_user_id = getattr(order, "created_by_user_id", None)
+        created_by_name = self._user_display_name(
+            db,
+            tenant_id=order.tenant_id,
+            user_id=created_by_user_id,
+        )
+
         return {
             "id": order.id,
             "tenant_id": order.tenant_id,
             "branch_id": order.branch_id,
+
+            # Commission-safe author/originator fields.
+            "created_by_user_id": created_by_user_id,
+            "created_by_name": created_by_name,
+            "served_by_name": created_by_name,
+
             "status": order.status,
             "subtotal": float(order.subtotal or 0),
             "total": float(order.total or 0),
@@ -326,6 +384,7 @@ class OrdersController:
                 db,
                 tenant_id=ctx["tenant_id"],
                 branch_id=ctx["branch_id"],
+                created_by_user_id=ctx["user_id"],
                 payload=payload,
             )
 
@@ -441,18 +500,12 @@ class OrdersController:
                 user_id=ctx.get("user_id"),
             )
 
-            return {
-                "id": item.id,
-                "order_item_id": item.id,
+            return self._serialize_order_item(
+                item,
+                db=db,
+                tenant_id=ctx["tenant_id"],
+            ) | {
                 "order_id": item.order_id,
-                "atomic_unit_id": item.atomic_unit_id,
-                "name_snapshot": item.name_snapshot,
-                "quantity": item.quantity,
-                "fulfillment_status": item.fulfillment_status,
-                "fulfilled_at": item.fulfilled_at.isoformat()
-                if item.fulfilled_at
-                else None,
-                "fulfilled_by_user_id": item.fulfilled_by_user_id,
                 "message": "Item fulfillment status updated successfully",
             }
 

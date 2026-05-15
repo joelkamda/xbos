@@ -1,15 +1,33 @@
-from fastapi import APIRouter, Request, Depends
+from fastapi import APIRouter, Request, Depends, HTTPException, status
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
+from sqlalchemy import text
 from typing import Optional, Dict, Any, List
-from datetime import datetime
+from datetime import datetime, timezone
+from zoneinfo import ZoneInfo
 
 from database import get_db
 from core.domain.accounting.repository import TreasuryRepository
+from core.domain.accounting.models import TreasuryLog
 from core.domain.accounting.accounting_controller import AccountingController
+from core.domain.accounting.accounts_receivable.service import (
+    AccountsReceivableService,
+)
+from core.domain.accounting.accounts_receivable.repository import (
+    AccountsReceivableRepository,
+)
 from core.rbac.utils.permission_decorator import require_permissions
 
 router = APIRouter(tags=["Accounting"])
+
+
+# ============================================================
+# TIME CONSTANTS
+# ============================================================
+
+BUSINESS_TIMEZONE_NAME = "Africa/Douala"
+BUSINESS_TZ = ZoneInfo(BUSINESS_TIMEZONE_NAME)
+UTC_TZ = timezone.utc
 
 
 # ============================================================
@@ -32,8 +50,32 @@ class ManualIncomePayload(BaseModel):
     reference: Optional[str] = None
     note: Optional[str] = None
     occurred_at: Optional[str] = None
+    event_date: Optional[str] = None
+    business_date: Optional[str] = None
 
     client_reference: str
+
+
+class UpdateManualIncomePayload(BaseModel):
+    amount: Optional[float] = Field(default=None, gt=0)
+    currency: Optional[str] = None
+    channel: Optional[str] = None
+
+    category_taxonomy_id: Optional[int] = None
+    subcategory_taxonomy_id: Optional[int] = None
+
+    item_mode: Optional[str] = None
+    atomic_unit_id: Optional[int] = None
+    item_name: Optional[str] = None
+
+    source_name: Optional[str] = None
+    reference: Optional[str] = None
+    note: Optional[str] = None
+    occurred_at: Optional[str] = None
+    event_date: Optional[str] = None
+    business_date: Optional[str] = None
+
+    client_reference: Optional[str] = None
 
 
 class ExpensePayload(BaseModel):
@@ -53,8 +95,33 @@ class ExpensePayload(BaseModel):
     reference: Optional[str] = None
     note: Optional[str] = None
     occurred_at: Optional[str] = None
+    event_date: Optional[str] = None
+    business_date: Optional[str] = None
 
     client_reference: str
+
+
+class UpdateExpensePayload(BaseModel):
+    amount: Optional[float] = Field(default=None, gt=0)
+    currency: Optional[str] = None
+    channel: Optional[str] = None
+
+    category_taxonomy_id: Optional[int] = None
+    subcategory_taxonomy_id: Optional[int] = None
+
+    item_mode: Optional[str] = None
+    atomic_unit_id: Optional[int] = None
+    item_name: Optional[str] = None
+
+    vendor: Optional[str] = None
+    receipt_ref: Optional[str] = None
+    reference: Optional[str] = None
+    note: Optional[str] = None
+    occurred_at: Optional[str] = None
+    event_date: Optional[str] = None
+    business_date: Optional[str] = None
+
+    client_reference: Optional[str] = None
 
 
 class CashMovementPayload(BaseModel):
@@ -67,18 +134,189 @@ class CashMovementPayload(BaseModel):
     reason: Optional[str] = None
     reference: Optional[str] = None
     occurred_at: Optional[str] = None
+    event_date: Optional[str] = None
+    business_date: Optional[str] = None
 
     client_reference: str
 
 
+class UpdateCashMovementPayload(BaseModel):
+    amount: Optional[float] = Field(default=None, gt=0)
+    currency: Optional[str] = None
+
+    source_channel: Optional[str] = None
+    target_channel: Optional[str] = None
+
+    reason: Optional[str] = None
+    reference: Optional[str] = None
+    occurred_at: Optional[str] = None
+    event_date: Optional[str] = None
+    business_date: Optional[str] = None
+
+    client_reference: Optional[str] = None
+
+
+class ReconCloseRowPayload(BaseModel):
+    channel: str
+
+    opening: float = 0
+    income: float = 0
+    expense: float = 0
+    cashIn: float = 0
+    cashOut: float = 0
+
+    expected: float = 0
+    actual: float = 0
+    variance: float = 0
+
+    note: Optional[str] = None
+
+
+class ReconClosePayload(BaseModel):
+    start: str
+    end: str
+    shift: str = "full24"
+    rows: List[ReconCloseRowPayload]
+
+
+class AccountsReceivableRepayPayload(BaseModel):
+    amount: float = Field(..., gt=0)
+    payment_method: str = "cash"
+    reference: Optional[str] = None
+    note: Optional[str] = None
+
+
 # ============================================================
-# INTERNAL UTIL
+# INTERNAL TIME UTILITIES
 # ============================================================
 
+def _utc_now() -> datetime:
+    return datetime.now(UTC_TZ)
+
+
+def _now_iso() -> str:
+    return _utc_now().isoformat()
+
+
 def _parse_dt(value: Optional[str]) -> Optional[datetime]:
+    """
+    Parse accounting datetime safely.
+
+    XBOS accounting rule:
+    - Business timezone is Africa/Douala / GMT+1.
+    - Frontend should send explicit +01:00 strings.
+    - If a legacy/frontend caller sends a naive datetime, treat it as
+      Africa/Douala wall-clock time, then normalize to UTC for DB filtering.
+    """
+
     if not value:
         return None
-    return datetime.fromisoformat(value)
+
+    safe_value = str(value).strip()
+
+    if not safe_value:
+        return None
+
+    if safe_value.endswith("Z"):
+        safe_value = safe_value.replace("Z", "+00:00")
+
+    try:
+        parsed = datetime.fromisoformat(safe_value)
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Invalid datetime value: {value}",
+        ) from exc
+
+    if parsed.tzinfo is None:
+        parsed = parsed.replace(tzinfo=BUSINESS_TZ)
+
+    return parsed.astimezone(UTC_TZ)
+
+
+def _display_dt(value: Optional[datetime]) -> Optional[datetime]:
+    if not value:
+        return None
+
+    if value.tzinfo is None:
+        value = value.replace(tzinfo=UTC_TZ)
+
+    return value.astimezone(BUSINESS_TZ)
+
+
+def _payload_occurred_at(payload: Dict[str, Any]) -> Optional[datetime]:
+    occurred = payload.get("occurred_at") or payload.get("event_date")
+    if occurred:
+        return _parse_dt(str(occurred))
+
+    business_date = payload.get("business_date")
+    if business_date:
+        return _parse_dt(f"{str(business_date).strip()}T12:00:00+01:00")
+
+    return None
+
+
+def _normalize_payload_dates(payload: Dict[str, Any]) -> Dict[str, Any]:
+    clean = dict(payload or {})
+    occurred = _payload_occurred_at(clean)
+
+    if occurred:
+        clean["occurred_at"] = occurred.isoformat()
+
+    return clean
+
+
+# ============================================================
+# INTERNAL GENERAL UTILITIES
+# ============================================================
+
+def _safe_settlement_channel(value: Optional[str]) -> str:
+    ch = str(value or "").strip().lower()
+
+    if ch not in {"cash", "mtn", "orange", "xafpay", "bank"}:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid settlement channel",
+        )
+
+    return ch
+
+
+def _get_owned_treasury_log(
+    db: Session,
+    *,
+    tenant_id: int,
+    branch_id: int,
+    event_id: int,
+    allowed_event_types: set[str],
+) -> TreasuryLog:
+    log = (
+        db.query(TreasuryLog)
+        .filter(
+            TreasuryLog.id == event_id,
+            TreasuryLog.tenant_id == tenant_id,
+            TreasuryLog.branch_id == branch_id,
+        )
+        .first()
+    )
+
+    if not log:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Accounting event not found",
+        )
+
+    if str(log.event_type or "") not in allowed_event_types:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="This accounting event type cannot be edited from this screen",
+        )
+
+    return log
+
+
+def _changed_payload(payload: BaseModel) -> Dict[str, Any]:
+    return payload.model_dump(exclude_unset=True)
 
 
 def _f(value: Any) -> float:
@@ -91,7 +329,24 @@ def _f(value: Any) -> float:
 def _time_str(value: Optional[datetime]) -> str:
     if not value:
         return ""
-    return value.strftime("%I:%M %p")
+
+    display_value = _display_dt(value)
+    return display_value.strftime("%I:%M %p") if display_value else ""
+
+
+def _iso_utc(value: Optional[datetime]) -> Optional[str]:
+    if not value:
+        return None
+
+    if value.tzinfo is None:
+        value = value.replace(tzinfo=UTC_TZ)
+
+    return value.astimezone(UTC_TZ).isoformat()
+
+
+def _iso_business(value: Optional[datetime]) -> Optional[str]:
+    display_value = _display_dt(value)
+    return display_value.isoformat() if display_value else None
 
 
 def _event_row_type(event_type: str) -> str:
@@ -195,6 +450,12 @@ def _serialize_log(log) -> Dict[str, Any]:
     return {
         "id": log.id,
         "time": _time_str(timestamp),
+        "occurred_at": _iso_utc(log.occurred_at),
+        "created_at": _iso_utc(log.created_at),
+        "date": _iso_utc(timestamp),
+        "occurred_at_business": _iso_business(log.occurred_at),
+        "created_at_business": _iso_business(log.created_at),
+        "business_timezone": BUSINESS_TIMEZONE_NAME,
         "type": _event_row_type(log.event_type),
         "entry": _entry_label(log),
         "event_type": log.event_type,
@@ -206,6 +467,42 @@ def _serialize_log(log) -> Dict[str, Any]:
         "reference_id": log.reference_id,
         "taxonomy_node_id": log.taxonomy_node_id,
         "details": log.meta or {},
+    }
+
+
+def _serialize_repayment(repayment) -> Dict[str, Any]:
+    return {
+        "id": repayment.id,
+        "tenant_id": repayment.tenant_id,
+        "branch_id": repayment.branch_id,
+        "ar_id": repayment.ar_id,
+        "amount": _f(repayment.amount),
+        "payment_method": repayment.payment_method,
+        "reference": repayment.reference,
+        "note": repayment.note,
+        "created_by_user_id": repayment.created_by_user_id,
+        "created_at": _iso_utc(repayment.created_at),
+        "created_at_business": _iso_business(repayment.created_at),
+    }
+
+
+def _serialize_ar_with_repayments(
+    db: Session,
+    *,
+    tenant_id: int,
+    branch_id: int,
+    ar,
+) -> Dict[str, Any]:
+    repayments = AccountsReceivableRepository.list_repayments(
+        db,
+        tenant_id=tenant_id,
+        branch_id=branch_id,
+        ar_id=ar.id,
+    )
+
+    return {
+        **AccountsReceivableService.serialize(ar),
+        "repayments": [_serialize_repayment(r) for r in repayments],
     }
 
 
@@ -221,26 +518,35 @@ def _empty_recon_row(channel: str) -> Dict[str, Any]:
         "actual": 0.0,
         "variance": 0.0,
         "note": "",
+        "status": "draft",
+    }
+
+
+def _recompute_recon_row(row: Dict[str, Any]) -> Dict[str, Any]:
+    opening = _f(row.get("opening"))
+    income = _f(row.get("income"))
+    expense = _f(row.get("expense"))
+    cash_in = _f(row.get("cashIn"))
+    cash_out = _f(row.get("cashOut"))
+
+    expected = opening + income - expense + cash_in - cash_out
+    actual = _f(row.get("actual", expected))
+    variance = actual - expected
+
+    return {
+        **row,
+        "opening": opening,
+        "income": income,
+        "expense": expense,
+        "cashIn": cash_in,
+        "cashOut": cash_out,
+        "expected": expected,
+        "actual": actual,
+        "variance": variance,
     }
 
 
 def _build_reconciliation_rows(logs) -> List[Dict[str, Any]]:
-    """
-    Treasury/channel reconciliation.
-
-    IMPORTANT:
-    - SALE_REVENUE_GROSS is not a channel event. It recognizes revenue only.
-    - PAYMENT_RECEIVED is channel cashflow.
-    - Manual income events OTHER_INCOME / SERVICE_REVENUE are both revenue
-      recognition and real channel inflows because they are created from the
-      manual income modal with a selected settlement channel.
-    - TIP_REVENUE is intentionally NOT counted here unless its emission model
-      is later confirmed to be separate from PAYMENT_RECEIVED, to avoid
-      double-counting tips in channel balances.
-    - CASH_MOVE is not income or expense. It uses source/target metadata.
-    - CHANGE_RETURNED rows from old tests are ignored.
-    """
-
     channels = ["cash", "mtn", "orange", "xafpay", "bank", "ar", "ap"]
     rows: Dict[str, Dict[str, Any]] = {
         channel: _empty_recon_row(channel) for channel in channels
@@ -276,17 +582,8 @@ def _build_reconciliation_rows(logs) -> List[Dict[str, Any]]:
             continue
 
         if event_type == "CASH_MOVE":
-            source = (
-                meta.get("source_channel")
-                or meta.get("from")
-                or meta.get("source")
-            )
-            target = (
-                meta.get("target_channel")
-                or meta.get("to")
-                or meta.get("target")
-                or channel
-            )
+            source = meta.get("source_channel") or meta.get("from") or meta.get("source")
+            target = meta.get("target_channel") or meta.get("to") or meta.get("target") or channel
 
             if source:
                 ensure(source)["cashOut"] += amount
@@ -301,9 +598,9 @@ def _build_reconciliation_rows(logs) -> List[Dict[str, Any]]:
             continue
 
         if event_type == "DEBT_REPAYMENT":
-            rows["ar"]["expense"] += amount
+            rows["ar"]["cashOut"] += amount
             if channel:
-                ensure(channel)["income"] += amount
+                ensure(channel)["cashIn"] += amount
             continue
 
         if event_type == "STORE_CREDIT_CREATED":
@@ -313,57 +610,180 @@ def _build_reconciliation_rows(logs) -> List[Dict[str, Any]]:
     ordered_rows: List[Dict[str, Any]] = []
 
     for channel in channels:
-        row = rows[channel]
-
-        expected = (
-            row["opening"]
-            + row["income"]
-            - row["expense"]
-            + row["cashIn"]
-            - row["cashOut"]
-        )
-
-        row["expected"] = expected
-        row["actual"] = expected
-        row["variance"] = row["actual"] - row["expected"]
-
-        ordered_rows.append(row)
+        ordered_rows.append(_recompute_recon_row(rows[channel]))
 
     for channel, row in rows.items():
         if channel in channels:
             continue
-
-        expected = (
-            row["opening"]
-            + row["income"]
-            - row["expense"]
-            + row["cashIn"]
-            - row["cashOut"]
-        )
-
-        row["expected"] = expected
-        row["actual"] = expected
-        row["variance"] = row["actual"] - row["expected"]
-
-        ordered_rows.append(row)
+        ordered_rows.append(_recompute_recon_row(row))
 
     return ordered_rows
 
 
+def _load_previous_closing_map(
+    db: Session,
+    *,
+    tenant_id: int,
+    branch_id: int,
+    before: Optional[datetime],
+) -> Dict[str, float]:
+    """
+    Returns the latest closed/approved actual closing balance per channel before
+    the selected reconciliation window.
+
+    Carry-forward rule:
+    previous actual close => next opening.
+    """
+
+    if not before:
+        return {}
+
+    result = db.execute(
+        text(
+            """
+            SELECT DISTINCT ON (channel)
+                channel,
+                actual_closing_amount
+            FROM recon_sheets
+            WHERE tenant_id = :tenant_id
+              AND branch_id = :branch_id
+              AND status IN ('closed', 'approved')
+              AND window_end <= :before
+            ORDER BY channel, window_end DESC, id DESC
+            """
+        ),
+        {
+            "tenant_id": tenant_id,
+            "branch_id": branch_id,
+            "before": before,
+        },
+    ).mappings().all()
+
+    return {
+        str(row["channel"]).strip().lower(): _f(row["actual_closing_amount"])
+        for row in result
+    }
+
+
+def _load_existing_recon_map(
+    db: Session,
+    *,
+    tenant_id: int,
+    branch_id: int,
+    shift: str,
+    start: Optional[datetime],
+    end: Optional[datetime],
+) -> Dict[str, Dict[str, Any]]:
+    """
+    Returns persisted reconciliation rows for the selected window,
+    including draft, reopened, closed, and approved rows.
+    """
+
+    if not start or not end:
+        return {}
+
+    result = db.execute(
+        text(
+            """
+            SELECT *
+            FROM recon_sheets
+            WHERE tenant_id = :tenant_id
+              AND branch_id = :branch_id
+              AND shift = :shift
+              AND window_start = :window_start
+              AND window_end = :window_end
+            """
+        ),
+        {
+            "tenant_id": tenant_id,
+            "branch_id": branch_id,
+            "shift": shift,
+            "window_start": start,
+            "window_end": end,
+        },
+    ).mappings().all()
+
+    return {
+        str(row["channel"]).strip().lower(): dict(row)
+        for row in result
+    }
+
+
+def _resolve_reconciliation_window_status(
+    existing_recon: Dict[str, Dict[str, Any]],
+) -> str:
+    """
+    Resolves the top-level reconciliation window status from persisted rows.
+
+    Important:
+    - Existing rows do NOT automatically mean closed.
+    - Save Draft persists rows with status=draft.
+    - Close Recon persists rows with status=closed.
+    """
+
+    statuses = {
+        str(row.get("status") or "").strip().lower()
+        for row in existing_recon.values()
+        if row
+    }
+
+    if "approved" in statuses:
+        return "approved"
+
+    if "closed" in statuses:
+        return "closed"
+
+    if "reopened" in statuses:
+        return "reopened"
+
+    if "draft" in statuses:
+        return "draft"
+
+    return "draft"
+
+
+def _apply_reconciliation_persistence(
+    rows: List[Dict[str, Any]],
+    *,
+    previous_closing: Dict[str, float],
+    existing_recon: Dict[str, Dict[str, Any]],
+) -> List[Dict[str, Any]]:
+    """
+    Applies persisted reconciliation behavior to computed treasury rows.
+
+    - New/draft window: opening comes from previous actual close.
+    - Persisted window: opening/actual/note/status come from recon_sheets.
+    """
+
+    next_rows: List[Dict[str, Any]] = []
+
+    for row in rows:
+        channel = str(row.get("channel") or "").strip().lower()
+        persisted = existing_recon.get(channel)
+
+        if persisted:
+            row["opening"] = _f(persisted.get("opening_amount"))
+            row["actual"] = _f(persisted.get("actual_closing_amount"))
+            row["note"] = persisted.get("note") or ""
+            row["status"] = persisted.get("status") or "draft"
+        else:
+            row["opening"] = _f(previous_closing.get(channel, 0))
+            row["actual"] = row.get("expected", 0)
+            row["note"] = row.get("note") or ""
+            row["status"] = "draft"
+
+        row = _recompute_recon_row(row)
+
+        if persisted:
+            row["actual"] = _f(persisted.get("actual_closing_amount"))
+            row["variance"] = row["actual"] - row["expected"]
+
+        next_rows.append(row)
+
+    return next_rows
+
+
 def _build_commercial_summary(logs) -> Dict[str, Any]:
-    """
-    Commercial settlement summary.
-
-    Notes:
-    - This summary is sale-settlement oriented and historically compared
-      SALE_REVENUE_GROSS against PAYMENT_RECEIVED.
-    - Manual income is now included separately as manual_income / service_income
-      / other_income, but is NOT folded into gross_sales. This avoids making
-      sale settlement math appear cleaner or dirtier because of unrelated
-      non-sale income.
-    - Old CHANGE_RETURNED rows from testing are ignored.
-    """
-
     gross_sales = 0.0
     collections = 0.0
     discounts = 0.0
@@ -402,47 +822,26 @@ def _build_commercial_summary(logs) -> Dict[str, Any]:
         if event_type == "OTHER_INCOME":
             manual_income += amount
             other_income += amount
-            label = (
-                meta.get("category_name")
-                or meta.get("subcategory_name")
-                or "Other Income"
-            )
-            manual_income_by_category[label] = (
-                manual_income_by_category.get(label, 0.0) + amount
-            )
+            label = meta.get("category_name") or meta.get("subcategory_name") or "Other Income"
+            manual_income_by_category[label] = manual_income_by_category.get(label, 0.0) + amount
             continue
 
         if event_type == "SERVICE_REVENUE":
             manual_income += amount
             service_income += amount
-            label = (
-                meta.get("category_name")
-                or meta.get("subcategory_name")
-                or "Service Revenue"
-            )
-            manual_income_by_category[label] = (
-                manual_income_by_category.get(label, 0.0) + amount
-            )
+            label = meta.get("category_name") or meta.get("subcategory_name") or "Service Revenue"
+            manual_income_by_category[label] = manual_income_by_category.get(label, 0.0) + amount
             continue
 
         if event_type == "DISCOUNT_APPLIED":
             discounts += amount
-            label = (
-                meta.get("display_label")
-                or meta.get("discount_reason")
-                or meta.get("discount_type")
-                or "Discount"
-            )
+            label = meta.get("display_label") or meta.get("discount_reason") or meta.get("discount_type") or "Discount"
             discount_by_type[label] = discount_by_type.get(label, 0.0) + amount
             continue
 
         if event_type == "COMPLIMENTARY_APPLIED":
             complimentary += amount
-            label = (
-                meta.get("display_label")
-                or meta.get("complimentary_reason")
-                or "Complimentary"
-            )
+            label = meta.get("display_label") or meta.get("complimentary_reason") or "Complimentary"
             complimentary_by_type[label] = complimentary_by_type.get(label, 0.0) + amount
             continue
 
@@ -478,13 +877,7 @@ def _build_commercial_summary(logs) -> Dict[str, Any]:
     if applied_to_sales < 0:
         applied_to_sales = 0.0
 
-    settled_value = (
-        applied_to_sales
-        + allowances
-        + ar_created
-        - refunds
-    )
-
+    settled_value = applied_to_sales + allowances + ar_created - refunds
     unallocated = gross_sales - settled_value
 
     return {
@@ -511,6 +904,137 @@ def _build_commercial_summary(logs) -> Dict[str, Any]:
         "complimentary_by_type": complimentary_by_type,
         "manual_income_by_category": manual_income_by_category,
     }
+
+
+# ============================================================
+# ACCOUNTS / A-R ENDPOINTS
+# ============================================================
+
+@router.get("/accounts/ar")
+@require_permissions("accounting.view")
+def list_accounts_receivable(
+    request: Request,
+    db: Session = Depends(get_db),
+    limit: int = 200,
+    offset: int = 0,
+):
+    ctx = request.state.user
+
+    rows = AccountsReceivableService.list_open(
+        db,
+        tenant_id=ctx["tenant_id"],
+        branch_id=ctx["branch_id"],
+        limit=limit,
+        offset=offset,
+    )
+
+    items = [
+        _serialize_ar_with_repayments(
+            db,
+            tenant_id=ctx["tenant_id"],
+            branch_id=ctx["branch_id"],
+            ar=row,
+        )
+        for row in rows
+    ]
+
+    summary = {
+        "open_count": len([r for r in items if r.get("status") == "open"]),
+        "partial_count": len([r for r in items if r.get("status") == "partial"]),
+        "total_original": sum(_f(r.get("original_amount")) for r in items),
+        "total_paid": sum(_f(r.get("paid_amount")) for r in items),
+        "total_balance_due": sum(_f(r.get("balance_due")) for r in items),
+    }
+
+    return {
+        "limit": limit,
+        "offset": offset,
+        "count": len(items),
+        "summary": summary,
+        "items": items,
+    }
+
+
+@router.get("/accounts/ar/{ar_id}")
+@require_permissions("accounting.view")
+def get_accounts_receivable(
+    ar_id: int,
+    request: Request,
+    db: Session = Depends(get_db),
+):
+    ctx = request.state.user
+
+    ar = AccountsReceivableRepository.get_by_id(
+        db,
+        tenant_id=ctx["tenant_id"],
+        branch_id=ctx["branch_id"],
+        ar_id=ar_id,
+    )
+
+    if not ar:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="A/R account not found",
+        )
+
+    return _serialize_ar_with_repayments(
+        db,
+        tenant_id=ctx["tenant_id"],
+        branch_id=ctx["branch_id"],
+        ar=ar,
+    )
+
+
+@router.post("/accounts/ar/{ar_id}/repay")
+@require_permissions("accounting.post", "payments.receive")
+def repay_accounts_receivable(
+    ar_id: int,
+    payload: AccountsReceivableRepayPayload,
+    request: Request,
+    db: Session = Depends(get_db),
+):
+    ctx = request.state.user
+    user_id = ctx.get("id") or ctx.get("user_id")
+
+    try:
+        ar = AccountsReceivableService.record_repayment(
+            db,
+            tenant_id=ctx["tenant_id"],
+            branch_id=ctx["branch_id"],
+            ar_id=ar_id,
+            amount=payload.amount,
+            payment_method=payload.payment_method,
+            reference=payload.reference,
+            note=payload.note,
+            created_by_user_id=user_id,
+        )
+
+        db.commit()
+        db.refresh(ar)
+
+        return {
+            "ok": True,
+            "account": _serialize_ar_with_repayments(
+                db,
+                tenant_id=ctx["tenant_id"],
+                branch_id=ctx["branch_id"],
+                ar=ar,
+            ),
+        }
+
+    except ValueError as exc:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(exc),
+        )
+
+    except Exception as exc:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to record A/R repayment: {exc}",
+        )
 
 
 # ============================================================
@@ -577,7 +1101,7 @@ def create_manual_income(
     return AccountingController.create_manual_income(
         request=request,
         db=db,
-        payload=payload.model_dump(),
+        payload=_normalize_payload_dates(payload.model_dump()),
     )
 
 
@@ -591,7 +1115,7 @@ def create_expense(
     return AccountingController.create_expense(
         request=request,
         db=db,
-        payload=payload.model_dump(),
+        payload=_normalize_payload_dates(payload.model_dump()),
     )
 
 
@@ -605,8 +1129,344 @@ def create_cash_movement(
     return AccountingController.create_cash_movement(
         request=request,
         db=db,
-        payload=payload.model_dump(),
+        payload=_normalize_payload_dates(payload.model_dump()),
     )
+
+
+# ============================================================
+# ACCOUNTING MODAL UPDATE ENDPOINTS
+# ============================================================
+
+@router.patch("/income/manual/{event_id}")
+@require_permissions("accounting.edit")
+def update_manual_income(
+    event_id: int,
+    payload: UpdateManualIncomePayload,
+    request: Request,
+    db: Session = Depends(get_db),
+):
+    ctx = request.state.user
+    user_id = ctx.get("id") or ctx.get("user_id")
+
+    patch = _changed_payload(payload)
+
+    log = _get_owned_treasury_log(
+        db,
+        tenant_id=ctx["tenant_id"],
+        branch_id=ctx["branch_id"],
+        event_id=event_id,
+        allowed_event_types={"OTHER_INCOME", "SERVICE_REVENUE"},
+    )
+
+    meta = dict(log.meta or {})
+
+    if "amount" in patch:
+        log.amount = patch["amount"]
+
+    if "currency" in patch and patch.get("currency"):
+        log.currency = str(patch["currency"]).upper()
+
+    if "channel" in patch and patch.get("channel"):
+        log.channel = _safe_settlement_channel(patch.get("channel"))
+
+    occurred_at = _payload_occurred_at(patch)
+    if occurred_at:
+        log.occurred_at = occurred_at
+        meta["business_date"] = patch.get("business_date")
+        meta["business_timezone"] = BUSINESS_TIMEZONE_NAME
+
+    needs_taxonomy = (
+        "category_taxonomy_id" in patch
+        or "subcategory_taxonomy_id" in patch
+        or "atomic_unit_id" in patch
+        or "item_name" in patch
+        or "item_mode" in patch
+    )
+
+    if needs_taxonomy:
+        category_id = int(
+            patch.get("category_taxonomy_id")
+            or meta.get("category_taxonomy_id")
+            or 0
+        )
+        subcategory_id = int(
+            patch.get("subcategory_taxonomy_id")
+            or meta.get("subcategory_taxonomy_id")
+            or 0
+        )
+
+        path = AccountingController._validate_finance_path(
+            db,
+            tenant_id=ctx["tenant_id"],
+            domain_name="Revenue",
+            category_taxonomy_id=category_id,
+            subcategory_taxonomy_id=subcategory_id,
+        )
+
+        atomic_unit = AccountingController._validate_atomic_unit(
+            db,
+            tenant_id=ctx["tenant_id"],
+            atomic_unit_id=patch.get("atomic_unit_id"),
+        )
+
+        item_name = (
+            atomic_unit.name
+            if atomic_unit
+            else str(patch.get("item_name") or meta.get("item_name") or "").strip()
+        )
+
+        if not item_name:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Specific item is required",
+            )
+
+        category = path["category"]
+        subcategory = path["subcategory"]
+
+        log.event_type = (
+            "SERVICE_REVENUE"
+            if category.name == "Service Revenue"
+            else "OTHER_INCOME"
+        )
+        log.taxonomy_node_id = subcategory.id
+
+        meta.update(
+            {
+                "domain_taxonomy_id": path["domain"].id,
+                "domain_name": path["domain"].name,
+                "category_taxonomy_id": category.id,
+                "category_name": category.name,
+                "subcategory_taxonomy_id": subcategory.id,
+                "subcategory_name": subcategory.name,
+                "item_mode": patch.get("item_mode") or meta.get("item_mode") or "free_text",
+                "atomic_unit_id": atomic_unit.id if atomic_unit else patch.get("atomic_unit_id") or meta.get("atomic_unit_id"),
+                "item_name": item_name,
+            }
+        )
+
+    for key in ["source_name", "reference", "note", "client_reference"]:
+        if key in patch:
+            meta[key] = patch.get(key)
+
+    meta["edited_by_user_id"] = user_id
+    meta["edited_at"] = _now_iso()
+    log.meta = meta
+
+    try:
+        db.commit()
+        db.refresh(log)
+        return {"ok": True, "event": _serialize_log(log)}
+    except Exception as exc:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to update income event: {exc}",
+        )
+
+
+@router.patch("/expenses/{event_id}")
+@require_permissions("accounting.edit")
+def update_expense(
+    event_id: int,
+    payload: UpdateExpensePayload,
+    request: Request,
+    db: Session = Depends(get_db),
+):
+    ctx = request.state.user
+    user_id = ctx.get("id") or ctx.get("user_id")
+
+    patch = _changed_payload(payload)
+
+    log = _get_owned_treasury_log(
+        db,
+        tenant_id=ctx["tenant_id"],
+        branch_id=ctx["branch_id"],
+        event_id=event_id,
+        allowed_event_types={"EXPENSE_POSTED"},
+    )
+
+    meta = dict(log.meta or {})
+
+    if "amount" in patch:
+        log.amount = patch["amount"]
+
+    if "currency" in patch and patch.get("currency"):
+        log.currency = str(patch["currency"]).upper()
+
+    if "channel" in patch and patch.get("channel"):
+        log.channel = _safe_settlement_channel(patch.get("channel"))
+
+    occurred_at = _payload_occurred_at(patch)
+    if occurred_at:
+        log.occurred_at = occurred_at
+        meta["business_date"] = patch.get("business_date")
+        meta["business_timezone"] = BUSINESS_TIMEZONE_NAME
+
+    needs_taxonomy = (
+        "category_taxonomy_id" in patch
+        or "subcategory_taxonomy_id" in patch
+        or "atomic_unit_id" in patch
+        or "item_name" in patch
+        or "item_mode" in patch
+    )
+
+    if needs_taxonomy:
+        category_id = int(
+            patch.get("category_taxonomy_id")
+            or meta.get("category_taxonomy_id")
+            or 0
+        )
+        subcategory_id = int(
+            patch.get("subcategory_taxonomy_id")
+            or meta.get("subcategory_taxonomy_id")
+            or 0
+        )
+
+        path = AccountingController._validate_finance_path(
+            db,
+            tenant_id=ctx["tenant_id"],
+            domain_name="Expenses",
+            category_taxonomy_id=category_id,
+            subcategory_taxonomy_id=subcategory_id,
+        )
+
+        atomic_unit = AccountingController._validate_atomic_unit(
+            db,
+            tenant_id=ctx["tenant_id"],
+            atomic_unit_id=patch.get("atomic_unit_id"),
+        )
+
+        item_name = (
+            atomic_unit.name
+            if atomic_unit
+            else str(patch.get("item_name") or meta.get("item_name") or "").strip()
+        )
+
+        if not item_name:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Specific item is required",
+            )
+
+        category = path["category"]
+        subcategory = path["subcategory"]
+
+        log.taxonomy_node_id = subcategory.id
+
+        meta.update(
+            {
+                "domain_taxonomy_id": path["domain"].id,
+                "domain_name": path["domain"].name,
+                "category_taxonomy_id": category.id,
+                "category_name": category.name,
+                "subcategory_taxonomy_id": subcategory.id,
+                "subcategory_name": subcategory.name,
+                "item_mode": patch.get("item_mode") or meta.get("item_mode") or "free_text",
+                "atomic_unit_id": atomic_unit.id if atomic_unit else patch.get("atomic_unit_id") or meta.get("atomic_unit_id"),
+                "item_name": item_name,
+            }
+        )
+
+    for key in [
+        "vendor",
+        "receipt_ref",
+        "reference",
+        "note",
+        "client_reference",
+    ]:
+        if key in patch:
+            meta[key] = patch.get(key)
+
+    meta["edited_by_user_id"] = user_id
+    meta["edited_at"] = _now_iso()
+    log.meta = meta
+
+    try:
+        db.commit()
+        db.refresh(log)
+        return {"ok": True, "event": _serialize_log(log)}
+    except Exception as exc:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to update expense event: {exc}",
+        )
+
+
+@router.patch("/cash-movements/{event_id}")
+@require_permissions("accounting.edit")
+def update_cash_movement(
+    event_id: int,
+    payload: UpdateCashMovementPayload,
+    request: Request,
+    db: Session = Depends(get_db),
+):
+    ctx = request.state.user
+    user_id = ctx.get("id") or ctx.get("user_id")
+
+    patch = _changed_payload(payload)
+
+    log = _get_owned_treasury_log(
+        db,
+        tenant_id=ctx["tenant_id"],
+        branch_id=ctx["branch_id"],
+        event_id=event_id,
+        allowed_event_types={"CASH_MOVE"},
+    )
+
+    meta = dict(log.meta or {})
+
+    if "amount" in patch:
+        log.amount = patch["amount"]
+
+    if "currency" in patch and patch.get("currency"):
+        log.currency = str(patch["currency"]).upper()
+
+    source_channel = patch.get("source_channel") or meta.get("source_channel")
+    target_channel = patch.get("target_channel") or meta.get("target_channel")
+
+    if "source_channel" in patch:
+        source_channel = _safe_settlement_channel(patch.get("source_channel"))
+        meta["source_channel"] = source_channel
+        meta["from"] = source_channel
+
+    if "target_channel" in patch:
+        target_channel = _safe_settlement_channel(patch.get("target_channel"))
+        meta["target_channel"] = target_channel
+        meta["to"] = target_channel
+        log.channel = target_channel
+
+    if source_channel and target_channel and source_channel == target_channel:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="source_channel and target_channel must be different",
+        )
+
+    occurred_at = _payload_occurred_at(patch)
+    if occurred_at:
+        log.occurred_at = occurred_at
+        meta["business_date"] = patch.get("business_date")
+        meta["business_timezone"] = BUSINESS_TIMEZONE_NAME
+
+    for key in ["reason", "reference", "client_reference"]:
+        if key in patch:
+            meta[key] = patch.get(key)
+
+    meta["edited_by_user_id"] = user_id
+    meta["edited_at"] = _now_iso()
+    log.meta = meta
+
+    try:
+        db.commit()
+        db.refresh(log)
+        return {"ok": True, "event": _serialize_log(log)}
+    except Exception as exc:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to update cash movement: {exc}",
+        )
 
 
 # ============================================================
@@ -624,13 +1484,15 @@ def get_treasury_feed(
     end: Optional[str] = None,
 ):
     ctx = request.state.user
+    start_dt = _parse_dt(start)
+    end_dt = _parse_dt(end)
 
     logs = TreasuryRepository.list_logs(
         db,
         tenant_id=ctx["tenant_id"],
         branch_id=ctx["branch_id"],
-        start=_parse_dt(start),
-        end=_parse_dt(end),
+        start=start_dt,
+        end=end_dt,
         limit=limit,
         offset=offset,
     )
@@ -642,6 +1504,11 @@ def get_treasury_feed(
         "offset": offset,
         "count": len(items),
         "items": items,
+        "window_start": _iso_utc(start_dt),
+        "window_end": _iso_utc(end_dt),
+        "window_start_business": _iso_business(start_dt),
+        "window_end_business": _iso_business(end_dt),
+        "business_timezone": BUSINESS_TIMEZONE_NAME,
     }
 
 
@@ -706,19 +1573,56 @@ def get_attempt_financials(
 def accounting_daily(
     request: Request,
     db: Session = Depends(get_db),
-    limit: int = 200,
+    limit: int = 1000,
     offset: int = 0,
     start: Optional[str] = None,
     end: Optional[str] = None,
 ):
-    return AccountingController.daily(
-        request=request,
-        db=db,
-        start=start,
-        end=end,
+    ctx = request.state.user
+    start_dt = _parse_dt(start)
+    end_dt = _parse_dt(end)
+
+    logs = TreasuryRepository.list_logs(
+        db,
+        tenant_id=ctx["tenant_id"],
+        branch_id=ctx["branch_id"],
+        start=start_dt,
+        end=end_dt,
         limit=limit,
         offset=offset,
     )
+
+    rows = [_serialize_log(log) for log in logs]
+
+    income = sum(
+        abs(_f(row.get("amount")))
+        for row in rows
+        if row.get("type") == "income"
+    )
+
+    expense = sum(
+        abs(_f(row.get("amount")))
+        for row in rows
+        if row.get("type") == "expense"
+    )
+
+    return {
+        "summary": {
+            "income": income,
+            "expense": expense,
+            "net": income - expense,
+            "rows": len(rows),
+            "events": len(rows),
+        },
+        "rows": rows,
+        "window_start": _iso_utc(start_dt),
+        "window_end": _iso_utc(end_dt),
+        "window_start_business": _iso_business(start_dt),
+        "window_end_business": _iso_business(end_dt),
+        "business_timezone": BUSINESS_TIMEZONE_NAME,
+        "limit": limit,
+        "offset": offset,
+    }
 
 
 # ============================================================
@@ -829,7 +1733,7 @@ def financial_summary(
     start: Optional[str] = None,
     end: Optional[str] = None,
 ):
-    daily = AccountingController.daily(
+    daily = accounting_daily(
         request=request,
         db=db,
         start=start,
@@ -854,25 +1758,32 @@ def get_reconciliation(
     offset: int = 0,
     start: Optional[str] = None,
     end: Optional[str] = None,
+    shift: str = "full24",
 ):
     """
     Returns channel reconciliation plus commercial settlement summary.
 
-    Shape:
-    {
-      "rows": [...],
-      "commercial_summary": {...}
-    }
+    Persistence behavior:
+    - New/draft window:
+        opening = previous closed actual close per channel.
+    - Persisted draft window:
+        opening, actual, note, status come from recon_sheets,
+        but top-level status remains draft.
+    - Closed/approved window:
+        opening, actual, note, status come from recon_sheets,
+        and top-level status becomes closed/approved.
     """
 
     ctx = request.state.user
+    start_dt = _parse_dt(start)
+    end_dt = _parse_dt(end)
 
     logs = TreasuryRepository.list_logs(
         db,
         tenant_id=ctx["tenant_id"],
         branch_id=ctx["branch_id"],
-        start=_parse_dt(start),
-        end=_parse_dt(end),
+        start=start_dt,
+        end=end_dt,
         limit=limit,
         offset=offset,
     )
@@ -880,7 +1791,220 @@ def get_reconciliation(
     rows = _build_reconciliation_rows(logs)
     commercial_summary = _build_commercial_summary(logs)
 
+    previous_closing = _load_previous_closing_map(
+        db,
+        tenant_id=ctx["tenant_id"],
+        branch_id=ctx["branch_id"],
+        before=start_dt,
+    )
+
+    existing_recon = _load_existing_recon_map(
+        db,
+        tenant_id=ctx["tenant_id"],
+        branch_id=ctx["branch_id"],
+        shift=shift,
+        start=start_dt,
+        end=end_dt,
+    )
+
+    rows = _apply_reconciliation_persistence(
+        rows,
+        previous_closing=previous_closing,
+        existing_recon=existing_recon,
+    )
+
+    window_status = _resolve_reconciliation_window_status(existing_recon)
+
     return {
         "rows": rows,
         "commercial_summary": commercial_summary,
+        "status": window_status,
+        "shift": shift,
+        "window_start": _iso_utc(start_dt),
+        "window_end": _iso_utc(end_dt),
+        "window_start_business": _iso_business(start_dt),
+        "window_end_business": _iso_business(end_dt),
+        "business_timezone": BUSINESS_TIMEZONE_NAME,
+        "limit": limit,
+        "offset": offset,
+    }
+
+
+@router.post("/reconciliation/save-draft")
+@require_permissions("accounting.reconcile")
+def save_reconciliation_draft(
+    payload: ReconClosePayload,
+    request: Request,
+    db: Session = Depends(get_db),
+):
+    """
+    Persists a draft reconciliation window.
+
+    This saves actual counted values and notes without closing the accounting cycle.
+    """
+
+    return AccountingController.save_reconciliation_draft(
+        request=request,
+        db=db,
+        payload=payload.model_dump(),
+    )
+
+
+@router.post("/reconciliation/close")
+@require_permissions("accounting.reconcile")
+def close_reconciliation(
+    payload: ReconClosePayload,
+    request: Request,
+    db: Session = Depends(get_db),
+):
+    """
+    Persists a closed reconciliation window.
+
+    Rule:
+    - actual_closing_amount becomes the opening amount for the next cycle.
+    - Existing same-window/channel rows are updated, not duplicated.
+    """
+
+    ctx = request.state.user
+    start_dt = _parse_dt(payload.start)
+    end_dt = _parse_dt(payload.end)
+
+    if not start_dt or not end_dt:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="start and end are required",
+        )
+
+    if end_dt <= start_dt:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="end must be after start",
+        )
+
+    user_id = ctx.get("id") or ctx.get("user_id")
+    saved_rows: List[Dict[str, Any]] = []
+
+    try:
+        for incoming in payload.rows:
+            row = incoming.model_dump()
+            channel = str(row.get("channel") or "").strip().lower()
+
+            if not channel:
+                continue
+
+            clean = _recompute_recon_row(row)
+            clean["channel"] = channel
+            clean["note"] = clean.get("note") or ""
+            clean["status"] = "closed"
+
+            db.execute(
+                text(
+                    """
+                    INSERT INTO recon_sheets (
+                        tenant_id,
+                        branch_id,
+                        shift,
+                        window_start,
+                        window_end,
+                        channel,
+                        opening_amount,
+                        income_amount,
+                        expense_amount,
+                        cash_in_amount,
+                        cash_out_amount,
+                        expected_closing_amount,
+                        actual_closing_amount,
+                        variance_amount,
+                        note,
+                        status,
+                        closed_by_user_id,
+                        closed_at,
+                        updated_at
+                    )
+                    VALUES (
+                        :tenant_id,
+                        :branch_id,
+                        :shift,
+                        :window_start,
+                        :window_end,
+                        :channel,
+                        :opening_amount,
+                        :income_amount,
+                        :expense_amount,
+                        :cash_in_amount,
+                        :cash_out_amount,
+                        :expected_closing_amount,
+                        :actual_closing_amount,
+                        :variance_amount,
+                        :note,
+                        'closed',
+                        :closed_by_user_id,
+                        NOW(),
+                        NOW()
+                    )
+                    ON CONFLICT (
+                        tenant_id,
+                        branch_id,
+                        shift,
+                        window_start,
+                        window_end,
+                        channel
+                    )
+                    DO UPDATE SET
+                        opening_amount = EXCLUDED.opening_amount,
+                        income_amount = EXCLUDED.income_amount,
+                        expense_amount = EXCLUDED.expense_amount,
+                        cash_in_amount = EXCLUDED.cash_in_amount,
+                        cash_out_amount = EXCLUDED.cash_out_amount,
+                        expected_closing_amount = EXCLUDED.expected_closing_amount,
+                        actual_closing_amount = EXCLUDED.actual_closing_amount,
+                        variance_amount = EXCLUDED.variance_amount,
+                        note = EXCLUDED.note,
+                        status = 'closed',
+                        closed_by_user_id = EXCLUDED.closed_by_user_id,
+                        closed_at = NOW(),
+                        updated_at = NOW()
+                    """
+                ),
+                {
+                    "tenant_id": ctx["tenant_id"],
+                    "branch_id": ctx["branch_id"],
+                    "shift": payload.shift,
+                    "window_start": start_dt,
+                    "window_end": end_dt,
+                    "channel": channel,
+                    "opening_amount": clean["opening"],
+                    "income_amount": clean["income"],
+                    "expense_amount": clean["expense"],
+                    "cash_in_amount": clean["cashIn"],
+                    "cash_out_amount": clean["cashOut"],
+                    "expected_closing_amount": clean["expected"],
+                    "actual_closing_amount": clean["actual"],
+                    "variance_amount": clean["variance"],
+                    "note": clean["note"],
+                    "closed_by_user_id": user_id,
+                },
+            )
+
+            saved_rows.append(clean)
+
+        db.commit()
+
+    except Exception as exc:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to close reconciliation: {exc}",
+        )
+
+    return {
+        "ok": True,
+        "status": "closed",
+        "shift": payload.shift,
+        "window_start": _iso_utc(start_dt),
+        "window_end": _iso_utc(end_dt),
+        "window_start_business": _iso_business(start_dt),
+        "window_end_business": _iso_business(end_dt),
+        "business_timezone": BUSINESS_TIMEZONE_NAME,
+        "rows": saved_rows,
     }

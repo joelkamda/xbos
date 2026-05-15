@@ -66,6 +66,10 @@ desktop.ini
 dist/
 build/
 
+
+debug_login.py
+*.backup
+
 # ==============================
 # Migrations temp
 # ==============================

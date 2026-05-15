@@ -9,6 +9,8 @@ from core.domain.payments.repository import (
     PaymentIntentRepository,
     PaymentAttemptRepository,
 )
+from core.domain.orders.repository import OrderRepository
+from core.users.user_model import User
 
 
 def _d(v: Any) -> Decimal:
@@ -60,6 +62,33 @@ def _customer_payload(customer: Any):
         return {"name": customer.strip()}
 
     return None
+
+
+def _first_name(value: Any) -> str | None:
+    """
+    Receipt-friendly short name.
+
+    Examples:
+    - "Mbog Florence" -> "Mbog"
+    - "Florence" -> "Florence"
+    - "" -> None
+    """
+    text = str(value or "").strip()
+
+    if not text:
+        return None
+
+    return text.split()[0]
+
+
+def _display_user_name(user: Any) -> str | None:
+    if not user:
+        return None
+
+    full_name = str(getattr(user, "full_name", "") or "").strip()
+    username = str(getattr(user, "username", "") or "").strip()
+
+    return _first_name(full_name) or _first_name(username)
 
 
 class ReceiptsController:
@@ -141,6 +170,78 @@ class ReceiptsController:
             db=db,
         )
 
+    def _resolve_order_author(
+        self,
+        *,
+        db: Session,
+        sale,
+        meta: Dict[str, Any],
+    ) -> Dict[str, Any]:
+        """
+        Resolve the original order creator for commission-safe receipts.
+
+        Priority:
+        1. sale.order_id -> orders.created_by_user_id -> users.full_name/username
+        2. existing intent/meta author fields, for older/manual/fallback flows
+
+        This intentionally does NOT use the payment cashier as first choice.
+        Commission belongs to the person who created the original order.
+        """
+
+        order_id = getattr(sale, "order_id", None) if sale else None
+
+        order_created_by_user_id = None
+        served_by_name = None
+
+        if order_id:
+            order = OrderRepository.get_by_id(db, int(order_id))
+
+            if order:
+                order_created_by_user_id = getattr(
+                    order,
+                    "created_by_user_id",
+                    None,
+                )
+
+                if order_created_by_user_id:
+                    user = (
+                        db.query(User)
+                        .filter(
+                            User.id == int(order_created_by_user_id),
+                            User.tenant_id == int(getattr(order, "tenant_id")),
+                        )
+                        .first()
+                    )
+
+                    served_by_name = _display_user_name(user)
+
+        # Fallbacks for receipt_meta from frontend or legacy records.
+        if not served_by_name:
+            served_by_name = (
+                _first_name(meta.get("served_by_name"))
+                or _first_name(meta.get("order_created_by_name"))
+                or _first_name(meta.get("created_by_name"))
+                or _first_name(meta.get("waiter_name"))
+                or _first_name(meta.get("staff_name"))
+                or None
+            )
+
+        if not order_created_by_user_id:
+            order_created_by_user_id = (
+                meta.get("order_created_by_user_id")
+                or meta.get("created_by_user_id")
+                or None
+            )
+
+        return {
+            "order_id": order_id,
+            "served_by_name": served_by_name,
+            "order_created_by_name": served_by_name,
+            "created_by_name": served_by_name,
+            "order_created_by_user_id": order_created_by_user_id,
+            "created_by_user_id": order_created_by_user_id,
+        }
+
     async def _build_receipt_from_intent(
         self,
         *,
@@ -161,6 +262,16 @@ class ReceiptsController:
         ]
 
         meta = dict(intent.meta or {})
+
+        # =====================================================
+        # STAFF / ORDER AUTHOR
+        # =====================================================
+
+        author_payload = self._resolve_order_author(
+            db=db,
+            sale=sale,
+            meta=meta,
+        )
 
         # =====================================================
         # CORE TOTALS
@@ -211,9 +322,6 @@ class ReceiptsController:
             change_amount - (safe_given + safe_tip),
         )
 
-        # Keep returned meta consistent. We do not commit here; this endpoint
-        # returns canonical receipt values without turning the receipt read path
-        # into a write-heavy operation.
         meta["change_given_now"] = float(safe_given)
         meta["tip_amount"] = float(safe_tip)
         meta["change_remaining"] = float(change_remaining)
@@ -230,8 +338,6 @@ class ReceiptsController:
         discount_total = _d(meta.get("discount_total", 0))
         complimentary_total = _d(meta.get("complimentary_total", 0))
 
-        # Tendered total is customer-facing tender, not applied amount.
-        # If absent/stale, recover from attempts.
         tendered_total = _d(meta.get("tendered_total", 0))
         if tendered_total <= 0:
             tendered_total = attempts_paid if attempts_paid > 0 else total_paid
@@ -301,8 +407,6 @@ class ReceiptsController:
             for a in successful_attempts
         ]
 
-        # If an old/manual payment somehow has no attempts but persisted
-        # total_paid is correct, still return a displayable payment line.
         if not payments_payload and total_paid > 0:
             payments_payload = [
                 {
@@ -323,6 +427,9 @@ class ReceiptsController:
             "receipt_no": receipt_no,
             "tenant_name": ctx.get("tenant_name", "Company"),
             "branch_name": ctx.get("branch_name", ""),
+
+            # Commission-safe order author / staff attribution.
+            **author_payload,
 
             "customer": customer_payload,
             "description": description,

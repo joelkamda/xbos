@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import hashlib
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timezone
 from decimal import Decimal
 from typing import Optional, Dict, Any, List
 
@@ -37,6 +37,20 @@ from core.domain.accounting.emitter import FinancialEventEmitter
 # HELPERS
 # =====================================================
 
+def _utc_now() -> datetime:
+    """
+    Canonical payment timestamp.
+
+    payment_intents.created_at, payment_attempts.created_at, and sales.paid_at
+    are timestamptz columns, so payment-service timestamps must be
+    timezone-aware UTC instants.
+
+    Display conversion to Africa/Douala belongs in API/UI serializers.
+    """
+
+    return datetime.now(timezone.utc)
+
+
 def _d(v: Any) -> Decimal:
     try:
         if v is None:
@@ -59,7 +73,9 @@ def _json_safe(value: Any) -> Any:
         return float(value)
 
     if isinstance(value, datetime):
-        return value.isoformat()
+        if value.tzinfo is None:
+            return value.replace(tzinfo=timezone.utc).isoformat()
+        return value.astimezone(timezone.utc).isoformat()
 
     if isinstance(value, dict):
         return {str(k): _json_safe(v) for k, v in value.items()}
@@ -229,6 +245,7 @@ class PaymentService:
                 return intent
 
         amt = _d(amount)
+        now = _utc_now()
 
         intent = PaymentIntent(
             tenant_id=tenant_id,
@@ -244,7 +261,7 @@ class PaymentService:
             total_paid=Decimal("0"),
             balance_due=amt,
             meta=_json_safe(meta or {}),
-            created_at=datetime.utcnow(),
+            created_at=now,
         )
 
         PaymentIntentRepository.create(db, intent=intent)
@@ -285,6 +302,8 @@ class PaymentService:
         if existing:
             return existing
 
+        now = _utc_now()
+
         attempt = PaymentAttempt(
             payment_intent_id=intent.id,
             sale_id=intent.payable_id if intent.payable_type == "sale" else None,
@@ -296,7 +315,7 @@ class PaymentService:
             client_reference=str(client_reference),
             provider_reference=provider_reference,
             meta=_json_safe(meta or {}),
-            created_at=datetime.utcnow(),
+            created_at=now,
         )
 
         PaymentAttemptRepository.create(db, attempt=attempt)
@@ -333,6 +352,7 @@ class PaymentService:
         current_tendered_total: Decimal,
         complete_balance: bool,
         settle_failed_intent: bool,
+        occurred_at: datetime,
         meta: Optional[Dict[str, Any]] = None,
     ) -> None:
         """
@@ -342,6 +362,8 @@ class PaymentService:
         - change_given_now is NOT emitted as expense or separate ledger cash-out.
         - same-moment change is local cashier settlement.
         - payment_received is already reduced to the retained cash amount.
+        - occurred_at is a UTC-aware settlement instant shared by related
+          settlement accounting events.
         """
 
         base_meta = _json_safe(
@@ -383,6 +405,7 @@ class PaymentService:
                 sale_id=sale_id,
                 amount=discount_total,
                 currency=currency,
+                occurred_at=occurred_at,
                 meta={
                     **base_meta,
                     **classification,
@@ -405,6 +428,7 @@ class PaymentService:
                 sale_id=sale_id,
                 amount=complimentary_total,
                 currency=currency,
+                occurred_at=occurred_at,
                 meta={
                     **base_meta,
                     **classification,
@@ -425,6 +449,7 @@ class PaymentService:
                 sale_id=sale_id,
                 amount=balance_due,
                 currency=currency,
+                occurred_at=occurred_at,
                 meta={
                     **base_meta,
                     "event_reason": "sale_partially_unpaid",
@@ -442,6 +467,7 @@ class PaymentService:
                 sale_id=sale_id,
                 amount=store_credit,
                 currency=currency,
+                occurred_at=occurred_at,
                 meta={
                     **base_meta,
                     "event_reason": "change_remaining_as_store_credit",
@@ -464,6 +490,7 @@ class PaymentService:
                 channel=None,
                 reference_type="payment_intent",
                 reference_id=int(intent.id),
+                occurred_at=occurred_at,
                 meta={
                     **base_meta,
                     "event_reason": "tip_recorded",
@@ -505,6 +532,8 @@ class PaymentService:
 
         if not lines or not isinstance(lines, list):
             raise ValueError("lines are required")
+
+        settlement_now = _utc_now()
 
         existing = check_idempotency_key(
             db,
@@ -659,7 +688,7 @@ class PaymentService:
                         "receipt_meta": incoming_meta,
                         "complete_balance": bool(complete_balance),
                         "settle_failed_intent": bool(settle_failed_intent),
-                        "created_at": datetime.utcnow(),
+                        "created_at": settlement_now,
                     }
                 )
             )
@@ -898,6 +927,7 @@ class PaymentService:
                     amount=ledger_amount,
                     currency=currency,
                     channel=attempt.method,
+                    occurred_at=attempt.created_at or settlement_now,
                     meta=_json_safe(
                         {
                             "sale_id": sale_id,
@@ -1030,6 +1060,7 @@ class PaymentService:
             current_tendered_total=cumulative_tendered_total,
             complete_balance=complete_balance,
             settle_failed_intent=settle_failed_intent,
+            occurred_at=settlement_now,
             meta={
                 "description": description,
                 "reference": reference,
@@ -1052,7 +1083,7 @@ class PaymentService:
             )
             SaleRepository.set_paid_at(
                 sale=sale,
-                paid_at=datetime.utcnow(),
+                paid_at=settlement_now,
             )
 
             # Inventory finalization rule:
