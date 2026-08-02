@@ -265,7 +265,7 @@ class ReportsService:
     - COGS source of truth = explicit TreasuryLog COGS classification.
     - Inventory stock-in does not automatically create monthly statement COGS.
     - Bar/drinks COGS must be manually posted like other COGS entries.
-    - Operating Expenses come from EXPENSE_POSTED excluding COGS.
+    - Operating Expenses include EXPENSE_POSTED (excluding COGS), DISCOUNT_APPLIED, and COMPLIMENTARY_APPLIED.
     """
 
     # --------------------------------------------------------
@@ -458,7 +458,7 @@ class ReportsService:
                 "salesRevenue": "SALE_REVENUE_GROSS treasury events are the financial source of truth.",
                 "otherIncome": "OTHER_INCOME and SERVICE_REVENUE treasury events.",
                 "cogs": "COGS comes only from explicit TreasuryLog COGS entries. Inventory stock-in and drink sales do not automatically create COGS.",
-                "opex": "EXPENSE_POSTED excluding COGS classification.",
+                "opex": "EXPENSE_POSTED excluding COGS, plus DISCOUNT_APPLIED and COMPLIMENTARY_APPLIED as non-cash operating expenses.",
                 "depth": "Formal statement depth is Section → Group → Subcategory. Deeper rows are reserved for drilldown.",
             },
         }
@@ -1021,48 +1021,118 @@ class ReportsService:
         start: datetime,
         end: datetime,
     ) -> Tuple[List[Dict[str, Any]], Decimal]:
+        """
+        Build all non-COGS expenses used by the monthly statement.
+
+        Includes:
+        - EXPENSE_POSTED: manually posted operating expenses.
+        - DISCOUNT_APPLIED: system-generated staff/customer/promotional discounts.
+        - COMPLIMENTARY_APPLIED: system-generated complimentary items/offers.
+
+        Discounts and complimentary items are non-cash expenses. They reduce
+        accounting profit but must not be treated as settlement-channel cash
+        outflows in reconciliation.
+        """
+
         logs = ReportsService._treasury_logs(
             db,
             tenant_id=tenant_id,
             branch_id=branch_id,
             start=start,
             end=end,
-            event_types=["EXPENSE_POSTED"],
+            event_types=[
+                "EXPENSE_POSTED",
+                "DISCOUNT_APPLIED",
+                "COMPLIMENTARY_APPLIED",
+            ],
         )
 
         acc = _TreeAccumulator("opex")
         total = Decimal("0")
 
         for log in logs:
+            # Only manually posted COGS is excluded here because it is already
+            # presented in the dedicated COGS section.
             if ReportsService._is_cogs_log(log):
                 continue
 
-            amount = _d(log.amount)
-            total += amount
+            amount = abs(_d(log.amount))
+            if amount == 0:
+                continue
 
+            total += amount
             m = _meta(log)
 
-            category = (
-                m.get("category_name")
-                or "Operating Expenses"
-            )
+            if log.event_type == "DISCOUNT_APPLIED":
+                category = (
+                    m.get("category_name")
+                    or ReportsService._discount_default_category(m)
+                )
+                subcategory = (
+                    m.get("subcategory_name")
+                    or m.get("display_label")
+                    or m.get("discount_reason")
+                    or m.get("discount_type")
+                    or "Other Discount"
+                )
+                source = "system_discount"
 
-            subcategory = (
-                m.get("subcategory_name")
-                or m.get("item_name")
-                or "General"
-            )
+            elif log.event_type == "COMPLIMENTARY_APPLIED":
+                category = m.get("category_name") or "Marketing & Promotions"
+                subcategory = (
+                    m.get("subcategory_name")
+                    or m.get("display_label")
+                    or m.get("complimentary_reason")
+                    or "Complimentary Items"
+                )
+                source = "system_complimentary"
+
+            else:
+                category = m.get("category_name") or "Operating Expenses"
+                subcategory = (
+                    m.get("subcategory_name")
+                    or m.get("item_name")
+                    or "General"
+                )
+                source = "treasury_logs"
 
             acc.add(
                 group_label=category,
                 child_label=subcategory,
                 amount=amount,
-                source="treasury_logs",
+                source=source,
                 meta={
                     "treasury_log_id": log.id,
                     "event_type": log.event_type,
                     "taxonomy_node_id": log.taxonomy_node_id,
+                    "non_cash": log.event_type in {
+                        "DISCOUNT_APPLIED",
+                        "COMPLIMENTARY_APPLIED",
+                    },
+                    "reference_type": log.reference_type,
+                    "reference_id": log.reference_id,
                 },
             )
 
         return acc.nodes(), total
+
+    @staticmethod
+    def _discount_default_category(meta: Dict[str, Any]) -> str:
+        """
+        Provide a stable report group when older discount events do not yet
+        contain the richer settlement classification metadata.
+        """
+        raw = str(
+            meta.get("display_label")
+            or meta.get("discount_reason")
+            or meta.get("discount_type")
+            or ""
+        ).strip().lower()
+
+        if "staff" in raw:
+            return "Staff Welfare"
+
+        if any(token in raw for token in ("promo", "marketing", "loyalty", "customer")):
+            return "Marketing & Promotions"
+
+        return "Sales Allowances"

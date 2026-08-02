@@ -433,6 +433,9 @@ class AccountingReportsService:
         - PAYMENT_RECEIVED increases selected settlement channel.
         - OTHER_INCOME / SERVICE_REVENUE increase selected settlement channel.
         - EXPENSE_POSTED / REFUND_PAID decrease selected settlement channel.
+        - DISCOUNT_APPLIED / COMPLIMENTARY_APPLIED are non-cash expenses;
+          they are reported in commercial_summary and do not reduce a
+          settlement channel a second time.
         - CASH_MOVE moves value from source_channel to target_channel.
         - DEBT_CREATED increases A/R.
         - DEBT_REPAYMENT decreases A/R and increases actual payment channel.
@@ -576,6 +579,8 @@ class AccountingReportsService:
         tips = 0.0
         refunds = 0.0
         real_expenses = 0.0
+        system_discount_expense = 0.0
+        system_complimentary_expense = 0.0
 
         manual_income = 0.0
         service_income = 0.0
@@ -629,6 +634,7 @@ class AccountingReportsService:
 
             if event_type == "DISCOUNT_APPLIED":
                 discounts += amount
+                system_discount_expense += amount
                 label = (
                     meta.get("display_label")
                     or meta.get("discount_reason")
@@ -640,6 +646,7 @@ class AccountingReportsService:
 
             if event_type == "COMPLIMENTARY_APPLIED":
                 complimentary += amount
+                system_complimentary_expense += amount
                 label = (
                     meta.get("display_label")
                     or meta.get("complimentary_reason")
@@ -673,6 +680,8 @@ class AccountingReportsService:
                 continue
 
         allowances = discounts + complimentary
+        system_expenses = system_discount_expense + system_complimentary_expense
+        total_reportable_expense = real_expenses + system_expenses
         ar_net = ar_created - ar_repaid
 
         applied_to_sales = collections - tips - ap_created
@@ -703,6 +712,16 @@ class AccountingReportsService:
             "change_returned": 0.0,
             "refunds": refunds,
             "real_expenses": real_expenses,
+            "system_discount_expense": system_discount_expense,
+            "system_complimentary_expense": system_complimentary_expense,
+            "system_expenses": system_expenses,
+            "total_reportable_expense": total_reportable_expense,
+            "expense_breakdown": {
+                "manual_expenses": real_expenses,
+                "discounts": system_discount_expense,
+                "complimentary": system_complimentary_expense,
+                "total": total_reportable_expense,
+            },
             "manual_income": manual_income,
             "service_income": service_income,
             "other_income": other_income,
@@ -773,9 +792,22 @@ class AccountingReportsService:
             existing_recon=existing_recon,
         )
 
+        commercial_summary = AccountingReportsService._build_commercial_summary(logs)
+
         return {
             "rows": rows,
-            "commercial_summary": AccountingReportsService._build_commercial_summary(logs),
+            "commercial_summary": commercial_summary,
+            # Explicit alias for reconciliation UIs. These values are accounting
+            # expenses, but discounts/comps are non-cash and therefore are not
+            # subtracted from settlement-channel expected balances.
+            "expense_summary": commercial_summary.get("expense_breakdown", {}),
+            "non_cash_expenses": {
+                "discounts": commercial_summary.get("system_discount_expense", 0.0),
+                "complimentary": commercial_summary.get(
+                    "system_complimentary_expense", 0.0
+                ),
+                "total": commercial_summary.get("system_expenses", 0.0),
+            },
             "status": "closed" if existing_recon else "draft",
             "shift": shift,
             "window_start": start.isoformat() if start else None,

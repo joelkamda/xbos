@@ -186,6 +186,25 @@ class FinancialEventEmitter:
         )
 
         if existing:
+            # Sale creation may emit a discount/complimentary event before POS
+            # settlement provides the final classification. Keep one ledger row,
+            # but enrich that idempotent row with the later metadata instead of
+            # silently discarding it.
+            incoming_meta = _clean_meta(meta)
+            existing_meta = _clean_meta(existing.meta)
+
+            if incoming_meta:
+                existing.meta = {
+                    **existing_meta,
+                    **incoming_meta,
+                }
+
+            if existing.taxonomy_node_id is None and taxonomy_node_id is not None:
+                existing.taxonomy_node_id = taxonomy_node_id
+
+            if existing.channel is None and channel is not None:
+                existing.channel = _safe_channel(channel)
+
             return existing
 
         return TreasuryRepository.record(

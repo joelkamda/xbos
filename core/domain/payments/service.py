@@ -116,50 +116,75 @@ def _clean_label(value: Any) -> str:
 
 def _discount_classification(discount_type: Any) -> Dict[str, Any]:
     """
-    V1 static mapping.
+    Classify POS discounts for expense reporting.
 
-    Later this should resolve to real expense taxonomy nodes:
-    - taxonomy_node_id
-    - category_id
-    - subcategory_id
+    These labels are stored in TreasuryLog.meta and consumed by daily,
+    reconciliation-commercial, monthly, and yearly reports. They remain useful
+    even before every tenant has dedicated finance taxonomy nodes.
     """
     raw = _clean_label(discount_type)
     key = raw.lower().replace("_", " ").replace("-", " ")
+    key = " ".join(key.split())
 
-    if key == "staff subsidy":
+    if key in {
+        "staff subsidy",
+        "staff discount",
+        "employee discount",
+        "personnel discount",
+    }:
         return {
             "allowance_class": "staff_subsidy",
             "category_name": "Staff Welfare",
-            "subcategory_name": "Staff Subsidy",
+            "subcategory_name": "Staff Discount / Subsidy",
             "expense_family": "staff_expense",
-            "display_label": "Staff Subsidy",
+            "display_label": "Staff Discount",
+            "non_cash": True,
         }
 
-    if key == "loyalty discount":
+    if key in {
+        "loyalty discount",
+        "customer discount",
+        "customer loyalty",
+        "regular customer",
+    }:
         return {
-            "allowance_class": "loyalty_discount",
-            "category_name": "Customer Retention",
-            "subcategory_name": "Loyalty Discount",
+            "allowance_class": "customer_discount",
+            "category_name": "Marketing & Promotions",
+            "subcategory_name": "Customer / Loyalty Discount",
             "expense_family": "customer_retention",
-            "display_label": "Loyalty Discount",
+            "display_label": "Customer Discount",
+            "non_cash": True,
         }
 
-    if key == "marketing promo":
+    if key in {
+        "marketing promo",
+        "marketing promotion",
+        "promotion",
+        "promotional discount",
+        "offer",
+        "special offer",
+    }:
         return {
             "allowance_class": "marketing_promo",
-            "category_name": "Marketing",
-            "subcategory_name": "Promotional Discount",
+            "category_name": "Marketing & Promotions",
+            "subcategory_name": "Promotional Discount / Offer",
             "expense_family": "marketing_expense",
-            "display_label": "Marketing Promo",
+            "display_label": "Marketing Promotion",
+            "non_cash": True,
         }
 
-    if key == "manager override":
+    if key in {
+        "manager override",
+        "manager discount",
+        "management discount",
+    }:
         return {
             "allowance_class": "manager_override",
             "category_name": "Sales Allowances",
             "subcategory_name": "Manager Override",
             "expense_family": "sales_allowance",
             "display_label": "Manager Override",
+            "non_cash": True,
         }
 
     return {
@@ -167,7 +192,8 @@ def _discount_classification(discount_type: Any) -> Dict[str, Any]:
         "category_name": "Sales Allowances",
         "subcategory_name": raw or "Other Discount",
         "expense_family": "sales_allowance",
-        "display_label": raw or "Other",
+        "display_label": raw or "Other Discount",
+        "non_cash": True,
     }
 
 
@@ -176,10 +202,11 @@ def _complimentary_classification(reason: Any = None) -> Dict[str, Any]:
 
     return {
         "allowance_class": "complimentary",
-        "category_name": "Marketing",
-        "subcategory_name": raw or "Complimentary Items",
+        "category_name": "Marketing & Promotions",
+        "subcategory_name": raw or "Complimentary Items / Offer",
         "expense_family": "marketing_expense",
         "display_label": raw or "Complimentary",
+        "non_cash": True,
     }
 
 
