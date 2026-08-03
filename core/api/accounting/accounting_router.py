@@ -184,6 +184,7 @@ class AccountsReceivableRepayPayload(BaseModel):
     payment_method: str = "cash"
     reference: Optional[str] = None
     note: Optional[str] = None
+    client_reference: Optional[str] = None
 
 
 # ============================================================
@@ -1006,6 +1007,7 @@ def repay_accounts_receivable(
             payment_method=payload.payment_method,
             reference=payload.reference,
             note=payload.note,
+            client_reference=payload.client_reference,
             created_by_user_id=user_id,
         )
 

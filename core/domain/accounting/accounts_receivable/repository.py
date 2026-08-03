@@ -28,6 +28,32 @@ class AccountsReceivableRepository:
         )
 
     @staticmethod
+    def get_by_id_for_update(
+        db: Session,
+        *,
+        tenant_id: int,
+        branch_id: int,
+        ar_id: int,
+    ):
+        """
+        Fetch and lock one A/R row for a financial mutation.
+
+        The row lock serializes concurrent repayments so two cashiers cannot
+        both spend the same outstanding balance.
+        """
+
+        return (
+            db.query(AccountsReceivable)
+            .filter(
+                AccountsReceivable.id == ar_id,
+                AccountsReceivable.tenant_id == tenant_id,
+                AccountsReceivable.branch_id == branch_id,
+            )
+            .with_for_update()
+            .first()
+        )
+
+    @staticmethod
     def get_by_order_id(
         db: Session,
         *,
@@ -95,6 +121,24 @@ class AccountsReceivableRepository:
     @staticmethod
     def create_repayment(db: Session, repayment: AccountsReceivableRepayment):
         db.add(repayment)
+
+    @staticmethod
+    def get_repayment_by_id(
+        db: Session,
+        *,
+        tenant_id: int,
+        branch_id: int,
+        repayment_id: int,
+    ):
+        return (
+            db.query(AccountsReceivableRepayment)
+            .filter(
+                AccountsReceivableRepayment.id == repayment_id,
+                AccountsReceivableRepayment.tenant_id == tenant_id,
+                AccountsReceivableRepayment.branch_id == branch_id,
+            )
+            .first()
+        )
 
     @staticmethod
     def list_repayments(
