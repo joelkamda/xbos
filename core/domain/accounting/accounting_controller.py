@@ -8,7 +8,10 @@ from sqlalchemy.orm import Session
 
 from core.domain.accounting.reports import AccountingReportsService
 from core.domain.accounting.emitter import FinancialEventEmitter
-from core.domain.accounting.repository import TreasuryRepository
+from core.domain.accounting.repository import (
+    TreasuryRepository,
+    CONTROL_RECON_CHANNELS,
+)
 from core.domain.taxonomy.models import (
     TaxonomyNode,
     AtomicUnit,
@@ -246,8 +249,14 @@ def _recompute_recon_row(row: Dict[str, Any]) -> Dict[str, Any]:
     cash_out = _d(row.get("cashOut"))
 
     expected = opening + income - expense + cash_in - cash_out
-    actual = _d(row.get("actual", expected))
-    variance = actual - expected
+    channel = str(row.get("channel") or "").strip().lower()
+
+    if channel in CONTROL_RECON_CHANNELS:
+        actual = expected
+        variance = Decimal("0")
+    else:
+        actual = _d(row.get("actual", expected))
+        variance = actual - expected
 
     return {
         **row,
@@ -260,6 +269,12 @@ def _recompute_recon_row(row: Dict[str, Any]) -> Dict[str, Any]:
         "actual": float(actual),
         "variance": float(variance),
         "note": row.get("note") or "",
+        "is_control_account": channel in CONTROL_RECON_CHANNELS,
+        "actual_source": (
+            "system"
+            if channel in CONTROL_RECON_CHANNELS
+            else row.get("actual_source") or "submitted"
+        ),
     }
 
 
@@ -565,6 +580,20 @@ class AccountingController:
                 detail="At least one reconciliation row is required",
             )
 
+        continuity = TreasuryRepository.get_reconciliation_continuity(
+            db,
+            tenant_id=tenant_id,
+            branch_id=branch_id,
+            window_start=start_dt,
+        )
+
+        if not continuity.get("can_close"):
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail=continuity.get("message")
+                or "The previous reconciliation window must be closed first.",
+            )
+
         cleaned_rows: List[Dict[str, Any]] = []
 
         for incoming in rows:
@@ -583,6 +612,19 @@ class AccountingController:
                     "status": "closed",
                 }
             )
+
+            if (
+                channel not in CONTROL_RECON_CHANNELS
+                and abs(_d(clean.get("variance"))) > Decimal("0.005")
+                and not str(clean.get("note") or "").strip()
+            ):
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=(
+                        f"A variance explanation is required for channel "
+                        f"'{channel}'."
+                    ),
+                )
 
             cleaned_rows.append(clean)
 
@@ -616,6 +658,7 @@ class AccountingController:
                 "shift": shift,
                 "window_start": start_dt.isoformat(),
                 "window_end": end_dt.isoformat(),
+                "continuity": continuity,
                 "rows": [
                     TreasuryRepository.serialize_reconciliation_sheet(row)
                     for row in saved

@@ -8,6 +8,10 @@ from sqlalchemy import select, desc, or_
 from core.domain.accounting.models import TreasuryLog, ReconSheet
 
 
+CONTROL_RECON_CHANNELS = {"ar", "ap"}
+CLOSED_RECON_STATUSES = {"closed", "approved"}
+
+
 # =========================================================
 # HELPERS
 # =========================================================
@@ -239,6 +243,149 @@ class TreasuryRepository:
     # =========================================================
 
     @staticmethod
+    def get_reconciliation_continuity(
+        db: Session,
+        *,
+        tenant_id: int,
+        branch_id: int,
+        window_start: Optional[datetime],
+    ) -> Dict[str, Any]:
+        """
+        Return whether the selected window may be closed without skipping an
+        earlier reconciliation window.
+
+        Rules:
+        - The first reconciliation ever for a branch may close.
+        - Once reconciliation history exists, at least one immediately
+          preceding window must end exactly at the selected window start.
+        - That preceding window must be fully closed or approved.
+        - Draft/reopened predecessors block closure.
+
+        Multiple shift schemes can coexist. A valid closed predecessor in any
+        scheme is sufficient as long as it ends exactly at this window start.
+        """
+
+        start_dt = _normalize_dt(window_start)
+
+        if not start_dt:
+            return {
+                "can_close": False,
+                "code": "invalid_window",
+                "message": "A valid reconciliation window start is required.",
+                "has_history": False,
+                "previous_window": None,
+            }
+
+        exact_rows = (
+            db.query(ReconSheet)
+            .filter(
+                ReconSheet.tenant_id == tenant_id,
+                ReconSheet.branch_id == branch_id,
+                ReconSheet.window_end == start_dt,
+            )
+            .order_by(
+                ReconSheet.window_start.desc(),
+                ReconSheet.shift.asc(),
+                ReconSheet.id.asc(),
+            )
+            .all()
+        )
+
+        if exact_rows:
+            grouped: Dict[tuple, List[ReconSheet]] = {}
+            for row in exact_rows:
+                key = (row.shift, row.window_start, row.window_end)
+                grouped.setdefault(key, []).append(row)
+
+            # Prefer the chronologically closest candidate (latest start).
+            candidates = sorted(
+                grouped.items(),
+                key=lambda item: item[0][1],
+                reverse=True,
+            )
+
+            for (shift, previous_start, previous_end), rows in candidates:
+                statuses = {
+                    str(row.status or "").strip().lower()
+                    for row in rows
+                }
+
+                if statuses and statuses.issubset(CLOSED_RECON_STATUSES):
+                    return {
+                        "can_close": True,
+                        "code": "continuous",
+                        "message": "The immediately preceding reconciliation window is closed.",
+                        "has_history": True,
+                        "previous_window": {
+                            "shift": shift,
+                            "window_start": _iso(previous_start),
+                            "window_end": _iso(previous_end),
+                            "status": "approved" if "approved" in statuses else "closed",
+                        },
+                    }
+
+            # An exact predecessor exists, but none of its window groups is
+            # completely closed/approved.
+            shift, previous_start, previous_end = candidates[0][0]
+            statuses = sorted(
+                {
+                    str(row.status or "draft").strip().lower()
+                    for row in candidates[0][1]
+                }
+            )
+            return {
+                "can_close": False,
+                "code": "previous_window_unclosed",
+                "message": (
+                    "The immediately preceding reconciliation window must be "
+                    "closed before this window can be closed."
+                ),
+                "has_history": True,
+                "previous_window": {
+                    "shift": shift,
+                    "window_start": _iso(previous_start),
+                    "window_end": _iso(previous_end),
+                    "status": ",".join(statuses) or "draft",
+                },
+            }
+
+        earlier_row = (
+            db.query(ReconSheet)
+            .filter(
+                ReconSheet.tenant_id == tenant_id,
+                ReconSheet.branch_id == branch_id,
+                ReconSheet.window_end < start_dt,
+            )
+            .order_by(ReconSheet.window_end.desc(), ReconSheet.id.desc())
+            .first()
+        )
+
+        if earlier_row:
+            return {
+                "can_close": False,
+                "code": "missing_previous_window",
+                "message": (
+                    "A reconciliation window is missing before this one. "
+                    "Close the immediately preceding business window first."
+                ),
+                "has_history": True,
+                "previous_window": {
+                    "shift": earlier_row.shift,
+                    "window_start": _iso(earlier_row.window_start),
+                    "window_end": _iso(earlier_row.window_end),
+                    "status": str(earlier_row.status or "draft").lower(),
+                },
+            }
+
+        return {
+            "can_close": True,
+            "code": "first_window",
+            "message": "No earlier reconciliation history exists for this branch.",
+            "has_history": False,
+            "previous_window": None,
+        }
+
+    @staticmethod
     def get_previous_closed_reconciliation_by_channel(
         db: Session,
         *,
@@ -391,8 +538,15 @@ class TreasuryRepository:
             cash_out = _d(incoming.get("cashOut"))
 
             expected = opening + income - expense + cash_in - cash_out
-            actual = _d(incoming.get("actual", expected))
-            variance = actual - expected
+
+            if channel in CONTROL_RECON_CHANNELS:
+                # A/R and A/P are system-derived control accounts, not
+                # physically counted settlement channels.
+                actual = expected
+                variance = Decimal("0")
+            else:
+                actual = _d(incoming.get("actual", expected))
+                variance = actual - expected
 
             note = incoming.get("note") or ""
 

@@ -3,7 +3,10 @@ from datetime import datetime
 
 from sqlalchemy.orm import Session
 
-from core.domain.accounting.repository import TreasuryRepository
+from core.domain.accounting.repository import (
+    TreasuryRepository,
+    CONTROL_RECON_CHANNELS,
+)
 
 
 def _f(v) -> float:
@@ -37,8 +40,14 @@ def _recompute_recon_row(row: Dict[str, Any]) -> Dict[str, Any]:
     cash_out = _f(row.get("cashOut"))
 
     expected = opening + income - expense + cash_in - cash_out
-    actual = _f(row.get("actual", expected))
-    variance = actual - expected
+    channel = str(row.get("channel") or "").strip().lower()
+
+    if channel in CONTROL_RECON_CHANNELS:
+        actual = expected
+        variance = 0.0
+    else:
+        actual = _f(row.get("actual", expected))
+        variance = actual - expected
 
     return {
         **row,
@@ -559,9 +568,19 @@ class AccountingReportsService:
 
             row = _recompute_recon_row(row)
 
-            if persisted:
+            if channel in CONTROL_RECON_CHANNELS:
+                row["actual"] = row["expected"]
+                row["variance"] = 0.0
+                row["is_control_account"] = True
+                row["actual_source"] = "system"
+            elif persisted:
                 row["actual"] = _f(persisted.actual_closing_amount)
                 row["variance"] = row["actual"] - row["expected"]
+                row["is_control_account"] = False
+                row["actual_source"] = "persisted"
+            else:
+                row["is_control_account"] = False
+                row["actual_source"] = "expected"
 
             next_rows.append(row)
 
@@ -793,10 +812,31 @@ class AccountingReportsService:
         )
 
         commercial_summary = AccountingReportsService._build_commercial_summary(logs)
+        continuity = TreasuryRepository.get_reconciliation_continuity(
+            db,
+            tenant_id=tenant_id,
+            branch_id=branch_id,
+            window_start=start,
+        )
+
+        statuses = {
+            str(row.status or "").strip().lower()
+            for row in existing_recon.values()
+            if row
+        }
+        if "approved" in statuses:
+            window_status = "approved"
+        elif "closed" in statuses:
+            window_status = "closed"
+        elif "reopened" in statuses:
+            window_status = "reopened"
+        else:
+            window_status = "draft"
 
         return {
             "rows": rows,
             "commercial_summary": commercial_summary,
+            "continuity": continuity,
             # Explicit alias for reconciliation UIs. These values are accounting
             # expenses, but discounts/comps are non-cash and therefore are not
             # subtracted from settlement-channel expected balances.
@@ -808,7 +848,7 @@ class AccountingReportsService:
                 ),
                 "total": commercial_summary.get("system_expenses", 0.0),
             },
-            "status": "closed" if existing_recon else "draft",
+            "status": window_status,
             "shift": shift,
             "window_start": start.isoformat() if start else None,
             "window_end": end.isoformat() if end else None,
