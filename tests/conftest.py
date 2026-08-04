@@ -57,3 +57,99 @@ def app():
 def client(app):
     with TestClient(app) as test_client:
         yield test_client
+
+TEST_USERNAME = "track_b_characterization_admin"
+TEST_PASSWORD = "track-b-test-only-password"
+
+
+@pytest.fixture(scope="session")
+def wnd_test_identity(app):
+    from core.auth.password_service import PasswordService
+    from core.tenants.tenant_model import Branch, Tenant
+    from core.users.user_model import User
+    from database import SessionLocal
+
+    db = SessionLocal()
+
+    try:
+        tenant = (
+            db.query(Tenant)
+            .filter(Tenant.id == 2, Tenant.code == "CM001")
+            .one()
+        )
+        branch = (
+            db.query(Branch)
+            .filter(
+                Branch.id == 1,
+                Branch.tenant_id == tenant.id,
+                Branch.branch_code == "BR001",
+            )
+            .one()
+        )
+
+        user = (
+            db.query(User)
+            .filter(User.username == TEST_USERNAME)
+            .one_or_none()
+        )
+
+        password_hash = PasswordService().hash(TEST_PASSWORD)
+
+        if user is None:
+            user = User(
+                username=TEST_USERNAME,
+                password_hash=password_hash,
+                full_name="Track B Characterization Admin",
+                role="admin",
+                tenant_id=tenant.id,
+                branch_id=branch.id,
+                is_active=True,
+            )
+            db.add(user)
+        else:
+            user.password_hash = password_hash
+            user.full_name = "Track B Characterization Admin"
+            user.role = "admin"
+            user.tenant_id = tenant.id
+            user.branch_id = branch.id
+            user.is_active = True
+
+        db.commit()
+        db.refresh(user)
+
+        return {
+            "user_id": user.id,
+            "username": TEST_USERNAME,
+            "password": TEST_PASSWORD,
+            "tenant_id": tenant.id,
+            "tenant_code": tenant.code,
+            "branch_id": branch.id,
+            "branch_code": branch.branch_code,
+        }
+    finally:
+        db.close()
+
+
+@pytest.fixture()
+def auth_headers(client, wnd_test_identity):
+    response = client.post(
+        "/kernel/auth/login",
+        headers={
+            "X-Tenant-Code": wnd_test_identity["tenant_code"],
+            "X-Branch-Code": wnd_test_identity["branch_code"],
+        },
+        json={
+            "username": wnd_test_identity["username"],
+            "password": wnd_test_identity["password"],
+        },
+    )
+
+    assert response.status_code == 200, response.text
+
+    token = response.json()["access_token"]
+
+    return {
+        "Authorization": f"Bearer {token}",
+        "X-Tenant-Code": wnd_test_identity["tenant_code"],
+        "X-Branch-Code": wnd_test_identity["branch_code"],
+    }
