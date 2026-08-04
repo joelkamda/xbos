@@ -8,6 +8,12 @@ from sqlalchemy import select, desc, or_
 from core.domain.accounting.models import TreasuryLog, ReconSheet
 
 
+TREASURY_RECON_CHANNELS = {"cash", "mtn", "orange", "xafpay", "bank"}
+CONTROL_RECON_CHANNELS = {"ar", "ap"}
+CLOSED_RECON_STATUSES = {"closed", "approved"}
+RECON_AMOUNT_EPSILON = Decimal("0.005")
+
+
 # =========================================================
 # HELPERS
 # =========================================================
@@ -63,6 +69,84 @@ def _iso(value: Optional[datetime]) -> Optional[str]:
 
     normalized = _normalize_dt(value)
     return normalized.isoformat() if normalized else None
+
+
+def resolve_persisted_actual_closing(
+    *,
+    channel: str,
+    opening: Any,
+    income: Any,
+    expense: Any,
+    cash_in: Any,
+    cash_out: Any,
+    persisted_actual: Any,
+    persisted_status: Any = None,
+    persisted_meta: Any = None,
+) -> Dict[str, Any]:
+    """Return a safe display value for persisted reconciliation actuals.
+
+    Current semantics are closing balances. A small number of legacy draft rows
+    were saved with the period net movement in ``actual_closing_amount``. Those
+    rows can be recognized without rewriting the database because the stored
+    actual equals the computed net movement while a non-zero opening exists.
+
+    Only draft/reopened rows are inferred. Closed/approved history is never
+    silently reinterpreted.
+    """
+
+    safe_channel = str(channel or "").strip().lower()
+    opening_d = _d(opening)
+    income_d = _d(income)
+    expense_d = _d(expense)
+    cash_in_d = _d(cash_in)
+    cash_out_d = _d(cash_out)
+    persisted_d = _d(persisted_actual)
+
+    expected_movement = income_d - expense_d + cash_in_d - cash_out_d
+    expected_closing = opening_d + expected_movement
+
+    if safe_channel in CONTROL_RECON_CHANNELS:
+        return {
+            "actual": expected_closing,
+            "source": "system_control_balance",
+            "legacy_normalized": False,
+        }
+
+    meta = persisted_meta if isinstance(persisted_meta, dict) else {}
+    semantics = str(meta.get("actual_semantics") or "").strip().lower()
+
+    if semantics == "net_movement":
+        return {
+            "actual": opening_d + persisted_d,
+            "source": "legacy_net_movement_metadata",
+            "legacy_normalized": True,
+        }
+
+    if semantics == "closing_balance":
+        return {
+            "actual": persisted_d,
+            "source": "persisted_closing_balance",
+            "legacy_normalized": False,
+        }
+
+    status = str(persisted_status or "draft").strip().lower()
+    may_infer_legacy = status in {"draft", "reopened"}
+    opening_is_material = abs(opening_d) > RECON_AMOUNT_EPSILON
+    matches_net_movement = abs(persisted_d - expected_movement) <= RECON_AMOUNT_EPSILON
+    differs_from_closing = abs(persisted_d - expected_closing) > RECON_AMOUNT_EPSILON
+
+    if may_infer_legacy and opening_is_material and matches_net_movement and differs_from_closing:
+        return {
+            "actual": opening_d + persisted_d,
+            "source": "legacy_net_movement_inferred",
+            "legacy_normalized": True,
+        }
+
+    return {
+        "actual": persisted_d,
+        "source": "persisted_closing_balance_legacy",
+        "legacy_normalized": False,
+    }
 
 
 # =========================================================
@@ -239,6 +323,133 @@ class TreasuryRepository:
     # =========================================================
 
     @staticmethod
+    def get_reconciliation_continuity(
+        db: Session,
+        *,
+        tenant_id: int,
+        branch_id: int,
+        window_start: Optional[datetime],
+    ) -> Dict[str, Any]:
+        """Check that closing this window will not skip a prior window."""
+
+        start_dt = _normalize_dt(window_start)
+
+        if not start_dt:
+            return {
+                "can_close": False,
+                "code": "invalid_window",
+                "message": "A valid reconciliation window start is required.",
+                "has_history": False,
+                "previous_window": None,
+            }
+
+        exact_rows = (
+            db.query(ReconSheet)
+            .filter(
+                ReconSheet.tenant_id == tenant_id,
+                ReconSheet.branch_id == branch_id,
+                ReconSheet.window_end == start_dt,
+            )
+            .order_by(
+                ReconSheet.window_start.desc(),
+                ReconSheet.shift.asc(),
+                ReconSheet.id.asc(),
+            )
+            .all()
+        )
+
+        if exact_rows:
+            grouped: Dict[tuple, List[ReconSheet]] = {}
+            for row in exact_rows:
+                key = (row.shift, row.window_start, row.window_end)
+                grouped.setdefault(key, []).append(row)
+
+            candidates = sorted(
+                grouped.items(),
+                key=lambda item: item[0][1],
+                reverse=True,
+            )
+
+            for (shift, previous_start, previous_end), candidate_rows in candidates:
+                statuses = {
+                    str(row.status or "").strip().lower()
+                    for row in candidate_rows
+                }
+
+                if statuses and statuses.issubset(CLOSED_RECON_STATUSES):
+                    return {
+                        "can_close": True,
+                        "code": "continuous",
+                        "message": "The immediately preceding reconciliation window is closed.",
+                        "has_history": True,
+                        "previous_window": {
+                            "shift": shift,
+                            "window_start": _iso(previous_start),
+                            "window_end": _iso(previous_end),
+                            "status": "approved" if "approved" in statuses else "closed",
+                        },
+                    }
+
+            shift, previous_start, previous_end = candidates[0][0]
+            statuses = sorted(
+                {
+                    str(row.status or "draft").strip().lower()
+                    for row in candidates[0][1]
+                }
+            )
+            return {
+                "can_close": False,
+                "code": "previous_window_unclosed",
+                "message": (
+                    "The immediately preceding reconciliation window must be "
+                    "closed before this window can be closed."
+                ),
+                "has_history": True,
+                "previous_window": {
+                    "shift": shift,
+                    "window_start": _iso(previous_start),
+                    "window_end": _iso(previous_end),
+                    "status": ",".join(statuses) or "draft",
+                },
+            }
+
+        earlier_row = (
+            db.query(ReconSheet)
+            .filter(
+                ReconSheet.tenant_id == tenant_id,
+                ReconSheet.branch_id == branch_id,
+                ReconSheet.window_end < start_dt,
+            )
+            .order_by(ReconSheet.window_end.desc(), ReconSheet.id.desc())
+            .first()
+        )
+
+        if earlier_row:
+            return {
+                "can_close": False,
+                "code": "missing_previous_window",
+                "message": (
+                    "A reconciliation window is missing before this one. "
+                    "Close the immediately preceding business window first."
+                ),
+                "has_history": True,
+                "previous_window": {
+                    "shift": earlier_row.shift,
+                    "window_start": _iso(earlier_row.window_start),
+                    "window_end": _iso(earlier_row.window_end),
+                    "status": str(earlier_row.status or "draft").lower(),
+                },
+            }
+
+        return {
+            "can_close": True,
+            "code": "first_window",
+            "message": "No earlier reconciliation history exists for this branch.",
+            "has_history": False,
+            "previous_window": None,
+        }
+
+    @staticmethod
     def get_previous_closed_reconciliation_by_channel(
         db: Session,
         *,
@@ -391,8 +602,13 @@ class TreasuryRepository:
             cash_out = _d(incoming.get("cashOut"))
 
             expected = opening + income - expense + cash_in - cash_out
-            actual = _d(incoming.get("actual", expected))
-            variance = actual - expected
+
+            if channel in CONTROL_RECON_CHANNELS:
+                actual = expected
+                variance = Decimal("0")
+            else:
+                actual = _d(incoming.get("actual", expected))
+                variance = actual - expected
 
             note = incoming.get("note") or ""
 
@@ -405,6 +621,9 @@ class TreasuryRepository:
                 **meta,
                 "window_start_utc": _iso(start_dt),
                 "window_end_utc": _iso(end_dt),
+                "actual_semantics": "closing_balance",
+                "reconciliation_version": 2,
+                "is_control_account": channel in CONTROL_RECON_CHANNELS,
             }
 
             row = existing_map.get(channel)
@@ -473,6 +692,8 @@ class TreasuryRepository:
             "variance": _f(row.variance_amount),
             "note": row.note or "",
             "status": row.status or "closed",
+            "meta": row.meta or {},
+            "is_control_account": str(row.channel or "").strip().lower() in CONTROL_RECON_CHANNELS,
         }
 
     # =========================================================

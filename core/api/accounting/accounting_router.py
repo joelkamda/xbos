@@ -7,7 +7,11 @@ from datetime import datetime, timezone
 from zoneinfo import ZoneInfo
 
 from database import get_db
-from core.domain.accounting.repository import TreasuryRepository
+from core.domain.accounting.repository import (
+    TreasuryRepository,
+    CONTROL_RECON_CHANNELS,
+    resolve_persisted_actual_closing,
+)
 from core.domain.accounting.models import TreasuryLog
 from core.domain.accounting.accounting_controller import AccountingController
 from core.domain.accounting.accounts_receivable.service import (
@@ -170,6 +174,7 @@ class ReconCloseRowPayload(BaseModel):
     variance: float = 0
 
     note: Optional[str] = None
+    meta: Optional[Dict[str, Any]] = None
 
 
 class ReconClosePayload(BaseModel):
@@ -531,8 +536,14 @@ def _recompute_recon_row(row: Dict[str, Any]) -> Dict[str, Any]:
     cash_out = _f(row.get("cashOut"))
 
     expected = opening + income - expense + cash_in - cash_out
-    actual = _f(row.get("actual", expected))
-    variance = actual - expected
+    channel = str(row.get("channel") or "").strip().lower()
+
+    if channel in CONTROL_RECON_CHANNELS:
+        actual = expected
+        variance = 0.0
+    else:
+        actual = _f(row.get("actual", expected))
+        variance = actual - expected
 
     return {
         **row,
@@ -764,7 +775,6 @@ def _apply_reconciliation_persistence(
 
         if persisted:
             row["opening"] = _f(persisted.get("opening_amount"))
-            row["actual"] = _f(persisted.get("actual_closing_amount"))
             row["note"] = persisted.get("note") or ""
             row["status"] = persisted.get("status") or "draft"
         else:
@@ -775,9 +785,36 @@ def _apply_reconciliation_persistence(
 
         row = _recompute_recon_row(row)
 
-        if persisted:
-            row["actual"] = _f(persisted.get("actual_closing_amount"))
+        if channel in CONTROL_RECON_CHANNELS:
+            row["actual"] = row["expected"]
+            row["variance"] = 0.0
+            row["is_control_account"] = True
+            row["actual_source"] = "system_control_balance"
+            row["legacy_actual_normalized"] = False
+            row["meta"] = persisted.get("meta") if persisted else {}
+        elif persisted:
+            resolved = resolve_persisted_actual_closing(
+                channel=channel,
+                opening=row["opening"],
+                income=row["income"],
+                expense=row["expense"],
+                cash_in=row["cashIn"],
+                cash_out=row["cashOut"],
+                persisted_actual=persisted.get("actual_closing_amount"),
+                persisted_status=persisted.get("status"),
+                persisted_meta=persisted.get("meta"),
+            )
+            row["actual"] = _f(resolved["actual"])
             row["variance"] = row["actual"] - row["expected"]
+            row["is_control_account"] = False
+            row["actual_source"] = resolved["source"]
+            row["legacy_actual_normalized"] = bool(resolved["legacy_normalized"])
+            row["meta"] = persisted.get("meta") or {}
+        else:
+            row["is_control_account"] = False
+            row["actual_source"] = "expected_closing"
+            row["legacy_actual_normalized"] = False
+            row["meta"] = {}
 
         next_rows.append(row)
 
@@ -1816,10 +1853,17 @@ def get_reconciliation(
     )
 
     window_status = _resolve_reconciliation_window_status(existing_recon)
+    continuity = TreasuryRepository.get_reconciliation_continuity(
+        db,
+        tenant_id=ctx["tenant_id"],
+        branch_id=ctx["branch_id"],
+        window_start=start_dt,
+    )
 
     return {
         "rows": rows,
         "commercial_summary": commercial_summary,
+        "continuity": continuity,
         "status": window_status,
         "shift": shift,
         "window_start": _iso_utc(start_dt),
@@ -1859,154 +1903,10 @@ def close_reconciliation(
     request: Request,
     db: Session = Depends(get_db),
 ):
-    """
-    Persists a closed reconciliation window.
+    """Close one reconciliation window through the canonical service."""
 
-    Rule:
-    - actual_closing_amount becomes the opening amount for the next cycle.
-    - Existing same-window/channel rows are updated, not duplicated.
-    """
-
-    ctx = request.state.user
-    start_dt = _parse_dt(payload.start)
-    end_dt = _parse_dt(payload.end)
-
-    if not start_dt or not end_dt:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="start and end are required",
-        )
-
-    if end_dt <= start_dt:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="end must be after start",
-        )
-
-    user_id = ctx.get("id") or ctx.get("user_id")
-    saved_rows: List[Dict[str, Any]] = []
-
-    try:
-        for incoming in payload.rows:
-            row = incoming.model_dump()
-            channel = str(row.get("channel") or "").strip().lower()
-
-            if not channel:
-                continue
-
-            clean = _recompute_recon_row(row)
-            clean["channel"] = channel
-            clean["note"] = clean.get("note") or ""
-            clean["status"] = "closed"
-
-            db.execute(
-                text(
-                    """
-                    INSERT INTO recon_sheets (
-                        tenant_id,
-                        branch_id,
-                        shift,
-                        window_start,
-                        window_end,
-                        channel,
-                        opening_amount,
-                        income_amount,
-                        expense_amount,
-                        cash_in_amount,
-                        cash_out_amount,
-                        expected_closing_amount,
-                        actual_closing_amount,
-                        variance_amount,
-                        note,
-                        status,
-                        closed_by_user_id,
-                        closed_at,
-                        updated_at
-                    )
-                    VALUES (
-                        :tenant_id,
-                        :branch_id,
-                        :shift,
-                        :window_start,
-                        :window_end,
-                        :channel,
-                        :opening_amount,
-                        :income_amount,
-                        :expense_amount,
-                        :cash_in_amount,
-                        :cash_out_amount,
-                        :expected_closing_amount,
-                        :actual_closing_amount,
-                        :variance_amount,
-                        :note,
-                        'closed',
-                        :closed_by_user_id,
-                        NOW(),
-                        NOW()
-                    )
-                    ON CONFLICT (
-                        tenant_id,
-                        branch_id,
-                        shift,
-                        window_start,
-                        window_end,
-                        channel
-                    )
-                    DO UPDATE SET
-                        opening_amount = EXCLUDED.opening_amount,
-                        income_amount = EXCLUDED.income_amount,
-                        expense_amount = EXCLUDED.expense_amount,
-                        cash_in_amount = EXCLUDED.cash_in_amount,
-                        cash_out_amount = EXCLUDED.cash_out_amount,
-                        expected_closing_amount = EXCLUDED.expected_closing_amount,
-                        actual_closing_amount = EXCLUDED.actual_closing_amount,
-                        variance_amount = EXCLUDED.variance_amount,
-                        note = EXCLUDED.note,
-                        status = 'closed',
-                        closed_by_user_id = EXCLUDED.closed_by_user_id,
-                        closed_at = NOW(),
-                        updated_at = NOW()
-                    """
-                ),
-                {
-                    "tenant_id": ctx["tenant_id"],
-                    "branch_id": ctx["branch_id"],
-                    "shift": payload.shift,
-                    "window_start": start_dt,
-                    "window_end": end_dt,
-                    "channel": channel,
-                    "opening_amount": clean["opening"],
-                    "income_amount": clean["income"],
-                    "expense_amount": clean["expense"],
-                    "cash_in_amount": clean["cashIn"],
-                    "cash_out_amount": clean["cashOut"],
-                    "expected_closing_amount": clean["expected"],
-                    "actual_closing_amount": clean["actual"],
-                    "variance_amount": clean["variance"],
-                    "note": clean["note"],
-                    "closed_by_user_id": user_id,
-                },
-            )
-
-            saved_rows.append(clean)
-
-        db.commit()
-
-    except Exception as exc:
-        db.rollback()
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to close reconciliation: {exc}",
-        )
-
-    return {
-        "ok": True,
-        "status": "closed",
-        "shift": payload.shift,
-        "window_start": _iso_utc(start_dt),
-        "window_end": _iso_utc(end_dt),
-        "window_start_business": _iso_business(start_dt),
-        "window_end_business": _iso_business(end_dt),
-        "business_timezone": BUSINESS_TIMEZONE_NAME,
-        "rows": saved_rows,
-    }
+    return AccountingController.close_reconciliation(
+        request=request,
+        db=db,
+        payload=payload.model_dump(),
+    )
