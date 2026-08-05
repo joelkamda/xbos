@@ -563,10 +563,11 @@ class AccountingReportsService:
                 row["status"] = persisted.status or "closed"
             else:
                 row["opening"] = _f(previous_closing.get(channel, 0))
-                row["actual"] = row.get("expected", 0)
                 row["note"] = row.get("note") or ""
                 row["status"] = "draft"
 
+            # Recompute after applying the carried opening. The earlier expected
+            # value was calculated with opening=0 and represented only net movement.
             row = _recompute_recon_row(row)
 
             if channel in CONTROL_RECON_CHANNELS:
@@ -594,6 +595,9 @@ class AccountingReportsService:
                 row["legacy_actual_normalized"] = bool(resolved["legacy_normalized"])
                 row["meta"] = persisted.meta or {}
             else:
+                # New/unsaved windows start balanced after carry-forward.
+                row["actual"] = row["expected"]
+                row["variance"] = 0.0
                 row["is_control_account"] = False
                 row["actual_source"] = "expected_closing"
                 row["legacy_actual_normalized"] = False
