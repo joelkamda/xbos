@@ -1,0 +1,51 @@
+{
+  "contract": "xbos.persistence.m14.canonical_migration_authority",
+  "version": 1,
+  "status": "activation_candidate",
+  "active_configuration": "alembic.ini",
+  "active_script_location": "%(here)s/alembic_neutral",
+  "canonical_head": "m13_financial_foundation_002",
+  "source_state_revision": "m13_source_state_001",
+  "recognized_source_authority_revision": "5c706797029a",
+  "connection_authority": {
+    "ini_value": "driver://unused",
+    "runtime_source": "core.persistence.database_config via database.DATABASE_URL",
+    "credentials_allowed_in_alembic_ini": false
+  },
+  "activation_scope": {
+    "host": "local_only",
+    "database": "xbos_track_b_dev",
+    "requires_exact_database_confirmation": true,
+    "requires_exact_source_revision_confirmation": true,
+    "requires_exact_source_table_inventory": true,
+    "production_activation": false,
+    "parity_activation": false,
+    "canonical_event_writes": false,
+    "event_catalog_seed": false,
+    "historical_transformation": false,
+    "application_writer_cutover": false
+  },
+  "authority_disposition": {
+    "alembic_neutral": "sole_active_lineage",
+    "alembic": "inactive_source_history_evidence",
+    "alembic_reconstruction": "inactive_reconstruction_evidence",
+    "alembic_neutral.ini": "rehearsal_alias_for_same_lineage"
+  },
+  "adoption_sequence": [
+    "verify local host and exact database name",
+    "verify exact source authority revision",
+    "verify exact source-state table inventory",
+    "verify canonical foundation is absent",
+    "stamp canonical source-state revision",
+    "upgrade to canonical head",
+    "verify all foundation tables exist and remain empty",
+    "verify canonical head"
+  ],
+  "rollback_before_use": {
+    "allowed": true,
+    "requires_canonical_head": true,
+    "requires_every_foundation_table_empty": true,
+    "action": "downgrade foundation then restore source authority stamp"
+  },
+  "post_use_correction": "forward_only"
+}
