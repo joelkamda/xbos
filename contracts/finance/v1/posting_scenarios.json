@@ -1,0 +1,620 @@
+{
+  "catalog_code": "XBOS_CANONICAL_FINANCIAL_POSTING_SCENARIOS",
+  "catalog_version": 1,
+  "contract_revision": 1,
+  "status": "approved",
+  "approved_at": "2026-08-06T00:00:00Z",
+  "balance_sign_convention": "debit_positive_credit_negative",
+  "workflow_state_vocabulary": {
+    "payment_condition": ["satisfied", "not_satisfied", "not_applicable"],
+    "commercial_confirmation": ["confirmed", "not_confirmed", "not_applicable"],
+    "fulfillment_request": ["requested", "not_requested", "not_applicable"]
+  },
+  "scenarios": [
+    {
+      "scenario_code": "FULLY_PAID_SALE",
+      "description": "A commercial transaction is recognized, fully settled and fully allocated.",
+      "currency_code": "XAF",
+      "opening_account_balances": {
+        "accounts_receivable": "0",
+        "classified_revenue": "0",
+        "cash_on_hand": "0",
+        "unapplied_receipts": "0"
+      },
+      "account_role_bindings": {
+        "trade_or_contract_receivable": "accounts_receivable",
+        "trade_receivable": "accounts_receivable",
+        "classified_revenue": "classified_revenue",
+        "cash_bank_or_provider_asset": "cash_on_hand",
+        "unapplied_receipts_clearing": "unapplied_receipts"
+      },
+      "events": [
+        {
+          "sequence": 1,
+          "event_type_code": "COMMERCIAL_REVENUE_RECOGNIZED",
+          "source_record_kind": "commercial_transaction",
+          "economic_role": "recognition",
+          "amount": "10000",
+          "posting_profile_code": "commercial_recognition",
+          "journal_lines": [
+            {"side": "debit", "account_role": "trade_or_contract_receivable", "amount": "10000"},
+            {"side": "credit", "account_role": "classified_revenue", "amount": "10000"}
+          ]
+        },
+        {
+          "sequence": 2,
+          "event_type_code": "PAYMENT_SETTLED",
+          "source_record_kind": "payment_settlement",
+          "economic_role": "settlement_in",
+          "amount": "10000",
+          "posting_profile_code": "inbound_settlement",
+          "journal_lines": [
+            {"side": "debit", "account_role": "cash_bank_or_provider_asset", "amount": "10000"},
+            {"side": "credit", "account_role": "unapplied_receipts_clearing", "amount": "10000"}
+          ]
+        },
+        {
+          "sequence": 3,
+          "event_type_code": "PAYMENT_ALLOCATED",
+          "source_record_kind": "payment_allocation",
+          "economic_role": "allocation",
+          "amount": "10000",
+          "posting_profile_code": "receivable_allocation",
+          "journal_lines": [
+            {"side": "debit", "account_role": "unapplied_receipts_clearing", "amount": "10000"},
+            {"side": "credit", "account_role": "trade_receivable", "amount": "10000"}
+          ]
+        }
+      ],
+      "expected_ending_account_balances": {
+        "accounts_receivable": "0",
+        "classified_revenue": "-10000",
+        "cash_on_hand": "10000",
+        "unapplied_receipts": "0"
+      },
+      "expected_workflow": {
+        "payment_condition": "satisfied",
+        "commercial_confirmation": "confirmed",
+        "fulfillment_request": "requested"
+      }
+    },
+    {
+      "scenario_code": "PARTIAL_PAYMENT_RECEIVABLE",
+      "description": "A partially paid commercial transaction leaves an open receivable and does not pass a full-payment confirmation policy.",
+      "currency_code": "XAF",
+      "opening_account_balances": {
+        "accounts_receivable": "0",
+        "classified_revenue": "0",
+        "cash_on_hand": "0",
+        "unapplied_receipts": "0"
+      },
+      "account_role_bindings": {
+        "trade_or_contract_receivable": "accounts_receivable",
+        "trade_receivable": "accounts_receivable",
+        "classified_revenue": "classified_revenue",
+        "cash_bank_or_provider_asset": "cash_on_hand",
+        "unapplied_receipts_clearing": "unapplied_receipts"
+      },
+      "events": [
+        {
+          "sequence": 1,
+          "event_type_code": "COMMERCIAL_REVENUE_RECOGNIZED",
+          "source_record_kind": "commercial_transaction",
+          "economic_role": "recognition",
+          "amount": "10000",
+          "posting_profile_code": "commercial_recognition",
+          "journal_lines": [
+            {"side": "debit", "account_role": "trade_or_contract_receivable", "amount": "10000"},
+            {"side": "credit", "account_role": "classified_revenue", "amount": "10000"}
+          ]
+        },
+        {
+          "sequence": 2,
+          "event_type_code": "PAYMENT_SETTLED",
+          "source_record_kind": "payment_settlement",
+          "economic_role": "settlement_in",
+          "amount": "4000",
+          "posting_profile_code": "inbound_settlement",
+          "journal_lines": [
+            {"side": "debit", "account_role": "cash_bank_or_provider_asset", "amount": "4000"},
+            {"side": "credit", "account_role": "unapplied_receipts_clearing", "amount": "4000"}
+          ]
+        },
+        {
+          "sequence": 3,
+          "event_type_code": "PAYMENT_ALLOCATED",
+          "source_record_kind": "payment_allocation",
+          "economic_role": "allocation",
+          "amount": "4000",
+          "posting_profile_code": "receivable_allocation",
+          "journal_lines": [
+            {"side": "debit", "account_role": "unapplied_receipts_clearing", "amount": "4000"},
+            {"side": "credit", "account_role": "trade_receivable", "amount": "4000"}
+          ]
+        },
+        {
+          "sequence": 4,
+          "event_type_code": "OBLIGATION_OPENED",
+          "source_record_kind": "financial_obligation",
+          "economic_role": "control",
+          "amount": "6000",
+          "posting_profile_code": null,
+          "journal_lines": []
+        }
+      ],
+      "expected_ending_account_balances": {
+        "accounts_receivable": "6000",
+        "classified_revenue": "-10000",
+        "cash_on_hand": "4000",
+        "unapplied_receipts": "0"
+      },
+      "expected_workflow": {
+        "payment_condition": "not_satisfied",
+        "commercial_confirmation": "not_confirmed",
+        "fulfillment_request": "not_requested"
+      }
+    },
+    {
+      "scenario_code": "AR_REPAYMENT",
+      "description": "A later receivable repayment creates one inbound settlement and one allocation without recognizing revenue again.",
+      "currency_code": "XAF",
+      "opening_account_balances": {
+        "accounts_receivable": "6000",
+        "cash_on_hand": "0",
+        "unapplied_receipts": "0"
+      },
+      "account_role_bindings": {
+        "trade_receivable": "accounts_receivable",
+        "cash_bank_or_provider_asset": "cash_on_hand",
+        "unapplied_receipts_clearing": "unapplied_receipts"
+      },
+      "events": [
+        {
+          "sequence": 1,
+          "event_type_code": "PAYMENT_SETTLED",
+          "source_record_kind": "payment_settlement",
+          "economic_role": "settlement_in",
+          "amount": "6000",
+          "posting_profile_code": "inbound_settlement",
+          "journal_lines": [
+            {"side": "debit", "account_role": "cash_bank_or_provider_asset", "amount": "6000"},
+            {"side": "credit", "account_role": "unapplied_receipts_clearing", "amount": "6000"}
+          ]
+        },
+        {
+          "sequence": 2,
+          "event_type_code": "PAYMENT_ALLOCATED",
+          "source_record_kind": "payment_allocation",
+          "economic_role": "allocation",
+          "amount": "6000",
+          "posting_profile_code": "receivable_allocation",
+          "journal_lines": [
+            {"side": "debit", "account_role": "unapplied_receipts_clearing", "amount": "6000"},
+            {"side": "credit", "account_role": "trade_receivable", "amount": "6000"}
+          ]
+        }
+      ],
+      "expected_ending_account_balances": {
+        "accounts_receivable": "0",
+        "cash_on_hand": "6000",
+        "unapplied_receipts": "0"
+      },
+      "expected_workflow": {
+        "payment_condition": "satisfied",
+        "commercial_confirmation": "not_applicable",
+        "fulfillment_request": "not_applicable"
+      }
+    },
+    {
+      "scenario_code": "FULLY_COMPLIMENTARY_TRANSACTION",
+      "description": "A fully complimentary transaction clears the receivable through promotional expense without pretending that cash was collected.",
+      "currency_code": "XAF",
+      "opening_account_balances": {
+        "accounts_receivable": "0",
+        "classified_revenue": "0",
+        "marketing_expense": "0"
+      },
+      "account_role_bindings": {
+        "trade_or_contract_receivable": "accounts_receivable",
+        "classified_revenue": "classified_revenue",
+        "marketing_or_promotional_expense": "marketing_expense"
+      },
+      "events": [
+        {
+          "sequence": 1,
+          "event_type_code": "COMMERCIAL_REVENUE_RECOGNIZED",
+          "source_record_kind": "commercial_transaction",
+          "economic_role": "recognition",
+          "amount": "10000",
+          "posting_profile_code": "commercial_recognition",
+          "journal_lines": [
+            {"side": "debit", "account_role": "trade_or_contract_receivable", "amount": "10000"},
+            {"side": "credit", "account_role": "classified_revenue", "amount": "10000"}
+          ]
+        },
+        {
+          "sequence": 2,
+          "event_type_code": "COMPLIMENTARY_GRANTED",
+          "source_record_kind": "commercial_adjustment",
+          "economic_role": "recognition",
+          "amount": "10000",
+          "posting_profile_code": "complimentary_promotion",
+          "journal_lines": [
+            {"side": "debit", "account_role": "marketing_or_promotional_expense", "amount": "10000"},
+            {"side": "credit", "account_role": "trade_or_contract_receivable", "amount": "10000"}
+          ]
+        }
+      ],
+      "expected_ending_account_balances": {
+        "accounts_receivable": "0",
+        "classified_revenue": "-10000",
+        "marketing_expense": "10000"
+      },
+      "expected_workflow": {
+        "payment_condition": "satisfied",
+        "commercial_confirmation": "confirmed",
+        "fulfillment_request": "requested"
+      }
+    },
+    {
+      "scenario_code": "OVERPAYMENT_CUSTOMER_CREDIT",
+      "description": "A payment exceeding the receivable is allocated only to the obligation and the excess becomes a customer-credit liability.",
+      "currency_code": "XAF",
+      "opening_account_balances": {
+        "accounts_receivable": "0",
+        "classified_revenue": "0",
+        "cash_on_hand": "0",
+        "unapplied_receipts": "0",
+        "customer_credit_liability": "0"
+      },
+      "account_role_bindings": {
+        "trade_or_contract_receivable": "accounts_receivable",
+        "trade_receivable": "accounts_receivable",
+        "classified_revenue": "classified_revenue",
+        "cash_bank_or_provider_asset": "cash_on_hand",
+        "unapplied_receipts_clearing": "unapplied_receipts",
+        "customer_credit_liability": "customer_credit_liability"
+      },
+      "events": [
+        {
+          "sequence": 1,
+          "event_type_code": "COMMERCIAL_REVENUE_RECOGNIZED",
+          "source_record_kind": "commercial_transaction",
+          "economic_role": "recognition",
+          "amount": "10000",
+          "posting_profile_code": "commercial_recognition",
+          "journal_lines": [
+            {"side": "debit", "account_role": "trade_or_contract_receivable", "amount": "10000"},
+            {"side": "credit", "account_role": "classified_revenue", "amount": "10000"}
+          ]
+        },
+        {
+          "sequence": 2,
+          "event_type_code": "PAYMENT_SETTLED",
+          "source_record_kind": "payment_settlement",
+          "economic_role": "settlement_in",
+          "amount": "12000",
+          "posting_profile_code": "inbound_settlement",
+          "journal_lines": [
+            {"side": "debit", "account_role": "cash_bank_or_provider_asset", "amount": "12000"},
+            {"side": "credit", "account_role": "unapplied_receipts_clearing", "amount": "12000"}
+          ]
+        },
+        {
+          "sequence": 3,
+          "event_type_code": "PAYMENT_ALLOCATED",
+          "source_record_kind": "payment_allocation",
+          "economic_role": "allocation",
+          "amount": "10000",
+          "posting_profile_code": "receivable_allocation",
+          "journal_lines": [
+            {"side": "debit", "account_role": "unapplied_receipts_clearing", "amount": "10000"},
+            {"side": "credit", "account_role": "trade_receivable", "amount": "10000"}
+          ]
+        },
+        {
+          "sequence": 4,
+          "event_type_code": "CUSTOMER_CREDIT_RECOGNIZED",
+          "source_record_kind": "customer_credit_recognition",
+          "economic_role": "liability_recognition",
+          "amount": "2000",
+          "posting_profile_code": "customer_credit_liability",
+          "journal_lines": [
+            {"side": "debit", "account_role": "unapplied_receipts_clearing", "amount": "2000"},
+            {"side": "credit", "account_role": "customer_credit_liability", "amount": "2000"}
+          ]
+        }
+      ],
+      "expected_ending_account_balances": {
+        "accounts_receivable": "0",
+        "classified_revenue": "-10000",
+        "cash_on_hand": "12000",
+        "unapplied_receipts": "0",
+        "customer_credit_liability": "-2000"
+      },
+      "expected_workflow": {
+        "payment_condition": "satisfied",
+        "commercial_confirmation": "confirmed",
+        "fulfillment_request": "requested"
+      }
+    },
+    {
+      "scenario_code": "PARTIAL_REFUND",
+      "description": "A partial return reverses commercial value, deallocates the matching payment and settles one outbound refund.",
+      "currency_code": "XAF",
+      "opening_account_balances": {
+        "accounts_receivable": "0",
+        "classified_revenue": "0",
+        "cash_on_hand": "0",
+        "unapplied_receipts": "0",
+        "sales_returns": "0"
+      },
+      "account_role_bindings": {
+        "trade_or_contract_receivable": "accounts_receivable",
+        "trade_receivable": "accounts_receivable",
+        "classified_revenue": "classified_revenue",
+        "cash_bank_or_provider_asset": "cash_on_hand",
+        "unapplied_receipts_clearing": "unapplied_receipts",
+        "refund_payable_or_unapplied_receipts": "unapplied_receipts",
+        "sales_returns_and_allowances": "sales_returns"
+      },
+      "events": [
+        {
+          "sequence": 1,
+          "event_type_code": "COMMERCIAL_REVENUE_RECOGNIZED",
+          "source_record_kind": "commercial_transaction",
+          "economic_role": "recognition",
+          "amount": "10000",
+          "posting_profile_code": "commercial_recognition",
+          "journal_lines": [
+            {"side": "debit", "account_role": "trade_or_contract_receivable", "amount": "10000"},
+            {"side": "credit", "account_role": "classified_revenue", "amount": "10000"}
+          ]
+        },
+        {
+          "sequence": 2,
+          "event_type_code": "PAYMENT_SETTLED",
+          "source_record_kind": "payment_settlement",
+          "economic_role": "settlement_in",
+          "amount": "10000",
+          "posting_profile_code": "inbound_settlement",
+          "journal_lines": [
+            {"side": "debit", "account_role": "cash_bank_or_provider_asset", "amount": "10000"},
+            {"side": "credit", "account_role": "unapplied_receipts_clearing", "amount": "10000"}
+          ]
+        },
+        {
+          "sequence": 3,
+          "event_type_code": "PAYMENT_ALLOCATED",
+          "source_record_kind": "payment_allocation",
+          "economic_role": "allocation",
+          "amount": "10000",
+          "posting_profile_code": "receivable_allocation",
+          "journal_lines": [
+            {"side": "debit", "account_role": "unapplied_receipts_clearing", "amount": "10000"},
+            {"side": "credit", "account_role": "trade_receivable", "amount": "10000"}
+          ]
+        },
+        {
+          "sequence": 4,
+          "event_type_code": "COMMERCIAL_RETURN_RECOGNIZED",
+          "source_record_kind": "commercial_adjustment",
+          "economic_role": "correction",
+          "amount": "4000",
+          "posting_profile_code": "commercial_return",
+          "reverses_sequence": 1,
+          "journal_lines": [
+            {"side": "debit", "account_role": "sales_returns_and_allowances", "amount": "4000"},
+            {"side": "credit", "account_role": "trade_or_contract_receivable", "amount": "4000"}
+          ]
+        },
+        {
+          "sequence": 5,
+          "event_type_code": "PAYMENT_ALLOCATION_REVERSED",
+          "source_record_kind": "payment_allocation_reversal",
+          "economic_role": "deallocation",
+          "amount": "4000",
+          "posting_profile_code": "inverse_original_allocation",
+          "reverses_sequence": 3,
+          "journal_lines": [
+            {"side": "debit", "account_role": "trade_receivable", "amount": "4000"},
+            {"side": "credit", "account_role": "unapplied_receipts_clearing", "amount": "4000"}
+          ]
+        },
+        {
+          "sequence": 6,
+          "event_type_code": "REFUND_SETTLED",
+          "source_record_kind": "payment_refund",
+          "economic_role": "settlement_out",
+          "amount": "4000",
+          "posting_profile_code": "customer_refund",
+          "journal_lines": [
+            {"side": "debit", "account_role": "refund_payable_or_unapplied_receipts", "amount": "4000"},
+            {"side": "credit", "account_role": "cash_bank_or_provider_asset", "amount": "4000"}
+          ]
+        }
+      ],
+      "expected_ending_account_balances": {
+        "accounts_receivable": "0",
+        "classified_revenue": "-10000",
+        "cash_on_hand": "6000",
+        "unapplied_receipts": "0",
+        "sales_returns": "4000"
+      },
+      "expected_workflow": {
+        "payment_condition": "satisfied",
+        "commercial_confirmation": "confirmed",
+        "fulfillment_request": "not_applicable"
+      }
+    },
+    {
+      "scenario_code": "OPERATIONAL_VALUE_TRANSFER",
+      "description": "Value moves between two operational asset accounts without creating income or expense.",
+      "currency_code": "XAF",
+      "opening_account_balances": {
+        "cash_drawer": "20000",
+        "bank_account": "0"
+      },
+      "account_role_bindings": {
+        "source_operational_asset": "cash_drawer",
+        "target_operational_asset": "bank_account"
+      },
+      "events": [
+        {
+          "sequence": 1,
+          "event_type_code": "VALUE_TRANSFERRED",
+          "source_record_kind": "value_transfer",
+          "economic_role": "transfer",
+          "amount": "5000",
+          "posting_profile_code": "operational_value_transfer",
+          "journal_lines": [
+            {"side": "debit", "account_role": "target_operational_asset", "amount": "5000"},
+            {"side": "credit", "account_role": "source_operational_asset", "amount": "5000"}
+          ]
+        }
+      ],
+      "expected_ending_account_balances": {
+        "cash_drawer": "15000",
+        "bank_account": "5000"
+      },
+      "expected_workflow": {
+        "payment_condition": "not_applicable",
+        "commercial_confirmation": "not_applicable",
+        "fulfillment_request": "not_applicable"
+      }
+    },
+    {
+      "scenario_code": "XAFPAY_EXTERNAL_ORDER_PAYMENT",
+      "description": "A WhatsApp-originated order paid through an MTN rail orchestrated by XafPay is confirmed only after canonical final settlement and allocation.",
+      "currency_code": "XAF",
+      "opening_account_balances": {
+        "accounts_receivable": "0",
+        "classified_revenue": "0",
+        "xafpay_clearing": "0",
+        "unapplied_receipts": "0"
+      },
+      "account_role_bindings": {
+        "trade_or_contract_receivable": "accounts_receivable",
+        "trade_receivable": "accounts_receivable",
+        "classified_revenue": "classified_revenue",
+        "cash_bank_or_provider_asset": "xafpay_clearing",
+        "unapplied_receipts_clearing": "unapplied_receipts"
+      },
+      "integration_context": {
+        "order_origin": "whatsapp_commerce_adapter",
+        "payment_method": "mobile_money",
+        "payment_rail": "mtn_mobile_money",
+        "payment_orchestrator": "xafpay",
+        "provider_account_public_id": "provider-account-xafpay-wnd",
+        "operational_account_public_id": "operational-account-xafpay-clearing-wnd",
+        "gateway_intent_reference": "xafpay-intent-example-001",
+        "provider_event_reference": "xafpay-event-example-001",
+        "provider_evidence_authenticated": true,
+        "finality_status": "final",
+        "raw_provider_success_used_as_confirmation_trigger": false,
+        "fulfillment_delivery": "transactional_outbox"
+      },
+      "events": [
+        {
+          "sequence": 1,
+          "event_type_code": "COMMERCIAL_REVENUE_RECOGNIZED",
+          "source_record_kind": "commercial_transaction",
+          "economic_role": "recognition",
+          "amount": "15000",
+          "posting_profile_code": "commercial_recognition",
+          "journal_lines": [
+            {"side": "debit", "account_role": "trade_or_contract_receivable", "amount": "15000"},
+            {"side": "credit", "account_role": "classified_revenue", "amount": "15000"}
+          ]
+        },
+        {
+          "sequence": 2,
+          "event_type_code": "PAYMENT_SETTLED",
+          "source_record_kind": "payment_settlement",
+          "economic_role": "settlement_in",
+          "amount": "15000",
+          "posting_profile_code": "inbound_settlement",
+          "journal_lines": [
+            {"side": "debit", "account_role": "cash_bank_or_provider_asset", "amount": "15000"},
+            {"side": "credit", "account_role": "unapplied_receipts_clearing", "amount": "15000"}
+          ]
+        },
+        {
+          "sequence": 3,
+          "event_type_code": "PAYMENT_ALLOCATED",
+          "source_record_kind": "payment_allocation",
+          "economic_role": "allocation",
+          "amount": "15000",
+          "posting_profile_code": "receivable_allocation",
+          "journal_lines": [
+            {"side": "debit", "account_role": "unapplied_receipts_clearing", "amount": "15000"},
+            {"side": "credit", "account_role": "trade_receivable", "amount": "15000"}
+          ]
+        }
+      ],
+      "expected_ending_account_balances": {
+        "accounts_receivable": "0",
+        "classified_revenue": "-15000",
+        "xafpay_clearing": "15000",
+        "unapplied_receipts": "0"
+      },
+      "expected_workflow": {
+        "payment_condition": "satisfied",
+        "commercial_confirmation": "confirmed",
+        "fulfillment_request": "requested"
+      }
+    },
+    {
+      "scenario_code": "PROVIDER_FEE_AND_RESERVE_ADJUSTMENT",
+      "description": "Provider fees and reserve holds reduce available provider settlement value without changing the underlying customer payment.",
+      "currency_code": "XAF",
+      "opening_account_balances": {
+        "xafpay_clearing": "15000",
+        "provider_fee_expense": "0",
+        "provider_reserve": "0"
+      },
+      "account_role_bindings": {
+        "provider_fee_expense": "provider_fee_expense",
+        "provider_settlement_receivable_or_payable": "xafpay_clearing",
+        "provider_settlement_receivable": "xafpay_clearing",
+        "provider_reserve_asset": "provider_reserve"
+      },
+      "events": [
+        {
+          "sequence": 1,
+          "event_type_code": "PROVIDER_FEE_RECOGNIZED",
+          "source_record_kind": "provider_fee",
+          "economic_role": "recognition",
+          "amount": "300",
+          "posting_profile_code": "provider_fee",
+          "journal_lines": [
+            {"side": "debit", "account_role": "provider_fee_expense", "amount": "300"},
+            {"side": "credit", "account_role": "provider_settlement_receivable_or_payable", "amount": "300"}
+          ]
+        },
+        {
+          "sequence": 2,
+          "event_type_code": "PROVIDER_SETTLEMENT_ADJUSTED",
+          "source_record_kind": "provider_settlement_adjustment",
+          "economic_role": "correction",
+          "amount": "500",
+          "posting_profile_code": "provider_reserve_hold",
+          "journal_lines": [
+            {"side": "debit", "account_role": "provider_reserve_asset", "amount": "500"},
+            {"side": "credit", "account_role": "provider_settlement_receivable", "amount": "500"}
+          ]
+        }
+      ],
+      "expected_ending_account_balances": {
+        "xafpay_clearing": "14200",
+        "provider_fee_expense": "300",
+        "provider_reserve": "500"
+      },
+      "expected_workflow": {
+        "payment_condition": "not_applicable",
+        "commercial_confirmation": "not_applicable",
+        "fulfillment_request": "not_applicable"
+      }
+    }
+  ]
+}

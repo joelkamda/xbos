@@ -1,0 +1,249 @@
+{
+  "catalog_code": "XBOS_CANONICAL_ACCOUNT_ROLES",
+  "catalog_version": 1,
+  "contract_revision": 1,
+  "status": "approved",
+  "approved_at": "2026-08-06T00:00:00Z",
+  "account_roles": [
+    {
+      "account_role": "trade_or_contract_receivable",
+      "display_name": "Trade or Contract Receivable",
+      "allowed_account_types": ["asset"],
+      "allowed_normal_balances": ["debit"],
+      "operational_account_link": "forbidden",
+      "description": "Receivable role used when commercial recognition may create either a trade or contract receivable."
+    },
+    {
+      "account_role": "trade_receivable",
+      "display_name": "Trade Receivable",
+      "allowed_account_types": ["asset"],
+      "allowed_normal_balances": ["debit"],
+      "operational_account_link": "forbidden",
+      "description": "Receivable role cleared by payment allocation or written off by authorized adjustment."
+    },
+    {
+      "account_role": "classified_revenue",
+      "display_name": "Classified Revenue",
+      "allowed_account_types": ["income"],
+      "allowed_normal_balances": ["credit"],
+      "operational_account_link": "forbidden",
+      "description": "Revenue account selected by tenant, taxonomy, country and industry-pack classification."
+    },
+    {
+      "account_role": "tax_payable",
+      "display_name": "Tax Payable",
+      "allowed_account_types": ["liability"],
+      "allowed_normal_balances": ["credit"],
+      "operational_account_link": "forbidden",
+      "description": "Output-tax liability resolved by tax jurisdiction and tax code."
+    },
+    {
+      "account_role": "sales_discount_contra_revenue",
+      "display_name": "Sales Discount Contra-Revenue",
+      "allowed_account_types": ["contra"],
+      "allowed_normal_balances": ["debit"],
+      "operational_account_link": "forbidden",
+      "description": "Contra-revenue role for authorized customer discounts."
+    },
+    {
+      "account_role": "complimentary_contra_revenue",
+      "display_name": "Complimentary Contra-Revenue",
+      "allowed_account_types": ["contra"],
+      "allowed_normal_balances": ["debit"],
+      "operational_account_link": "forbidden",
+      "description": "Contra-revenue role for complimentary consideration under that tenant policy."
+    },
+    {
+      "account_role": "marketing_or_promotional_expense",
+      "display_name": "Marketing or Promotional Expense",
+      "allowed_account_types": ["expense"],
+      "allowed_normal_balances": ["debit"],
+      "operational_account_link": "forbidden",
+      "description": "Expense role for complimentary value classified as marketing or promotion."
+    },
+    {
+      "account_role": "service_recovery_expense",
+      "display_name": "Service Recovery Expense",
+      "allowed_account_types": ["expense"],
+      "allowed_normal_balances": ["debit"],
+      "operational_account_link": "forbidden",
+      "description": "Expense role for consideration waived as an authorized service recovery."
+    },
+    {
+      "account_role": "tip_payable",
+      "display_name": "Tip Payable",
+      "allowed_account_types": ["liability"],
+      "allowed_normal_balances": ["credit"],
+      "operational_account_link": "forbidden",
+      "description": "Liability role when tips belong to staff or another beneficiary."
+    },
+    {
+      "account_role": "tip_or_service_charge_income",
+      "display_name": "Tip or Service Charge Income",
+      "allowed_account_types": ["income"],
+      "allowed_normal_balances": ["credit"],
+      "operational_account_link": "forbidden",
+      "description": "Income role when tenant and legal policy classify the charge as tenant income."
+    },
+    {
+      "account_role": "sales_returns_and_allowances",
+      "display_name": "Sales Returns and Allowances",
+      "allowed_account_types": ["contra"],
+      "allowed_normal_balances": ["debit"],
+      "operational_account_link": "forbidden",
+      "description": "Contra-revenue role for approved returns, cancellations and price corrections."
+    },
+    {
+      "account_role": "cost_of_goods_or_fulfillment",
+      "display_name": "Cost of Goods or Fulfillment",
+      "allowed_account_types": ["expense"],
+      "allowed_normal_balances": ["debit"],
+      "operational_account_link": "forbidden",
+      "description": "Direct cost role selected from fulfillment and inventory classification."
+    },
+    {
+      "account_role": "inventory_or_deferred_cost_asset",
+      "display_name": "Inventory or Deferred Cost Asset",
+      "allowed_account_types": ["asset"],
+      "allowed_normal_balances": ["debit"],
+      "operational_account_link": "forbidden",
+      "description": "Asset role relieved when fulfillment cost is recognized."
+    },
+    {
+      "account_role": "classified_expense",
+      "display_name": "Classified Expense",
+      "allowed_account_types": ["expense"],
+      "allowed_normal_balances": ["debit"],
+      "operational_account_link": "forbidden",
+      "description": "Operational expense account selected through classification."
+    },
+    {
+      "account_role": "trade_or_accrued_payable",
+      "display_name": "Trade or Accrued Payable",
+      "allowed_account_types": ["liability"],
+      "allowed_normal_balances": ["credit"],
+      "operational_account_link": "forbidden",
+      "description": "Payable role created by expense recognition before settlement."
+    },
+    {
+      "account_role": "trade_payable",
+      "display_name": "Trade Payable",
+      "allowed_account_types": ["liability"],
+      "allowed_normal_balances": ["credit"],
+      "operational_account_link": "forbidden",
+      "description": "Payable role cleared by allocation of outbound settled value."
+    },
+    {
+      "account_role": "writeoff_expense_or_allowance_reserve",
+      "display_name": "Write-Off Expense or Allowance Reserve",
+      "allowed_account_types": ["expense", "contra"],
+      "allowed_normal_balances": ["debit", "credit"],
+      "operational_account_link": "forbidden",
+      "description": "Policy-resolved role used to remove an authorized uncollectible receivable."
+    },
+    {
+      "account_role": "payable_forgiveness_gain_or_adjustment",
+      "display_name": "Payable Forgiveness Gain or Adjustment",
+      "allowed_account_types": ["income", "equity"],
+      "allowed_normal_balances": ["credit"],
+      "operational_account_link": "forbidden",
+      "description": "Policy-resolved role for an authorized payable forgiveness."
+    },
+    {
+      "account_role": "cash_bank_or_provider_asset",
+      "display_name": "Cash, Bank or Provider Settlement Asset",
+      "allowed_account_types": ["asset"],
+      "allowed_normal_balances": ["debit"],
+      "operational_account_link": "required",
+      "description": "Operational asset receiving or disbursing settled value."
+    },
+    {
+      "account_role": "unapplied_receipts_clearing",
+      "display_name": "Unapplied Receipts Clearing",
+      "allowed_account_types": ["liability"],
+      "allowed_normal_balances": ["credit"],
+      "operational_account_link": "forbidden",
+      "description": "Clearing role holding inbound settled value until allocation or credit recognition."
+    },
+    {
+      "account_role": "disbursement_clearing",
+      "display_name": "Disbursement Clearing",
+      "allowed_account_types": ["asset"],
+      "allowed_normal_balances": ["debit"],
+      "operational_account_link": "forbidden",
+      "description": "Clearing role linking outbound settlement to payable allocation."
+    },
+    {
+      "account_role": "customer_credit_liability",
+      "display_name": "Customer Credit Liability",
+      "allowed_account_types": ["liability"],
+      "allowed_normal_balances": ["credit"],
+      "operational_account_link": "forbidden",
+      "description": "Liability role for reusable settled value owed to a customer."
+    },
+    {
+      "account_role": "refund_payable_or_unapplied_receipts",
+      "display_name": "Refund Payable or Unapplied Receipts",
+      "allowed_account_types": ["liability"],
+      "allowed_normal_balances": ["credit"],
+      "operational_account_link": "forbidden",
+      "description": "Policy-resolved liability or clearing role consumed by an outbound refund."
+    },
+    {
+      "account_role": "target_operational_asset",
+      "display_name": "Target Operational Asset",
+      "allowed_account_types": ["asset"],
+      "allowed_normal_balances": ["debit"],
+      "operational_account_link": "required",
+      "description": "Target financial account receiving an internal value transfer."
+    },
+    {
+      "account_role": "source_operational_asset",
+      "display_name": "Source Operational Asset",
+      "allowed_account_types": ["asset"],
+      "allowed_normal_balances": ["debit"],
+      "operational_account_link": "required",
+      "description": "Source financial account funding an internal value transfer."
+    },
+    {
+      "account_role": "provider_fee_expense",
+      "display_name": "Provider Fee Expense",
+      "allowed_account_types": ["expense"],
+      "allowed_normal_balances": ["debit"],
+      "operational_account_link": "forbidden",
+      "description": "Expense role for a fee charged or withheld by a payment provider."
+    },
+    {
+      "account_role": "provider_settlement_receivable_or_payable",
+      "display_name": "Provider Settlement Receivable or Payable",
+      "allowed_account_types": ["asset", "liability"],
+      "allowed_normal_balances": ["debit", "credit"],
+      "operational_account_link": "optional",
+      "description": "Policy-resolved provider settlement balance affected by a provider fee."
+    },
+    {
+      "account_role": "provider_reserve_asset",
+      "display_name": "Provider Reserve Asset",
+      "allowed_account_types": ["asset"],
+      "allowed_normal_balances": ["debit"],
+      "operational_account_link": "optional",
+      "description": "Asset role for value held in a provider reserve."
+    },
+    {
+      "account_role": "provider_settlement_receivable",
+      "display_name": "Provider Settlement Receivable",
+      "allowed_account_types": ["asset"],
+      "allowed_normal_balances": ["debit"],
+      "operational_account_link": "optional",
+      "description": "Receivable role for gross value expected from a payment provider."
+    },
+    {
+      "account_role": "chargeback_loss_or_receivable",
+      "display_name": "Chargeback Loss or Receivable",
+      "allowed_account_types": ["asset", "expense"],
+      "allowed_normal_balances": ["debit"],
+      "operational_account_link": "forbidden",
+      "description": "Policy-resolved role for a chargeback loss or recoverable chargeback claim."
+    }
+  ]
+}
