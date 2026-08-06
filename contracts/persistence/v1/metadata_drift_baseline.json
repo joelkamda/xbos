@@ -1,0 +1,94 @@
+{
+  "baseline_code": "XBOS_M1_METADATA_DRIFT_BASELINE",
+  "baseline_version": 1,
+  "status": "approved",
+  "observed_at": "2026-08-06T00:00:00Z",
+  "source_commit": "a967b93",
+  "database_revision": "5c706797029a",
+  "database_table_count": 27,
+  "orm_table_count": 21,
+  "common_table_count": 21,
+  "orm_only_tables": [],
+  "table_classifications": {
+    "legacy_orm_tables": [
+      "accounts_receivable",
+      "accounts_receivable_repayments",
+      "atomic_unit_taxonomy",
+      "atomic_units",
+      "branches",
+      "inventory_items",
+      "inventory_movements",
+      "order_item_modifiers",
+      "order_items",
+      "orders",
+      "payment_attempts",
+      "payment_intents",
+      "payments",
+      "recon_sheets",
+      "roles",
+      "sale_items",
+      "sales",
+      "taxonomy_nodes",
+      "tenants",
+      "treasury_logs",
+      "users"
+    ],
+    "legacy_database_only_tables": [
+      "billable_unit_taxonomy",
+      "idempotency_keys"
+    ],
+    "staging_tables": [
+      "wnd_inventory_aliases",
+      "wnd_inventory_real_staging",
+      "wnd_inventory_staging"
+    ],
+    "alembic_internal_tables": [
+      "alembic_version"
+    ]
+  },
+  "comparison_notice_count": 179,
+  "comparison_notice_categories": {
+    "removed_index": 29,
+    "server_default": 27,
+    "added_index": 26,
+    "nullable": 20,
+    "column_comment": 15,
+    "type_change": 14,
+    "owned_sequence_notice": 13,
+    "removed_column": 9,
+    "removed_unique_constraint": 8,
+    "added_unique_constraint": 6,
+    "removed_table": 5,
+    "removed_foreign_key": 4,
+    "added_foreign_key": 3
+  },
+  "risk_findings": [
+    "autogenerate_would_drop_preserved_database_only_and_staging_tables",
+    "autogenerate_would_remove_live_columns_from_atomic_payment_sales_taxonomy_and_treasury_tables",
+    "autogenerate_would_replace_working_indexes_and_unique_constraints_due_to_name_and_model_drift",
+    "autogenerate_would_change_jsonb_to_json_on_financially_relevant_payloads",
+    "autogenerate_would_change_nullability_defaults_comments_types_and_foreign_keys",
+    "generated_operations_do_not_represent_the_approved_additive_canonical_slice"
+  ],
+  "policy": {
+    "autogenerate_action_for_protected_tables": "exclude",
+    "handwritten_migration_required_for_protected_tables": true,
+    "new_unprotected_tables_remain_visible": true,
+    "legacy_schema_repair_is_part_of_slice_one": false,
+    "staging_tables_are_drop_candidates": false,
+    "database_only_tables_are_drop_candidates": false,
+    "canonical_migration_style": "handwritten_additive",
+    "destructive_generated_operations_allowed": false
+  },
+  "protected_table_count": 27,
+  "expected_post_policy_alembic_check": "no_new_upgrade_operations_detected",
+  "exit_gate": [
+    "all_27_existing_public_tables_are_classified",
+    "all_21_orm_tables_are_protected_from_generated_rewrites",
+    "database_only_and_staging_tables_are_protected_from_generated_drops",
+    "new_canonical_tables_remain_visible_to_alembic",
+    "alembic_check_is_clean_at_revision_5c706797029a",
+    "no_database_object_is_mutated",
+    "all_tests_pass"
+  ]
+}

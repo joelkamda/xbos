@@ -15,6 +15,7 @@ config = context.config
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
+from core.persistence.alembic_policy import include_object
 from core.persistence.database_config import resolve_database_url
 from database import Base
 import core.models_import  # noqa: F401 -- registers every authoritative ORM model
@@ -31,6 +32,7 @@ def _shared_context_options() -> dict:
         "compare_type": True,
         "compare_server_default": True,
         "include_schemas": False,
+        "include_object": include_object,
         "transaction_per_migration": True,
     }
 
