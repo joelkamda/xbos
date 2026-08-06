@@ -1,0 +1,147 @@
+{
+  "contract_code": "XBOS_M1_PERSISTENCE_MIGRATION_AUTHORITY",
+  "contract_version": 1,
+  "contract_revision": 1,
+  "status": "approved",
+  "approved_at": "2026-08-06T00:00:00Z",
+  "source_baseline": {
+    "branch": "track-b/m1-canonical-persistence-foundation",
+    "tag": "track-b-m0-neutral-contracts-20260806",
+    "commit": "1f047a5"
+  },
+  "observed_migration_topology": {
+    "root_revision": "86322f59e0de",
+    "ordered_revisions": [
+      "86322f59e0de",
+      "fff36dab3483",
+      "577f5fc9b121",
+      "5c706797029a"
+    ],
+    "current_head": "5c706797029a",
+    "head_count": 1,
+    "branch_count": 0,
+    "transactional_ddl": true,
+    "verified_databases": [
+      "xbos",
+      "xbos_track_b_parity",
+      "xbos_track_b_test"
+    ]
+  },
+  "connection_resolution": {
+    "authority": "core.persistence.database_config.resolve_database_url",
+    "precedence": [
+      "process_DATABASE_URL",
+      "project_environment_file_DATABASE_URL",
+      "explicit_alembic_configuration_url"
+    ],
+    "postgresql_required": true,
+    "literal_credential_fallback_allowed": false,
+    "application_and_alembic_share_resolver": true
+  },
+  "metadata_authority": {
+    "object": "core.persistence.metadata.metadata",
+    "sqlalchemy_base": "database.Base",
+    "namespace": "public",
+    "naming_convention": {
+      "ix": "ix_%(table_name)s_%(column_0_N_name)s",
+      "uq": "uq_%(table_name)s_%(column_0_N_name)s",
+      "ck": "ck_%(table_name)s_%(column_0_N_name)s",
+      "fk": "fk_%(table_name)s_%(column_0_N_name)s_%(referred_table_name)s",
+      "pk": "pk_%(table_name)s"
+    },
+    "canonical_business_constraints_require_explicit_semantic_names": true,
+    "postgresql_identifier_limit_bytes": 63
+  },
+  "model_registration": {
+    "authority": "core.models_import.MODEL_MODULES",
+    "modules": [
+      "core.tenants.tenant_model",
+      "core.users.user_model",
+      "core.rbac.roles.role_model",
+      "core.domain.taxonomy.models",
+      "core.domain.orders.models",
+      "core.domain.sales.models",
+      "core.domain.payments.models",
+      "core.domain.inventory.models",
+      "core.domain.accounting.models",
+      "core.domain.accounting.accounts_receivable.models"
+    ],
+    "excluded_duplicate_modules": [
+      "core.domain.catalog.models"
+    ],
+    "duplicate_owner_decision": {
+      "inventory_items": "core.domain.inventory.models",
+      "inventory_movements": "core.domain.inventory.models"
+    }
+  },
+  "alembic_authority": {
+    "sole_schema_history": true,
+    "create_all_is_production_authority": false,
+    "new_revision_parent": "5c706797029a",
+    "historical_revisions_are_immutable": true,
+    "autogenerate_policy": "review_only_never_auto_apply",
+    "autogenerate_blocked_until_metadata_drift_is_audited": true,
+    "compare_type": true,
+    "compare_server_default": true,
+    "include_schemas": false,
+    "transaction_per_migration": true,
+    "new_objects_are_additive": true,
+    "destructive_legacy_cutover_allowed": false
+  },
+  "fresh_database_gap": {
+    "status": "open_release_blocker",
+    "cause": "root_revision_86322f59e0de_is_a_noop_baseline_for_an_existing_database",
+    "historical_revision_rewrite_allowed": false,
+    "full_empty_database_upgrade_currently_supported": false,
+    "slice_one_parity_development_allowed": true,
+    "parity_precondition_revision": "5c706797029a",
+    "required_resolution_before_m1_release": "approve_and_test_an_authoritative_platform_bootstrap_or_new_baseline_strategy"
+  },
+  "automated_database_safety": {
+    "mutable_database_names": [
+      "xbos_track_b_test"
+    ],
+    "mutable_database_prefixes": [
+      "xbos_migration_test_"
+    ],
+    "parity_source_is_read_only": true,
+    "production_migration_allowed": false,
+    "production_requires_explicit_track_a_and_rollout_approval": true
+  },
+  "physical_rules": {
+    "internal_key": "bigint_generated_by_default_as_identity",
+    "public_key": "uuid_default_gen_random_uuid_unique",
+    "money": "numeric_24_8",
+    "fx_rate": "numeric_30_12",
+    "instant": "timestamptz",
+    "business_date": "date",
+    "state_storage": "lowercase_varchar_named_check",
+    "flexible_payload": "jsonb_non_authoritative_extension_only",
+    "tenant_integrity": "composite_foreign_keys",
+    "retained_financial_delete": "no_cascade_hard_delete"
+  },
+  "slice_one_scope": [
+    "organization_units",
+    "currency_assets",
+    "tenant_currency_policies",
+    "business_cycle_policies",
+    "kernel_source_records",
+    "financial_counterparties",
+    "operational_financial_accounts",
+    "payment_provider_accounts",
+    "idempotency_records",
+    "outbox_messages",
+    "document_sequences"
+  ],
+  "m1_0_exit_gate": [
+    "one_database_url_resolver_is_used_by_application_and_alembic",
+    "no_database_credentials_are_embedded_in_source",
+    "deterministic_metadata_naming_is_active",
+    "all_current_authoritative_model_modules_are_registered",
+    "duplicate_inventory_model_owner_is_explicit",
+    "alembic_head_remains_5c706797029a",
+    "autogenerate_remains_blocked_pending_drift_audit",
+    "fresh_database_gap_is_visible_and_blocks_m1_release",
+    "all_existing_and_m1_0_tests_pass"
+  ]
+}
