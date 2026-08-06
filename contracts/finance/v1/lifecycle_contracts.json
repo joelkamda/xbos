@@ -1,0 +1,294 @@
+{
+  "catalog_code": "XBOS_CANONICAL_FINANCIAL_LIFECYCLES",
+  "catalog_version": 1,
+  "contract_revision": 1,
+  "status": "approved",
+  "approved_at": "2026-08-06T00:00:00Z",
+  "transition_contract": {
+    "required_command_context": [
+      "tenant_id",
+      "organization_unit_id",
+      "actor",
+      "permission",
+      "idempotency_scope",
+      "idempotency_key",
+      "correlation_id",
+      "expected_version",
+      "occurred_at"
+    ],
+    "execution_order": [
+      "load_tenant_scoped_aggregate",
+      "lock_or_compare_version",
+      "validate_current_state_and_command",
+      "validate_permission_scope_evidence_amount_and_currency",
+      "append_authoritative_records_and_events",
+      "update_controlled_projection",
+      "write_transactional_outbox",
+      "commit"
+    ],
+    "idempotency_replay": "return_identical_result_or_reject_conflict",
+    "arbitrary_status_assignment_allowed": false,
+    "cross_tenant_transition_allowed": false
+  },
+  "derived_conditions": {
+    "payment_condition": {
+      "values": ["unpaid", "partially_paid", "paid", "overpaid", "partially_refunded", "refunded"],
+      "authority": "obligation_allocations_reversals_and_excess_value",
+      "persisted_as_lifecycle_state": false
+    },
+    "collection_condition": {
+      "values": ["not_due", "current", "overdue", "in_collection", "disputed", "on_hold"],
+      "authority": "due_dates_collection_actions_disputes_and_policy",
+      "persisted_as_lifecycle_state": false
+    },
+    "allocation_condition": {
+      "values": ["active", "partially_reversed", "reversed"],
+      "authority": "allocation_amount_minus_append_only_reversals",
+      "persisted_as_lifecycle_state": false
+    },
+    "reconciliation_readiness": {
+      "values": ["blocked", "ready_to_close"],
+      "authority": "continuity_and_control_requirements",
+      "persisted_as_lifecycle_state": false
+    },
+    "reconciliation_variance": {
+      "values": ["balanced", "variance"],
+      "formula": "actual_closing - expected_closing",
+      "persisted_as_lifecycle_state": false
+    },
+    "reconciliation_actual_provenance": {
+      "values": ["system_prefilled", "operator_confirmed", "external_confirmed"],
+      "authority": "observation_confirmation_source",
+      "persisted_as_lifecycle_state": false
+    }
+  },
+  "state_machines": [
+    {
+      "machine_code": "commercial_transaction",
+      "state_field": "commercial_state",
+      "states": [
+        {"code": "draft", "terminal": false},
+        {"code": "confirmed", "terminal": false},
+        {"code": "cancelled", "terminal": true},
+        {"code": "reversed", "terminal": true}
+      ],
+      "transitions": [
+        {"command": "confirm_commercial_transaction", "from": "draft", "to": "confirmed", "requires": ["complete_snapshot", "confirmation_policy_satisfied"], "emits": ["commercial_transaction_confirmed"]},
+        {"command": "cancel_draft_commercial_transaction", "from": "draft", "to": "cancelled", "requires": ["cancellation_reason"], "emits": ["commercial_transaction_cancelled"]},
+        {"command": "cancel_confirmed_commercial_transaction", "from": "confirmed", "to": "cancelled", "requires": ["cancellation_policy_permits", "no_irreversible_performance_or_settlement", "cancellation_reason"], "emits": ["commercial_transaction_cancelled"]},
+        {"command": "reverse_commercial_transaction", "from": "confirmed", "to": "reversed", "requires": ["approved_compensating_records", "reversal_reason"], "emits": ["commercial_transaction_reversed"]}
+      ],
+      "invariants": ["paid_is_not_a_state", "returns_and_refunds_do_not_rewrite_original_snapshot"]
+    },
+    {
+      "machine_code": "financial_obligation",
+      "state_field": "obligation_state",
+      "states": [
+        {"code": "open", "terminal": false},
+        {"code": "partially_satisfied", "terminal": false},
+        {"code": "satisfied", "terminal": false},
+        {"code": "cancelled", "terminal": true},
+        {"code": "written_off", "terminal": true}
+      ],
+      "transitions": [
+        {"command": "apply_partial_satisfaction", "from": "open", "to": "partially_satisfied", "requires": ["active_value_or_allowance", "positive_remaining_balance"], "emits": ["obligation_balance_recalculated"]},
+        {"command": "satisfy_open_obligation", "from": "open", "to": "satisfied", "requires": ["zero_remaining_balance"], "emits": ["obligation_satisfied"]},
+        {"command": "satisfy_partial_obligation", "from": "partially_satisfied", "to": "satisfied", "requires": ["zero_remaining_balance"], "emits": ["obligation_satisfied"]},
+        {"command": "cancel_open_obligation", "from": "open", "to": "cancelled", "requires": ["approved_cancellation", "no_unreversed_allocation"], "emits": ["obligation_cancelled"]},
+        {"command": "write_off_open_obligation", "from": "open", "to": "written_off", "requires": ["write_off_permission", "write_off_reason", "write_off_event"], "emits": ["obligation_written_off"]},
+        {"command": "write_off_partial_obligation", "from": "partially_satisfied", "to": "written_off", "requires": ["write_off_permission", "write_off_reason", "write_off_event"], "emits": ["obligation_written_off"]},
+        {"command": "remeasure_satisfied_to_partial", "from": "satisfied", "to": "partially_satisfied", "requires": ["explicit_allocation_or_allowance_reversal", "positive_remaining_balance"], "emits": ["obligation_balance_recalculated"]},
+        {"command": "remeasure_satisfied_to_open", "from": "satisfied", "to": "open", "requires": ["explicit_full_satisfaction_reversal", "original_balance_restored"], "emits": ["obligation_balance_recalculated"]}
+      ],
+      "invariants": ["balance_is_derived", "state_remeasurement_requires_compensating_record", "repayment_is_not_new_revenue"]
+    },
+    {
+      "machine_code": "payment_intent",
+      "state_field": "intent_state",
+      "states": [
+        {"code": "pending", "terminal": false},
+        {"code": "processing", "terminal": false},
+        {"code": "partially_succeeded", "terminal": false},
+        {"code": "succeeded", "terminal": true},
+        {"code": "failed", "terminal": true},
+        {"code": "cancelled", "terminal": true},
+        {"code": "expired", "terminal": true}
+      ],
+      "transitions": [
+        {"command": "start_intent_processing", "from": "pending", "to": "processing", "requires": ["active_attempt_or_provider_action"], "emits": ["payment_intent_processing"]},
+        {"command": "cancel_pending_intent", "from": "pending", "to": "cancelled", "requires": ["cancellation_permission"], "emits": ["payment_intent_cancelled"]},
+        {"command": "expire_pending_intent", "from": "pending", "to": "expired", "requires": ["validity_elapsed"], "emits": ["payment_intent_expired"]},
+        {"command": "return_intent_to_pending", "from": "processing", "to": "pending", "requires": ["nonterminal_attempt_finished", "retry_allowed"], "emits": ["payment_intent_retry_available"]},
+        {"command": "mark_intent_partially_succeeded", "from": "processing", "to": "partially_succeeded", "requires": ["confirmed_settlements_below_target", "additional_collection_allowed"], "emits": ["payment_intent_partially_succeeded"]},
+        {"command": "succeed_processing_intent", "from": "processing", "to": "succeeded", "requires": ["confirmed_settlement_target_reached"], "emits": ["payment_intent_succeeded"]},
+        {"command": "fail_processing_intent", "from": "processing", "to": "failed", "requires": ["no_retry_remains", "collection_target_not_reached"], "emits": ["payment_intent_failed"]},
+        {"command": "cancel_processing_intent", "from": "processing", "to": "cancelled", "requires": ["cancellation_permission"], "emits": ["payment_intent_cancelled"]},
+        {"command": "expire_processing_intent", "from": "processing", "to": "expired", "requires": ["validity_elapsed"], "emits": ["payment_intent_expired"]},
+        {"command": "retry_partial_intent", "from": "partially_succeeded", "to": "processing", "requires": ["additional_collection_allowed"], "emits": ["payment_intent_processing"]},
+        {"command": "succeed_partial_intent", "from": "partially_succeeded", "to": "succeeded", "requires": ["confirmed_settlement_target_reached"], "emits": ["payment_intent_succeeded"]},
+        {"command": "cancel_partial_intent", "from": "partially_succeeded", "to": "cancelled", "requires": ["cancellation_permission", "preserve_settled_facts"], "emits": ["payment_intent_cancelled"]},
+        {"command": "expire_partial_intent", "from": "partially_succeeded", "to": "expired", "requires": ["validity_elapsed", "preserve_settled_facts"], "emits": ["payment_intent_expired"]}
+      ],
+      "invariants": ["failed_attempt_does_not_force_failed_intent_when_retry_allowed", "success_is_collection_target_not_allocation"]
+    },
+    {
+      "machine_code": "payment_attempt",
+      "state_field": "attempt_state",
+      "states": [
+        {"code": "pending", "terminal": false},
+        {"code": "processing", "terminal": false},
+        {"code": "requires_action", "terminal": false},
+        {"code": "authorized", "terminal": false},
+        {"code": "succeeded", "terminal": true},
+        {"code": "failed", "terminal": true},
+        {"code": "cancelled", "terminal": true},
+        {"code": "expired", "terminal": true}
+      ],
+      "transitions": [
+        {"command": "submit_payment_attempt", "from": "pending", "to": "processing", "requires": ["method_contract_valid"], "emits": ["payment_attempt_processing"]},
+        {"command": "succeed_immediate_attempt", "from": "pending", "to": "succeeded", "requires": ["immediate_channel_confirmation"], "emits": ["payment_attempt_succeeded"]},
+        {"command": "cancel_pending_attempt", "from": "pending", "to": "cancelled", "requires": ["cancellation_allowed"], "emits": ["payment_attempt_cancelled"]},
+        {"command": "expire_pending_attempt", "from": "pending", "to": "expired", "requires": ["validity_elapsed"], "emits": ["payment_attempt_expired"]},
+        {"command": "require_payer_action", "from": "processing", "to": "requires_action", "requires": ["provider_requests_action"], "emits": ["payment_attempt_requires_action"]},
+        {"command": "resume_after_action", "from": "requires_action", "to": "processing", "requires": ["required_action_completed"], "emits": ["payment_attempt_processing"]},
+        {"command": "authorize_attempt", "from": "processing", "to": "authorized", "requires": ["provider_authorization_evidence"], "emits": ["payment_attempt_authorized"]},
+        {"command": "capture_authorized_attempt", "from": "authorized", "to": "succeeded", "requires": ["capture_confirmation"], "emits": ["payment_attempt_succeeded"]},
+        {"command": "cancel_authorized_attempt", "from": "authorized", "to": "cancelled", "requires": ["provider_release_or_void_evidence"], "emits": ["payment_attempt_cancelled"]},
+        {"command": "succeed_processing_attempt", "from": "processing", "to": "succeeded", "requires": ["provider_or_channel_success_evidence"], "emits": ["payment_attempt_succeeded"]},
+        {"command": "fail_processing_attempt", "from": "processing", "to": "failed", "requires": ["failure_evidence"], "emits": ["payment_attempt_failed"]},
+        {"command": "cancel_processing_attempt", "from": "processing", "to": "cancelled", "requires": ["cancellation_allowed"], "emits": ["payment_attempt_cancelled"]},
+        {"command": "expire_processing_attempt", "from": "processing", "to": "expired", "requires": ["validity_elapsed"], "emits": ["payment_attempt_expired"]}
+      ],
+      "invariants": ["terminal_attempt_does_not_transition", "succeeded_is_not_universally_settled"]
+    },
+    {
+      "machine_code": "payment_settlement",
+      "state_field": "settlement_state",
+      "states": [
+        {"code": "pending", "terminal": false},
+        {"code": "confirmed", "terminal": false},
+        {"code": "failed", "terminal": true},
+        {"code": "partially_reversed", "terminal": false},
+        {"code": "reversed", "terminal": true}
+      ],
+      "transitions": [
+        {"command": "confirm_pending_settlement", "from": "pending", "to": "confirmed", "requires": ["channel_finality_satisfied", "authenticated_evidence_when_external"], "emits": ["PAYMENT_SETTLED"]},
+        {"command": "fail_pending_settlement", "from": "pending", "to": "failed", "requires": ["failure_evidence"], "emits": ["payment_settlement_failed"]},
+        {"command": "partially_reverse_confirmed_settlement", "from": "confirmed", "to": "partially_reversed", "requires": ["append_only_settlement_reversal", "positive_remaining_settled_value"], "emits": ["PAYMENT_SETTLEMENT_REVERSED"]},
+        {"command": "fully_reverse_confirmed_settlement", "from": "confirmed", "to": "reversed", "requires": ["append_only_settlement_reversal", "zero_remaining_settled_value"], "emits": ["PAYMENT_SETTLEMENT_REVERSED"]},
+        {"command": "add_partial_settlement_reversal", "from": "partially_reversed", "to": "partially_reversed", "requires": ["append_only_settlement_reversal", "positive_remaining_settled_value"], "emits": ["PAYMENT_SETTLEMENT_REVERSED"]},
+        {"command": "complete_settlement_reversal", "from": "partially_reversed", "to": "reversed", "requires": ["append_only_settlement_reversal", "zero_remaining_settled_value"], "emits": ["PAYMENT_SETTLEMENT_REVERSED"]}
+      ],
+      "invariants": ["original_settlement_evidence_is_immutable", "external_confirmation_requires_verified_finality", "availability_may_differ_from_confirmation"]
+    },
+    {
+      "machine_code": "payment_allocation",
+      "state_field": null,
+      "states": [
+        {"code": "active", "terminal": false},
+        {"code": "partially_reversed", "terminal": false},
+        {"code": "reversed", "terminal": true}
+      ],
+      "transitions": [
+        {"command": "partially_reverse_allocation", "from": "active", "to": "partially_reversed", "requires": ["append_only_allocation_reversal", "positive_active_amount"], "emits": ["PAYMENT_ALLOCATION_REVERSED"]},
+        {"command": "fully_reverse_allocation", "from": "active", "to": "reversed", "requires": ["append_only_allocation_reversal", "zero_active_amount"], "emits": ["PAYMENT_ALLOCATION_REVERSED"]},
+        {"command": "add_partial_allocation_reversal", "from": "partially_reversed", "to": "partially_reversed", "requires": ["append_only_allocation_reversal", "positive_active_amount"], "emits": ["PAYMENT_ALLOCATION_REVERSED"]},
+        {"command": "complete_allocation_reversal", "from": "partially_reversed", "to": "reversed", "requires": ["append_only_allocation_reversal", "zero_active_amount"], "emits": ["PAYMENT_ALLOCATION_REVERSED"]}
+      ],
+      "invariants": ["condition_is_derived", "original_allocation_is_immutable", "reversal_total_never_exceeds_allocation"]
+    },
+    {
+      "machine_code": "payment_refund",
+      "state_field": "refund_state",
+      "states": [
+        {"code": "requested", "terminal": false},
+        {"code": "approved", "terminal": false},
+        {"code": "processing", "terminal": false},
+        {"code": "succeeded", "terminal": true},
+        {"code": "failed", "terminal": false},
+        {"code": "rejected", "terminal": true},
+        {"code": "cancelled", "terminal": true}
+      ],
+      "transitions": [
+        {"command": "approve_refund", "from": "requested", "to": "approved", "requires": ["refund_permission", "refundable_amount_available", "reason_and_source_evidence"], "emits": ["refund_approved"]},
+        {"command": "reject_refund", "from": "requested", "to": "rejected", "requires": ["review_permission", "rejection_reason"], "emits": ["refund_rejected"]},
+        {"command": "cancel_requested_refund", "from": "requested", "to": "cancelled", "requires": ["cancellation_allowed"], "emits": ["refund_cancelled"]},
+        {"command": "start_refund_processing", "from": "approved", "to": "processing", "requires": ["refund_channel_selected"], "emits": ["refund_processing"]},
+        {"command": "cancel_approved_refund", "from": "approved", "to": "cancelled", "requires": ["no_outgoing_settlement_confirmed"], "emits": ["refund_cancelled"]},
+        {"command": "succeed_refund", "from": "processing", "to": "succeeded", "requires": ["confirmed_outgoing_settlement", "refund_applications_recorded", "allocated_value_reversed_when_applicable"], "emits": ["REFUND_SETTLED"]},
+        {"command": "fail_refund", "from": "processing", "to": "failed", "requires": ["failure_evidence"], "emits": ["refund_failed"]},
+        {"command": "retry_failed_refund", "from": "failed", "to": "processing", "requires": ["explicit_retry", "new_attempt_identity"], "emits": ["refund_processing"]}
+      ],
+      "invariants": ["refund_does_not_delete_original_settlement", "cumulative_refund_lte_refundable_value", "success_has_cash_out_and_deallocation_evidence"]
+    },
+    {
+      "machine_code": "journal_entry",
+      "state_field": "journal_state",
+      "states": [
+        {"code": "draft", "terminal": false},
+        {"code": "pending_approval", "terminal": false},
+        {"code": "posted", "terminal": false},
+        {"code": "reversed", "terminal": true}
+      ],
+      "transitions": [
+        {"command": "submit_journal_for_approval", "from": "draft", "to": "pending_approval", "requires": ["balanced_per_currency", "complete_account_bindings"], "emits": ["journal_pending_approval"]},
+        {"command": "auto_post_journal", "from": "draft", "to": "posted", "requires": ["automatic_posting_policy", "balanced_per_currency", "complete_account_bindings"], "emits": ["journal_posted"]},
+        {"command": "return_journal_to_draft", "from": "pending_approval", "to": "draft", "requires": ["review_reason"], "emits": ["journal_returned"]},
+        {"command": "approve_and_post_journal", "from": "pending_approval", "to": "posted", "requires": ["posting_permission", "balanced_per_currency"], "emits": ["journal_posted"]},
+        {"command": "reverse_posted_journal", "from": "posted", "to": "reversed", "requires": ["separate_balanced_reversing_entry", "reversal_reason"], "emits": ["journal_reversed"]}
+      ],
+      "invariants": ["posted_lines_are_immutable", "posted_entry_balances_per_currency", "correction_uses_reversal_and_replacement"]
+    },
+    {
+      "machine_code": "reconciliation_window",
+      "state_field": "workflow_state",
+      "states": [
+        {"code": "draft", "terminal": false},
+        {"code": "closed", "terminal": false},
+        {"code": "approved", "terminal": false},
+        {"code": "reopened", "terminal": false},
+        {"code": "superseded", "terminal": true}
+      ],
+      "transitions": [
+        {"command": "close_reconciliation_window", "from": "draft", "to": "closed", "requires": ["readiness_is_ready_to_close", "actual_is_operator_or_external_confirmed", "server_recomputed_totals", "variance_evidence_when_required"], "emits": ["reconciliation_window_closed"]},
+        {"command": "approve_reconciliation_window", "from": "closed", "to": "approved", "requires": ["approval_permission", "review_evidence"], "emits": ["reconciliation_window_approved"]},
+        {"command": "reopen_closed_window", "from": "closed", "to": "reopened", "requires": ["reopen_permission", "reopen_reason"], "emits": ["reconciliation_window_reopened"]},
+        {"command": "reopen_approved_window", "from": "approved", "to": "reopened", "requires": ["elevated_reopen_permission", "reopen_reason"], "emits": ["reconciliation_window_reopened"]},
+        {"command": "reclose_reopened_window", "from": "reopened", "to": "closed", "requires": ["readiness_is_ready_to_close", "actual_is_operator_or_external_confirmed", "server_recomputed_totals", "correction_carry_forward_recorded"], "emits": ["reconciliation_window_closed"]},
+        {"command": "supersede_closed_revision", "from": "closed", "to": "superseded", "requires": ["later_revision_exists", "revision_link_recorded"], "emits": ["reconciliation_window_superseded"]},
+        {"command": "supersede_approved_revision", "from": "approved", "to": "superseded", "requires": ["later_approved_revision_exists", "revision_link_recorded"], "emits": ["reconciliation_window_superseded"]}
+      ],
+      "invariants": ["zero_variance_does_not_mean_closed", "blocked_window_cannot_close", "middle_window_cannot_be_skipped", "previous_close_comes_from_same_series", "next_opening_equals_previous_actual", "correction_does_not_overwrite_later_actuals"]
+    },
+    {
+      "machine_code": "outbox_message",
+      "state_field": "delivery_state",
+      "states": [
+        {"code": "pending", "terminal": false},
+        {"code": "published", "terminal": true},
+        {"code": "retrying", "terminal": false},
+        {"code": "dead_letter", "terminal": true}
+      ],
+      "transitions": [
+        {"command": "publish_pending_message", "from": "pending", "to": "published", "requires": ["broker_acknowledgement"], "emits": ["outbox_delivery_succeeded"]},
+        {"command": "retry_pending_message", "from": "pending", "to": "retrying", "requires": ["retryable_delivery_failure", "retry_budget_available"], "emits": ["outbox_delivery_retrying"]},
+        {"command": "publish_retried_message", "from": "retrying", "to": "published", "requires": ["broker_acknowledgement"], "emits": ["outbox_delivery_succeeded"]},
+        {"command": "continue_outbox_retry", "from": "retrying", "to": "retrying", "requires": ["retryable_delivery_failure", "retry_budget_available"], "emits": ["outbox_delivery_retrying"]},
+        {"command": "dead_letter_retried_message", "from": "retrying", "to": "dead_letter", "requires": ["retry_budget_exhausted_or_permanent_failure"], "emits": ["outbox_delivery_dead_lettered"]}
+      ],
+      "invariants": ["message_payload_is_immutable", "delivery_state_is_not_financial_lifecycle", "consumer_deduplicates_by_message_key"]
+    }
+  ],
+  "cross_machine_rules": [
+    {"rule_code": "provider_callback_is_evidence_not_financial_event", "assertion": "provider_callback_event does not directly post or confirm commercial activity"},
+    {"rule_code": "attempt_success_not_universal_settlement", "assertion": "payment_attempt.succeeded creates settlement only when channel finality policy permits"},
+    {"rule_code": "settlement_precedes_allocation", "assertion": "only confirmed available value may be allocated"},
+    {"rule_code": "payment_condition_is_derived", "assertion": "commercial_transaction has no paid state and obligation payment condition is derived"},
+    {"rule_code": "refund_is_multi_record_workflow", "assertion": "successful refund links outgoing settlement, refund application and allocation reversal when applicable"},
+    {"rule_code": "financial_event_is_recorded_once", "assertion": "financial facts are immutable and corrections append compensating events"},
+    {"rule_code": "journal_is_projection_of_events", "assertion": "posted journals link to canonical events and balance per currency"},
+    {"rule_code": "reconciliation_does_not_rewrite_finance", "assertion": "reconciliation records observations, evidence and corrections without mutating financial events"},
+    {"rule_code": "fulfillment_trigger_is_policy_governed", "assertion": "external payment flow confirms commercial activity only after settlement allocation and configured confirmation policy"},
+    {"rule_code": "tenant_scope_is_end_to_end", "assertion": "all lifecycle commands and related records remain in one tenant scope"}
+  ]
+}
