@@ -1,0 +1,172 @@
+{
+  "baseline_code": "XBOS_NEUTRAL_FINANCIAL_CONTRACT_BASELINE",
+  "baseline_version": 1,
+  "status": "approved",
+  "approved_at": "2026-08-06T00:00:00Z",
+  "source_checkpoint": {
+    "branch": "track-b/m0-executable-neutral-contracts",
+    "parent_commit": "a9aacf0",
+    "b2_tag": "track-b-b2-canonical-model-20260805"
+  },
+  "purpose": "Freeze one coherent and executable neutral financial authority before persistence and service implementation begins.",
+  "semantic_fingerprint": {
+    "algorithm": "sha256",
+    "canonicalization": "utf8_json_sorted_keys_compact_separators_ensure_ascii_false",
+    "line_ending_independent": true
+  },
+  "components": [
+    {
+      "sequence": 1,
+      "phase": "M0.1",
+      "path": "contracts/finance/v1/financial_event_catalog.json",
+      "catalog_code": "XBOS_CANONICAL_FINANCIAL_EVENTS",
+      "catalog_version": 1,
+      "contract_revision": 2,
+      "semantic_sha256": "079cc4c6743c400bc6eb94302a1bf87f1211b8cde70c594043c8b9d15086487c",
+      "authority": "Canonical immutable economic facts and posting eligibility"
+    },
+    {
+      "sequence": 2,
+      "phase": "M0.2",
+      "path": "contracts/finance/v1/account_role_catalog.json",
+      "catalog_code": "XBOS_CANONICAL_ACCOUNT_ROLES",
+      "catalog_version": 1,
+      "contract_revision": 1,
+      "semantic_sha256": "5999713d931bf21817c8dd0f6d262036721a91835da197211b0385ca21d94a60",
+      "authority": "Neutral posting destinations independent of tenant chart labels"
+    },
+    {
+      "sequence": 3,
+      "phase": "M0.2",
+      "path": "contracts/finance/v1/posting_scenarios.json",
+      "catalog_code": "XBOS_CANONICAL_FINANCIAL_POSTING_SCENARIOS",
+      "catalog_version": 1,
+      "contract_revision": 1,
+      "semantic_sha256": "853dd68eecabe629e0d4bfd430340d9d5a22ba1d8cbe11aaa46b0ebca597427d",
+      "authority": "Balanced golden examples for canonical financial behavior"
+    },
+    {
+      "sequence": 4,
+      "phase": "M0.3",
+      "path": "contracts/finance/v1/entity_contracts.json",
+      "catalog_code": "XBOS_CANONICAL_FINANCIAL_ENTITIES",
+      "catalog_version": 1,
+      "contract_revision": 1,
+      "semantic_sha256": "25cbcb71a767b44be6f3f1b6d5f0a2ef1a0c3b588a2157170f5cc6f3978a2508",
+      "authority": "Canonical aggregate ownership, relationships, fields, and invariants"
+    },
+    {
+      "sequence": 5,
+      "phase": "M0.3",
+      "path": "contracts/finance/v1/lifecycle_contracts.json",
+      "catalog_code": "XBOS_CANONICAL_FINANCIAL_LIFECYCLES",
+      "catalog_version": 1,
+      "contract_revision": 1,
+      "semantic_sha256": "a24d775b4fe689c811d9916d39601e108a5d201bd4a504575887afc11adce223",
+      "authority": "Allowed state transitions and cross-aggregate lifecycle rules"
+    },
+    {
+      "sequence": 6,
+      "phase": "M0.4",
+      "path": "contracts/finance/v1/reliability_contracts.json",
+      "catalog_code": "XBOS_FINANCIAL_EXECUTION_RELIABILITY",
+      "catalog_version": 1,
+      "contract_revision": 1,
+      "semantic_sha256": "41a24741cf2e374750537881c87373ae538dfa47eeb5569896aa2776b23c2c39",
+      "authority": "Retry, concurrency, inbox, outbox, offline, and observability behavior"
+    },
+    {
+      "sequence": 7,
+      "phase": "M0.4",
+      "path": "contracts/finance/v1/workflow_contracts.json",
+      "catalog_code": "XBOS_PAYMENT_TO_FULFILLMENT_WORKFLOWS",
+      "catalog_version": 1,
+      "contract_revision": 1,
+      "semantic_sha256": "68ae9ae49b12acfbf74d05e257d3666446c037fea7303398ae395ffc501d6ba5",
+      "authority": "Payment, commercial confirmation, and industry-pack fulfillment boundaries"
+    }
+  ],
+  "contract_test_suites": [
+    {
+      "phase": "M0.1",
+      "path": "tests/contracts/test_financial_event_catalog.py",
+      "expected_tests": 18
+    },
+    {
+      "phase": "M0.2",
+      "path": "tests/contracts/test_financial_posting_scenarios.py",
+      "expected_tests": 18
+    },
+    {
+      "phase": "M0.3",
+      "path": "tests/contracts/test_financial_entity_lifecycles.py",
+      "expected_tests": 26
+    },
+    {
+      "phase": "M0.4",
+      "path": "tests/contracts/test_financial_reliability_workflows.py",
+      "expected_tests": 38
+    },
+    {
+      "phase": "M0.5",
+      "path": "tests/contracts/test_financial_contract_baseline.py",
+      "expected_tests": 30
+    }
+  ],
+  "expected_contract_tests": 130,
+  "expected_characterization_tests": 18,
+  "expected_total_tests": 148,
+  "authority_chain": [
+    "tenant_and_business_calendar_configuration",
+    "commercial_transaction_snapshot",
+    "financial_obligation",
+    "payment_intent_and_attempt",
+    "authenticated_provider_evidence",
+    "verified_payment_settlement",
+    "value_source",
+    "payment_allocation",
+    "payment_condition_evaluation",
+    "commercial_confirmation",
+    "transactional_workflow_delivery",
+    "industry_pack_fulfillment"
+  ],
+  "global_invariants": [
+    "tenant_scope_is_mandatory_on_authoritative_records_and_idempotency",
+    "money_is_decimal_and_currency_explicit",
+    "economic_events_are_immutable_and_corrected_by_new_events",
+    "posting_roles_are_neutral_and_tenant_accounts_are_configuration",
+    "payment_attempt_is_not_payment_settlement",
+    "payment_settlement_is_not_payment_allocation",
+    "payment_allocation_is_not_commercial_confirmation",
+    "commercial_confirmation_is_not_fulfillment",
+    "provider_and_channel_adapters_cannot_bypass_kernel_authority",
+    "all_external_and_offline_replay_is_idempotent",
+    "outbox_delivery_is_at_least_once_and_consumers_deduplicate",
+    "reconciliation_observes_financial_truth_and_never_rewrites_it",
+    "industry_specific_workflows_remain_outside_the_neutral_financial_kernel"
+  ],
+  "implementation_authority": {
+    "normative_sources_in_priority_order": [
+      "executable_contract_tests",
+      "machine_readable_contract_catalogs",
+      "approved_B2_architecture_records",
+      "implementation_code",
+      "historical_behavior"
+    ],
+    "conflict_rule": "Lower-priority implementation or historical behavior must change when it conflicts with this baseline.",
+    "compatibility_rule": "WND is migrated into the neutral model and does not constrain the kernel to preserve obsolete architecture.",
+    "extension_rule": "Industry packs and payment adapters may extend policy and workflow only through declared kernel contracts.",
+    "change_rule": "A semantic contract change requires an explicit catalog revision or major version, updated scenarios, updated conformance tests, and a new approved baseline."
+  },
+  "release_gate": {
+    "required": [
+      "all_contract_components_match_manifest_metadata_and_semantic_fingerprints",
+      "all_cross_catalog_references_resolve",
+      "all_130_contract_tests_pass",
+      "all_18_characterization_tests_pass",
+      "working_tree_is_clean_after_commit",
+      "annotated_baseline_tag_is_pushed"
+    ],
+    "tag": "track-b-m0-neutral-contracts-20260806"
+  }
+}
