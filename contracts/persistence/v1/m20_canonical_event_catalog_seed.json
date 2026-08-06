@@ -1,0 +1,64 @@
+{
+  "contract_code": "XBOS_M20_CANONICAL_EVENT_CATALOG_SEED",
+  "contract_version": 1,
+  "status": "approved_implementation_candidate",
+  "date": "2026-08-06",
+  "source_authority": {
+    "path": "contracts/finance/v1/financial_event_catalog.json",
+    "catalog_code": "XBOS_CANONICAL_FINANCIAL_EVENTS",
+    "catalog_version": 1,
+    "contract_revision": 2,
+    "semantic_sha256": "079cc4c6743c400bc6eb94302a1bf87f1211b8cde70c594043c8b9d15086487c"
+  },
+  "migration": {
+    "revision": "m20_event_catalog_003",
+    "down_revision": "m13_financial_foundation_002",
+    "target_table": "financial_event_type_versions",
+    "expected_seed_rows": 20
+  },
+  "definition_hash": {
+    "algorithm": "sha256",
+    "input": "one complete event_types item",
+    "canonicalization": "utf8_json_sorted_keys_compact_separators_ensure_ascii_false"
+  },
+  "approved_reconciliation_effects": [
+    "inflow",
+    "outflow",
+    "movement",
+    "control_increase",
+    "control_decrease",
+    "control_reversal",
+    "commercial",
+    "account_adjustment",
+    "none"
+  ],
+  "dynamic_reconciliation_storage": {
+    "by_economic_role": "store the default-role effect in reconciliation_effect and retain the full mapping in account_role_policy.reconciliation_policy",
+    "inverse_original": "store none as the static effect and retain inverse_original policy for event-time resolution",
+    "classification_dependent": "store none as the static effect and retain the classification policy for event-time resolution"
+  },
+  "invariants": [
+    "source catalog identity and semantic fingerprint must match before insertion",
+    "exactly twenty unique event type/version identities are seeded",
+    "each definition hash is deterministic and derived from the complete event definition",
+    "the complete approved event definition is retained in metadata",
+    "catalog rows remain immutable after insertion",
+    "M2.0 creates no financial event and no outbox message",
+    "downgrade is permitted only while no financial event references the seed rows"
+  ],
+  "scope": {
+    "included": [
+      "catalog constraint alignment",
+      "definition-hashed catalog seed",
+      "source drift rejection",
+      "upgrade downgrade upgrade rehearsal"
+    ],
+    "excluded": [
+      "financial event emission",
+      "idempotency command handling",
+      "transactional outbox creation",
+      "WND writer cutover",
+      "historical transformation"
+    ]
+  }
+}
