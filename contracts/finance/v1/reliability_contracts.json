@@ -1,0 +1,204 @@
+{
+  "catalog_code": "XBOS_FINANCIAL_EXECUTION_RELIABILITY",
+  "catalog_version": 1,
+  "contract_revision": 1,
+  "status": "approved",
+  "approved_at": "2026-08-06T00:00:00Z",
+  "contract_level": "database_free_execution_policy",
+  "failure_vocabulary": [
+    "idempotent_replay",
+    "idempotency_conflict",
+    "concurrent_modification",
+    "lock_timeout",
+    "retry_exhausted",
+    "authentication_failed",
+    "routing_failed",
+    "invalid_transition",
+    "invariant_violation",
+    "delivery_retryable",
+    "delivery_permanent",
+    "quarantined"
+  ],
+  "idempotency_contract": {
+    "identity_fields": ["tenant_id", "idempotency_scope", "idempotency_key"],
+    "request_fingerprint": {
+      "algorithm": "sha256",
+      "input": "canonical_json_of_semantically_material_command_fields",
+      "excludes": ["transport_retry_count", "received_at", "trace_sampling_metadata"]
+    },
+    "record_states": ["processing", "completed", "failed_retryable", "failed_terminal"],
+    "decisions": [
+      {
+        "condition": "identity_absent",
+        "result": "reserve_and_execute"
+      },
+      {
+        "condition": "identity_present_same_fingerprint_completed",
+        "result": "return_original_result_without_side_effect"
+      },
+      {
+        "condition": "identity_present_same_fingerprint_processing",
+        "result": "return_in_progress_or_wait_under_bounded_policy"
+      },
+      {
+        "condition": "identity_present_same_fingerprint_failed_retryable",
+        "result": "resume_only_under_recorded_retry_policy"
+      },
+      {
+        "condition": "identity_present_same_fingerprint_failed_terminal",
+        "result": "return_original_terminal_failure"
+      },
+      {
+        "condition": "identity_present_different_fingerprint",
+        "result": "reject_idempotency_conflict"
+      }
+    ],
+    "transaction_rule": "idempotency_result_and_authoritative_business_writes_commit_atomically",
+    "response_rule": "replay_returns_same_public_ids_and_semantically_identical_result",
+    "retention_rule": "retain_at_least_as_long_as_source_replay_and_financial_audit_horizon",
+    "key_reuse_rule": "never_reuse_key_for_different_semantic_command",
+    "scope_examples": [
+      "payment_intent.create",
+      "payment_attempt.submit",
+      "payment_settlement.confirm",
+      "payment_allocation.create",
+      "payment_refund.request",
+      "reconciliation_window.close",
+      "offline_command.replay"
+    ]
+  },
+  "concurrency_contract": {
+    "default_isolation": "read_committed",
+    "aggregate_version_field": "version",
+    "optimistic_failure": "concurrent_modification",
+    "retryable_database_failures": ["serialization_failure", "deadlock_detected", "lock_timeout"],
+    "lock_order": [
+      "tenant_configuration",
+      "idempotency_record",
+      "payment_intent",
+      "payment_attempt",
+      "payment_settlement_or_value_source",
+      "financial_obligation",
+      "payment_allocation",
+      "payment_refund",
+      "reconciliation_series",
+      "reconciliation_window"
+    ],
+    "operations": [
+      {
+        "operation_code": "create_payment_intent",
+        "strategy": "idempotency_reservation_plus_optimistic_version",
+        "locked_resources": ["idempotency_record"],
+        "postconditions": ["one_intent_per_idempotency_identity"]
+      },
+      {
+        "operation_code": "process_provider_callback",
+        "strategy": "inbox_deduplication_plus_attempt_version_check",
+        "locked_resources": ["provider_inbox_record", "payment_attempt"],
+        "postconditions": ["one_processing_result_per_provider_event", "terminal_attempt_not_regressed"]
+      },
+      {
+        "operation_code": "confirm_payment_settlement",
+        "strategy": "idempotency_reservation_plus_source_uniqueness",
+        "locked_resources": ["idempotency_record", "payment_attempt"],
+        "postconditions": ["one_settlement_per_final_source_identity", "one_payment_settled_event"]
+      },
+      {
+        "operation_code": "create_payment_allocation",
+        "strategy": "pessimistic_lock_value_source_then_obligation",
+        "locked_resources": ["value_source", "financial_obligation"],
+        "postconditions": ["active_allocations_lte_available_value", "active_allocations_lte_allocatable_obligation"]
+      },
+      {
+        "operation_code": "reverse_payment_allocation",
+        "strategy": "pessimistic_lock_allocation_then_obligation",
+        "locked_resources": ["payment_allocation", "financial_obligation"],
+        "postconditions": ["reversal_total_lte_original_allocation"]
+      },
+      {
+        "operation_code": "succeed_payment_refund",
+        "strategy": "pessimistic_lock_refund_original_settlement_and_applications",
+        "locked_resources": ["payment_refund", "payment_settlement", "payment_allocation"],
+        "postconditions": ["refund_total_lte_refundable_value", "cash_out_and_deallocation_recorded_atomically"]
+      },
+      {
+        "operation_code": "close_reconciliation_window",
+        "strategy": "lock_series_predecessor_and_current_window",
+        "locked_resources": ["reconciliation_series", "predecessor_window", "reconciliation_window"],
+        "postconditions": ["required_predecessor_is_closed", "opening_equals_predecessor_actual", "server_totals_recomputed"]
+      }
+    ],
+    "retry_policy": {
+      "maximum_automatic_attempts": 3,
+      "backoff": "bounded_exponential_with_jitter",
+      "requires_same_idempotency_identity": true,
+      "never_retry": ["idempotency_conflict", "authentication_failed", "invalid_transition", "invariant_violation"]
+    }
+  },
+  "provider_inbox_contract": {
+    "authority": "immutable_raw_and_authenticated_provider_evidence",
+    "ingress_is_publicly_reachable": true,
+    "ingress_uses_user_bearer_auth": false,
+    "ingress_authentication": ["provider_signature_or_mtls", "configured_provider_account", "timestamp_or_nonce_policy"],
+    "identity_fields": ["tenant_id", "provider_account_id", "provider_event_reference"],
+    "payload_fields": ["raw_body", "headers_allowlist", "payload_hash", "received_at", "remote_request_id"],
+    "routing_priority": ["provider_account_reference", "gateway_intent_reference", "merchant_reference"],
+    "processing_states": ["received", "authenticated", "processing", "processed", "rejected", "quarantined"],
+    "transitions": [
+      {"from": "received", "to": "authenticated", "requires": ["signature_valid", "provider_account_resolved"]},
+      {"from": "received", "to": "rejected", "requires": ["authentication_failed"]},
+      {"from": "authenticated", "to": "processing", "requires": ["route_resolved", "deduplication_passed"]},
+      {"from": "authenticated", "to": "quarantined", "requires": ["route_unresolved_or_payload_inconsistent"]},
+      {"from": "processing", "to": "processed", "requires": ["business_transaction_committed"]},
+      {"from": "processing", "to": "quarantined", "requires": ["terminal_processing_error"]},
+      {"from": "quarantined", "to": "processing", "requires": ["authorized_replay", "routing_or_data_issue_resolved"]}
+    ],
+    "duplicate_policy": "return_accepted_without_repeating_business_side_effects",
+    "response_policy": "acknowledge_durable_capture_not_financial_success",
+    "forbidden_actions": [
+      "trust_tenant_id_from_unsigned_payload",
+      "default_to_a_tenant",
+      "post_financial_event_directly_from_raw_callback",
+      "confirm_commercial_transaction_directly_from_raw_callback",
+      "log_full_secrets_or_sensitive_payload"
+    ]
+  },
+  "transactional_outbox_contract": {
+    "write_rule": "message_and_authoritative_business_change_commit_in_same_database_transaction",
+    "identity_fields": ["tenant_id", "topic", "message_key"],
+    "required_envelope": ["message_id", "tenant_id", "organization_unit_id", "topic", "event_type", "event_version", "message_key", "correlation_id", "causation_id", "occurred_at", "recorded_at", "payload"],
+    "delivery_guarantee": "at_least_once",
+    "ordering_guarantee": "per_message_key_when_transport_supports_partition_ordering",
+    "payload_rule": "immutable_versioned_and_schema_validated",
+    "delivery_states": ["pending", "published", "retrying", "dead_letter"],
+    "claim_strategy": "skip_locked_bounded_batch_with_claim_timeout",
+    "retry_policy": "bounded_exponential_with_jitter",
+    "dead_letter_rule": "preserve_message_failure_history_and_require_authorized_replay",
+    "consumer_requirement": "deduplicate_before_applying_side_effect",
+    "forbidden_actions": ["publish_before_business_commit", "mark_published_without_broker_ack", "mutate_payload_on_retry", "treat_delivery_state_as_financial_state"]
+  },
+  "consumer_inbox_contract": {
+    "identity_fields": ["consumer_name", "tenant_id", "message_id"],
+    "states": ["received", "processing", "completed", "failed_retryable", "failed_terminal"],
+    "duplicate_policy": "completed_duplicate_returns_recorded_result_without_side_effect",
+    "transaction_rule": "consumer_result_and_local_side_effect_commit_atomically",
+    "payload_conflict_rule": "same_message_id_different_hash_is_quarantined",
+    "replay_rule": "authorized_replay_preserves_original_message_identity"
+  },
+  "offline_replay_contract": {
+    "required_command_envelope": ["command_id", "tenant_id", "organization_unit_id", "actor_id", "device_id", "command_type", "command_version", "idempotency_scope", "idempotency_key", "correlation_id", "occurred_at", "client_sequence", "configuration_version", "payload"],
+    "ordering": "per_device_client_sequence_with_explicit_cross_aggregate_dependencies",
+    "time_rule": "preserve_occurred_at_and_assign_server_recorded_at",
+    "authorization_rule": "revalidate_actor_device_permission_and_tenant_at_replay",
+    "configuration_rule": "validate_recorded_configuration_version_or_apply_declared_compatibility_policy",
+    "conflict_policies": ["accept", "idempotent_replay", "reject_stale_version", "require_operator_resolution"],
+    "money_and_stock_rule": "never_silently_last_write_wins",
+    "receipt_rule": "return_per_command_result_with_public_ids_and_conflict_code"
+  },
+  "observability_contract": {
+    "required_dimensions": ["tenant_id", "organization_unit_id", "correlation_id", "causation_id", "command_type", "provider_code", "attempt_number", "outcome", "duration_ms"],
+    "required_metrics": ["idempotent_replays", "idempotency_conflicts", "concurrency_retries", "provider_callbacks_rejected", "provider_callbacks_quarantined", "outbox_lag_seconds", "outbox_dead_letters", "consumer_duplicates", "offline_conflicts"],
+    "required_alerts": ["outbox_lag_breach", "dead_letter_created", "provider_auth_failure_spike", "quarantine_backlog", "concurrency_retry_exhaustion"],
+    "sensitive_data_rule": "structured_logs_exclude_credentials_full_payment_tokens_and_unredacted_provider_payloads"
+  }
+}

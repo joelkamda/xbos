@@ -1,0 +1,151 @@
+{
+  "catalog_code": "XBOS_PAYMENT_TO_FULFILLMENT_WORKFLOWS",
+  "catalog_version": 1,
+  "contract_revision": 1,
+  "status": "approved",
+  "approved_at": "2026-08-06T00:00:00Z",
+  "workflow_event_envelope": {
+    "required_fields": ["event_id", "tenant_id", "organization_unit_id", "event_type", "event_version", "source_record_id", "correlation_id", "causation_id", "occurred_at", "recorded_at", "payload"],
+    "immutable": true,
+    "delivery": "transactional_outbox",
+    "consumer_delivery_assumption": "at_least_once"
+  },
+  "workflow_event_types": [
+    {"event_type": "PROVIDER_CALLBACK_AUTHENTICATED", "event_version": 1, "financial": false, "owner": "provider_inbox", "definition": "Provider evidence passed authentication and routing checks."},
+    {"event_type": "PROVIDER_CALLBACK_REJECTED", "event_version": 1, "financial": false, "owner": "provider_inbox", "definition": "Provider callback failed authentication or mandatory validation."},
+    {"event_type": "PAYMENT_ACTION_REQUIRED", "event_version": 1, "financial": false, "owner": "payment_orchestration", "definition": "Payer or operator action is required before collection may continue."},
+    {"event_type": "PAYMENT_SETTLEMENT_VERIFIED", "event_version": 1, "financial": false, "owner": "settled_value", "definition": "Settlement finality was verified and the canonical settlement transaction committed."},
+    {"event_type": "PAYMENT_CONDITION_SATISFIED", "event_version": 1, "financial": false, "owner": "obligation", "definition": "Configured payment condition is satisfied after valid allocations and allowances."},
+    {"event_type": "COMMERCIAL_TRANSACTION_CONFIRMED", "event_version": 1, "financial": false, "owner": "commercial", "definition": "The commercial snapshot was confirmed under the configured confirmation policy."},
+    {"event_type": "FULFILLMENT_REQUESTED", "event_version": 1, "financial": false, "owner": "pack_workflow", "definition": "A confirmed commercial transaction requested pack-owned fulfillment."},
+    {"event_type": "FULFILLMENT_ACCEPTED", "event_version": 1, "financial": false, "owner": "pack_workflow", "definition": "Pack workflow durably accepted responsibility for fulfillment."},
+    {"event_type": "FULFILLMENT_COMPLETED", "event_version": 1, "financial": false, "owner": "pack_workflow", "definition": "Pack-owned operational fulfillment completed."},
+    {"event_type": "CUSTOMER_NOTIFICATION_REQUESTED", "event_version": 1, "financial": false, "owner": "communications", "definition": "A versioned customer notification was requested after a committed business transition."}
+  ],
+  "confirmation_policies": [
+    {
+      "policy_code": "payment_required",
+      "confirmation_requirements": ["confirmed_settlement", "sufficient_allocation", "payment_condition_satisfied"],
+      "allows_zero_value": false,
+      "allows_credit": false
+    },
+    {
+      "policy_code": "credit_allowed",
+      "confirmation_requirements": ["approved_credit_policy", "obligation_created", "credit_limit_and_terms_valid"],
+      "allows_zero_value": false,
+      "allows_credit": true
+    },
+    {
+      "policy_code": "complimentary_zero_value",
+      "confirmation_requirements": ["approved_complimentary_authority", "zero_collectible_balance", "allowance_event_recorded"],
+      "allows_zero_value": true,
+      "allows_credit": false
+    },
+    {
+      "policy_code": "deposit_threshold",
+      "confirmation_requirements": ["confirmed_settlement", "minimum_deposit_allocated", "remaining_obligation_policy_valid"],
+      "allows_zero_value": false,
+      "allows_credit": true
+    },
+    {
+      "policy_code": "approval_only",
+      "confirmation_requirements": ["authorized_non_payment_approval", "obligation_or_zero_value_treatment_recorded"],
+      "allows_zero_value": true,
+      "allows_credit": true
+    }
+  ],
+  "orchestrator_adapter_contract": {
+    "required_operations": ["create_or_link_intent", "submit_attempt", "query_attempt", "verify_callback", "normalize_provider_evidence", "request_refund"],
+    "required_dimensions": ["payment_method", "payment_rail", "orchestrator", "underlying_provider", "provider_account_public_id", "operational_account_public_id"],
+    "xafpay_role": "one_supported_orchestrator_adapter",
+    "direct_provider_supported": true,
+    "additional_orchestrators_supported": true,
+    "adapter_may_write_financial_event_directly": false,
+    "adapter_may_confirm_commercial_transaction_directly": false,
+    "adapter_may_dispatch_fulfillment_directly": false
+  },
+  "flows": [
+    {
+      "flow_code": "external_payment_required_order",
+      "confirmation_policy": "payment_required",
+      "steps": [
+        {"sequence": 1, "actor": "channel", "action": "submit_order_command", "consumes": [], "produces": ["commercial_transaction", "financial_obligation", "payment_intent"], "transaction_boundary": "order_intake"},
+        {"sequence": 2, "actor": "orchestrator_adapter", "action": "submit_payment_attempt", "consumes": ["payment_intent"], "produces": ["payment_attempt"], "transaction_boundary": "attempt_submission"},
+        {"sequence": 3, "actor": "provider_inbox", "action": "authenticate_deduplicate_and_route_callback", "consumes": ["provider_callback"], "produces": ["PROVIDER_CALLBACK_AUTHENTICATED"], "transaction_boundary": "callback_capture"},
+        {"sequence": 4, "actor": "settlement_service", "action": "verify_finality_and_confirm_settlement", "consumes": ["PROVIDER_CALLBACK_AUTHENTICATED", "payment_attempt"], "produces": ["payment_settlement", "value_source", "PAYMENT_SETTLED", "PAYMENT_SETTLEMENT_VERIFIED"], "transaction_boundary": "settlement_commit"},
+        {"sequence": 5, "actor": "allocation_service", "action": "allocate_confirmed_value", "consumes": ["value_source", "financial_obligation"], "produces": ["payment_allocation", "PAYMENT_ALLOCATED"], "transaction_boundary": "allocation_commit"},
+        {"sequence": 6, "actor": "confirmation_policy_service", "action": "evaluate_payment_condition_and_confirm_commercial_transaction", "consumes": ["payment_allocation", "financial_obligation"], "produces": ["PAYMENT_CONDITION_SATISFIED", "COMMERCIAL_TRANSACTION_CONFIRMED"], "transaction_boundary": "commercial_confirmation"},
+        {"sequence": 7, "actor": "outbox_dispatcher", "action": "deliver_fulfillment_request", "consumes": ["COMMERCIAL_TRANSACTION_CONFIRMED"], "produces": ["FULFILLMENT_REQUESTED"], "transaction_boundary": "asynchronous_delivery"},
+        {"sequence": 8, "actor": "pack_workflow", "action": "accept_and_route_fulfillment", "consumes": ["FULFILLMENT_REQUESTED"], "produces": ["FULFILLMENT_ACCEPTED", "CUSTOMER_NOTIFICATION_REQUESTED"], "transaction_boundary": "pack_fulfillment_acceptance"}
+      ],
+      "postconditions": ["commercial_transaction_confirmed_once", "fulfillment_requested_once_semantically", "financial_and_workflow_events_are_distinct"]
+    },
+    {
+      "flow_code": "immediate_cash_payment_required_order",
+      "confirmation_policy": "payment_required",
+      "steps": [
+        {"sequence": 1, "actor": "pos", "action": "submit_order_and_cash_tender", "consumes": [], "produces": ["commercial_transaction", "financial_obligation", "payment_intent"], "transaction_boundary": "pos_command"},
+        {"sequence": 2, "actor": "payment_service", "action": "confirm_immediate_cash_attempt_and_settlement", "consumes": ["payment_intent"], "produces": ["payment_attempt", "payment_settlement", "value_source", "PAYMENT_SETTLED", "PAYMENT_SETTLEMENT_VERIFIED"], "transaction_boundary": "immediate_settlement"},
+        {"sequence": 3, "actor": "allocation_service", "action": "allocate_confirmed_value", "consumes": ["value_source", "financial_obligation"], "produces": ["payment_allocation", "PAYMENT_ALLOCATED"], "transaction_boundary": "allocation_commit"},
+        {"sequence": 4, "actor": "confirmation_policy_service", "action": "confirm_after_payment_condition", "consumes": ["payment_allocation"], "produces": ["PAYMENT_CONDITION_SATISFIED", "COMMERCIAL_TRANSACTION_CONFIRMED"], "transaction_boundary": "commercial_confirmation"},
+        {"sequence": 5, "actor": "pack_workflow", "action": "accept_outbox_delivered_fulfillment", "consumes": ["COMMERCIAL_TRANSACTION_CONFIRMED"], "produces": ["FULFILLMENT_REQUESTED", "FULFILLMENT_ACCEPTED"], "transaction_boundary": "pack_fulfillment_acceptance"}
+      ],
+      "postconditions": ["cash_change_is_not_expense", "retained_cash_is_settlement_value", "fulfillment_follows_confirmation"]
+    },
+    {
+      "flow_code": "credit_allowed_order",
+      "confirmation_policy": "credit_allowed",
+      "steps": [
+        {"sequence": 1, "actor": "channel", "action": "submit_credit_order", "consumes": [], "produces": ["commercial_transaction"], "transaction_boundary": "order_intake"},
+        {"sequence": 2, "actor": "credit_policy_service", "action": "approve_terms_and_create_obligation", "consumes": ["commercial_transaction"], "produces": ["financial_obligation", "OBLIGATION_OPENED"], "transaction_boundary": "credit_approval"},
+        {"sequence": 3, "actor": "confirmation_policy_service", "action": "confirm_under_credit_policy", "consumes": ["financial_obligation"], "produces": ["COMMERCIAL_TRANSACTION_CONFIRMED"], "transaction_boundary": "commercial_confirmation"},
+        {"sequence": 4, "actor": "pack_workflow", "action": "accept_outbox_delivered_fulfillment", "consumes": ["COMMERCIAL_TRANSACTION_CONFIRMED"], "produces": ["FULFILLMENT_REQUESTED", "FULFILLMENT_ACCEPTED"], "transaction_boundary": "pack_fulfillment_acceptance"}
+      ],
+      "postconditions": ["payment_condition_may_remain_unpaid", "receivable_is_obligation_projection", "fulfillment_is_policy_authorized"]
+    },
+    {
+      "flow_code": "fully_complimentary_order",
+      "confirmation_policy": "complimentary_zero_value",
+      "steps": [
+        {"sequence": 1, "actor": "authorized_operator", "action": "submit_complimentary_order", "consumes": [], "produces": ["commercial_transaction"], "transaction_boundary": "order_intake"},
+        {"sequence": 2, "actor": "allowance_service", "action": "approve_and_record_complimentary_allowance", "consumes": ["commercial_transaction"], "produces": ["COMPLIMENTARY_GRANTED"], "transaction_boundary": "allowance_commit"},
+        {"sequence": 3, "actor": "confirmation_policy_service", "action": "confirm_zero_collectible_transaction", "consumes": ["COMPLIMENTARY_GRANTED"], "produces": ["COMMERCIAL_TRANSACTION_CONFIRMED"], "transaction_boundary": "commercial_confirmation"},
+        {"sequence": 4, "actor": "pack_workflow", "action": "accept_outbox_delivered_fulfillment", "consumes": ["COMMERCIAL_TRANSACTION_CONFIRMED"], "produces": ["FULFILLMENT_REQUESTED", "FULFILLMENT_ACCEPTED"], "transaction_boundary": "pack_fulfillment_acceptance"}
+      ],
+      "postconditions": ["no_fake_payment_settlement", "allowance_is_non_cash_financial_fact", "fulfillment_is_authorized"]
+    },
+    {
+      "flow_code": "duplicate_provider_callback",
+      "confirmation_policy": "payment_required",
+      "steps": [
+        {"sequence": 1, "actor": "provider_inbox", "action": "durably_capture_first_callback", "consumes": ["provider_callback"], "produces": ["PROVIDER_CALLBACK_AUTHENTICATED"], "transaction_boundary": "callback_capture"},
+        {"sequence": 2, "actor": "settlement_service", "action": "commit_first_final_settlement", "consumes": ["PROVIDER_CALLBACK_AUTHENTICATED"], "produces": ["payment_settlement", "PAYMENT_SETTLED"], "transaction_boundary": "settlement_commit"},
+        {"sequence": 3, "actor": "provider_inbox", "action": "deduplicate_same_provider_event", "consumes": ["provider_callback_duplicate"], "produces": ["idempotent_replay_result"], "transaction_boundary": "duplicate_acknowledgement"}
+      ],
+      "postconditions": ["one_settlement", "one_payment_settled_event", "no_duplicate_allocation", "no_duplicate_fulfillment"]
+    },
+    {
+      "flow_code": "offline_command_replay",
+      "confirmation_policy": "payment_required",
+      "steps": [
+        {"sequence": 1, "actor": "offline_device", "action": "record_versioned_command_envelope", "consumes": [], "produces": ["offline_command"], "transaction_boundary": "local_durable_queue"},
+        {"sequence": 2, "actor": "sync_gateway", "action": "authenticate_sequence_and_route_command", "consumes": ["offline_command"], "produces": ["validated_replay_command"], "transaction_boundary": "replay_ingress"},
+        {"sequence": 3, "actor": "command_service", "action": "reserve_idempotency_and_revalidate_version_policy", "consumes": ["validated_replay_command"], "produces": ["accepted_or_conflict_result"], "transaction_boundary": "canonical_command_commit"},
+        {"sequence": 4, "actor": "sync_gateway", "action": "return_stable_per_command_result", "consumes": ["accepted_or_conflict_result"], "produces": ["offline_replay_receipt"], "transaction_boundary": "sync_response"}
+      ],
+      "postconditions": ["same_command_never_duplicates_money_or_stock", "occurred_and_recorded_times_remain_distinct", "conflicts_are_explicit"]
+    }
+  ],
+  "forbidden_shortcuts": [
+    "raw_callback_to_payment_settled_event",
+    "raw_callback_to_commercial_confirmation",
+    "payment_attempt_succeeded_to_fulfillment",
+    "payment_intent_succeeded_to_paid_status_assignment",
+    "provider_adapter_to_financial_tables",
+    "provider_adapter_to_pack_queue",
+    "outbox_publish_before_business_commit",
+    "consumer_side_effect_without_inbox_deduplication",
+    "offline_last_write_wins_for_money_or_stock",
+    "reconciliation_correction_by_rewriting_financial_events"
+  ]
+}
