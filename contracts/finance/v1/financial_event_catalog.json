@@ -1,0 +1,673 @@
+{
+  "catalog_code": "XBOS_CANONICAL_FINANCIAL_EVENTS",
+  "catalog_version": 1,
+  "contract_revision": 2,
+  "supersedes_contract_revision": 1,
+  "status": "approved",
+  "approved_at": "2026-08-05T00:00:00Z",
+  "last_reviewed_at": "2026-08-06T00:00:00Z",
+  "event_envelope_contract": {
+    "required_fields": [
+      "public_id",
+      "tenant_id",
+      "organization_unit_id",
+      "event_type_code",
+      "event_version",
+      "amount",
+      "currency_code",
+      "economic_role",
+      "source_record_id",
+      "occurred_at",
+      "recorded_at",
+      "business_date",
+      "calendar_policy_version",
+      "idempotency_scope",
+      "idempotency_key",
+      "correlation_id",
+      "classification_snapshot",
+      "posting_context",
+      "metadata"
+    ],
+    "actor_rule": {
+      "at_least_one_of": ["actor_user_id", "actor_service"]
+    },
+    "idempotency_identity": [
+      "tenant_id",
+      "idempotency_scope",
+      "idempotency_key"
+    ],
+    "immutable": true,
+    "replay_policy": "return_identical_event_or_reject_conflict"
+  },
+  "external_settlement_policy": {
+    "provider_callback_is_financial_event": false,
+    "payment_attempt_success_is_settlement": false,
+    "requires_authenticated_provider_evidence": true,
+    "requires_verified_finality_before_payment_settled": true,
+    "orchestrator_is_distinct_from_payment_rail": true,
+    "provider_account_is_distinct_from_operational_account": true,
+    "required_source_record_kind": "payment_settlement",
+    "required_external_source_fields": [
+      "payment_method",
+      "payment_rail",
+      "orchestrator",
+      "provider_account_public_id",
+      "operational_account_public_id",
+      "gateway_intent_reference",
+      "provider_event_reference",
+      "finality_status",
+      "evidence_hash"
+    ],
+    "optional_external_source_fields": [
+      "underlying_provider",
+      "merchant_reference",
+      "customer_reference"
+    ]
+  },
+  "workflow_boundary": {
+    "raw_provider_success_may_confirm_commercial_transaction": false,
+    "confirmation_authority": "configured_confirmation_policy",
+    "payment_required_path": [
+      "authenticated_provider_evidence",
+      "verified_payment_settlement",
+      "payment_allocation",
+      "payment_condition_satisfied"
+    ],
+    "allowed_non_payment_confirmation_paths": [
+      "zero_value_complimentary",
+      "approved_customer_credit",
+      "approved_pay_on_fulfillment",
+      "authorized_manual_confirmation"
+    ],
+    "fulfillment_trigger": "commercial_transaction_confirmed",
+    "fulfillment_delivery": "transactional_outbox",
+    "workflow_events_not_financial": [
+      "PAYMENT_CONDITION_SATISFIED",
+      "COMMERCIAL_TRANSACTION_CONFIRMED",
+      "FULFILLMENT_REQUESTED",
+      "CUSTOMER_NOTIFICATION_REQUESTED"
+    ]
+  },
+  "amount_policies": [
+    "positive",
+    "nonzero",
+    "zero_allowed"
+  ],
+  "economic_roles": [
+    "recognition",
+    "settlement_in",
+    "settlement_out",
+    "allocation",
+    "deallocation",
+    "transfer",
+    "liability_recognition",
+    "control",
+    "correction"
+  ],
+  "reconciliation_effects": [
+    "inflow",
+    "outflow",
+    "movement",
+    "control_increase",
+    "control_decrease",
+    "control_reversal",
+    "commercial",
+    "account_adjustment",
+    "none"
+  ],
+  "event_types": [
+    {
+      "event_type_code": "COMMERCIAL_REVENUE_RECOGNIZED",
+      "event_version": 1,
+      "display_name": "Commercial Revenue Recognized",
+      "definition": "Recognizes earned commercial consideration excluding separately stated tax, tips, discounts, complimentary allowances and returns.",
+      "amount_policy": "positive",
+      "default_economic_role": "recognition",
+      "allowed_economic_roles": ["recognition"],
+      "posting_eligible": true,
+      "requires_original_event": false,
+      "source_record_kinds": ["commercial_transaction", "commercial_transaction_line"],
+      "required_classification_roles": ["revenue_nature"],
+      "operational_account_policy": {"mode": "none"},
+      "reconciliation_policy": {"mode": "fixed", "effect": "commercial"},
+      "posting_profiles": [
+        {
+          "profile_code": "commercial_recognition",
+          "condition": "default",
+          "mode": "template",
+          "debit_account_roles": ["trade_or_contract_receivable"],
+          "credit_account_roles": ["classified_revenue"]
+        }
+      ]
+    },
+    {
+      "event_type_code": "TAX_LIABILITY_RECOGNIZED",
+      "event_version": 1,
+      "display_name": "Tax Liability Recognized",
+      "definition": "Recognizes separately stated output tax collected or receivable on behalf of a tax authority.",
+      "amount_policy": "positive",
+      "default_economic_role": "recognition",
+      "allowed_economic_roles": ["recognition"],
+      "posting_eligible": true,
+      "requires_original_event": false,
+      "source_record_kinds": ["commercial_adjustment", "commercial_transaction_component"],
+      "required_classification_roles": ["tax_jurisdiction", "tax_code"],
+      "operational_account_policy": {"mode": "none"},
+      "reconciliation_policy": {"mode": "fixed", "effect": "commercial"},
+      "posting_profiles": [
+        {
+          "profile_code": "output_tax_recognition",
+          "condition": "default",
+          "mode": "template",
+          "debit_account_roles": ["trade_or_contract_receivable"],
+          "credit_account_roles": ["tax_payable"]
+        }
+      ]
+    },
+    {
+      "event_type_code": "DISCOUNT_GRANTED",
+      "event_version": 1,
+      "display_name": "Discount Granted",
+      "definition": "Recognizes a reduction in customer consideration caused by an authorized discount.",
+      "amount_policy": "positive",
+      "default_economic_role": "recognition",
+      "allowed_economic_roles": ["recognition"],
+      "posting_eligible": true,
+      "requires_original_event": false,
+      "source_record_kinds": ["commercial_adjustment"],
+      "required_classification_roles": ["discount_reason"],
+      "operational_account_policy": {"mode": "none"},
+      "reconciliation_policy": {"mode": "fixed", "effect": "commercial"},
+      "posting_profiles": [
+        {
+          "profile_code": "discount_contra_revenue",
+          "condition": "default",
+          "mode": "template",
+          "debit_account_roles": ["sales_discount_contra_revenue"],
+          "credit_account_roles": ["trade_or_contract_receivable"]
+        }
+      ]
+    },
+    {
+      "event_type_code": "COMPLIMENTARY_GRANTED",
+      "event_version": 1,
+      "display_name": "Complimentary Granted",
+      "definition": "Recognizes consideration waived because a good, service or experience is complimentary.",
+      "amount_policy": "positive",
+      "default_economic_role": "recognition",
+      "allowed_economic_roles": ["recognition"],
+      "posting_eligible": true,
+      "requires_original_event": false,
+      "source_record_kinds": ["commercial_adjustment"],
+      "required_classification_roles": ["complimentary_reason", "complimentary_policy"],
+      "operational_account_policy": {"mode": "none"},
+      "reconciliation_policy": {"mode": "fixed", "effect": "commercial"},
+      "posting_profiles": [
+        {
+          "profile_code": "complimentary_contra_revenue",
+          "condition": "complimentary_policy == 'contra_revenue'",
+          "mode": "template",
+          "debit_account_roles": ["complimentary_contra_revenue"],
+          "credit_account_roles": ["trade_or_contract_receivable"]
+        },
+        {
+          "profile_code": "complimentary_promotion",
+          "condition": "complimentary_policy == 'promotion'",
+          "mode": "template",
+          "debit_account_roles": ["marketing_or_promotional_expense"],
+          "credit_account_roles": ["trade_or_contract_receivable"]
+        },
+        {
+          "profile_code": "complimentary_service_recovery",
+          "condition": "complimentary_policy == 'service_recovery'",
+          "mode": "template",
+          "debit_account_roles": ["service_recovery_expense"],
+          "credit_account_roles": ["trade_or_contract_receivable"]
+        }
+      ]
+    },
+    {
+      "event_type_code": "TIP_RECOGNIZED",
+      "event_version": 1,
+      "display_name": "Tip Recognized",
+      "definition": "Recognizes a separately identified tip, gratuity or service reward without assuming it is tenant revenue.",
+      "amount_policy": "positive",
+      "default_economic_role": "recognition",
+      "allowed_economic_roles": ["recognition"],
+      "posting_eligible": true,
+      "requires_original_event": false,
+      "source_record_kinds": ["commercial_adjustment", "commercial_transaction_component"],
+      "required_classification_roles": ["tip_policy"],
+      "operational_account_policy": {"mode": "none"},
+      "reconciliation_policy": {"mode": "fixed", "effect": "commercial"},
+      "posting_profiles": [
+        {
+          "profile_code": "tip_staff_liability",
+          "condition": "tip_policy == 'staff_beneficiary'",
+          "mode": "template",
+          "debit_account_roles": ["trade_or_contract_receivable"],
+          "credit_account_roles": ["tip_payable"]
+        },
+        {
+          "profile_code": "tip_tenant_income",
+          "condition": "tip_policy == 'tenant_income'",
+          "mode": "template",
+          "debit_account_roles": ["trade_or_contract_receivable"],
+          "credit_account_roles": ["tip_or_service_charge_income"]
+        }
+      ]
+    },
+    {
+      "event_type_code": "COMMERCIAL_RETURN_RECOGNIZED",
+      "event_version": 1,
+      "display_name": "Commercial Return Recognized",
+      "definition": "Recognizes an approved reduction of previously recognized consideration caused by return, cancellation, correction or service failure.",
+      "amount_policy": "positive",
+      "default_economic_role": "correction",
+      "allowed_economic_roles": ["correction"],
+      "posting_eligible": true,
+      "requires_original_event": true,
+      "source_record_kinds": ["commercial_adjustment"],
+      "required_classification_roles": ["return_reason"],
+      "operational_account_policy": {"mode": "none"},
+      "reconciliation_policy": {"mode": "fixed", "effect": "commercial"},
+      "posting_profiles": [
+        {
+          "profile_code": "commercial_return",
+          "condition": "default",
+          "mode": "template",
+          "debit_account_roles": ["sales_returns_and_allowances"],
+          "credit_account_roles": ["trade_or_contract_receivable"]
+        }
+      ]
+    },
+    {
+      "event_type_code": "COST_OF_FULFILLMENT_RECOGNIZED",
+      "event_version": 1,
+      "display_name": "Cost of Fulfillment Recognized",
+      "definition": "Recognizes inventory or another directly attributable cost consumed by fulfillment.",
+      "amount_policy": "positive",
+      "default_economic_role": "recognition",
+      "allowed_economic_roles": ["recognition"],
+      "posting_eligible": true,
+      "requires_original_event": false,
+      "source_record_kinds": ["fulfillment_cost_snapshot"],
+      "required_classification_roles": ["cost_nature"],
+      "operational_account_policy": {"mode": "none"},
+      "reconciliation_policy": {"mode": "fixed", "effect": "none"},
+      "posting_profiles": [
+        {
+          "profile_code": "fulfillment_cost",
+          "condition": "default",
+          "mode": "template",
+          "debit_account_roles": ["cost_of_goods_or_fulfillment"],
+          "credit_account_roles": ["inventory_or_deferred_cost_asset"]
+        }
+      ]
+    },
+    {
+      "event_type_code": "EXPENSE_RECOGNIZED",
+      "event_version": 1,
+      "display_name": "Expense Recognized",
+      "definition": "Recognizes an operational expense independently of when the related obligation is settled.",
+      "amount_policy": "positive",
+      "default_economic_role": "recognition",
+      "allowed_economic_roles": ["recognition"],
+      "posting_eligible": true,
+      "requires_original_event": false,
+      "source_record_kinds": ["expense_transaction"],
+      "required_classification_roles": ["expense_nature"],
+      "operational_account_policy": {"mode": "none"},
+      "reconciliation_policy": {"mode": "fixed", "effect": "none"},
+      "posting_profiles": [
+        {
+          "profile_code": "expense_accrual",
+          "condition": "default",
+          "mode": "template",
+          "debit_account_roles": ["classified_expense"],
+          "credit_account_roles": ["trade_or_accrued_payable"]
+        }
+      ]
+    },
+    {
+      "event_type_code": "OBLIGATION_OPENED",
+      "event_version": 1,
+      "display_name": "Obligation Opened",
+      "definition": "Records that a receivable or payable obligation is open without posting the underlying economic fact a second time.",
+      "amount_policy": "positive",
+      "default_economic_role": "control",
+      "allowed_economic_roles": ["control"],
+      "posting_eligible": false,
+      "requires_original_event": false,
+      "source_record_kinds": ["financial_obligation"],
+      "required_classification_roles": ["obligation_role"],
+      "operational_account_policy": {"mode": "none"},
+      "reconciliation_policy": {"mode": "fixed", "effect": "control_increase"},
+      "posting_profiles": []
+    },
+    {
+      "event_type_code": "OBLIGATION_WRITTEN_OFF",
+      "event_version": 1,
+      "display_name": "Obligation Written Off",
+      "definition": "Records an authorized permanent removal of an obligation balance without settlement.",
+      "amount_policy": "positive",
+      "default_economic_role": "correction",
+      "allowed_economic_roles": ["correction"],
+      "posting_eligible": true,
+      "requires_original_event": false,
+      "source_record_kinds": ["financial_obligation_adjustment"],
+      "required_classification_roles": ["obligation_role", "writeoff_reason"],
+      "operational_account_policy": {"mode": "none"},
+      "reconciliation_policy": {"mode": "fixed", "effect": "control_decrease"},
+      "posting_profiles": [
+        {
+          "profile_code": "receivable_writeoff",
+          "condition": "obligation_role == 'receivable'",
+          "mode": "template",
+          "debit_account_roles": ["writeoff_expense_or_allowance_reserve"],
+          "credit_account_roles": ["trade_receivable"]
+        },
+        {
+          "profile_code": "payable_forgiveness",
+          "condition": "obligation_role == 'payable'",
+          "mode": "template",
+          "debit_account_roles": ["trade_payable"],
+          "credit_account_roles": ["payable_forgiveness_gain_or_adjustment"]
+        }
+      ]
+    },
+    {
+      "event_type_code": "PAYMENT_SETTLED",
+      "event_version": 1,
+      "display_name": "Payment Settled",
+      "definition": "Records confirmed value entering or leaving an operational financial account.",
+      "amount_policy": "positive",
+      "default_economic_role": "settlement_in",
+      "allowed_economic_roles": ["settlement_in", "settlement_out"],
+      "posting_eligible": true,
+      "requires_original_event": false,
+      "source_record_kinds": ["payment_settlement"],
+      "required_classification_roles": ["settlement_purpose"],
+      "operational_account_policy": {
+        "mode": "by_economic_role",
+        "mappings": {
+          "settlement_in": {"source": "forbidden", "target": "required"},
+          "settlement_out": {"source": "required", "target": "forbidden"}
+        }
+      },
+      "reconciliation_policy": {
+        "mode": "by_economic_role",
+        "mappings": {
+          "settlement_in": "inflow",
+          "settlement_out": "outflow"
+        }
+      },
+      "posting_profiles": [
+        {
+          "profile_code": "inbound_settlement",
+          "condition": "economic_role == 'settlement_in'",
+          "mode": "template",
+          "debit_account_roles": ["cash_bank_or_provider_asset"],
+          "credit_account_roles": ["unapplied_receipts_clearing"]
+        },
+        {
+          "profile_code": "outbound_settlement",
+          "condition": "economic_role == 'settlement_out'",
+          "mode": "template",
+          "debit_account_roles": ["disbursement_clearing"],
+          "credit_account_roles": ["cash_bank_or_provider_asset"]
+        }
+      ]
+    },
+    {
+      "event_type_code": "PAYMENT_SETTLEMENT_REVERSED",
+      "event_version": 1,
+      "display_name": "Payment Settlement Reversed",
+      "definition": "Reverses a previously confirmed settlement because authoritative evidence invalidated all or part of it.",
+      "amount_policy": "positive",
+      "default_economic_role": "correction",
+      "allowed_economic_roles": ["correction"],
+      "posting_eligible": true,
+      "requires_original_event": true,
+      "source_record_kinds": ["payment_settlement_reversal"],
+      "required_classification_roles": ["reversal_reason"],
+      "operational_account_policy": {"mode": "inverse_original"},
+      "reconciliation_policy": {"mode": "inverse_original"},
+      "posting_profiles": [
+        {
+          "profile_code": "inverse_original_settlement",
+          "condition": "default",
+          "mode": "inverse_original"
+        }
+      ]
+    },
+    {
+      "event_type_code": "PAYMENT_ALLOCATED",
+      "event_version": 1,
+      "display_name": "Payment Allocated",
+      "definition": "Applies settled value to an obligation component or another approved allocation target.",
+      "amount_policy": "positive",
+      "default_economic_role": "allocation",
+      "allowed_economic_roles": ["allocation"],
+      "posting_eligible": true,
+      "requires_original_event": false,
+      "source_record_kinds": ["payment_allocation"],
+      "required_classification_roles": ["allocation_target_role"],
+      "operational_account_policy": {"mode": "none"},
+      "reconciliation_policy": {"mode": "fixed", "effect": "control_decrease"},
+      "posting_profiles": [
+        {
+          "profile_code": "receivable_allocation",
+          "condition": "allocation_target_role == 'receivable'",
+          "mode": "template",
+          "debit_account_roles": ["unapplied_receipts_clearing"],
+          "credit_account_roles": ["trade_receivable"]
+        },
+        {
+          "profile_code": "payable_allocation",
+          "condition": "allocation_target_role == 'payable'",
+          "mode": "template",
+          "debit_account_roles": ["trade_payable"],
+          "credit_account_roles": ["disbursement_clearing"]
+        }
+      ]
+    },
+    {
+      "event_type_code": "PAYMENT_ALLOCATION_REVERSED",
+      "event_version": 1,
+      "display_name": "Payment Allocation Reversed",
+      "definition": "Restores all or part of a prior allocation without independently moving settled value.",
+      "amount_policy": "positive",
+      "default_economic_role": "deallocation",
+      "allowed_economic_roles": ["deallocation"],
+      "posting_eligible": true,
+      "requires_original_event": true,
+      "source_record_kinds": ["payment_allocation_reversal"],
+      "required_classification_roles": ["reversal_reason"],
+      "operational_account_policy": {"mode": "none"},
+      "reconciliation_policy": {"mode": "fixed", "effect": "control_reversal"},
+      "posting_profiles": [
+        {
+          "profile_code": "inverse_original_allocation",
+          "condition": "default",
+          "mode": "inverse_original"
+        }
+      ]
+    },
+    {
+      "event_type_code": "CUSTOMER_CREDIT_RECOGNIZED",
+      "event_version": 1,
+      "display_name": "Customer Credit Recognized",
+      "definition": "Converts settled unapplied value into a customer-credit liability.",
+      "amount_policy": "positive",
+      "default_economic_role": "liability_recognition",
+      "allowed_economic_roles": ["liability_recognition"],
+      "posting_eligible": true,
+      "requires_original_event": false,
+      "source_record_kinds": ["customer_credit_recognition"],
+      "required_classification_roles": ["credit_policy"],
+      "operational_account_policy": {"mode": "none"},
+      "reconciliation_policy": {"mode": "fixed", "effect": "control_increase"},
+      "posting_profiles": [
+        {
+          "profile_code": "customer_credit_liability",
+          "condition": "default",
+          "mode": "template",
+          "debit_account_roles": ["unapplied_receipts_clearing"],
+          "credit_account_roles": ["customer_credit_liability"]
+        }
+      ]
+    },
+    {
+      "event_type_code": "REFUND_SETTLED",
+      "event_version": 1,
+      "display_name": "Refund Settled",
+      "definition": "Records confirmed value returned to a customer through an operational financial account.",
+      "amount_policy": "positive",
+      "default_economic_role": "settlement_out",
+      "allowed_economic_roles": ["settlement_out"],
+      "posting_eligible": true,
+      "requires_original_event": false,
+      "source_record_kinds": ["payment_refund"],
+      "required_classification_roles": ["refund_reason"],
+      "operational_account_policy": {
+        "mode": "fixed",
+        "source": "required",
+        "target": "forbidden"
+      },
+      "reconciliation_policy": {"mode": "fixed", "effect": "outflow"},
+      "posting_profiles": [
+        {
+          "profile_code": "customer_refund",
+          "condition": "default",
+          "mode": "template",
+          "debit_account_roles": ["refund_payable_or_unapplied_receipts"],
+          "credit_account_roles": ["cash_bank_or_provider_asset"]
+        }
+      ]
+    },
+    {
+      "event_type_code": "VALUE_TRANSFERRED",
+      "event_version": 1,
+      "display_name": "Value Transferred",
+      "definition": "Records confirmed movement between two operational financial accounts without recognizing income or expense.",
+      "amount_policy": "positive",
+      "default_economic_role": "transfer",
+      "allowed_economic_roles": ["transfer"],
+      "posting_eligible": true,
+      "requires_original_event": false,
+      "source_record_kinds": ["value_transfer"],
+      "required_classification_roles": ["transfer_purpose"],
+      "operational_account_policy": {
+        "mode": "fixed",
+        "source": "required",
+        "target": "required",
+        "different_accounts": true
+      },
+      "reconciliation_policy": {"mode": "fixed", "effect": "movement"},
+      "posting_profiles": [
+        {
+          "profile_code": "operational_value_transfer",
+          "condition": "default",
+          "mode": "template",
+          "debit_account_roles": ["target_operational_asset"],
+          "credit_account_roles": ["source_operational_asset"]
+        }
+      ]
+    },
+    {
+      "event_type_code": "PROVIDER_FEE_RECOGNIZED",
+      "event_version": 1,
+      "display_name": "Provider Fee Recognized",
+      "definition": "Recognizes a fee charged or withheld by a payment provider.",
+      "amount_policy": "positive",
+      "default_economic_role": "recognition",
+      "allowed_economic_roles": ["recognition"],
+      "posting_eligible": true,
+      "requires_original_event": false,
+      "source_record_kinds": ["provider_fee"],
+      "required_classification_roles": ["provider_fee_type"],
+      "operational_account_policy": {
+        "mode": "fixed",
+        "source": "required",
+        "target": "forbidden"
+      },
+      "reconciliation_policy": {"mode": "fixed", "effect": "account_adjustment"},
+      "posting_profiles": [
+        {
+          "profile_code": "provider_fee",
+          "condition": "default",
+          "mode": "template",
+          "debit_account_roles": ["provider_fee_expense"],
+          "credit_account_roles": ["provider_settlement_receivable_or_payable"]
+        }
+      ]
+    },
+    {
+      "event_type_code": "PROVIDER_SETTLEMENT_ADJUSTED",
+      "event_version": 1,
+      "display_name": "Provider Settlement Adjusted",
+      "definition": "Records an evidenced provider-side reserve, chargeback, release or settlement correction that is not an ordinary fee.",
+      "amount_policy": "positive",
+      "default_economic_role": "correction",
+      "allowed_economic_roles": ["correction"],
+      "posting_eligible": true,
+      "requires_original_event": false,
+      "source_record_kinds": ["provider_settlement_adjustment"],
+      "required_classification_roles": ["provider_adjustment_class"],
+      "operational_account_policy": {
+        "mode": "classification_dependent",
+        "at_least_one_of_source_or_target": true
+      },
+      "reconciliation_policy": {
+        "mode": "classification_dependent",
+        "classification_role": "provider_adjustment_class"
+      },
+      "posting_profiles": [
+        {
+          "profile_code": "provider_reserve_hold",
+          "condition": "provider_adjustment_class == 'reserve_hold'",
+          "mode": "template",
+          "debit_account_roles": ["provider_reserve_asset"],
+          "credit_account_roles": ["provider_settlement_receivable"]
+        },
+        {
+          "profile_code": "provider_reserve_release",
+          "condition": "provider_adjustment_class == 'reserve_release'",
+          "mode": "template",
+          "debit_account_roles": ["provider_settlement_receivable"],
+          "credit_account_roles": ["provider_reserve_asset"]
+        },
+        {
+          "profile_code": "provider_chargeback_loss",
+          "condition": "provider_adjustment_class == 'chargeback_loss'",
+          "mode": "template",
+          "debit_account_roles": ["chargeback_loss_or_receivable"],
+          "credit_account_roles": ["provider_settlement_receivable"]
+        }
+      ]
+    },
+    {
+      "event_type_code": "FINANCIAL_FACT_REVERSED",
+      "event_version": 1,
+      "display_name": "Financial Fact Reversed",
+      "definition": "Records an exact linked inverse for a posting-eligible event that has no more specific reversal type.",
+      "amount_policy": "positive",
+      "default_economic_role": "correction",
+      "allowed_economic_roles": ["correction"],
+      "posting_eligible": true,
+      "requires_original_event": true,
+      "source_record_kinds": ["financial_event_reversal"],
+      "required_classification_roles": ["reversal_reason"],
+      "operational_account_policy": {"mode": "inverse_original"},
+      "reconciliation_policy": {"mode": "inverse_original"},
+      "posting_profiles": [
+        {
+          "profile_code": "inverse_original_fact",
+          "condition": "default",
+          "mode": "inverse_original"
+        }
+      ]
+    }
+  ]
+}
