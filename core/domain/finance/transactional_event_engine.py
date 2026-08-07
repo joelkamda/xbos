@@ -1,4 +1,4 @@
-"""Atomic idempotency, financial event, and outbox orchestration."""
+"""Atomic idempotency, financial event, outbox, and correction orchestration."""
 
 from __future__ import annotations
 
@@ -17,6 +17,7 @@ from .idempotency_repository import (
     IdempotencyReservation,
 )
 from .outbox_repository import CanonicalOutboxRepository, OutboxMessageRecord
+from .reversal_policy import FinancialEventReversalPolicy
 
 
 @dataclass(frozen=True)
@@ -33,6 +34,7 @@ class TransactionalCanonicalFinancialEventEngine:
     event_repository = CanonicalFinancialEventRepository
     idempotency_repository = CanonicalIdempotencyRepository
     outbox_repository = CanonicalOutboxRepository
+    reversal_policy = FinancialEventReversalPolicy
 
     @classmethod
     def emit(
@@ -79,6 +81,7 @@ class TransactionalCanonicalFinancialEventEngine:
         event = cls.event_repository.find_by_idempotency(session, command)
         if event is None:
             cls.event_repository.validate_references(session, command, policy)
+            cls.reversal_policy.validate_and_lock(session, command, policy)
             event = cls.event_repository.insert(session, command)
         else:
             event = cls.event_repository.resolve_replay(event, command)

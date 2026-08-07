@@ -1,0 +1,98 @@
+{
+  "contract_code": "XBOS_M23_ORIGINAL_LINKED_CORRECTION_CAPACITY",
+  "contract_version": 1,
+  "status": "approved_implementation_candidate",
+  "date": "2026-08-07",
+  "parent_checkpoint": {
+    "commit": "8056fbb",
+    "migration_revision": "m22_transactional_delivery_004"
+  },
+  "authorities": [
+    "contracts/finance/v1/financial_event_catalog.json",
+    "contracts/finance/v1/entity_contracts.json",
+    "contracts/finance/v1/reliability_contracts.json",
+    "contracts/finance/v1/m22_transactional_idempotency_outbox.json"
+  ],
+  "migration": {
+    "revision": "m23_reversal_capacity_005",
+    "down_revision": "m22_transactional_delivery_004",
+    "data_mutation": false,
+    "database_guard": "before_insert_trigger_on_financial_events"
+  },
+  "original_linked_types": {
+    "COMMERCIAL_RETURN_RECOGNIZED": "COMMERCIAL_REVENUE_RECOGNIZED",
+    "PAYMENT_SETTLEMENT_REVERSED": "PAYMENT_SETTLED",
+    "PAYMENT_ALLOCATION_REVERSED": "PAYMENT_ALLOCATED",
+    "FINANCIAL_FACT_REVERSED": "posting_eligible_original_without_dedicated_type"
+  },
+  "invariants": {
+    "append_only": true,
+    "correction_chain_forbidden": true,
+    "same_tenant": true,
+    "same_organization_unit": true,
+    "same_currency": true,
+    "correction_not_before_original": true,
+    "cumulative_amount_rule": "sum(all_direct_original_linked_corrections)+requested_amount_lte_original_amount",
+    "partial_correction_allowed": true,
+    "exact_capacity_allowed": true,
+    "over_capacity_rejected": true,
+    "generic_requires_posting_eligible_original": true,
+    "generic_forbidden_when_dedicated_type_exists": true,
+    "inverse_account_types": [
+      "PAYMENT_SETTLEMENT_REVERSED",
+      "FINANCIAL_FACT_REVERSED"
+    ],
+    "no_account_types": [
+      "COMMERCIAL_RETURN_RECOGNIZED",
+      "PAYMENT_ALLOCATION_REVERSED"
+    ]
+  },
+  "concurrency": {
+    "isolation": "read_committed",
+    "lock": "select_original_financial_event_for_update",
+    "sum_after_lock": true,
+    "serialization_key": ["tenant_id", "original_event_id"],
+    "postcondition": "concurrent_committed_corrections_never_exceed_original_amount"
+  },
+  "enforcement": {
+    "application": "FinancialEventReversalPolicy.validate_and_lock",
+    "database": "xbos_enforce_financial_reversal_capacity",
+    "transactional_entrypoint": "TransactionalCanonicalFinancialEventEngine.emit",
+    "direct_insert_bypass_rejected": true,
+    "idempotency_event_and_outbox_remain_atomic": true
+  },
+  "failure_codes": [
+    "unsupported_original_link",
+    "original_event_not_found",
+    "original_event_is_correction",
+    "original_event_organization_mismatch",
+    "original_event_currency_mismatch",
+    "correction_precedes_original",
+    "reversal_type_mismatch",
+    "specific_reversal_type_required",
+    "original_event_not_posting_eligible",
+    "inverse_original_accounts_mismatch",
+    "reversal_capacity_exceeded"
+  ],
+  "verification_gate": [
+    "single_linear_migration_head",
+    "upgrade_downgrade_upgrade",
+    "partial_then_exact_capacity_success",
+    "identical_correction_replay_stable",
+    "sequential_over_capacity_rejected",
+    "dedicated_type_mismatch_rejected",
+    "correction_chain_rejected",
+    "concurrent_over_capacity_serialized_and_rejected",
+    "direct_database_bypass_rejected",
+    "failed_corrections_leave_no_idempotency_event_or_outbox_rows",
+    "development_financial_tables_remain_empty"
+  ],
+  "deferred": [
+    "refund_capacity_across_settlement_and_allocations",
+    "formal journal reversal posting",
+    "taxonomy bridge rows",
+    "outbox dispatch",
+    "wnd_writer_cutover",
+    "historical transformation"
+  ]
+}
