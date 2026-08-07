@@ -1,0 +1,110 @@
+{
+  "contract_code": "XBOS_M21_CANONICAL_EVENT_ENGINE",
+  "contract_version": 1,
+  "status": "approved_implementation_candidate",
+  "date": "2026-08-06",
+  "parent_checkpoint": {
+    "commit": "49315ae",
+    "migration_revision": "m20_event_catalog_003"
+  },
+  "authorities": [
+    "contracts/finance/v1/financial_event_catalog.json",
+    "contracts/finance/v1/entity_contracts.json",
+    "contracts/finance/v1/reliability_contracts.json",
+    "contracts/persistence/v1/m20_canonical_event_catalog_seed.json"
+  ],
+  "command": {
+    "required_fields": [
+      "public_id",
+      "tenant_id",
+      "organization_unit_id",
+      "event_type_code",
+      "event_version",
+      "amount",
+      "currency_code",
+      "economic_role",
+      "source_record_id",
+      "occurred_at",
+      "business_date",
+      "calendar_policy_version",
+      "idempotency_scope",
+      "idempotency_key",
+      "correlation_id",
+      "classification_snapshot",
+      "posting_context",
+      "metadata"
+    ],
+    "actor_rule": "actor_user_id_or_actor_service_required",
+    "money_rule": "finite_decimal_never_float_authority",
+    "time_rule": "occurred_at_timezone_aware_and_normalized_to_utc_for_hashing",
+    "json_rule": "classification_posting_context_and_metadata_are_json_objects",
+    "reserved_metadata_keys": ["_kernel"]
+  },
+  "canonical_fingerprint": {
+    "algorithm": "sha256",
+    "canonicalization": "utf8_json_sorted_keys_compact_separators_ensure_ascii_false",
+    "decimal_normalization": "numerically_equal_decimals_have_one_plain_string",
+    "timestamp_normalization": "utc_iso8601_Z",
+    "includes": "all_semantically_material_command_fields",
+    "excludes": ["recorded_at", "transport_retry_count", "trace_sampling_metadata"]
+  },
+  "validation_order": [
+    "typed_structure",
+    "effective_catalog_definition",
+    "catalog_amount_role_original_classification_and_account_presence_policy",
+    "idempotent_replay_resolution",
+    "tenant_organization_currency_source_actor_account_and_original_references",
+    "immutable_insert"
+  ],
+  "reference_rules": {
+    "tenant": "must_exist",
+    "organization_unit": "same_tenant_and_active",
+    "currency": "active_asset_and_effective_tenant_currency_policy",
+    "source_record": "same_tenant_not_retired_allowed_aggregate_type_and_same_org_unless_null",
+    "actor_user": "same_tenant_and_active_when_supplied",
+    "operational_accounts": "same_tenant_org_currency_and_active_at_occurred_at",
+    "original_event": "same_tenant_org_and_currency_when_required"
+  },
+  "idempotency": {
+    "identity": ["tenant_id", "idempotency_scope", "idempotency_key"],
+    "same_fingerprint": "return_original_event_with_replayed_true",
+    "different_fingerprint": "raise_idempotency_conflict_without_write",
+    "concurrent_duplicate": "use_nested_transaction_then_resolve_winning_identity",
+    "stored_evidence": "metadata._kernel.command_fingerprint"
+  },
+  "transaction": {
+    "commit_owner": "caller",
+    "repository_commits": false,
+    "repository_rolls_back_outer_transaction": false,
+    "database_immutability_trigger_remains_authoritative": true
+  },
+  "scope": {
+    "included": [
+      "typed canonical event command",
+      "deterministic command fingerprint",
+      "catalog-driven validation",
+      "tenant-scoped reference validation",
+      "immutable financial_events insertion",
+      "identical replay and altered replay conflict"
+    ],
+    "deferred": [
+      "idempotency_records command reservation",
+      "transactional outbox message",
+      "reversal capacity aggregation",
+      "taxonomy bridge rows",
+      "journal posting",
+      "WND writer cutover",
+      "historical transformation"
+    ]
+  },
+  "verification_gate": [
+    "byte_stable_fingerprint",
+    "approved_event_policy_enforced",
+    "cross_tenant_references_rejected",
+    "identical_replay_returns_original_event",
+    "altered_replay_rejected",
+    "database_row_is_immutable",
+    "no_outbox_message_created",
+    "development_database_remains_event_empty"
+  ]
+}
