@@ -1,0 +1,12 @@
+DROP TRIGGER IF EXISTS trg_journal_lines_immutable ON public.journal_lines;
+DROP TRIGGER IF EXISTS trg_journal_entries_immutable ON public.journal_entries;
+DROP TRIGGER IF EXISTS trg_journal_lines_balanced ON public.journal_lines;
+DROP TRIGGER IF EXISTS trg_journal_entries_balanced ON public.journal_entries;
+DROP FUNCTION IF EXISTS public.xbos_reject_posted_journal_mutation();
+DROP FUNCTION IF EXISTS public.xbos_validate_posted_journal_balance();
+DROP TABLE IF EXISTS public.journal_entry_event_links;
+DROP TABLE IF EXISTS public.journal_lines;
+DROP TABLE IF EXISTS public.journal_entries;
+DROP TABLE IF EXISTS public.ledger_account_role_bindings;
+DROP TABLE IF EXISTS public.accounting_periods;
+DROP TABLE IF EXISTS public.ledger_accounts;

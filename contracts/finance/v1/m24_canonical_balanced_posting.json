@@ -1,0 +1,90 @@
+{
+  "contract_code": "XBOS_M24_CANONICAL_BALANCED_POSTING",
+  "contract_version": 1,
+  "package_revision": 2,
+  "supersedes_package_sha256": "94b5ff8df9c5c25a22dd7a97470554f360d1dcade0033f6e5f2df580a7c8a3ae",
+  "status": "approved_implementation_candidate",
+  "parent_checkpoint": {
+    "commit": "59f3747",
+    "migration_revision": "m23_reversal_capacity_005"
+  },
+  "target_revision": "m24_balanced_posting_006",
+  "authorities": {
+    "event_catalog": "contracts/finance/v1/financial_event_catalog.json",
+    "account_roles": "contracts/finance/v1/account_role_catalog.json",
+    "posting_scenarios": "contracts/finance/v1/posting_scenarios.json"
+  },
+  "scope": {
+    "single_event_single_entry": true,
+    "single_transaction_currency": true,
+    "same_currency_base_posting": true,
+    "template_shape": "one_debit_one_credit",
+    "inverse_original_shape": "reverse_original_two_line_template",
+    "non_posting_event_types": [
+      "OBLIGATION_OPENED"
+    ],
+    "event_outbox_journal_atomic": true,
+    "caller_owns_commit": true
+  },
+  "tables": [
+    "ledger_accounts",
+    "accounting_periods",
+    "ledger_account_role_bindings",
+    "journal_entries",
+    "journal_lines",
+    "journal_entry_event_links"
+  ],
+  "posting_invariants": [
+    "financial event is locked before posting resolution",
+    "exactly one primary journal is returned for replay",
+    "an open accounting period covers the business date",
+    "every template role resolves to one effective tenant-scoped ledger binding",
+    "ledger account type and normal balance satisfy the approved account-role catalog",
+    "operational account link policy is enforced",
+    "transaction debits equal transaction credits",
+    "base debits equal base credits",
+    "posted journals have at least two lines",
+    "posted entries and lines are immutable",
+    "corrections invert the original posted accounts",
+    "posting failure rolls back event, idempotency, outbox and journal effects"
+  ],
+  "profile_selection": {
+    "one_profile": "automatic_when_posting_profile_code_is_absent",
+    "multiple_profiles": "posting_context.posting_profile_code_required",
+    "role_binding_key": "posting_context.account_role_binding_keys[account_role]",
+    "default_binding_key": "default"
+  },
+  "database_guards": {
+    "deferred_balance_constraint_trigger": true,
+    "posted_entry_immutability_trigger": true,
+    "posted_line_immutability_trigger": true,
+    "tenant_scoped_composite_foreign_keys": true
+  },
+  "rehearsal": {
+    "database": "xbos_track_b_m24_posting_test",
+    "upgrade_downgrade_upgrade": true,
+    "template_posting": true,
+    "idempotent_replay": true,
+    "partial_inverse_original": true,
+    "closed_period_rejection": true,
+    "unbound_role_rejection": true,
+    "direct_unbalanced_sql_rejection": true,
+    "posted_immutability": true,
+    "atomic_rollback": true
+  },
+  "compatibility": {
+    "wnd_writer_cutover": false,
+    "development_financial_events_must_remain_empty": true,
+    "outbox_dispatch": false
+  },
+  "deferred": [
+    "multi_currency_and_fx_translation",
+    "multi_line_split_templates",
+    "tenant_rule_authoring_ui",
+    "posting_approval_workflow",
+    "accounting_period_overlap_exclusion_constraint",
+    "journal_batching",
+    "wnd_writer_cutover",
+    "outbox_dispatch"
+  ]
+}
