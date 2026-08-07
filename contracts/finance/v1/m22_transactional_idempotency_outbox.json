@@ -1,0 +1,110 @@
+{
+  "contract_code": "XBOS_M22_TRANSACTIONAL_IDEMPOTENCY_OUTBOX",
+  "contract_version": 1,
+  "status": "approved_implementation_candidate",
+  "date": "2026-08-07",
+  "parent_checkpoint": {
+    "commit": "6acd76c",
+    "migration_revision": "m20_event_catalog_003"
+  },
+  "authorities": [
+    "contracts/finance/v1/reliability_contracts.json",
+    "contracts/finance/v1/workflow_contracts.json",
+    "contracts/finance/v1/m21_canonical_event_engine.json",
+    "contracts/persistence/v1/m13_neutral_financial_foundation.json"
+  ],
+  "migration": {
+    "revision": "m22_transactional_delivery_004",
+    "down_revision": "m20_event_catalog_003",
+    "idempotency_state_alignment": [
+      "processing",
+      "completed",
+      "failed_retryable",
+      "failed_terminal"
+    ],
+    "outbox_identity": ["tenant_id", "topic", "message_key"],
+    "outbox_envelope_columns": [
+      "organization_unit_id",
+      "topic",
+      "message_key",
+      "occurred_at",
+      "recorded_at"
+    ]
+  },
+  "transaction": {
+    "atomic_writes": [
+      "idempotency_records",
+      "financial_events",
+      "outbox_messages"
+    ],
+    "commit_owner": "caller",
+    "engine_commits": false,
+    "engine_savepoint": "rolls_back_partial_command_effects_on_validation_or_constraint_failure",
+    "publish_during_transaction": false
+  },
+  "idempotency": {
+    "identity": ["tenant_id", "idempotency_scope", "idempotency_key"],
+    "fingerprint": "m21_canonical_command_fingerprint",
+    "absent": "reserve_processing_then_execute",
+    "completed_same_fingerprint": "return_same_event_and_outbox_public_ids_without_write",
+    "different_fingerprint": "idempotency_conflict",
+    "processing": "idempotency_in_progress",
+    "failed_retryable": "retry_authorization_required",
+    "failed_terminal": "return_terminal_failure",
+    "completion_snapshot": [
+      "event_public_id",
+      "outbox_message_public_id",
+      "event_type",
+      "event_version"
+    ]
+  },
+  "outbox": {
+    "topic": "finance.financial-events.v1",
+    "delivery_state_on_insert": "pending",
+    "delivery_guarantee": "at_least_once",
+    "payload_hash": "sha256_of_canonical_json_envelope",
+    "immutable_content": true,
+    "mutable_delivery_fields_only": true,
+    "required_envelope": [
+      "message_id",
+      "tenant_id",
+      "organization_unit_id",
+      "topic",
+      "event_type",
+      "event_version",
+      "message_key",
+      "correlation_id",
+      "causation_id",
+      "occurred_at",
+      "recorded_at",
+      "payload"
+    ]
+  },
+  "compatibility": {
+    "m21_engine_unchanged": true,
+    "m21_contract_tests_remain_valid": true,
+    "m22_entrypoint": "TransactionalCanonicalFinancialEventEngine.emit",
+    "wnd_writer_cutover": false,
+    "development_event_writes_during_install": false
+  },
+  "verification_gate": [
+    "single_migration_head",
+    "upgrade_downgrade_upgrade",
+    "one_command_one_idempotency_event_and_outbox",
+    "identical_replay_stable_ids_and_counts",
+    "altered_replay_conflict",
+    "forced_outer_rollback_removes_all_three_writes",
+    "outbox_content_immutable",
+    "delivery_state_mutable",
+    "development_database_remains_event_empty"
+  ],
+  "deferred": [
+    "outbox_dispatch_worker",
+    "broker_publish_and_ack",
+    "consumer_inbox",
+    "provider_inbox",
+    "failed_retryable_resume_policy",
+    "reversal_capacity",
+    "wnd_writer_cutover"
+  ]
+}
