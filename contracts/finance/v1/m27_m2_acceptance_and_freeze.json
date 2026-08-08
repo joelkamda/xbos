@@ -1,0 +1,73 @@
+{
+  "contract_code": "XBOS_M27_M2_ACCEPTANCE_AND_FREEZE",
+  "contract_version": 1,
+  "package_revision": 3,
+  "status": "approved_release_candidate",
+  "date": "2026-08-08",
+  "parent_checkpoint": {
+    "commit": "1038db5",
+    "migration_revision": "m25_financial_dimensions_007"
+  },
+  "target_revision": "m25_financial_dimensions_007",
+  "schema_change": false,
+  "purpose": "Close M2 with one executable acceptance baseline for the canonical financial event engine while preserving the empty development target and all deferred integration boundaries.",
+  "release_scope": [
+    "M2.0_canonical_event_catalog_seed",
+    "M2.1_typed_immutable_event_emission",
+    "M2.2_transactional_idempotency_and_outbox",
+    "M2.3_original_linked_correction_capacity",
+    "M2.4_canonical_balanced_posting",
+    "M2.5_financial_dimensions_and_posting_context",
+    "M2.6_deterministic_financial_trace_and_explanation"
+  ],
+  "acceptance_gates": {
+    "contract_authority": "all_M0_M1_and_M2_semantic_fingerprints_match_the_release_manifest",
+    "migration_authority": "one_linear_head_at_m25_financial_dimensions_007",
+    "static_hardening": "kernel_remains_framework_independent_industry_neutral_and_without_dispatch_or_writer_cutover",
+    "development_target": "catalog_20_and_all_operational_financial_dimension_and_journal_tables_empty",
+    "disposable_rehearsals": "M20_through_M26_verifiers_each_pass_and_drop_their_exact_named_database",
+    "regression": "all_contract_and_characterization_tests_pass",
+    "source_control": "dedicated_commit_clean_worktree_synchronized_branch_and_pushed_annotated_tag"
+  },
+  "frozen_invariants": [
+    "tenant_scope_is_explicit_on_every_authoritative_financial_operation",
+    "canonical_financial_events_are_immutable_and_corrections_append_linked_counter_facts",
+    "command_idempotency_event_emission_and_outbox_intent_are_transactionally_atomic",
+    "correction_type_and_cumulative_capacity_are_enforced_under_concurrency_and_direct_SQL",
+    "posting_events_create_balanced_immutable_journals_and_non_posting_events_do_not",
+    "tenant_dimensions_are_configuration_and_posted_dimension_snapshots_are_immutable",
+    "financial_trace_is_tenant_scoped_deterministic_fail_closed_and_read_only",
+    "industry_specific_workflows_do_not_redefine_kernel_financial_semantics",
+    "development_financial_truth_remains_empty_until_an_explicit_writer_cutover_gate"
+  ],
+  "hardening_boundaries": {
+    "new_migration": false,
+    "development_financial_writes": false,
+    "wnd_writer_cutover": false,
+    "outbox_dispatch": false,
+    "public_http_routes": false,
+    "industry_pack_activation": false
+  },
+  "freeze_policy": {
+    "semantic_change": "requires_a_new_versioned_contract_updated_scenarios_updated_conformance_tests_and_explicit_release_approval",
+    "compatible_bug_fix": "permitted_when_all_frozen_invariants_and_acceptance_gates_remain_green",
+    "migration_change": "must_extend_the_single_canonical_lineage_from_m25_financial_dimensions_007",
+    "historical_contract_edit": "forbidden_replace_with_a_new_version",
+    "tag": "track-b-m2-canonical-event-engine-20260808"
+  },
+  "next_phase": {
+    "code": "M3",
+    "entry_rule": "start_only_from_the_pushed_M2_tag_after_the_acceptance_verifier_and_full_regression_pass",
+    "priority": "controlled_adapter_and_writer_integration_without_weakening_kernel_authority"
+  },
+  "deferred": [
+    "wnd_writer_cutover",
+    "outbox_dispatch_worker",
+    "public_financial_trace_route_and_rbac",
+    "formal_period_close_workflow",
+    "bank_ar_and_ap_reconciliation_products",
+    "offline_replication_runtime",
+    "country_and_industry_pack_activation",
+    "external_reporting_and_ai_consumers"
+  ]
+}

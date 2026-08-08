@@ -1,0 +1,70 @@
+{
+  "baseline_code": "XBOS_M2_CANONICAL_EVENT_ENGINE_RELEASE",
+  "baseline_version": 1,
+  "status": "approved_release_candidate",
+  "approved_at": "2026-08-08T00:00:00Z",
+  "source_checkpoint": {
+    "branch": "track-b/m2-canonical-event-engine",
+    "parent_commit": "1038db5",
+    "m1_tag": "track-b-m1-canonical-persistence-20260806"
+  },
+  "semantic_fingerprint": {
+    "algorithm": "sha256",
+    "canonicalization": "utf8_json_sorted_keys_compact_separators_ensure_ascii_false",
+    "line_ending_independent": true
+  },
+  "components": [
+    {"sequence": 1, "phase": "M0", "path": "contracts/finance/v1/financial_event_catalog.json", "semantic_sha256": "079cc4c6743c400bc6eb94302a1bf87f1211b8cde70c594043c8b9d15086487c"},
+    {"sequence": 2, "phase": "M0", "path": "contracts/finance/v1/account_role_catalog.json", "semantic_sha256": "5999713d931bf21817c8dd0f6d262036721a91835da197211b0385ca21d94a60"},
+    {"sequence": 3, "phase": "M0", "path": "contracts/finance/v1/posting_scenarios.json", "semantic_sha256": "853dd68eecabe629e0d4bfd430340d9d5a22ba1d8cbe11aaa46b0ebca597427d"},
+    {"sequence": 4, "phase": "M0", "path": "contracts/finance/v1/entity_contracts.json", "semantic_sha256": "25cbcb71a767b44be6f3f1b6d5f0a2ef1a0c3b588a2157170f5cc6f3978a2508"},
+    {"sequence": 5, "phase": "M0", "path": "contracts/finance/v1/lifecycle_contracts.json", "semantic_sha256": "a24d775b4fe689c811d9916d39601e108a5d201bd4a504575887afc11adce223"},
+    {"sequence": 6, "phase": "M0", "path": "contracts/finance/v1/reliability_contracts.json", "semantic_sha256": "41a24741cf2e374750537881c87373ae538dfa47eeb5569896aa2776b23c2c39"},
+    {"sequence": 7, "phase": "M0", "path": "contracts/finance/v1/workflow_contracts.json", "semantic_sha256": "68ae9ae49b12acfbf74d05e257d3666446c037fea7303398ae395ffc501d6ba5"},
+    {"sequence": 8, "phase": "M0", "path": "contracts/finance/v1/contract_baseline_manifest.json", "semantic_sha256": "eab127755fb3228981011418033cd22199b364e1a910c864d8387bf3c0caddc5"},
+    {"sequence": 9, "phase": "M1.0", "path": "contracts/persistence/v1/migration_authority.json", "semantic_sha256": "849c3a50f53245854e91efe3123b84500909062e797ef23918b76d7818fdce5e"},
+    {"sequence": 10, "phase": "M1.1", "path": "contracts/persistence/v1/metadata_drift_baseline.json", "semantic_sha256": "4b42eaa29b556090a7cdf5609785c5fcba7704e3e5f6d36e91f45d013d5278c3"},
+    {"sequence": 11, "phase": "M1.2", "path": "contracts/persistence/v1/reconstruction_baseline.json", "semantic_sha256": "00131f745ac04a361dda6086471bcd4fbec337661023d957dce359d8a53a417b"},
+    {"sequence": 12, "phase": "M1.3", "path": "contracts/persistence/v1/m13_neutral_financial_foundation.json", "semantic_sha256": "bc310bd2366e1df09be9a22fde55e60e2751458ad240de9ba1ed6905f5d57228"},
+    {"sequence": 13, "phase": "M1.4", "path": "contracts/persistence/v1/m14_canonical_migration_authority.json", "semantic_sha256": "cc987658b045a9f1c9039db2171480317684fed97e372933727fd1a4502fb5d1"},
+    {"sequence": 14, "phase": "M2.0", "path": "contracts/persistence/v1/m20_canonical_event_catalog_seed.json", "semantic_sha256": "55a49bc5bc7c3f09b7570db7ace55cd0814ac82d4756d5cf362aa3a1ecea5064"},
+    {"sequence": 15, "phase": "M2.1", "path": "contracts/finance/v1/m21_canonical_event_engine.json", "semantic_sha256": "81eb97cef345086510a94e017135d54e24f06c6bb94d05b46301ed997f9a739d"},
+    {"sequence": 16, "phase": "M2.2", "path": "contracts/finance/v1/m22_transactional_idempotency_outbox.json", "semantic_sha256": "7700f702da34f30531422fafc964518c4f8c9d44e500d101eb53a09e52f1e451"},
+    {"sequence": 17, "phase": "M2.3", "path": "contracts/finance/v1/m23_original_linked_correction_capacity.json", "semantic_sha256": "42c34b3d54763efe252bc3364e2b9261733fb6ab65d98265a3e4f186941a57c5"},
+    {"sequence": 18, "phase": "M2.4", "path": "contracts/finance/v1/m24_canonical_balanced_posting.json", "semantic_sha256": "68480eb501d3303d3ed9b2d3b18481e260a307a9f956b421a9a5a84c156d7381"},
+    {"sequence": 19, "phase": "M2.5", "path": "contracts/finance/v1/m25_financial_dimensions_and_posting_context.json", "semantic_sha256": "cdcb6fa704497090290fa0482fc01636dea7bf58b224f1caeff8489c38e2ed5f"},
+    {"sequence": 20, "phase": "M2.6", "path": "contracts/finance/v1/m26_financial_trace_and_explanation.json", "semantic_sha256": "908da82a52c525a6367a9abd8dce7dacaba48a1698bde7a33fa8bb5008fc5170"}
+  ],
+  "canonical_migration_lineage": [
+    "m13_source_state_001",
+    "m13_financial_foundation_002",
+    "m20_event_catalog_003",
+    "m22_transactional_delivery_004",
+    "m23_reversal_capacity_005",
+    "m24_balanced_posting_006",
+    "m25_financial_dimensions_007"
+  ],
+  "canonical_head": "m25_financial_dimensions_007",
+  "development_acceptance_counts": {
+    "financial_event_type_versions": 20,
+    "financial_dimension_types": 0,
+    "financial_dimension_values": 0,
+    "posting_dimension_policies": 0,
+    "idempotency_records": 0,
+    "financial_events": 0,
+    "outbox_messages": 0,
+    "journal_entries": 0,
+    "journal_lines": 0
+  },
+  "capability_verifiers": [
+    {"phase": "M2.0", "checkpoint_commit": "49315ae", "script": "scripts/verify_m20_canonical_event_catalog.py", "database": "xbos_track_b_m20_catalog_test", "target_revision": "m20_event_catalog_003", "pass_token": "m20_catalog_rehearsal=PASS"},
+    {"phase": "M2.1", "checkpoint_commit": "6acd76c", "script": "scripts/verify_m21_canonical_event_engine.py", "database": "xbos_track_b_m21_event_test", "target_revision": "m20_event_catalog_003", "pass_token": "m21_canonical_event_engine=PASS"},
+    {"phase": "M2.2", "checkpoint_commit": "8056fbb", "script": "scripts/verify_m22_transactional_idempotency_outbox.py", "database": "xbos_track_b_m22_delivery_test", "target_revision": "m22_transactional_delivery_004", "pass_token": "m22_transactional_delivery=PASS"},
+    {"phase": "M2.3", "checkpoint_commit": "59f3747", "script": "scripts/verify_m23_reversal_capacity.py", "database": "xbos_track_b_m23_reversal_test", "target_revision": "m23_reversal_capacity_005", "pass_token": "m23_reversal_capacity=PASS"},
+    {"phase": "M2.4", "checkpoint_commit": "c6e3b6d", "script": "scripts/verify_m24_canonical_balanced_posting.py", "database": "xbos_track_b_m24_posting_test", "target_revision": "m24_balanced_posting_006", "pass_token": "m24_balanced_posting=PASS"},
+    {"phase": "M2.5", "checkpoint_commit": "d57bd05", "script": "scripts/verify_m25_financial_dimensions.py", "database": "xbos_track_b_m25_dimensions_test", "target_revision": "m25_financial_dimensions_007", "pass_token": "m25_financial_dimensions=PASS"},
+    {"phase": "M2.6", "checkpoint_commit": "1038db5", "script": "scripts/verify_m26_financial_trace_explanation.py", "database": "xbos_track_b_m26_trace_test", "target_revision": "m25_financial_dimensions_007", "pass_token": "m26_financial_trace=PASS"}
+  ],
+  "capability_revision_policy": "each_historical_verifier_runs_from_its_immutable_git_checkpoint_with_matching_code_and_migration_head",
+  "release_tag": "track-b-m2-canonical-event-engine-20260808"
+}
