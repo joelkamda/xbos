@@ -1,0 +1,105 @@
+{
+  "contract_code": "XBOS_M26_FINANCIAL_TRACE_EXPLANATION",
+  "contract_version": 1,
+  "package_revision": 1,
+  "status": "approved_implementation_candidate",
+  "date": "2026-08-08",
+  "parent_checkpoint": {
+    "commit": "d57bd05",
+    "migration_revision": "m25_financial_dimensions_007"
+  },
+  "target_revision": "m25_financial_dimensions_007",
+  "schema_change": false,
+  "purpose": "Provide one deterministic, tenant-scoped, read-only explanation of a canonical financial event from source provenance through idempotency, outbox delivery, balanced posting, dimensions and correction lineage.",
+  "query_identity": {
+    "required": ["tenant_id", "event_public_id"],
+    "event_identity": "public_uuid",
+    "cross_tenant_result": "indistinguishable_not_found",
+    "caller_rule": "tenant_id_must_come_from_the_authenticated_authorization_context"
+  },
+  "trace_sections": [
+    "event",
+    "source",
+    "idempotency",
+    "outbox",
+    "posting",
+    "correction_lineage",
+    "correlation_peers",
+    "integrity",
+    "explanation"
+  ],
+  "authority": {
+    "authoritative": [
+      "financial_events",
+      "kernel_source_records",
+      "idempotency_records",
+      "outbox_messages",
+      "journal_entries",
+      "journal_lines",
+      "journal_entry_event_links",
+      "posted_dimension_snapshots"
+    ],
+    "derived": ["integrity_checks", "human_readable_explanation", "trace_fingerprint"],
+    "derived_output_is_financial_truth": false,
+    "trace_can_mutate_authority": false
+  },
+  "posting_explanation": {
+    "account_resolution": "report_the_ledger_account_and_account_role_persisted_on_each_immutable_line",
+    "binding_history_claim": "not_inferred_when_no_binding_snapshot_was_persisted",
+    "dimensions": "report_journal_line_dimension_snapshot_exactly",
+    "balance": "recompute_transaction_and_base_debit_credit_totals",
+    "non_posting_event": "catalog_posting_eligible_false_requires_no_primary_journal"
+  },
+  "correction_explanation": {
+    "identity": "immutable_original_event_link",
+    "scope": "ancestors_selected_event_and_descendants",
+    "ordering": "lineage_depth_then_public_uuid",
+    "capacity_claim": "report_lineage_but_do_not_recalculate_or_replace_m23_database_enforcement"
+  },
+  "determinism": {
+    "canonical_json": "utf8_sorted_keys_compact_no_nan",
+    "decimal": "normalized_string",
+    "timestamp": "utc_iso8601_z",
+    "fingerprint": "sha256_of_trace_without_fingerprint",
+    "generated_at_field": false
+  },
+  "fail_closed": [
+    "invalid_tenant_scope",
+    "invalid_event_identity",
+    "event_absent_in_authorized_tenant",
+    "cross_tenant_repository_result",
+    "missing_source_record",
+    "multiple_primary_journals",
+    "posting_presence_disagrees_with_catalog",
+    "unbalanced_persisted_posting",
+    "missing_original_link",
+    "lineage_without_exactly_one_selected_event"
+  ],
+  "read_only_guards": {
+    "repository_statements": "select_and_with_only",
+    "row_locks": false,
+    "database_migration": false,
+    "development_financial_writes": false,
+    "outbox_dispatch": false,
+    "wnd_writer_cutover": false
+  },
+  "rehearsal": {
+    "database": "xbos_track_b_m26_trace_test",
+    "canonical_head_unchanged": true,
+    "empty_database_lookup": true,
+    "tenant_scope": true,
+    "deterministic_fixture": true,
+    "balanced_fixture": true,
+    "schema_counts_unchanged": true
+  },
+  "deferred": [
+    "public_http_route_and_rbac_policy",
+    "redacted_external_customer_projection",
+    "bulk_trace_search",
+    "report_export",
+    "natural_language_generation",
+    "binding_configuration_snapshot_upgrade",
+    "wnd_writer_cutover",
+    "outbox_dispatch"
+  ]
+}
