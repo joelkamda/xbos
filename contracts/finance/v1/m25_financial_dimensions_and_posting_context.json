@@ -1,0 +1,112 @@
+{
+  "contract_code": "XBOS_M25_FINANCIAL_DIMENSIONS",
+  "contract_version": 1,
+  "package_revision": 2,
+  "supersedes_package_sha256": "f7abf54100596f0c1f43ca55d4b94d12988f4cb8e2ee1ce3b8b3b0a24976581f",
+  "status": "approved_implementation_candidate",
+  "date": "2026-08-07",
+  "parent_checkpoint": {
+    "commit": "c6e3b6d",
+    "migration_revision": "m24_balanced_posting_006"
+  },
+  "target_revision": "m25_financial_dimensions_007",
+  "purpose": "Add tenant-defined analytical dimensions to canonical journal lines without embedding industry vocabulary in the neutral financial kernel.",
+  "authority_boundaries": {
+    "organization_unit": "structural_legal_and_operational_scope_not_a_financial_dimension",
+    "financial_dimension_type": "tenant_defined_controlled_analytical_axis",
+    "financial_dimension_value": "effective_dated_controlled_member",
+    "posting_dimension_policy": "explicit_profile_and_account_role_allowlist",
+    "journal_line_dimension_snapshot": "immutable_resolved_financial_truth",
+    "industry_pack": "may_seed_types_values_and_policies_but_does_not_own_kernel_semantics"
+  },
+  "tables": [
+    "financial_dimension_types",
+    "financial_dimension_values",
+    "posting_dimension_policies"
+  ],
+  "posting_context": {
+    "global_values_key": "dimension_values",
+    "account_role_overrides_key": "account_role_dimension_values",
+    "value_reference": "dimension_code_to_value_code",
+    "unknown_or_unconfigured_dimension": "reject",
+    "unknown_account_role_override": "reject",
+    "correction_behavior": "inverse_original_profiles_inherit_original_line_snapshot_and_reject_reclassification",
+    "dedicated_template_corrections": "resolve_their_own_approved_posting_profile_and_dimension_policy"
+  },
+  "policy_resolution": {
+    "scope": [
+      "tenant_id",
+      "legal_entity_unit_id",
+      "posting_profile_code",
+      "account_role",
+      "business_date"
+    ],
+    "wildcards": ["posting_profile_code", "account_role"],
+    "precedence": "exact_profile_then_exact_account_role",
+    "equal_specificity": "reject_ambiguous",
+    "requirements": ["required", "optional", "forbidden"],
+    "required_without_value_or_default": "reject",
+    "forbidden_with_value": "reject"
+  },
+  "snapshot": {
+    "location": "journal_lines.dimension_snapshot.financial_dimensions",
+    "per_dimension_fields": [
+      "dimension_type_id",
+      "dimension_value_id",
+      "value_code",
+      "display_name",
+      "selection_source"
+    ],
+    "selection_sources": ["posting_context", "policy_default"],
+    "posted_line_immutability": "inherited_from_m24"
+  },
+  "neutral_examples": [
+    "channel",
+    "cost_center",
+    "department",
+    "project",
+    "location",
+    "business_line",
+    "industry_context"
+  ],
+  "invariants": [
+    "tenant_scoped_composite_foreign_keys",
+    "active_and_effective_type_value_and_policy",
+    "one_effective_policy_after_precedence",
+    "one_effective_controlled_value",
+    "no_silent_dimension_drop",
+    "role_override_must_target_a_posted_role",
+    "inverse_original_correction_dimensions_equal_original_dimensions",
+    "event_outbox_journal_and_dimension_snapshot_remain_atomic",
+    "configuration_rows_are_historical_and_not_deletable"
+  ],
+  "rehearsal": {
+    "database": "xbos_track_b_m25_dimensions_test",
+    "upgrade_downgrade_upgrade": true,
+    "global_and_role_override": true,
+    "required_default": true,
+    "required_missing_rejection": true,
+    "forbidden_rejection": true,
+    "unconfigured_rejection": true,
+    "tenant_isolation": true,
+    "correction_inheritance": true,
+    "snapshot_immutability": true,
+    "atomic_rollback": true
+  },
+  "compatibility": {
+    "m24_posting_without_dimension_policies": "unchanged_empty_financial_dimensions",
+    "wnd_writer_cutover": false,
+    "development_financial_events_must_remain_empty": true,
+    "outbox_dispatch": false
+  },
+  "deferred": [
+    "freeform_uncontrolled_dimension_values",
+    "dimension_allocation_splits",
+    "statistical_dimensions",
+    "cross_tenant_dimension_sharing",
+    "dimension_authoring_ui",
+    "industry_pack_seed_data",
+    "wnd_writer_cutover",
+    "outbox_dispatch"
+  ]
+}

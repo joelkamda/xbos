@@ -31,6 +31,7 @@ class JournalLineDraft:
     account_role: str
     side: str
     amount: Decimal
+    dimension_snapshot: Mapping[str, Any]
 
 
 @dataclass(frozen=True)
@@ -43,6 +44,7 @@ class JournalLineRecord:
     transaction_credit_amount: Decimal
     base_debit_amount: Decimal
     base_credit_amount: Decimal
+    dimension_snapshot: Mapping[str, Any]
 
 
 @dataclass(frozen=True)
@@ -89,7 +91,7 @@ _ENTRY_SELECT_COLUMNS = """
 _LINE_COLUMNS = """
     id, line_number, ledger_account_id, account_role,
     transaction_debit_amount, transaction_credit_amount,
-    base_debit_amount, base_credit_amount
+    base_debit_amount, base_credit_amount, dimension_snapshot
 """
 
 
@@ -187,6 +189,7 @@ class CanonicalPostingRepository:
             transaction_credit_amount=row["transaction_credit_amount"],
             base_debit_amount=row["base_debit_amount"],
             base_credit_amount=row["base_credit_amount"],
+            dimension_snapshot=dict(row["dimension_snapshot"]),
         )
 
     @staticmethod
@@ -497,11 +500,7 @@ class CanonicalPostingRepository:
                     "organization_unit_id": event.organization_unit_id,
                     "source_record_id": event.source_record_id,
                     "dimension_snapshot": json.dumps(
-                        {
-                            "classification_snapshot": dict(event.classification_snapshot),
-                            "posting_profile_code": profile_code,
-                        },
-                        sort_keys=True,
+                        dict(line.dimension_snapshot), sort_keys=True
                     ),
                 },
             )

@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from decimal import Decimal
 
+from .dimension_contract import parse_posting_dimension_context
+from .dimension_repository import FinancialDimensionRepository
 from .event_contract import FinancialEventValidationError
 from .event_repository import FinancialEventRecord
 from .posting_contract import binding_key_for, select_posting_profile
@@ -16,6 +18,7 @@ from .posting_repository import (
 
 class CanonicalFinancialPostingEngine:
     repository = CanonicalPostingRepository
+    dimension_repository = FinancialDimensionRepository
 
     @classmethod
     def post(
@@ -45,9 +48,28 @@ class CanonicalFinancialPostingEngine:
 
             period_id = cls.repository.resolve_open_period(session, event)
             if profile.mode == "inverse_original":
+                dimension_context = parse_posting_dimension_context(
+                    event.posting_context
+                )
+                if (
+                    dimension_context.global_values
+                    or dimension_context.account_role_values
+                ):
+                    raise FinancialEventValidationError(
+                        "correction_dimensions_immutable",
+                        "correction postings inherit the original journal dimensions",
+                    )
                 lines = cls._inverse_original_lines(session, event)
             else:
-                lines = cls._template_lines(session, event, profile)
+                dimension_context = parse_posting_dimension_context(
+                    event.posting_context
+                )
+                dimension_context.assert_roles_allowed(
+                    set(profile.debit_roles) | set(profile.credit_roles)
+                )
+                lines = cls._template_lines(
+                    session, event, profile, dimension_context
+                )
             cls._validate_balance(lines, event.amount)
             return cls.repository.insert_posted_entry(
                 session,
@@ -58,7 +80,7 @@ class CanonicalFinancialPostingEngine:
             )
 
     @classmethod
-    def _template_lines(cls, session, event, profile):
+    def _template_lines(cls, session, event, profile, dimension_context):
         lines: list[JournalLineDraft] = []
         for side, roles in (
             ("debit", profile.debit_roles),
@@ -71,12 +93,26 @@ class CanonicalFinancialPostingEngine:
                     account_role,
                     binding_key_for(event.posting_context, account_role),
                 )
+                financial_dimensions = cls.dimension_repository.resolve_line_snapshot(
+                    session,
+                    event,
+                    profile_code=profile.profile_code,
+                    account_role=account_role,
+                    context=dimension_context,
+                )
                 lines.append(
                     JournalLineDraft(
                         ledger_account_id=binding.ledger_account_id,
                         account_role=account_role,
                         side=side,
                         amount=event.amount,
+                        dimension_snapshot={
+                            "classification_snapshot": dict(
+                                event.classification_snapshot
+                            ),
+                            "posting_profile_code": profile.profile_code,
+                            "financial_dimensions": financial_dimensions,
+                        },
                     )
                 )
         return tuple(lines)
@@ -95,6 +131,7 @@ class CanonicalFinancialPostingEngine:
                     account_role=line.account_role,
                     side="credit" if original_side == "debit" else "debit",
                     amount=event.amount,
+                    dimension_snapshot=dict(line.dimension_snapshot),
                 )
             )
         return tuple(drafts)
