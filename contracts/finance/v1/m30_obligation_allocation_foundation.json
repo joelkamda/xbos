@@ -1,0 +1,94 @@
+{
+  "contract_code": "XBOS_M30_OBLIGATION_ALLOCATION_FOUNDATION",
+  "contract_version": 1,
+  "package_revision": 2,
+  "supersedes_distribution_sha256": "418eee567be7d092724eeed4c76acedd6c511500b5dfb73dd1af709493568bc5",
+  "status": "approved_implementation_candidate",
+  "date": "2026-08-08",
+  "parent_checkpoint": {
+    "commit": "7f8fc3d",
+    "release_tag": "track-b-m2-canonical-event-engine-20260808",
+    "migration_revision": "m25_financial_dimensions_007"
+  },
+  "target_revision": "m30_obligation_foundation_008",
+  "repair_history": [
+    "revision_2_restores_the_exact_same_organization_composite_unique_target_required_by_obligation_line_foreign_keys_while_retaining_the_narrower_cross_organization_allocation_target"
+  ],
+  "purpose": "Install the empty tenant-scoped structural authority for obligations, obligation lines, allocatable value, allocations, and compensating allocation reversals.",
+  "scope": {
+    "creates_empty_structures_only": true,
+    "activates_obligation_writer": false,
+    "activates_allocation_writer": false,
+    "creates_payment_settlements": false,
+    "creates_party_authority": false,
+    "changes_wnd_writers": false,
+    "dispatches_outbox": false,
+    "transforms_history": false
+  },
+  "tables": [
+    "financial_obligations",
+    "financial_obligation_lines",
+    "value_sources",
+    "payment_allocations",
+    "allocation_reversals"
+  ],
+  "authority_boundaries": {
+    "financial_obligation": "amount_owed_by_one_party_to_another",
+    "financial_obligation_line": "immutable_component_snapshot_explaining_original_obligation_value",
+    "value_source": "allocatable_available_value_without_provider_or_settlement_orchestration",
+    "payment_allocation": "append_only_application_of_value_to_an_obligation",
+    "allocation_reversal": "append_only_compensating_reduction_of_an_allocation",
+    "party_identity": "opaque_uuid_reference_pending_pc2_party_authority",
+    "payment_settlement": "m4_authority_referenced_only_by_optional_public_identity",
+    "outstanding_balance": "derived_never_stored_as_independent_authority",
+    "available_value": "derived_never_stored_as_independent_authority"
+  },
+  "database_invariants": [
+    "money_uses_numeric_24_8",
+    "every_authoritative_fact_carries_actor_time_business_date_correlation_and_source_context",
+    "tenant_and_organization_references_are_composite_foreign_keys",
+    "allocation_tenant_and_currency_match_both_source_and_obligation",
+    "cross_organization_allocation_requires_explicit_versioned_policy",
+    "reversal_currency_and_organization_match_original_allocation",
+    "debtor_and_creditor_are_distinct",
+    "all_authoritative_amounts_are_positive",
+    "idempotency_identity_is_unique_per_tenant",
+    "obligation_lines_value_sources_allocations_and_reversals_are_immutable",
+    "obligation_economic_authority_is_immutable_while_state_is_version_controlled",
+    "deletes_are_restricted"
+  ],
+  "derived_formulas": {
+    "active_allocation_amount": "allocation_amount_minus_sum_allocation_reversals",
+    "obligation_outstanding": "original_amount_minus_active_allocations_minus_approved_non_allocation_satisfactions",
+    "value_source_available": "source_amount_minus_active_allocations",
+    "stored_balance_columns": false
+  },
+  "m2_checkpoint_compatibility": {
+    "m2_manifest_semantics_changed": false,
+    "m2_contract_hashes_changed": false,
+    "m2_checkpoint_revision": "m25_financial_dimensions_007",
+    "policy": "m2_is_an_immutable_lineage_prefix_not_a_permanent_repository_head"
+  },
+  "rehearsal": {
+    "database": "xbos_track_b_m30_foundation_test",
+    "fresh_upgrade": true,
+    "schema_inventory": true,
+    "empty_tables": true,
+    "upgrade_downgrade_upgrade": true,
+    "development_empty_after_upgrade": true
+  },
+  "deferred": [
+    "typed_obligation_command_engine",
+    "obligation_line_total_validation",
+    "obligation_state_projection_from_satisfaction",
+    "allocation_capacity_and_concurrency_engine",
+    "allocation_transfer_and_release",
+    "deposit_unapplied_funds_and_overpayment_workflows",
+    "pc2_party_foreign_key_activation",
+    "m4_payment_settlement_foreign_key_activation",
+    "cross_organization_allocation_policy_evaluation",
+    "pack_facing_service_contract",
+    "wnd_writer_cutover",
+    "outbox_dispatch"
+  ]
+}

@@ -1,0 +1,25 @@
+"""Install the empty M3 obligation, value-source, and allocation foundation."""
+
+from pathlib import Path
+
+from alembic import op
+
+
+revision = "m30_obligation_foundation_008"
+down_revision = "m25_financial_dimensions_007"
+branch_labels = None
+depends_on = None
+
+SQL_DIR = Path(__file__).resolve().parents[1] / "sql"
+
+
+def _execute_script(name: str) -> None:
+    op.get_bind().exec_driver_sql((SQL_DIR / name).read_text(encoding="utf-8"))
+
+
+def upgrade() -> None:
+    _execute_script("m30_obligation_foundation_up.sql")
+
+
+def downgrade() -> None:
+    _execute_script("m30_obligation_foundation_down.sql")

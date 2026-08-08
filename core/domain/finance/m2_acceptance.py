@@ -73,7 +73,7 @@ def _literal_assignment(tree: ast.Module, name: str) -> str | None:
     return None
 
 
-def migration_lineage(root: Path) -> tuple[str, ...]:
+def repository_migration_lineage(root: Path) -> tuple[str, ...]:
     versions = root / "alembic_neutral" / "versions"
     parents: dict[str, str | None] = {}
     for path in sorted(versions.glob("*.py")):
@@ -92,11 +92,11 @@ def migration_lineage(root: Path) -> tuple[str, ...]:
         parents[revision] = parent
 
     heads = set(parents) - {parent for parent in parents.values() if parent is not None}
-    if heads != {EXPECTED_HEAD}:
+    if len(heads) != 1:
         raise M2AcceptanceError("unexpected_migration_heads", repr(sorted(heads)))
 
     ordered: list[str] = []
-    current: str | None = EXPECTED_HEAD
+    current: str | None = next(iter(heads))
     while current is not None:
         if current not in parents:
             raise M2AcceptanceError("broken_migration_lineage", current)
@@ -104,6 +104,41 @@ def migration_lineage(root: Path) -> tuple[str, ...]:
         current = parents[current]
     ordered.reverse()
     return tuple(ordered)
+
+
+def migration_lineage(root: Path) -> tuple[str, ...]:
+    """Return and validate the immutable M2 prefix of the live lineage.
+
+    M2's approved head is a release checkpoint, not a permanent repository
+    head. Later milestones may extend the same single lineage, but they may not
+    alter, bypass, fork, or reorder the frozen M2 prefix.
+    """
+
+    lineage = repository_migration_lineage(root)
+    try:
+        checkpoint_index = lineage.index(EXPECTED_HEAD)
+    except ValueError as exc:
+        raise M2AcceptanceError(
+            "missing_m2_migration_checkpoint", EXPECTED_HEAD
+        ) from exc
+    frozen_prefix = lineage[: checkpoint_index + 1]
+    if frozen_prefix != EXPECTED_LINEAGE:
+        raise M2AcceptanceError(
+            "unexpected_migration_lineage", repr(frozen_prefix)
+        )
+    return frozen_prefix
+
+
+def revision_preserves_m2_checkpoint(root: Path, revision: str | None) -> bool:
+    """Return whether a database revision is M2 itself or its descendant."""
+
+    if revision is None:
+        return False
+    lineage = repository_migration_lineage(root)
+    try:
+        return lineage.index(revision) >= lineage.index(EXPECTED_HEAD)
+    except ValueError:
+        return False
 
 
 def validate_static_boundaries(root: Path) -> None:

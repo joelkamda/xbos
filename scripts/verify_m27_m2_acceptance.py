@@ -21,6 +21,7 @@ from sqlalchemy.engine import make_url
 from core.domain.finance.m2_acceptance import (
     EXPECTED_HEAD,
     load_release_manifest,
+    revision_preserves_m2_checkpoint,
     validate_release_manifest,
 )
 from database import engine as application_engine
@@ -85,8 +86,11 @@ def _development_counts() -> tuple[str | None, dict[str, int]]:
 def _verify_development() -> dict[str, int]:
     revision, counts = _development_counts()
     expected = load_release_manifest(ROOT)["development_acceptance_counts"]
-    if revision != EXPECTED_HEAD:
-        raise RuntimeError(f"expected development revision {EXPECTED_HEAD}, found {revision}")
+    if not revision_preserves_m2_checkpoint(ROOT, revision):
+        raise RuntimeError(
+            f"expected development revision {EXPECTED_HEAD} or a linear descendant; "
+            f"found {revision}"
+        )
     if counts != expected:
         raise RuntimeError(f"development acceptance counts differ: {counts!r}")
     return counts
