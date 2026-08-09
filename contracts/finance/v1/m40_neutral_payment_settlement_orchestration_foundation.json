@@ -1,0 +1,96 @@
+{
+  "contract_code": "XBOS_M40_NEUTRAL_PAYMENT_SETTLEMENT_ORCHESTRATION_FOUNDATION",
+  "contract_version": 1,
+  "status": "approved_implementation_candidate",
+  "date": "2026-08-09",
+  "parent_checkpoint": {
+    "commit": "0a9c292",
+    "release_tag": "track-b-m3-obligations-balances-allocations-20260809",
+    "migration_revision": "m34_obligation_aging_010"
+  },
+  "target_revision": "m40_payment_foundation_011",
+  "purpose": "Install empty tenant-scoped canonical structures for payment requests, intents, tenders, attempts, provider evidence, settlements, and compensating settlement reversals.",
+  "scope": {
+    "creates_empty_structures_only": true,
+    "activates_canonical_payment_writer": false,
+    "changes_wnd_writers": false,
+    "creates_development_payment_records": false,
+    "dispatches_outbox": false,
+    "creates_public_routes": false,
+    "stores_provider_credentials": false,
+    "transforms_legacy_history": false
+  },
+  "tables": [
+    "canonical_payment_requests",
+    "canonical_payment_intents",
+    "canonical_payment_tenders",
+    "canonical_payment_attempts",
+    "provider_callback_events",
+    "payment_settlements",
+    "payment_settlement_reversals"
+  ],
+  "legacy_coexistence": {
+    "tables_preserved": ["payments", "payment_intents", "payment_attempts"],
+    "policy": "parallel_canonical_authority_until_explicit_writer_cutover",
+    "legacy_rows_migrated": false
+  },
+  "authority_boundaries": {
+    "payment_request": "shareable_or_operator_created_request_for_value_without_becoming_settlement",
+    "payment_intent": "tenant_scoped_collection_goal_independent_of_provider",
+    "payment_tender": "one_method_amount_component_supporting_mixed_tender",
+    "payment_attempt": "one_execution_attempt_with_method_rail_orchestrator_and_provider_kept_distinct",
+    "provider_callback_event": "immutable_authenticated_or_rejected_provider_evidence_not_a_financial_event",
+    "payment_settlement": "verified_movement_of_value_into_or_out_of_an_operational_account",
+    "settlement_reversal": "append_only_compensating_reduction_of_original_settlement_value",
+    "payment_provider_account": "existing_external_provider_identity_and_secret_reference_authority",
+    "operational_financial_account": "existing_internal_treasury_and_reconciliation_authority",
+    "value_source": "m3_allocatable_value_linked_only_after_settlement_authority_exists"
+  },
+  "provider_neutrality": {
+    "payment_method": "customer_or_operator_choice_such_as_cash_mobile_money_card_bank_or_credit",
+    "payment_rail": "movement_network_or_channel",
+    "orchestrator": "routing_and_normalization_layer",
+    "underlying_provider": "institution_or_processor_that_executes_the_movement",
+    "xafpay_role": "one_supported_orchestrator_adapter",
+    "direct_provider_connections_supported": true,
+    "additional_orchestrators_supported": true,
+    "hard_coded_provider": false
+  },
+  "database_invariants": [
+    "canonical_tables_do_not_replace_or_mutate_legacy_payment_tables",
+    "money_uses_numeric_24_8",
+    "all_authoritative_amounts_are_nonnegative_and_gross_amount_is_positive",
+    "settlement_net_equals_gross_minus_fee",
+    "tenant_organization_and_currency_are_bound_by_composite_foreign_keys",
+    "payment_method_rail_orchestrator_and_provider_are_separate_dimensions",
+    "provider_callbacks_are_deduplicated_by_provider_account_and_event_reference",
+    "callback_payload_hash_and_settlement_reversals_are_immutable",
+    "external_final_settlement_requires_provider_callback_evidence",
+    "settlement_operational_account_currency_must_match",
+    "confirmed_settlement_can_link_to_exactly_one_m3_value_source",
+    "deletes_are_restricted"
+  ],
+  "deferred": [
+    "typed_payment_request_and_intent_command_engine",
+    "mixed_tender_capacity_engine",
+    "orchestrator_adapter_interface",
+    "callback_authentication_and_routing_engine",
+    "settlement_finality_engine",
+    "settlement_reversal_capacity_and_concurrency",
+    "provider_fee_and_reserve_workflows",
+    "delayed_and_out_of_order_event_recovery",
+    "payment_settlement_trace_and_explanation",
+    "wnd_writer_cutover",
+    "outbox_dispatch",
+    "public_routes"
+  ],
+  "rehearsal": {
+    "database": "xbos_track_b_m40_payment_foundation_test",
+    "fresh_upgrade": true,
+    "schema_inventory": true,
+    "empty_tables": true,
+    "legacy_table_coexistence": true,
+    "upgrade_downgrade_upgrade": true,
+    "development_empty_after_upgrade": true
+  }
+}

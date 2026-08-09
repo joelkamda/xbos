@@ -14,7 +14,11 @@ if str(ROOT) not in sys.path:
 from sqlalchemy import create_engine, text
 from sqlalchemy.engine import make_url
 
-from core.domain.finance.m3_acceptance import EXPECTED_HEAD, validate_release_manifest
+from core.domain.finance.m3_acceptance import (
+    EXPECTED_HEAD,
+    revision_preserves_m3_checkpoint,
+    validate_release_manifest,
+)
 from database import engine as application_engine
 
 DEVELOPMENT_DATABASE_NAME = "xbos_track_b_dev"
@@ -73,8 +77,10 @@ def _development_acceptance():
     manifest = validate_release_manifest(ROOT)
     with application_engine.connect() as connection:
         revision = connection.execute(text("SELECT version_num FROM alembic_version")).scalar_one()
-        if revision != EXPECTED_HEAD:
-            raise RuntimeError(f"expected revision={EXPECTED_HEAD}; actual={revision}")
+        if not revision_preserves_m3_checkpoint(ROOT, revision):
+            raise RuntimeError(
+                f"expected revision={EXPECTED_HEAD} or a linear descendant; actual={revision}"
+            )
         catalog = connection.execute(text("SELECT count(*) FROM financial_event_type_versions")).scalar_one()
         if catalog != 20:
             raise RuntimeError(f"expected canonical catalog=20; actual={catalog}")

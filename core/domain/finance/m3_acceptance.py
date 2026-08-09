@@ -59,7 +59,9 @@ def _literal_assignment(tree: ast.Module, name: str):
     return None
 
 
-def repository_migration_lineage(root: Path) -> tuple[str, ...]:
+def live_migration_lineage(root: Path) -> tuple[str, ...]:
+    """Return the repository's complete single canonical lineage."""
+
     parents: dict[str, str | None] = {}
     for path in sorted((root / "alembic_neutral/versions").glob("*.py")):
         if path.name == "__init__.py":
@@ -87,6 +89,37 @@ def repository_migration_lineage(root: Path) -> tuple[str, ...]:
         current = parents[current]
     ordered.reverse()
     return tuple(ordered)
+
+
+def repository_migration_lineage(root: Path) -> tuple[str, ...]:
+    """Return and validate the immutable M3 prefix of the live lineage.
+
+    The approved M3 head is a release checkpoint, not a permanent repository
+    head. Later milestones may extend the same lineage, but may not alter,
+    bypass, fork, or reorder the frozen M3 prefix.
+    """
+
+    lineage = live_migration_lineage(root)
+    try:
+        checkpoint_index = lineage.index(EXPECTED_HEAD)
+    except ValueError as exc:
+        raise M3AcceptanceError("missing_m3_migration_checkpoint", EXPECTED_HEAD) from exc
+    frozen_prefix = lineage[: checkpoint_index + 1]
+    if frozen_prefix != EXPECTED_LINEAGE:
+        raise M3AcceptanceError("unexpected_migration_lineage", repr(frozen_prefix))
+    return frozen_prefix
+
+
+def revision_preserves_m3_checkpoint(root: Path, revision: str | None) -> bool:
+    """Return whether a database revision is M3 itself or a linear descendant."""
+
+    if revision is None:
+        return False
+    lineage = live_migration_lineage(root)
+    try:
+        return lineage.index(revision) >= lineage.index(EXPECTED_HEAD)
+    except ValueError:
+        return False
 
 
 def validate_static_boundaries(root: Path) -> None:
