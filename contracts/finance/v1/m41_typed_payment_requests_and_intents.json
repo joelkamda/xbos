@@ -1,0 +1,101 @@
+{
+  "contract_code": "XBOS_M41_TYPED_PAYMENT_REQUEST_AND_INTENT_COMMANDS",
+  "contract_version": 1,
+  "status": "approved_implementation_candidate",
+  "date": "2026-08-09",
+  "parent_checkpoint": {
+    "commit": "f31dc2f",
+    "migration_revision": "m40_payment_foundation_011"
+  },
+  "schema_change": false,
+  "purpose": "Provide typed, provider-neutral, transactionally idempotent creation of payment requests and payment intents, including standalone and obligation-linked intents.",
+  "commands": [
+    "create_payment_request",
+    "create_payment_intent"
+  ],
+  "intent_origins": [
+    "payment_request",
+    "financial_obligation",
+    "standalone"
+  ],
+  "scope": {
+    "creates_payment_requests": true,
+    "creates_payment_intents": true,
+    "creates_tenders": false,
+    "creates_attempts": false,
+    "creates_settlements": false,
+    "creates_value_sources": false,
+    "dispatches_outbox": false,
+    "calls_provider": false,
+    "activates_wnd_writer": false,
+    "adds_public_routes": false
+  },
+  "command_invariants": [
+    "tenant_and_organization_identifiers_are_positive",
+    "money_is_finite_positive_numeric_24_8",
+    "currency_is_three_uppercase_letters",
+    "timestamps_are_timezone_aware",
+    "expiry_follows_occurrence",
+    "actor_source_correlation_and_idempotency_are_required",
+    "metadata_is_a_json_object",
+    "request_and_intent_fingerprints_are_canonical_sha256",
+    "one_intent_references_at_most_one_origin_authority",
+    "request_link_matches_tenant_organization_and_currency",
+    "request_linked_intents_cannot_exceed_request_capacity",
+    "obligation_link_matches_tenant_organization_and_currency",
+    "obligation_linked_intent_cannot_exceed_current_outstanding_value",
+    "terminal_or_expired_origins_cannot_accept_new_intents",
+    "standalone_intent_requires_no_fake_request_or_obligation"
+  ],
+  "payment_method_policy": {
+    "allowed_keys": ["allowed_methods", "allow_mixed_tender", "max_tenders"],
+    "allowed_methods_required": true,
+    "method_codes_are_provider_neutral": true,
+    "provider_rail_orchestrator_and_account_keys_forbidden": true,
+    "max_tenders_range": [1, 16],
+    "mixed_tender_execution_deferred": true
+  },
+  "idempotency": {
+    "authority": "idempotency_records",
+    "identity": ["tenant_id", "idempotency_scope", "idempotency_key"],
+    "same_identity_same_fingerprint": "replay_original_result",
+    "same_identity_different_fingerprint": "reject_conflict",
+    "failed_nested_command": "roll_back_reservation_and_domain_writes"
+  },
+  "legacy_boundary": {
+    "legacy_payment_service_imported": false,
+    "legacy_payment_tables_written": false,
+    "canonical_tables_only": [
+      "canonical_payment_requests",
+      "canonical_payment_intents",
+      "idempotency_records"
+    ]
+  },
+  "rehearsal": {
+    "database": "xbos_track_b_m41_payment_commands_test",
+    "development_read_only": true,
+    "request_creation": true,
+    "request_capacity": true,
+    "obligation_linked_intent": true,
+    "standalone_intent": true,
+    "replay": true,
+    "conflict": true,
+    "tenant_scope": true,
+    "rollback": true,
+    "no_attempt_or_settlement_side_effects": true,
+    "dropped_on_success": true
+  },
+  "deferred": [
+    "payment_request_lifecycle_transitions",
+    "payment_intent_lifecycle_transitions",
+    "mixed_tender_creation_and_capacity",
+    "payment_attempt_execution",
+    "provider_adapter_calls",
+    "provider_callback_capture",
+    "settlement_confirmation",
+    "value_source_creation",
+    "outbox_publication",
+    "public_routes",
+    "wnd_writer_cutover"
+  ]
+}
