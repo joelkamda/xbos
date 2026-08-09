@@ -1,0 +1,98 @@
+{
+  "contract_code": "XBOS_M33_UNAPPLIED_VALUE_AND_OVERPAYMENT_WORKFLOWS",
+  "contract_version": 1,
+  "package_revision": 1,
+  "status": "approved_implementation_candidate",
+  "date": "2026-08-09",
+  "parent_checkpoint": {
+    "commit": "4e02840",
+    "migration_revision": "m32_allocation_engine_009"
+  },
+  "target_revision": "m32_allocation_engine_009",
+  "schema_change": false,
+  "purpose": "Compose M3.2 value-source and allocation primitives into atomic deposit, unapplied-value, later-application, and overpayment workflows without mutable balance authority.",
+  "workflows": {
+    "receive_unapplied_value": {
+      "entrypoint": "TransactionalValueApplicationEngine.receive",
+      "applications": "empty",
+      "result": "unapplied",
+      "examples": ["customer_deposit", "advance_payment", "unidentified_receipt"]
+    },
+    "receive_and_apply": {
+      "entrypoint": "TransactionalValueApplicationEngine.receive",
+      "atomic": ["value_source", "zero_or_more_allocations", "obligation_state_projections"],
+      "modes": ["exact", "up_to_outstanding"]
+    },
+    "apply_existing_unapplied_value": {
+      "entrypoint": "TransactionalValueApplicationEngine.apply_existing",
+      "supports": ["partial", "split", "one_to_many", "later_application"]
+    },
+    "overpayment": {
+      "representation": "value_source_available_amount_after_up_to_outstanding_application",
+      "mutable_overpayment_row": false,
+      "result_disposition": "overpayment_residual"
+    }
+  },
+  "derived_value_source_balance": {
+    "service": "ValueSourceBalanceService",
+    "active_applied_amount": "allocations_minus_allocation_reversals",
+    "available_amount": "source_amount_minus_active_applied_amount",
+    "stored_balance_column": false,
+    "states": ["unapplied", "partially_applied", "fully_applied"],
+    "tenant_scope_required": true,
+    "negative_capacity": "fail_closed"
+  },
+  "batch_semantics": {
+    "target_order": "obligations_sorted_by_public_id",
+    "each_write_lock_order": ["M3.2_idempotency", "value_source", "financial_obligation"],
+    "exact": "requested_amount_or_capacity_rejection",
+    "up_to_outstanding": "minimum_of_source_available_and_obligation_outstanding",
+    "zero_capacity": "no_allocation_fact_and_no_capacity_outcome",
+    "one_obligation_per_batch": "at_most_once",
+    "outer_commit_owner": "caller"
+  },
+  "idempotency": {
+    "value_source": "M3.2 command identity",
+    "each_application": "M3.2 allocation command identity",
+    "identical_replay": "same_source_and_allocation_public_identities",
+    "altered_replay": "conflict",
+    "atomic_with_outer_transaction": true
+  },
+  "capacity_authority": {
+    "application_precalculation": true,
+    "M3.2_application_guard": true,
+    "M3.2_database_trigger": true,
+    "cross_organization_policy": "delegated_to_exact_M3.2_policy_version"
+  },
+  "boundaries": {
+    "creates_migration": false,
+    "creates_mutable_balance": false,
+    "changes_wnd_writers": false,
+    "creates_public_routes": false,
+    "dispatches_outbox": false,
+    "creates_payment_settlement": false,
+    "creates_development_financial_data": false
+  },
+  "rehearsal": {
+    "database": "xbos_track_b_m33_value_application_test",
+    "deposit_unapplied": true,
+    "later_application": true,
+    "receive_and_apply": true,
+    "overpayment_residual": true,
+    "split_application": true,
+    "stable_replay": true,
+    "altered_replay_conflict": true,
+    "reversal_reopens_value": true,
+    "tenant_isolation": true,
+    "outer_rollback": true,
+    "development_empty": true
+  },
+  "deferred": [
+    "refund_disbursement_workflow",
+    "payment_settlement_foreign_key_activation",
+    "party_foreign_key_activation",
+    "outbox_dispatch",
+    "public_routes",
+    "wnd_writer_cutover"
+  ]
+}
