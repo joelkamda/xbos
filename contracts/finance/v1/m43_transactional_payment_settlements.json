@@ -1,0 +1,64 @@
+{
+  "contract_code": "XBOS_M43_TRANSACTIONAL_PAYMENT_SETTLEMENTS",
+  "contract_version": 1,
+  "milestone": "M4.3",
+  "canonical_head": "m43_payment_settlements_013",
+  "parent_revision": "m42_payment_attempts_012",
+  "purpose": "Govern inbound and outbound settlement facts, provider transaction identity, value dates, terminal evidence, and bounded reversals.",
+  "entities": {
+    "payment_settlement": {
+      "initial_state": "pending",
+      "states": ["pending", "confirmed", "failed", "partially_reversed", "reversed"],
+      "directions": ["incoming", "outgoing"],
+      "immutable_truth": ["intent", "attempt", "account", "direction", "gross_amount", "fee_amount", "net_amount", "currency", "method", "rail", "value_date", "occurred_at"],
+      "provider_identity": "tenant + rail + external_settlement_reference",
+      "date_semantics": {
+        "value_date": "provider or cash value-effective date",
+        "occurred_at": "business occurrence timestamp",
+        "recorded_at": "kernel persistence timestamp"
+      }
+    },
+    "settlement_transition": {
+      "append_only": true,
+      "contiguous_sequence": true,
+      "evidence_required_for_terminal_state": true
+    },
+    "settlement_reversal": {
+      "append_only": true,
+      "original_linked": true,
+      "cumulative_capacity": "sum(reversal_amount) <= original gross_amount"
+    }
+  },
+  "state_machine": {
+    "pending": ["confirmed", "failed"],
+    "confirmed": ["partially_reversed", "reversed"],
+    "partially_reversed": ["partially_reversed", "reversed"],
+    "failed": [],
+    "reversed": []
+  },
+  "authority_rules": [
+    "External rails require a successful matching attempt before settlement.",
+    "Cash and internal credit may settle without provider-attempt authority.",
+    "Operational accounts must be active tenant-scoped leaf accounts in the same currency and organization.",
+    "Confirmed external settlements require immutable provider transaction identity and evidence.",
+    "Failed settlement evidence remains queryable and is never rewritten.",
+    "Reversals are compensating facts and cannot exceed the original gross amount.",
+    "Command replays return the original result; changed payloads conflict.",
+    "M4.3 creates no value source, allocation, financial event, journal, or outbox record."
+  ],
+  "acceptance": [
+    "inbound",
+    "outbound_cash",
+    "pending_confirmed_failed",
+    "provider_identity",
+    "value_date_recorded_date",
+    "replay_conflict",
+    "tenant_scope",
+    "partial_full_reversal",
+    "reversal_capacity",
+    "immutability",
+    "direct_sql_guards",
+    "upgrade_downgrade_upgrade",
+    "development_empty"
+  ]
+}
