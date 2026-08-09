@@ -1,0 +1,37 @@
+{
+  "contract_code": "XBOS_M36_M3_ACCEPTANCE_AND_FREEZE",
+  "contract_version": 1,
+  "milestone": "M3.6",
+  "title": "M3 hardening, consolidated acceptance baseline, and freeze",
+  "starting_commit": "443b897",
+  "canonical_head": "m34_obligation_aging_010",
+  "schema_change": false,
+  "release_manifest": "contracts/finance/v1/m3_release_manifest.json",
+  "capabilities": ["M3.0", "M3.1", "M3.2", "M3.3", "M3.4", "M3.5"],
+  "acceptance": {
+    "mode": "single_fail_fast_gate",
+    "manifest_semantics": true,
+    "lineage": true,
+    "development_read_only": true,
+    "development_empty": true,
+    "all_capability_rehearsals": true,
+    "full_regression": true,
+    "segmented_diagnostics_only_after_failure": true
+  },
+  "hardening": {
+    "prior_verifiers_accept_descendant_canonical_revisions": true,
+    "prior_disposable_targets_unchanged": true,
+    "failure_retains_only_the_failing_disposable_database": true,
+    "success_drops_every_disposable_database": true
+  },
+  "forbidden": [
+    "migration",
+    "development_financial_fact_creation",
+    "outbox_dispatch",
+    "public_route",
+    "wnd_writer_switch",
+    "release_manifest_digest_drift",
+    "multiple_alembic_heads"
+  ],
+  "release_tag": "track-b-m3-obligations-balances-allocations-20260809"
+}

@@ -1,0 +1,67 @@
+{
+  "baseline_code": "XBOS_M3_OBLIGATIONS_BALANCES_ALLOCATIONS_RELEASE",
+  "baseline_version": 1,
+  "approved_commit_parent": "443b897",
+  "canonical_head": "m34_obligation_aging_010",
+  "canonical_migration_lineage": [
+    "m13_source_state_001",
+    "m13_financial_foundation_002",
+    "m20_event_catalog_003",
+    "m22_transactional_delivery_004",
+    "m23_reversal_capacity_005",
+    "m24_balanced_posting_006",
+    "m25_financial_dimensions_007",
+    "m30_obligation_foundation_008",
+    "m32_allocation_engine_009",
+    "m34_obligation_aging_010"
+  ],
+  "components": [
+    {
+      "sequence": 1,
+      "milestone": "M3.0",
+      "path": "contracts/finance/v1/m30_obligation_allocation_foundation.json",
+      "semantic_sha256": "caf145a81ee6a8969d93473c5196554951257f31be5c9da9baf5b9ad5bcee1d5"
+    },
+    {
+      "sequence": 2,
+      "milestone": "M3.1",
+      "path": "contracts/finance/v1/m31_typed_obligation_lifecycle_and_balances.json",
+      "semantic_sha256": "644f76647272727fd99691dbe7f12a8f5fca533d2f64bd9b7d64e8d743f6d32f"
+    },
+    {
+      "sequence": 3,
+      "milestone": "M3.2",
+      "path": "contracts/finance/v1/m32_allocation_reversal_engine.json",
+      "semantic_sha256": "1f6644176b0793e5614aa09547c67d08b7fabc3c64281bc6039fc98ce0222431"
+    },
+    {
+      "sequence": 4,
+      "milestone": "M3.3",
+      "path": "contracts/finance/v1/m33_unapplied_value_and_overpayment_workflows.json",
+      "semantic_sha256": "68c56954edf14906df96631b4a3ed9650d3d80e96bf47ada03297bc948e491ec"
+    },
+    {
+      "sequence": 5,
+      "milestone": "M3.4",
+      "path": "contracts/finance/v1/m34_deterministic_obligation_aging.json",
+      "semantic_sha256": "be55161e9cd8cfedcc6c076f6732e5a2e8d78c64b02a590a5f8fbebef36a03f6"
+    },
+    {
+      "sequence": 6,
+      "milestone": "M3.5",
+      "path": "contracts/finance/v1/m35_obligation_settlement_trace.json",
+      "semantic_sha256": "0d3d47173f17b080a7a13ca8baa3bedfc2b4fcdc47d6586eb6704a76e9617681"
+    }
+  ],
+  "release_invariants": [
+    "single_canonical_migration_head",
+    "development_financial_tables_empty",
+    "tenant_scoped_obligations_and_value_sources",
+    "append_only_obligation_lines_allocations_reversals_and_state_history",
+    "allocation_capacity_and_concurrency_enforced",
+    "current_and_as_of_balances_deterministic",
+    "unapplied_value_and_overpayment_supported",
+    "settlement_trace_read_only",
+    "all_disposable_rehearsals_drop_on_success"
+  ]
+}

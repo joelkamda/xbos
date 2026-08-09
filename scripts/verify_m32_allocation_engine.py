@@ -34,6 +34,7 @@ TEST_DATABASE_NAME = "xbos_track_b_m32_allocation_test"
 DEVELOPMENT_DATABASE_NAME = "xbos_track_b_dev"
 PARENT_REVISION = "m30_obligation_foundation_008"
 TARGET_REVISION = "m32_allocation_engine_009"
+DEVELOPMENT_REVISIONS = {PARENT_REVISION, TARGET_REVISION, "m34_obligation_aging_010"}
 TENANT = 3201
 ORG_A = 3211
 ORG_B = 3212
@@ -282,7 +283,7 @@ def _development_verify():
             "financial_obligation_lines","value_sources","payment_allocations","allocation_reversals","allocation_scope_policies")
     with application_engine.connect() as c:
         revision=c.execute(text("SELECT version_num FROM alembic_version")).scalar_one()
-        if revision not in {PARENT_REVISION,TARGET_REVISION}:
+        if revision not in DEVELOPMENT_REVISIONS:
             raise RuntimeError(f"unexpected development revision: {revision}")
         catalog=c.execute(text("SELECT count(*) FROM financial_event_type_versions")).scalar_one()
         if catalog != 20:

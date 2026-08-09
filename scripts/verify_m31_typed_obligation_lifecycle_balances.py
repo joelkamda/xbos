@@ -39,6 +39,11 @@ from database import engine as application_engine
 TEST_DATABASE_NAME = "xbos_track_b_m31_obligation_test"
 DEVELOPMENT_DATABASE_NAME = "xbos_track_b_dev"
 TARGET_REVISION = "m30_obligation_foundation_008"
+DEVELOPMENT_REVISIONS = {
+    TARGET_REVISION,
+    "m32_allocation_engine_009",
+    "m34_obligation_aging_010",
+}
 TENANT_ID = 3101
 ORG_ID = 3111
 NOW = datetime(2026, 8, 9, 10, tzinfo=timezone.utc)
@@ -357,13 +362,13 @@ def _verify_development() -> None:
         raise RuntimeError(f"refusing development verification against {_application_url().database!r}")
     with application_engine.connect() as connection:
         revision = connection.execute(text("SELECT version_num FROM public.alembic_version")).scalar_one_or_none()
-        if revision != TARGET_REVISION:
-            raise RuntimeError(f"expected development revision {TARGET_REVISION}, found {revision}")
+        if revision not in DEVELOPMENT_REVISIONS:
+            raise RuntimeError(f"unexpected development revision {revision}")
         counts = {name: int(connection.execute(text(f"SELECT count(*) FROM public.{name}")).scalar_one()) for name in DEVELOPMENT_COUNTS}
     if counts != DEVELOPMENT_COUNTS:
         raise RuntimeError(f"development counts differ: {counts!r}")
     print(f"database={DEVELOPMENT_DATABASE_NAME}")
-    print(f"revision={TARGET_REVISION}")
+    print(f"revision={revision}")
     print("m31_obligation_development=PASS")
 
 

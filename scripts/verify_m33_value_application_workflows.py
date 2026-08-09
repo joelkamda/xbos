@@ -33,6 +33,8 @@ from database import engine as application_engine
 TEST_DATABASE_NAME="xbos_track_b_m33_value_application_test"
 DEVELOPMENT_DATABASE_NAME="xbos_track_b_dev"
 TARGET_REVISION="m32_allocation_engine_009"
+CANONICAL_HEAD="m34_obligation_aging_010"
+DEVELOPMENT_REVISIONS={TARGET_REVISION,CANONICAL_HEAD}
 TENANT=3301; ORG=3311; NOW=datetime(2026,8,9,14,tzinfo=timezone.utc)
 CORRELATION=UUID("33000000-0000-0000-0000-000000000099")
 
@@ -194,13 +196,13 @@ def _exercise(engine):
 def _development_verify():
     if _application_url().database != DEVELOPMENT_DATABASE_NAME: raise RuntimeError(f"expected {DEVELOPMENT_DATABASE_NAME}")
     config=Config(str(ROOT/"alembic.ini")); heads=ScriptDirectory.from_config(config).get_heads()
-    if heads != [TARGET_REVISION]: raise RuntimeError(f"canonical heads differ: {heads}")
+    if heads != [CANONICAL_HEAD]: raise RuntimeError(f"canonical heads differ: {heads}")
     zero_tables=("financial_dimension_types","financial_dimension_values","posting_dimension_policies","idempotency_records",
       "financial_events","outbox_messages","journal_entries","journal_lines","financial_obligations","financial_obligation_lines",
       "value_sources","payment_allocations","allocation_reversals","allocation_scope_policies")
     with application_engine.connect() as c:
         revision=c.execute(text("SELECT version_num FROM alembic_version")).scalar_one()
-        if revision != TARGET_REVISION: raise RuntimeError(f"unexpected development revision: {revision}")
+        if revision not in DEVELOPMENT_REVISIONS: raise RuntimeError(f"unexpected development revision: {revision}")
         if c.execute(text("SELECT count(*) FROM financial_event_type_versions")).scalar_one()!=20: raise RuntimeError("catalog count differs")
         for table in zero_tables:
             count=c.execute(text(f"SELECT count(*) FROM {table}")).scalar_one()

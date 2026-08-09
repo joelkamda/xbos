@@ -26,6 +26,12 @@ from core.persistence.m30_obligation_foundation import (
     TEST_DATABASE_NAME,
     expected_development_counts,
 )
+
+DEVELOPMENT_REVISIONS = {
+    "m30_obligation_foundation_008",
+    "m32_allocation_engine_009",
+    "m34_obligation_aging_010",
+}
 from database import engine as application_engine
 
 
@@ -231,8 +237,10 @@ def _verify_development() -> None:
     expected = expected_development_counts()
     with application_engine.connect() as connection:
         revision = _revision(connection)
-        if revision != TARGET_REVISION:
-            raise RuntimeError(f"expected development revision {TARGET_REVISION}, found {revision}")
+        if revision not in DEVELOPMENT_REVISIONS:
+            raise RuntimeError(
+                f"expected development revision in {sorted(DEVELOPMENT_REVISIONS)}, found {revision}"
+            )
         counts = {
             table: int(connection.execute(text(f"SELECT count(*) FROM public.{table}")).scalar_one())
             for table in expected
@@ -240,7 +248,7 @@ def _verify_development() -> None:
     if counts != expected:
         raise RuntimeError(f"development counts differ: {counts!r}")
     print(f"database={DEVELOPMENT_DATABASE_NAME}")
-    print(f"revision={TARGET_REVISION}")
+    print(f"revision={revision}")
     for table, count in counts.items():
         print(f"{table}={count}")
     print("m30_obligation_foundation_development=PASS")
