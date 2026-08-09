@@ -1,0 +1,97 @@
+{
+  "contract_code": "XBOS_M32_ALLOCATION_REVERSAL_ENGINE",
+  "contract_version": 1,
+  "package_revision": 1,
+  "status": "approved_implementation_candidate",
+  "date": "2026-08-09",
+  "parent_checkpoint": {
+    "commit": "ace28b6",
+    "migration_revision": "m30_obligation_foundation_008",
+    "required_capability": "M3.1 typed obligation lifecycle and derived balances"
+  },
+  "target_revision": "m32_allocation_engine_009",
+  "purpose": "Activate typed value sources, partial and split allocation, governed reversals, deterministic locking, cumulative capacity, and explicit versioned cross-organization policy.",
+  "commands": {
+    "create_value_source": {
+      "entrypoint": "TransactionalAllocationEngine.create_value_source",
+      "atomic_writes": ["idempotency_records", "value_sources"],
+      "commit_owner": "caller"
+    },
+    "allocate_value": {
+      "entrypoint": "TransactionalAllocationEngine.allocate",
+      "atomic_writes": ["idempotency_records", "payment_allocations", "financial_obligations.state_projection"],
+      "supports": ["partial", "one_to_many", "many_to_one"],
+      "commit_owner": "caller"
+    },
+    "reverse_allocation": {
+      "entrypoint": "TransactionalAllocationEngine.reverse",
+      "atomic_writes": ["idempotency_records", "allocation_reversals", "financial_obligations.state_projection"],
+      "correction_model": "append_only_original_linked",
+      "commit_owner": "caller"
+    }
+  },
+  "locking": {
+    "order": ["value_source", "financial_obligation", "payment_allocation"],
+    "database_triggers_use_same_order": true,
+    "concurrent_over_capacity": "one_or_more_transactions_rejected_without_overcommit"
+  },
+  "capacity": {
+    "source_available": "source_amount_minus_allocations_plus_reversals",
+    "obligation_outstanding": "original_amount_minus_allocations_plus_reversals",
+    "reversal_available": "allocation_amount_minus_prior_reversals",
+    "application_precheck": true,
+    "database_final_authority": true,
+    "direct_sql_bypass": "rejected"
+  },
+  "cross_organization_policy": {
+    "authority_table": "allocation_scope_policies",
+    "identity": ["tenant_id", "policy_code", "policy_version"],
+    "match": ["source_organization_unit_id", "target_organization_unit_id", "currency_code", "business_date"],
+    "same_organization_policy": "forbidden",
+    "cross_organization_without_exact_active_policy": "rejected",
+    "policy_rows": "immutable"
+  },
+  "idempotency": {
+    "identity": ["tenant_id", "idempotency_scope", "idempotency_key"],
+    "same_fingerprint": "stable_replay_without_new_facts",
+    "different_fingerprint": "conflict",
+    "atomic_with_authoritative_writes": true
+  },
+  "satisfaction_projection": {
+    "authority": "M3.1 ObligationBalanceService",
+    "timing": "after_capacity_guarded_fact_insert",
+    "states": ["open", "partially_satisfied", "satisfied"]
+  },
+  "boundaries": {
+    "changes_wnd_writers": false,
+    "creates_public_routes": false,
+    "dispatches_outbox": false,
+    "creates_payment_settlement": false,
+    "creates_party_authority": false,
+    "creates_development_financial_data": false
+  },
+  "rehearsal": {
+    "database": "xbos_track_b_m32_allocation_test",
+    "partial_and_split": true,
+    "one_to_many_and_many_to_one": true,
+    "stable_replay_and_conflict": true,
+    "source_and_obligation_capacity": true,
+    "partial_and_full_reversal": true,
+    "cross_organization_policy": true,
+    "tenant_and_currency_isolation": true,
+    "concurrency": true,
+    "direct_sql_enforcement": true,
+    "immutability": true,
+    "outer_rollback": true,
+    "upgrade_downgrade_upgrade": true,
+    "development_empty": true
+  },
+  "deferred": [
+    "deposits_unapplied_value_and_overpayments",
+    "payment_settlement_foreign_key_activation",
+    "party_foreign_key_activation",
+    "outbox_dispatch",
+    "public_routes",
+    "wnd_writer_cutover"
+  ]
+}
