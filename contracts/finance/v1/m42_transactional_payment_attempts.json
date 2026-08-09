@@ -1,0 +1,101 @@
+{
+  "contract_code": "XBOS_M42_TRANSACTIONAL_PAYMENT_ATTEMPTS",
+  "contract_version": 1,
+  "status": "approved_implementation_candidate",
+  "date": "2026-08-09",
+  "parent_checkpoint": {
+    "commit": "299f0b9",
+    "migration_revision": "m40_payment_foundation_011"
+  },
+  "target_revision": "m42_payment_attempts_012",
+  "purpose": "Create multiple governed attempts per canonical payment intent while preserving provider references, failures, timeout and retry authority, and append-only transition evidence.",
+  "commands": [
+    "create_payment_attempt",
+    "transition_payment_attempt"
+  ],
+  "attempt_states": [
+    "pending",
+    "processing",
+    "requires_action",
+    "authorized",
+    "succeeded",
+    "failed",
+    "cancelled",
+    "expired"
+  ],
+  "invariants": [
+    "attempt_is_tenant_organization_intent_and_currency_scoped",
+    "attempt_amount_is_positive_and_does_not_exceed_intent_amount",
+    "payment_method_is_allowed_by_intent_policy",
+    "method_rail_orchestrator_provider_and_provider_account_remain_distinct",
+    "underlying_provider_requires_provider_account_authority",
+    "provider_account_is_active_and_tenant_organization_scoped",
+    "external_attempt_reference_cannot_be_rewritten",
+    "provider_result_requires_external_attempt_reference",
+    "attempt_state_changes_require_contiguous_append_only_evidence",
+    "failed_attempt_requires_failure_code_and_evidence",
+    "terminal_attempts_cannot_transition",
+    "expiration_cannot_precede_configured_timeout",
+    "retry_links_only_to_terminal_unsuccessful_attempt_for_same_intent",
+    "failed_attempt_is_preserved_when_retry_is_created",
+    "shared_idempotency_reservation_and_domain_write_are_atomic"
+  ],
+  "historical_evidence": {
+    "table": "canonical_payment_attempt_transitions",
+    "append_only": true,
+    "initial_transition_is_database_captured": true,
+    "state_updates_require_matching_transition": true,
+    "captures": [
+      "from_state",
+      "to_state",
+      "reason_code",
+      "failure_code",
+      "external_attempt_reference_snapshot",
+      "evidence_payload",
+      "occurred_at",
+      "actor",
+      "source"
+    ]
+  },
+  "retry_and_timeout": {
+    "timeout_is_explicit": true,
+    "early_expiration_rejected": true,
+    "retry_is_new_attempt": true,
+    "original_attempt_is_not_rewritten": true,
+    "retry_route_may_change": true
+  },
+  "scope": {
+    "multiple_attempts_per_intent": true,
+    "creates_tenders": false,
+    "calls_provider": false,
+    "captures_callbacks": false,
+    "creates_settlements": false,
+    "creates_value_sources": false,
+    "dispatches_outbox": false,
+    "adds_public_routes": false,
+    "activates_wnd_writer": false
+  },
+  "rehearsal": {
+    "database": "xbos_track_b_m42_attempts_test",
+    "development_empty_before_and_after": true,
+    "multiple_attempts": true,
+    "replay_and_conflict": true,
+    "failure_preservation": true,
+    "timeout_and_retry": true,
+    "external_reference_immutability": true,
+    "tenant_isolation": true,
+    "direct_sql_guard": true,
+    "upgrade_downgrade_upgrade": true,
+    "dropped_on_success": true
+  },
+  "deferred": [
+    "mixed_tender_composition",
+    "provider_adapter_execution",
+    "provider_callback_capture",
+    "settlement_finality",
+    "value_source_creation",
+    "outbox_dispatch",
+    "public_routes",
+    "wnd_writer_cutover"
+  ]
+}
