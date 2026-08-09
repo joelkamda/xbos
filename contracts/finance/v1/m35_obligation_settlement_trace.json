@@ -1,0 +1,73 @@
+{
+  "contract_code": "XBOS_M35_OBLIGATION_SETTLEMENT_TRACE",
+  "contract_version": 1,
+  "milestone": "M3.5",
+  "title": "Deterministic obligation settlement trace and explanation",
+  "parent_commit": "83e2779",
+  "parent_revision": "m34_obligation_aging_010",
+  "target_revision": "m34_obligation_aging_010",
+  "schema_change": false,
+  "authority": {
+    "write_authority": false,
+    "read_model_only": true,
+    "tenant_scoped": true,
+    "public_routes": false,
+    "wnd_writer_switch": false
+  },
+  "query": {
+    "required": ["tenant_id", "obligation_public_id"],
+    "optional_pair": ["as_of", "as_of_business_date"],
+    "timestamp_policy": "timezone_aware",
+    "current_when_pair_absent": true
+  },
+  "evidence_sections": [
+    "obligation_header",
+    "obligation_lines",
+    "append_only_state_history",
+    "allocation_facts",
+    "value_source_snapshots",
+    "allocation_reversal_facts",
+    "derived_current_or_as_of_balance",
+    "correlated_financial_events",
+    "correlated_balanced_journals",
+    "integrity_checks",
+    "plain_language_explanation"
+  ],
+  "balance_equation": "outstanding_amount = original_amount - allocated_amount + reversed_amount",
+  "cutoff_authority": {
+    "requires_timestamp_and_business_date": true,
+    "allocations": "occurred_at and business_date",
+    "reversals": "occurred_at and business_date",
+    "lifecycle": "effective_at with paired business-date boundary",
+    "financial_events": "occurred_at and business_date",
+    "journals": "posted_at_or_created_at and business_date"
+  },
+  "evidence_semantics": {
+    "allocation_links": "authoritative foreign-key lineage",
+    "reversal_links": "authoritative foreign-key lineage",
+    "state_history": "authoritative append-only lifecycle facts",
+    "financial_event_and_journal_correlation": "supporting evidence only",
+    "correlation_does_not_prove_causation": true
+  },
+  "integrity_checks": [
+    "tenant_scope",
+    "obligation_line_total_equals_original",
+    "state_history_present",
+    "active_satisfaction_nonnegative",
+    "outstanding_nonnegative",
+    "allocation_reversals_do_not_exceed_allocations",
+    "correlated_journals_balanced"
+  ],
+  "forbidden": [
+    "database_mutation",
+    "row_locks",
+    "migration",
+    "outbox_dispatch",
+    "public_api_route",
+    "causation_claim_from_correlation",
+    "cross_tenant_evidence",
+    "internal_database_ids_in_result"
+  ],
+  "disposable_database": "xbos_track_b_m35_obligation_trace_test",
+  "acceptance_mode": "single_fail_fast_gate"
+}
