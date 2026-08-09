@@ -20,6 +20,7 @@ from .payment_intent_repository import (
     PaymentIdempotencyReservation,
     PaymentIntentRepository,
 )
+from .payment_tender_repository import PaymentTenderRepository
 
 
 @dataclass(frozen=True)
@@ -92,6 +93,22 @@ class TransactionalPaymentAttemptEngine:
             if command.payment_method_code not in allowed_methods:
                 raise PaymentAttemptValidationError("payment_method_not_allowed", "attempt method is not allowed by intent")
 
+            payment_tender_id = None
+            if command.payment_tender_public_id:
+                tender = PaymentTenderRepository.find_tender(
+                    session, tenant_id=command.tenant_id,
+                    public_id=command.payment_tender_public_id, lock=True,
+                )
+                if tender is None or tender.payment_intent_id != intent.id:
+                    raise PaymentAttemptValidationError("payment_tender_not_found", "matching payment tender does not exist")
+                if tender.organization_unit_id != command.organization_unit_id or tender.currency_code != command.currency_code:
+                    raise PaymentAttemptValidationError("payment_tender_scope_mismatch", "tender scope or currency differs")
+                if tender.payment_method_code != command.payment_method_code:
+                    raise PaymentAttemptValidationError("payment_tender_method_mismatch", "attempt method differs from tender")
+                if tender.tender_state in {"succeeded", "failed", "cancelled"} or command.attempted_amount > tender.tender_amount:
+                    raise PaymentAttemptValidationError("payment_tender_not_attemptable", "tender lacks attempt capacity")
+                payment_tender_id = tender.id
+
             provider_account_id = None
             if command.provider_account_public_id:
                 provider = cls.repository.provider_account(
@@ -119,6 +136,8 @@ class TransactionalPaymentAttemptEngine:
                     raise PaymentAttemptValidationError("retry_attempt_not_found", "retry authority does not exist")
                 if prior.payment_intent_id != intent.id or prior.organization_unit_id != command.organization_unit_id:
                     raise PaymentAttemptValidationError("retry_scope_mismatch", "retry authority belongs to another intent")
+                if prior.payment_tender_id != payment_tender_id:
+                    raise PaymentAttemptValidationError("retry_tender_mismatch", "retry must remain bound to the same tender")
                 if prior.currency_code != command.currency_code or prior.attempt_state not in {"failed", "cancelled", "expired"}:
                     raise PaymentAttemptValidationError("retry_not_allowed", "retry requires a terminal unsuccessful attempt")
                 retry_of_attempt_id = prior.id
@@ -127,6 +146,7 @@ class TransactionalPaymentAttemptEngine:
                 session,
                 command,
                 payment_intent_id=intent.id,
+                payment_tender_id=payment_tender_id,
                 provider_account_id=provider_account_id,
                 retry_of_attempt_id=retry_of_attempt_id,
             )

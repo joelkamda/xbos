@@ -84,6 +84,7 @@ class CreatePaymentSettlementCommand:
     idempotency_scope: str
     idempotency_key: str
     payment_attempt_public_id: UUID | None = None
+    payment_tender_public_id: UUID | None = None
     provider_callback_event_public_id: UUID | None = None
     external_settlement_reference: str | None = None
     actor_user_id: int | None = None
@@ -93,7 +94,7 @@ class CreatePaymentSettlementCommand:
     def __post_init__(self) -> None:
         for name in ("public_id", "payment_intent_public_id", "operational_account_public_id", "correlation_id"):
             object.__setattr__(self, name, UUID(str(getattr(self, name))))
-        for name in ("payment_attempt_public_id", "provider_callback_event_public_id"):
+        for name in ("payment_attempt_public_id", "payment_tender_public_id", "provider_callback_event_public_id"):
             value = getattr(self, name)
             object.__setattr__(self, name, UUID(str(value)) if value else None)
         for name in ("settlement_direction", "payment_method_code", "payment_rail_code"):
@@ -130,6 +131,7 @@ class CreatePaymentSettlementCommand:
             "tenant_id": self.tenant_id, "organization_unit_id": self.organization_unit_id,
             "payment_intent_public_id": str(self.payment_intent_public_id),
             "payment_attempt_public_id": str(self.payment_attempt_public_id) if self.payment_attempt_public_id else None,
+            "payment_tender_public_id": str(self.payment_tender_public_id) if self.payment_tender_public_id else None,
             "provider_callback_event_public_id": str(self.provider_callback_event_public_id) if self.provider_callback_event_public_id else None,
             "operational_account_public_id": str(self.operational_account_public_id),
             "settlement_direction": self.settlement_direction,

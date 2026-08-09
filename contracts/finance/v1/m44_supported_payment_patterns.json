@@ -1,0 +1,30 @@
+{
+  "contract_code": "XBOS_M44_SUPPORTED_PAYMENT_PATTERNS",
+  "contract_version": 1,
+  "milestone": "M4.4",
+  "canonical_head": "m44_payment_patterns_014",
+  "parent_revision": "m43_payment_settlements_013",
+  "purpose": "Compose provider-neutral payment tenders and bind attempts and settlements to exact intent capacity.",
+  "supported_patterns": {
+    "cash": {"attempt_optional": true, "delayed_settlement": false},
+    "mobile_money": {"rails": ["mtn_momo", "orange_money"], "attempt_required": true},
+    "bank": {"rails": ["bank_transfer"], "attempt_required": true},
+    "card": {"rails": ["card"], "attempt_required": true},
+    "mixed_split_tender": {"explicit_tender_binding": true, "maximum_tenders": 16},
+    "standalone_payment": {"intent_origin": "standalone"},
+    "payment_link": {"intent_origin": "payment_request"},
+    "delayed_settlement": {"value_date_distinct_from_recorded_at": true}
+  },
+  "rules": [
+    "Tender methods must be allowed by the intent policy.",
+    "Tender count cannot exceed max_tenders and tender numbers are contiguous.",
+    "Active tender amounts cannot exceed the intent amount.",
+    "When mixed tender is disabled the single tender must exactly equal the intent amount.",
+    "Mixed-tender attempts and settlements require explicit tender authority.",
+    "A tender-bound attempt must match intent, organization, currency, method and amount.",
+    "A settlement cannot exceed its tender and must use the same tender as its attempt.",
+    "Tender lifecycle evidence is append-only and monetary truth is immutable.",
+    "Provider-specific callback and adapter behavior remains outside M4.4."
+  ],
+  "acceptance": ["cash", "mtn", "orange", "bank", "card", "split_tender", "standalone", "payment_link", "delayed_settlement", "capacity", "replay", "tenant_scope", "direct_sql", "upgrade_downgrade_upgrade"]
+}

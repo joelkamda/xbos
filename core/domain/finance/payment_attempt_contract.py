@@ -79,6 +79,7 @@ class CreatePaymentAttemptCommand:
     source_record_id: str
     idempotency_scope: str
     idempotency_key: str
+    payment_tender_public_id: UUID | None = None
     provider_account_public_id: UUID | None = None
     underlying_provider_code: str | None = None
     external_attempt_reference: str | None = None
@@ -91,7 +92,7 @@ class CreatePaymentAttemptCommand:
     def __post_init__(self) -> None:
         for name in ("public_id", "payment_intent_public_id", "correlation_id"):
             object.__setattr__(self, name, UUID(str(getattr(self, name))))
-        for name in ("provider_account_public_id", "retry_of_attempt_public_id"):
+        for name in ("payment_tender_public_id", "provider_account_public_id", "retry_of_attempt_public_id"):
             if getattr(self, name) is not None:
                 object.__setattr__(self, name, UUID(str(getattr(self, name))))
         object.__setattr__(self, "attempted_amount", _money(self.attempted_amount, "attempted_amount"))
@@ -135,6 +136,7 @@ class CreatePaymentAttemptCommand:
             "tenant_id": self.tenant_id,
             "organization_unit_id": self.organization_unit_id,
             "payment_intent_public_id": str(self.payment_intent_public_id),
+            "payment_tender_public_id": str(self.payment_tender_public_id) if self.payment_tender_public_id else None,
             "attempted_amount": _decimal_text(self.attempted_amount),
             "currency_code": self.currency_code,
             "payment_method_code": self.payment_method_code,

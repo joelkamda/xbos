@@ -35,6 +35,7 @@ class SettlementAttemptAuthority:
     id: int
     public_id: UUID
     payment_intent_id: int
+    payment_tender_id: int | None
     organization_unit_id: int
     attempt_state: str
     attempted_amount: Decimal
@@ -52,6 +53,7 @@ class PaymentSettlementRecord:
     organization_unit_id: int
     payment_intent_id: int
     payment_attempt_id: int | None
+    payment_tender_id: int | None
     operational_account_id: int
     settlement_state: str
     settlement_direction: str
@@ -111,7 +113,7 @@ class PaymentSettlementReversalRecord:
 
 _SETTLEMENT_COLUMNS = """
  id, public_id, tenant_id, organization_unit_id, payment_intent_id,
- payment_attempt_id, operational_account_id, settlement_state,
+ payment_attempt_id, payment_tender_id, operational_account_id, settlement_state,
  settlement_direction, gross_amount, fee_amount, net_amount, reversed_amount,
  currency_code, payment_method_code, payment_rail_code, finality_status,
  availability_state, external_settlement_reference, value_date, terminal_at,
@@ -171,7 +173,7 @@ class PaymentSettlementRepository:
     @staticmethod
     def lock_attempt(session, *, tenant_id: int, public_id: UUID):
         row = session.execute(text("""
-            SELECT id, public_id, payment_intent_id, organization_unit_id,
+            SELECT id, public_id, payment_intent_id, payment_tender_id, organization_unit_id,
                    attempt_state, attempted_amount, currency_code,
                    payment_method_code, payment_rail_code, external_attempt_reference
             FROM public.canonical_payment_attempts
@@ -212,11 +214,11 @@ class PaymentSettlementRepository:
 
     @staticmethod
     def insert_settlement(session, command: CreatePaymentSettlementCommand, *, intent_id: int,
-                          attempt_id: int | None, callback_id: int | None, account_id: int):
+                          attempt_id: int | None, tender_id: int | None, callback_id: int | None, account_id: int):
         row = session.execute(text(f"""
             INSERT INTO public.payment_settlements (
               public_id, tenant_id, organization_unit_id, payment_intent_id,
-              payment_attempt_id, provider_callback_event_id, operational_account_id,
+              payment_attempt_id, payment_tender_id, provider_callback_event_id, operational_account_id,
               settlement_state, settlement_direction, gross_amount, fee_amount, net_amount,
               currency_code, payment_method_code, payment_rail_code, finality_status,
               availability_state, external_settlement_reference, value_date,
@@ -225,7 +227,7 @@ class PaymentSettlementRepository:
               source_record_id, idempotency_scope, idempotency_key, request_fingerprint, metadata
             ) VALUES (
               :public_id, :tenant_id, :organization_unit_id, :intent_id,
-              :attempt_id, :callback_id, :account_id, 'pending', :settlement_direction,
+              :attempt_id, :tender_id, :callback_id, :account_id, 'pending', :settlement_direction,
               :gross_amount, :fee_amount, :net_amount, :currency_code,
               :payment_method_code, :payment_rail_code, 'unverified', 'pending',
               :external_settlement_reference, :value_date, '{{}}'::jsonb,
@@ -236,7 +238,7 @@ class PaymentSettlementRepository:
             ) RETURNING {_SETTLEMENT_COLUMNS}
         """), {
             **command.canonical_payload(), "public_id": str(command.public_id),
-            "intent_id": intent_id, "attempt_id": attempt_id, "callback_id": callback_id,
+            "intent_id": intent_id, "attempt_id": attempt_id, "tender_id": tender_id, "callback_id": callback_id,
             "account_id": account_id, "gross_amount": command.gross_amount,
             "fee_amount": command.fee_amount, "net_amount": command.net_amount,
             "correlation_id": str(command.correlation_id),

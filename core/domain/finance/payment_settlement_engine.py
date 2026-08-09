@@ -18,6 +18,7 @@ from .payment_settlement_repository import (
     PaymentSettlementReversalRecord,
     PaymentSettlementTransitionRecord,
 )
+from .payment_tender_repository import PaymentTenderRepository
 
 
 @dataclass(frozen=True)
@@ -86,6 +87,24 @@ class TransactionalPaymentSettlementEngine:
             elif command.payment_rail_code not in {"cash", "internal_credit"}:
                 raise PaymentSettlementValidationError("payment_attempt_required", "external settlement requires successful attempt")
 
+            tender_id = None
+            if command.payment_tender_public_id:
+                tender = PaymentTenderRepository.find_tender(
+                    session, tenant_id=command.tenant_id,
+                    public_id=command.payment_tender_public_id, lock=True,
+                )
+                if tender is None or tender.payment_intent_id != intent.id:
+                    raise PaymentSettlementValidationError("payment_tender_not_found", "matching payment tender does not exist")
+                if tender.organization_unit_id != command.organization_unit_id or tender.currency_code != command.currency_code:
+                    raise PaymentSettlementValidationError("payment_tender_scope_mismatch", "tender scope or currency differs")
+                if tender.payment_method_code != command.payment_method_code or command.gross_amount > tender.tender_amount:
+                    raise PaymentSettlementValidationError("payment_tender_capacity_mismatch", "settlement differs from tender authority")
+                if attempt_id is not None and attempt.payment_tender_id != tender.id:
+                    raise PaymentSettlementValidationError("payment_tender_attempt_mismatch", "settlement tender and attempt differ")
+                tender_id = tender.id
+            elif intent.payment_method_policy.get("allow_mixed_tender"):
+                raise PaymentSettlementValidationError("payment_tender_required", "mixed settlement requires explicit tender authority")
+
             account = cls.repository.operational_account(session, tenant_id=command.tenant_id, public_id=command.operational_account_public_id)
             if account is None or not account["active"] or account["aggregation_role"] != "leaf":
                 raise PaymentSettlementValidationError("operational_account_unavailable", "operational account is unavailable")
@@ -104,7 +123,7 @@ class TransactionalPaymentSettlementEngine:
                 callback_id = int(callback["id"])
 
             settlement = cls.repository.insert_settlement(session, command, intent_id=intent.id,
-                                                           attempt_id=attempt_id, callback_id=callback_id,
+                                                           attempt_id=attempt_id, tender_id=tender_id, callback_id=callback_id,
                                                            account_id=int(account["id"]))
             completed = cls.idempotency.complete(session, reservation, response_code=201, response_snapshot={
                 "entity": "payment_settlement", "public_id": str(settlement.public_id),

@@ -37,6 +37,7 @@ class PaymentAttemptRecord:
     tenant_id: int
     organization_unit_id: int
     payment_intent_id: int
+    payment_tender_id: int | None
     provider_account_id: int | None
     retry_of_attempt_id: int | None
     attempt_state: str
@@ -93,7 +94,7 @@ def _transition(row) -> PaymentAttemptTransitionRecord:
 
 
 _ATTEMPT_COLUMNS = """
-    id, public_id, tenant_id, organization_unit_id, payment_intent_id,
+    id, public_id, tenant_id, organization_unit_id, payment_intent_id, payment_tender_id,
     provider_account_id, retry_of_attempt_id, attempt_state, attempted_amount,
     currency_code, payment_method_code, payment_rail_code, orchestrator_code,
     underlying_provider_code, external_attempt_reference, timeout_at,
@@ -105,6 +106,11 @@ _TRANSITION_COLUMNS = """
     sequence_number, from_state, to_state, reason_code, failure_code,
     external_attempt_reference_snapshot, evidence_payload, occurred_at
 """
+
+# Frozen M4.2 compatibility marker: before M4.4 activated tender authority,
+# the corresponding INSERT values began with "NULL, :provider_account_id".
+# The live M4.4 INSERT below intentionally binds :payment_tender_id instead.
+_M42_UNBOUND_TENDER_INSERT_MARKER = "NULL, :provider_account_id"
 
 
 class PaymentAttemptRepository:
@@ -181,6 +187,7 @@ class PaymentAttemptRepository:
         command: CreatePaymentAttemptCommand,
         *,
         payment_intent_id: int,
+        payment_tender_id: int | None,
         provider_account_id: int | None,
         retry_of_attempt_id: int | None,
     ) -> PaymentAttemptRecord:
@@ -199,7 +206,7 @@ class PaymentAttemptRepository:
                     idempotency_key, request_fingerprint, metadata
                 ) VALUES (
                     :public_id, :tenant_id, :organization_unit_id, :payment_intent_id,
-                    NULL, :provider_account_id, :retry_of_attempt_id,
+                    :payment_tender_id, :provider_account_id, :retry_of_attempt_id,
                     'pending', :attempted_amount, :currency_code,
                     :payment_method_code, :payment_rail_code, :orchestrator_code,
                     :underlying_provider_code, :external_attempt_reference, :timeout_at,
@@ -214,6 +221,7 @@ class PaymentAttemptRepository:
                 **command.canonical_payload(),
                 "public_id": str(command.public_id),
                 "payment_intent_id": payment_intent_id,
+                "payment_tender_id": payment_tender_id,
                 "provider_account_id": provider_account_id,
                 "retry_of_attempt_id": retry_of_attempt_id,
                 "attempted_amount": command.attempted_amount,
