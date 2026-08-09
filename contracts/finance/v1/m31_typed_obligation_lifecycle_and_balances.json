@@ -1,0 +1,114 @@
+{
+  "contract_code": "XBOS_M31_TYPED_OBLIGATION_LIFECYCLE_AND_BALANCES",
+  "contract_version": 1,
+  "package_revision": 1,
+  "status": "approved_implementation_candidate",
+  "date": "2026-08-09",
+  "parent_checkpoint": {
+    "commit": "ace28b6",
+    "migration_revision": "m30_obligation_foundation_008"
+  },
+  "target_revision": "m30_obligation_foundation_008",
+  "schema_change": false,
+  "purpose": "Activate typed, transactional obligation creation, governed lifecycle transitions, and tenant-scoped derived balances on the empty M3.0 foundation.",
+  "commands": {
+    "create_obligation": {
+      "entrypoint": "TransactionalObligationEngine.create",
+      "atomic_writes": [
+        "idempotency_records",
+        "financial_obligations",
+        "financial_obligation_lines"
+      ],
+      "line_total_rule": "sum_line_amount_equals_original_amount_exactly",
+      "initial_state": "open",
+      "commit_owner": "caller"
+    },
+    "transition_obligation": {
+      "entrypoint": "TransactionalObligationEngine.transition",
+      "manual_targets": ["cancelled", "written_off"],
+      "optimistic_lock": "expected_row_version",
+      "satisfaction_states": "derived_only_by_refresh_satisfaction_state",
+      "commit_owner": "caller"
+    }
+  },
+  "idempotency": {
+    "identity": ["tenant_id", "idempotency_scope", "idempotency_key"],
+    "same_fingerprint": "return_same_public_identity_without_new_writes",
+    "different_fingerprint": "obligation_idempotency_conflict",
+    "processing": "obligation_idempotency_in_progress",
+    "atomic_with_authoritative_writes": true
+  },
+  "lifecycle": {
+    "states": ["open", "partially_satisfied", "satisfied", "cancelled", "written_off"],
+    "manual_transitions": {
+      "open": ["cancelled", "written_off"],
+      "partially_satisfied": ["written_off"],
+      "satisfied": [],
+      "cancelled": [],
+      "written_off": []
+    },
+    "cancel_requires_zero_active_satisfaction": true,
+    "written_off_requires_positive_outstanding": true,
+    "row_version_increments_exactly_once": true,
+    "terminal_states_are_irreversible": true
+  },
+  "derived_balance": {
+    "service": "ObligationBalanceService",
+    "formula": "original_amount_minus_sum_allocations_plus_sum_allocation_reversals",
+    "stored_balance_column": false,
+    "tenant_scope_required": true,
+    "lower_bound": "zero",
+    "over_capacity": "fail_closed",
+    "projected_states": {
+      "no_active_satisfaction": "open",
+      "partial_active_satisfaction": "partially_satisfied",
+      "full_active_satisfaction": "satisfied"
+    }
+  },
+  "validation": [
+    "money_is_finite_positive_and_has_at_most_eight_fractional_digits",
+    "currency_is_three_uppercase_ascii_letters",
+    "debtor_and_creditor_are_distinct",
+    "at_least_one_line_is_required",
+    "line_numbers_are_positive_and_unique",
+    "each_line_amount_equals_quantity_times_unit_amount",
+    "line_total_equals_original_amount_exactly",
+    "occurred_at_and_due_at_are_timezone_aware",
+    "due_at_is_not_before_occurred_at",
+    "exactly_one_or_both_governed_actor_references_are_present",
+    "metadata_is_a_json_object"
+  ],
+  "boundaries": {
+    "creates_migration": false,
+    "activates_allocation_writer": false,
+    "creates_payment_settlement": false,
+    "creates_party_authority": false,
+    "emits_outbox": false,
+    "changes_wnd_writers": false,
+    "creates_public_routes": false,
+    "writes_development_financial_data": false
+  },
+  "rehearsal": {
+    "database": "xbos_track_b_m31_obligation_test",
+    "typed_creation": true,
+    "identical_replay": true,
+    "altered_replay_conflict": true,
+    "line_total_rejection": true,
+    "derived_open_partial_satisfied_balances": true,
+    "manual_terminal_transition": true,
+    "tenant_isolation": true,
+    "immutability": true,
+    "outer_rollback": true,
+    "development_empty": true
+  },
+  "deferred": [
+    "allocation_and_reversal_command_engine",
+    "cross_organization_allocation_policy_evaluation",
+    "deposits_unapplied_value_and_overpayments",
+    "party_foreign_key_activation",
+    "payment_settlement_foreign_key_activation",
+    "outbox_dispatch",
+    "public_routes",
+    "wnd_writer_cutover"
+  ]
+}
