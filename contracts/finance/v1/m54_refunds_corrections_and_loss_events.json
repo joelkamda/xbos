@@ -1,0 +1,57 @@
+{
+  "contract_code": "XBOS_M54_REFUNDS_CORRECTIONS_AND_LOSS_EVENTS",
+  "contract_version": 1,
+  "canonical_head": "m46_provider_financials_015",
+  "migration": false,
+  "scope": [
+    "refunds",
+    "commercial_returns",
+    "financial_reversals",
+    "chargebacks",
+    "receivable_writeoffs",
+    "payable_forgiveness",
+    "correction_documents"
+  ],
+  "dispositions": {
+    "cancel": "pre-financial abandonment only",
+    "void": "pre-final invalidation without an irreversible external effect",
+    "reverse": "append-only correction of an existing financial event"
+  },
+  "documents": [
+    "credit_note",
+    "correction_note",
+    "refund_notice",
+    "cancellation_notice",
+    "void_notice",
+    "reversal_notice",
+    "chargeback_notice",
+    "writeoff_notice"
+  ],
+  "event_authority": {
+    "refund": "REFUND_SETTLED",
+    "commercial_return": "COMMERCIAL_RETURN_RECOGNIZED",
+    "generic_reversal": "FINANCIAL_FACT_REVERSED",
+    "writeoff": "OBLIGATION_WRITTEN_OFF",
+    "chargeback": "PROVIDER_SETTLEMENT_ADJUSTED"
+  },
+  "invariants": [
+    "posted or settled truth is never cancelled or voided",
+    "refunds require confirmed outgoing settlement evidence",
+    "cumulative refunds cannot exceed active original incoming settlement value",
+    "dedicated correction types are used when the catalog defines them",
+    "writeoffs equal the exact outstanding obligation and transition it atomically",
+    "chargebacks remain provider adjustments and never rewrite customer payment truth",
+    "material corrections preserve immutable document identity and evidence hash",
+    "all authorities are tenant and organization scoped",
+    "replay is deterministic and conflicts are rejected",
+    "every financial correction is posted as a balanced journal"
+  ],
+  "forbidden": [
+    "deleting or updating original financial events",
+    "rewriting gross payment settlement truth",
+    "cross-tenant correction authority",
+    "undocumented material correction",
+    "new public routes",
+    "WND writer switching"
+  ]
+}
