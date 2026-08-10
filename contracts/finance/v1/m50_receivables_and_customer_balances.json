@@ -1,0 +1,69 @@
+{
+  "contract_code": "XBOS_M50_RECEIVABLES_AND_CUSTOMER_BALANCES",
+  "contract_version": 1,
+  "milestone": "M5.0",
+  "source_checkpoint": {
+    "branch": "track-b/m5-complete-financial-lifecycles",
+    "parent_commit": "0375f04"
+  },
+  "canonical_head": "m46_provider_financials_015",
+  "schema_change": false,
+  "migration": null,
+  "scope_map": {
+    "original_m5_0": "receivable lifecycle",
+    "original_m5_1": "later accounts-receivable repayment",
+    "original_m5_2": "deterministic receivable aging",
+    "original_m5_5": "customer credits",
+    "original_m5_6": "deposits and advances",
+    "interoperability": "overpayment and unapplied-value application"
+  },
+  "authority": {
+    "receivable_fact": "financial_obligations",
+    "customer_value_fact": "value_sources",
+    "application_fact": "payment_allocations",
+    "application_reversal_fact": "allocation_reversals",
+    "aging_authority": "immutable facts plus obligation_state_transitions",
+    "new_parallel_ledger": false
+  },
+  "receivable_types": [
+    "trade_receivable",
+    "customer_receivable"
+  ],
+  "customer_value_types": [
+    "customer_credit",
+    "customer_deposit",
+    "customer_advance"
+  ],
+  "required_invariants": [
+    "tenant_and_organization_scope",
+    "idempotent_receivable_creation",
+    "idempotent_value_receipt_and_application",
+    "partial_and_later_repayment",
+    "overpayment_remains_unapplied",
+    "customer_credit_deposit_and_advance_capacity",
+    "currency_match",
+    "customer_owner_match",
+    "deterministic_as_of_aging",
+    "append_only_financial_facts",
+    "concurrent_capacity_protection",
+    "caller_owned_outer_transaction"
+  ],
+  "acceptance": {
+    "mode": "single_fail_fast_gate",
+    "development_database": "xbos_track_b_dev",
+    "disposable_database": "xbos_track_b_m50_receivables_test",
+    "development_read_only": true,
+    "development_expected_empty": true,
+    "full_regression": true
+  },
+  "forbidden": [
+    "public_api_route",
+    "wnd_writer_switch",
+    "outbox_dispatch",
+    "development_financial_fact_creation",
+    "customer_balance_update_in_place",
+    "cross_tenant_application",
+    "currency_conversion",
+    "duplicate_accounting_ledger"
+  ]
+}
