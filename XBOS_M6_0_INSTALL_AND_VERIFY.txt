@@ -1,0 +1,35 @@
+XBOS M6.0 — OPERATIONAL-ACCOUNT AND BALANCE AUTHORITY
+
+Run from C:\Users\jdkam\XBOS
+Expected branch: track-b/m6-treasury-reconciliation-close-control
+Expected starting commit: 3f659e0
+Expected starting database revision: m46_provider_financials_015
+
+1. Install
+   powershell -NoProfile -Command "Expand-Archive -LiteralPath '%USERPROFILE%\Downloads\XBOS_M6_0_OPERATIONAL_ACCOUNT_AND_BALANCE_AUTHORITY.zip' -DestinationPath '.' -Force"
+
+2. Run the single aggregate gate
+   XBOS_M6_0_RUN_ACCEPTANCE.cmd
+
+Expected final line:
+M60_SINGLE_GATE=PASS head=m60_operational_balance_authority_016 development=PASS disposable=PASS account_authority=PASS expected_actual_variance=PASS regression=PASS
+
+The gate upgrades xbos_track_b_dev only after the disposable rehearsal passes. It does not create development financial records.
+
+3. Stage only M6.0 files after the gate passes
+   del XBOS_M6_0_INSTALL_AND_VERIFY.txt
+   del XBOS_M6_0_RUN_ACCEPTANCE.cmd
+   git add alembic_neutral\sql\m60_operational_balance_authority_up.sql alembic_neutral\sql\m60_operational_balance_authority_down.sql alembic_neutral\versions\m60_operational_balance_authority_016_treasury_accounts_and_balances.py contracts\finance\v1\m60_operational_account_and_balance_authority.json core\domain\finance\operational_balance_contract.py core\domain\finance\operational_balance_repository.py core\domain\finance\operational_balance_engine.py core\domain\finance\operational_balance_service.py core\persistence\m60_operational_balance_authority.py docs\track_b\M6_0_OPERATIONAL_ACCOUNT_AND_BALANCE_AUTHORITY.md scripts\verify_m60_operational_balance_authority.py tests\contracts\test_m60_operational_account_and_balance_authority.py
+   git diff --cached --check
+   git diff --cached --stat
+   git status --short
+
+Expected staged scope: exactly 12 files.
+
+4. Commit and push
+   git commit -m "feat: establish operational balance authority"
+   git push
+   git status --short --branch
+   git log -5 --oneline --decorate
+
+STOP AND PASTE COMPLETE OUTPUT if the branch/commit/revision differs, Alembic has another head, a test or verifier fails, a disposable database is retained, development financial rows are created, expected/actual/variance semantics differ, mutation is accepted, or git diff --check reports an error.

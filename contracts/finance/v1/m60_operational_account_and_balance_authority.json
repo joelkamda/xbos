@@ -1,0 +1,63 @@
+{
+  "contract_code": "XBOS_M60_OPERATIONAL_BALANCE_AUTHORITY",
+  "contract_version": 1,
+  "milestone": "M6.0",
+  "title": "Operational-account authority, expected balance, actual provenance, and variance",
+  "canonical_parent_revision": "m46_provider_financials_015",
+  "canonical_target_revision": "m60_operational_balance_authority_016",
+  "scope": {
+    "included_original_items": ["M6.0", "M6.1", "M6.2", "M6.3"],
+    "account_classes": ["treasury", "control_account", "commercial_settlement"],
+    "account_types": ["cash", "mobile_money", "bank", "card", "gateway", "receivable", "payable", "clearing", "other"],
+    "balance_authority": ["immutable_opening_anchor", "canonical_event_movement", "provenance_bearing_actual", "derived_variance"]
+  },
+  "commands": {
+    "create_operational_account": {
+      "idempotent": true,
+      "stable_identity": ["tenant", "organization", "parent", "class", "type", "code", "currency", "aggregation_role", "opened_at"],
+      "mutable_configuration": ["display_name", "channel_code", "external_account_mask", "reconciliation_enabled", "active", "closed_at", "metadata"]
+    },
+    "record_balance_anchor": {
+      "append_only": true,
+      "maximum_per_account": 1,
+      "provenance": ["opening_import", "operator_confirmed", "external_confirmed"],
+      "evidence_required": true
+    },
+    "record_actual_balance": {
+      "append_only": true,
+      "provenance": ["operator_counted", "external_statement", "provider_confirmed"],
+      "evidence_required": true
+    }
+  },
+  "projection": {
+    "expected_balance": "anchor_balance + target_account_inflows - source_account_outflows",
+    "movement_authority": "immutable canonical financial_events through as_of",
+    "actual_selection": "latest observation at or before as_of",
+    "variance": "actual_balance - expected_balance",
+    "missing_actual": "variance_is_null_not_zero",
+    "cutoff_basis": "occurred_at"
+  },
+  "invariants": [
+    "provider_account_remains_distinct_from_operational_account",
+    "account_scope_currency_hierarchy_and_opening_are_immutable",
+    "parent_must_share_tenant_organization_and_currency_and_be_parent_aggregate",
+    "balance_facts_bind_leaf_accounts_only",
+    "balance_facts_fall_within_account_lifetime",
+    "opening_anchor_is_not_a_financial_movement",
+    "actual_observation_never_rewrites_expected_balance",
+    "variance_is_derived_never_operator_entered",
+    "tenant_and_organization_scope_are_mandatory",
+    "identical_idempotency_replays_and_changed_content_conflicts",
+    "anchors_and_observations_are_immutable",
+    "development_financial_state_remains_empty"
+  ],
+  "deferred_to_later_m6": [
+    "operational_account_transfers",
+    "reconciliation_series_and_windows",
+    "predecessor_continuity",
+    "shift_and_business_calendar_attribution",
+    "formal_close_and_reopen",
+    "bank_ar_ap_matching",
+    "reconciliation_reports"
+  ]
+}

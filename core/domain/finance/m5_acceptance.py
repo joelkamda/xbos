@@ -18,6 +18,7 @@ def validate_release_manifest(root):
         if component.get("sequence")!=sequence:raise M5AcceptanceError("sequence",repr(component))
         actual=semantic_sha256(root/component["path"])
         if actual!=component["semantic_sha256"]:raise M5AcceptanceError("semantic_fingerprint_mismatch",f"{component['path']}: expected {component['semantic_sha256']}, found {actual}")
-    if live_migration_lineage(root)!=EXPECTED_LINEAGE:raise M5AcceptanceError("lineage_changed","M5 must not change canonical lineage")
+    lineage=live_migration_lineage(root)
+    if lineage[:len(EXPECTED_LINEAGE)]!=EXPECTED_LINEAGE:raise M5AcceptanceError("lineage_changed","frozen M5 canonical lineage prefix changed")
     if tuple((root/"alembic_neutral/versions").glob("m5*.py")):raise M5AcceptanceError("unexpected_m5_migration","M5 is schema neutral")
     return len(components)

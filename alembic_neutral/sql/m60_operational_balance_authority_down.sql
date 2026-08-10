@@ -1,0 +1,13 @@
+DROP TRIGGER IF EXISTS trg_operational_balance_observation_immutable ON public.operational_account_balance_observations;
+DROP TRIGGER IF EXISTS trg_operational_balance_anchor_immutable ON public.operational_account_balance_anchors;
+DROP TRIGGER IF EXISTS trg_operational_account_authority_immutable ON public.operational_account_authorities;
+DROP TRIGGER IF EXISTS trg_operational_balance_observation_validate ON public.operational_account_balance_observations;
+DROP TRIGGER IF EXISTS trg_operational_balance_anchor_validate ON public.operational_account_balance_anchors;
+DROP TRIGGER IF EXISTS trg_operational_account_identity ON public.operational_financial_accounts;
+DROP TRIGGER IF EXISTS trg_operational_account_hierarchy ON public.operational_financial_accounts;
+DROP FUNCTION IF EXISTS public.xbos_validate_operational_balance_fact();
+DROP FUNCTION IF EXISTS public.xbos_protect_operational_account_identity();
+DROP FUNCTION IF EXISTS public.xbos_validate_operational_account_hierarchy();
+DROP TABLE IF EXISTS public.operational_account_balance_observations;
+DROP TABLE IF EXISTS public.operational_account_balance_anchors;
+DROP TABLE IF EXISTS public.operational_account_authorities;
