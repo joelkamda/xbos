@@ -1,0 +1,67 @@
+{
+  "contract_code": "XBOS_M61_OPERATIONAL_TRANSFERS_AND_RECONCILIATION_SERIES",
+  "contract_version": 1,
+  "milestone": "M6.1",
+  "canonical_parent_revision": "m60_operational_balance_authority_016",
+  "canonical_target_revision": "m61_transfers_reconciliation_017",
+  "transfer_authority": {
+    "canonical_fact": "VALUE_TRANSFERRED financial_event",
+    "economic_role": "transfer",
+    "posting_profile": "operational_value_transfer",
+    "source_account_role": "source_operational_asset",
+    "destination_account_role": "target_operational_asset",
+    "profit_and_loss_effect": "none",
+    "required": [
+      "source_operational_account", "destination_operational_account", "positive_exact_amount",
+      "currency", "tenant", "organization", "occurred_at", "value_at", "business_date",
+      "provenance", "supporting_evidence", "correlation", "idempotency", "actor", "source_record"
+    ],
+    "account_policy": {
+      "same_tenant": true,
+      "same_organization": true,
+      "same_currency": true,
+      "different_accounts": true,
+      "active_leaf_accounts": true,
+      "fx_conversion": "not_implemented_fail_closed"
+    },
+    "atomicity": "one immutable event plus one balanced two-sided journal in caller transaction",
+    "idempotency": "identical_replay_same_event_and_journal_conflicting_replay_fails",
+    "correction": "FINANCIAL_FACT_REVERSED append-only inverse with cumulative capacity"
+  },
+  "expected_balance_integration": {
+    "authority": "M6.0 OperationalBalanceService",
+    "source_effect": "outflow_subtracted",
+    "destination_effect": "inflow_added",
+    "reversal_effect": "inverse accounts compensate without mutation",
+    "cutoff": "occurred_at",
+    "second_balance_authority": false
+  },
+  "reconciliation_series": {
+    "object": "operational_account_reconciliation_series",
+    "kind": "read_only_explanatory_view",
+    "contains": ["balance_anchor", "transfer", "transfer_reversal", "actual_observation"],
+    "ordering": ["fact_at", "sort_rank", "recorded_at", "fact_public_id", "direction"],
+    "tenant_organization_account_scoped": true,
+    "corrections_remain_visible": true,
+    "duplicate_economic_effects_prevented_by_event_idempotency": true
+  },
+  "neutral_patterns": [
+    "cash_account_to_safe_account", "safe_account_to_bank_account",
+    "mobile_money_account_to_bank_account", "bank_account_to_bank_account",
+    "branch_account_to_governed_destination_account"
+  ],
+  "invariants": [
+    "transfer_is_treasury_value_movement_not_income_or_expense",
+    "no_source_only_or_destination_only_transfer_success",
+    "accepted_transfer_and_posting_are_immutable",
+    "cross_tenant_cross_organization_and_currency_mismatch_fail_closed",
+    "reversal_appends_and_never_rewrites_original_truth",
+    "M6.0_remains_the_only_expected_actual_variance_balance_authority",
+    "series_is_historical_and_explanatory_not_financial_authority"
+  ],
+  "deferred_to_m62_plus": [
+    "reconciliation_windows", "predecessor_continuity", "skipped_window_enforcement",
+    "shift_or_business_calendar_attribution", "WND_6pm_policy", "correction_cascading_across_windows",
+    "formal_close_or_reopen", "closed_period_protection", "bank_ar_ap_reconciliation", "reports"
+  ]
+}

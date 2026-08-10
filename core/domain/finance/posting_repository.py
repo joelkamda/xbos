@@ -320,6 +320,15 @@ class CanonicalPostingRepository:
                 "operational_link_required",
                 f"account role {account_role} must bind an event operational account",
             )
+        directional_operational_id = {
+            "source_operational_asset": event.source_operational_account_id,
+            "target_operational_asset": event.target_operational_account_id,
+        }.get(account_role)
+        if directional_operational_id is not None and operational_id != directional_operational_id:
+            raise FinancialEventValidationError(
+                "operational_link_direction_mismatch",
+                f"account role {account_role} must bind its exact transfer side",
+            )
         if operational_policy == "optional" and operational_id is not None and operational_id not in allowed_operational_ids:
             raise FinancialEventValidationError(
                 "operational_link_mismatch",
