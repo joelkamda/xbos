@@ -1,0 +1,5 @@
+DROP TRIGGER IF EXISTS trg_provider_settlement_component_immutable ON public.provider_settlement_components;
+DROP TRIGGER IF EXISTS trg_provider_settlement_component_validate ON public.provider_settlement_components;
+DROP FUNCTION IF EXISTS public.xbos_provider_settlement_component_immutable();
+DROP FUNCTION IF EXISTS public.xbos_validate_provider_settlement_component();
+DROP TABLE IF EXISTS public.provider_settlement_components;

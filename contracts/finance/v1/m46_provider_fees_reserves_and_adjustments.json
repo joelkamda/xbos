@@ -1,0 +1,54 @@
+{
+  "contract": "XBOS_M46_PROVIDER_FEES_RESERVES_AND_ADJUSTMENTS",
+  "version": 1,
+  "revision": "m46_provider_financials_015",
+  "parent_revision": "m44_payment_patterns_014",
+  "gross_settlement_truth": {
+    "rewrite_allowed": false,
+    "provider_costs_are_separate_components": true,
+    "components_are_append_only": true
+  },
+  "component_types": [
+    "provider_fee",
+    "reserve_hold",
+    "reserve_release",
+    "chargeback_loss"
+  ],
+  "canonical_event_mapping": {
+    "provider_fee": "PROVIDER_FEE_RECOGNIZED",
+    "reserve_hold": "PROVIDER_SETTLEMENT_ADJUSTED",
+    "reserve_release": "PROVIDER_SETTLEMENT_ADJUSTED",
+    "chargeback_loss": "PROVIDER_SETTLEMENT_ADJUSTED"
+  },
+  "atomic_effects": [
+    "provider_settlement_component",
+    "kernel_source_record",
+    "financial_event",
+    "outbox_message",
+    "balanced_journal"
+  ],
+  "net_position": {
+    "formula": "gross - fees - active_reserves - chargeback_losses",
+    "active_reserves": "reserve_holds - reserve_releases",
+    "projection_only": true
+  },
+  "invariants": [
+    "confirmed external settlement required",
+    "provider account must match the settlement attempt",
+    "component currency organization and operational account match settlement",
+    "reserve release links one original reserve hold",
+    "cumulative releases cannot exceed original hold",
+    "cumulative provider deductions cannot exceed gross settlement",
+    "provider event identity and command identity are idempotent",
+    "component update and delete are forbidden",
+    "direct SQL insert outside the governed engine is forbidden",
+    "tenant isolation is mandatory"
+  ],
+  "deferred": [
+    "provider statement import",
+    "automatic XafPay fee callback translation",
+    "provider payout batching",
+    "foreign exchange provider settlement",
+    "outbox dispatch"
+  ]
+}
