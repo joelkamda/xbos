@@ -1,0 +1,70 @@
+{
+  "contract_code": "XBOS_M51_PAYABLES_AND_GOVERNED_DISBURSEMENTS",
+  "contract_version": 1,
+  "milestone": "M5.1",
+  "source_checkpoint": {
+    "branch": "track-b/m5-complete-financial-lifecycles",
+    "parent_commit": "9f3f2e9"
+  },
+  "canonical_head": "m46_provider_financials_015",
+  "schema_change": false,
+  "migration": null,
+  "scope_map": {
+    "original_m5_3": "payable lifecycle",
+    "original_m5_4": "governed disbursements"
+  },
+  "authority": {
+    "payable_fact": "financial_obligations",
+    "outgoing_settlement_fact": "payment_settlements",
+    "disbursement_value_fact": "value_sources",
+    "application_fact": "payment_allocations",
+    "application_reversal_fact": "allocation_reversals",
+    "new_parallel_ledger": false
+  },
+  "payable_types": [
+    "trade_payable",
+    "supplier_payable",
+    "expense_payable"
+  ],
+  "disbursement_rules": {
+    "source_type": "disbursement",
+    "settlement_direction": "outgoing",
+    "settlement_state": "confirmed",
+    "source_amount_equals_settlement_gross": true,
+    "payer_equals_payable_debtor": true,
+    "immutable_payee_metadata_key": "payee_party_id",
+    "payee_equals_payable_creditor": true,
+    "same_tenant_organization_currency": true
+  },
+  "required_invariants": [
+    "idempotent_payable_creation",
+    "partial_and_later_disbursement",
+    "multi_payable_single_supplier_batch",
+    "confirmed_outgoing_settlement_required",
+    "failed_or_pending_settlement_rejected",
+    "settlement_amount_capacity",
+    "payer_and_payee_identity",
+    "tenant_organization_and_currency_scope",
+    "append_only_disbursement_and_allocation_facts",
+    "caller_owned_outer_transaction"
+  ],
+  "acceptance": {
+    "mode": "single_fail_fast_gate",
+    "development_database": "xbos_track_b_dev",
+    "disposable_database": "xbos_track_b_m51_payables_test",
+    "development_read_only": true,
+    "development_expected_empty": true,
+    "full_regression": true
+  },
+  "forbidden": [
+    "public_api_route",
+    "wnd_writer_switch",
+    "outbox_dispatch",
+    "development_financial_fact_creation",
+    "unsettled_disbursement",
+    "cross_supplier_disbursement",
+    "cross_tenant_application",
+    "currency_conversion",
+    "duplicate_accounting_ledger"
+  ]
+}

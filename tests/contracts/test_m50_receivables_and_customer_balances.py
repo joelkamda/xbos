@@ -316,11 +316,10 @@ def test_single_gate_and_forbidden_surface_are_explicit():
     assert {"public_api_route", "wnd_writer_switch", "outbox_dispatch", "currency_conversion"} <= set(CONTRACT["forbidden"])
 
 
-def test_acceptance_runner_contains_fail_fast_markers():
-    source = (ROOT / "XBOS_M5_0_RUN_ACCEPTANCE.cmd").read_text()
-    assert "M50_SINGLE_GATE=PASS" in source
-    assert "M50_SINGLE_GATE=FAIL" in source
-    assert "python -m pytest -q" in source
+def test_acceptance_verifier_contains_persistent_fail_fast_markers():
+    source = (ROOT / "scripts/verify_m50_receivables.py").read_text()
+    for token in ("create-and-verify", "M5.0 verification failed", "dropped=true", "_development_verify()"):
+        assert token in source
 
 
 def test_verifier_covers_grouped_capabilities_and_safe_drop():
