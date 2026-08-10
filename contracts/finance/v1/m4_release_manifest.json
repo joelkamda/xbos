@@ -1,0 +1,81 @@
+{
+  "baseline_code": "XBOS_M4_PAYMENTS_SETTLEMENT_ORCHESTRATION_RELEASE",
+  "baseline_version": 1,
+  "approved_commit_parent": "ef8b097",
+  "canonical_head": "m46_provider_financials_015",
+  "canonical_migration_lineage": [
+    "m13_source_state_001",
+    "m13_financial_foundation_002",
+    "m20_event_catalog_003",
+    "m22_transactional_delivery_004",
+    "m23_reversal_capacity_005",
+    "m24_balanced_posting_006",
+    "m25_financial_dimensions_007",
+    "m30_obligation_foundation_008",
+    "m32_allocation_engine_009",
+    "m34_obligation_aging_010",
+    "m40_payment_foundation_011",
+    "m42_payment_attempts_012",
+    "m43_payment_settlements_013",
+    "m44_payment_patterns_014",
+    "m46_provider_financials_015"
+  ],
+  "components": [
+    {
+      "sequence": 1,
+      "milestone": "M4.0",
+      "path": "contracts/finance/v1/m40_neutral_payment_settlement_orchestration_foundation.json",
+      "semantic_sha256": "3598955f1616d6d4a9d9228febd7e2f15fc8ea650defe84151d333ab14572a8d"
+    },
+    {
+      "sequence": 2,
+      "milestone": "M4.1",
+      "path": "contracts/finance/v1/m41_typed_payment_requests_and_intents.json",
+      "semantic_sha256": "09b573d1ff3c75bdf6798becdd11bcc203e6f0d70b42fb0c3ac6d0ea3e181878"
+    },
+    {
+      "sequence": 3,
+      "milestone": "M4.2",
+      "path": "contracts/finance/v1/m42_transactional_payment_attempts.json",
+      "semantic_sha256": "6af384d67d1226d0a21ff7e13ef0320b231d6fd5709f23faed8a2ed6dd9e17dc"
+    },
+    {
+      "sequence": 4,
+      "milestone": "M4.3",
+      "path": "contracts/finance/v1/m43_transactional_payment_settlements.json",
+      "semantic_sha256": "f3a5d3013184de4071243367a6c5d7aa3767978f1b64b69eee91b4ae9cf5a825"
+    },
+    {
+      "sequence": 5,
+      "milestone": "M4.4",
+      "path": "contracts/finance/v1/m44_supported_payment_patterns.json",
+      "semantic_sha256": "7e7f7781c0948102f4ac0e1173e300e2519388fba868d1ba67d154f2fcc72771"
+    },
+    {
+      "sequence": 6,
+      "milestone": "M4.5",
+      "path": "contracts/finance/v1/m45_xafpay_orchestration.json",
+      "semantic_sha256": "a912a20bcae2dbce9cbfce14edccbae7997cc5f8bfe6025dc5d5dfe04c50867e"
+    },
+    {
+      "sequence": 7,
+      "milestone": "M4.6",
+      "path": "contracts/finance/v1/m46_provider_fees_reserves_and_adjustments.json",
+      "semantic_sha256": "0b498a4db2902140280a00c29c9bf547ac6b8534d9a65f05b719895d99b69013"
+    }
+  ],
+  "release_invariants": [
+    "single_linear_canonical_migration_head",
+    "development_payment_and_financial_tables_empty",
+    "payment_commands_and_transitions_idempotent",
+    "failed_attempts_and_settlements_preserve_evidence",
+    "mixed_tender_totals_and_tender_capacity_enforced",
+    "offline_cash_does_not_require_provider_authority",
+    "callback_replay_conflict_signature_and_ordering_enforced",
+    "provider_outage_fails_without_fabricated_success",
+    "provider_fees_reserves_and_adjustments_do_not_rewrite_gross_truth",
+    "tenant_and_organization_scope_enforced",
+    "all_disposable_databases_drop_on_success"
+  ],
+  "release_tag": "track-b-m4-payments-settlement-orchestration-20260810"
+}

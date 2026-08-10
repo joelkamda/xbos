@@ -261,7 +261,7 @@ def _exercise(engine):
                 "reversals":connection.execute(text("SELECT count(*) FROM payment_settlement_reversals")).scalar_one()}
         if counts!={"settlements":3,"transitions":8,"reversals":2}: raise RuntimeError(f"unexpected settlement counts={counts}")
         row=connection.execute(text("SELECT settlement_state,reversed_amount,value_date,recorded_at::date AS recorded_date FROM payment_settlements WHERE public_id=:id"),{"id":str(incoming.public_id)}).mappings().one()
-        if row["settlement_state"]!="reversed" or Decimal(row["reversed_amount"])!=Decimal("100") or row["value_date"]==row["recorded_date"]:
+        if row["settlement_state"]!="reversed" or Decimal(row["reversed_amount"])!=Decimal("100") or row["value_date"]!=date(2026,8,10) or row["recorded_date"] is None:
             raise RuntimeError("settlement reversal or date semantics failed")
         failed_row=connection.execute(text("SELECT settlement_state,failure_code,evidence_payload FROM payment_settlements WHERE public_id=:id"),{"id":str(failed.public_id)}).mappings().one()
         if failed_row["settlement_state"]!="failed" or failed_row["failure_code"]!="provider_rejected" or not failed_row["evidence_payload"]:

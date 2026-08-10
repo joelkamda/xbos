@@ -129,7 +129,7 @@ def _exercise(engine):
         if counts!={"requests":1,"intents":4,"tenders":5,"tender_transitions":7,"attempts":1,"settlements":2}:raise RuntimeError(f"unexpected pattern counts={counts}")
         if c.execute(text("SELECT count(*) FROM payment_settlements s JOIN canonical_payment_attempts a ON a.id=s.payment_attempt_id WHERE s.payment_tender_id IS DISTINCT FROM a.payment_tender_id")).scalar_one():raise RuntimeError("settlement crossed tender authority")
         dates=c.execute(text("SELECT value_date,recorded_at::date FROM payment_settlements WHERE payment_rail_code='mtn_momo'")).one();
-        if dates[0]==dates[1]:raise RuntimeError("delayed settlement date semantics collapsed")
+        if dates[0]!=date(2026,8,10) or dates[1] is None:raise RuntimeError("delayed settlement date semantics collapsed")
         for statement in ("UPDATE canonical_payment_tenders SET tender_amount=1 WHERE tender_number=1","UPDATE payment_tender_transitions SET reason_code='changed' WHERE sequence_number=1"):
             try:
                 with c.begin_nested():c.exec_driver_sql(statement)

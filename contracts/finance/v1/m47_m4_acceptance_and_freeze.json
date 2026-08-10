@@ -1,0 +1,31 @@
+{
+  "contract": "XBOS_M47_M4_ACCEPTANCE_AND_FREEZE",
+  "version": 1,
+  "source_checkpoint": {
+    "branch": "track-b/m4-payments-settlement-orchestration",
+    "parent_commit": "ef8b097"
+  },
+  "canonical_head": "m46_provider_financials_015",
+  "adds_migration": false,
+  "acceptance_capabilities": [
+    "provider_neutral_payment_foundation",
+    "typed_payment_requests_and_intents",
+    "transactional_attempt_history",
+    "transactional_settlement_evidence",
+    "deterministic_historical_value_date_and_delayed_settlement_verification",
+    "cash_mobile_money_bank_card_and_split_tender",
+    "xafpay_callback_replay_conflict_and_signature_security",
+    "provider_outage_fail_closed",
+    "provider_fees_reserves_adjustments_and_net_position",
+    "tenant_and_organization_isolation",
+    "development_database_remains_empty"
+  ],
+  "release_policy": {
+    "historical_capabilities_run_on_current_linear_head": true,
+    "each_disposable_database_starts_empty": true,
+    "each_disposable_database_drops_on_success": true,
+    "live_provider_calls": false,
+    "outbox_dispatch": false,
+    "public_routes": false
+  }
+}
