@@ -1,0 +1,58 @@
+{
+  "contract": "m45_xafpay_orchestration",
+  "version": 1,
+  "canonical_head": "m44_payment_patterns_014",
+  "migration": null,
+  "boundary": {
+    "location": "core.integrations.xafpay",
+    "finance_kernel_provider_logic": false,
+    "public_routes": false,
+    "live_network_in_acceptance": false
+  },
+  "initiation": {
+    "method": "POST",
+    "path": "/v1/payment-intents",
+    "required_headers": ["X-API-Key", "Idempotency-Key", "Content-Type"],
+    "external_id": "canonical_payment_attempt.public_id",
+    "supported_currency": "XAF",
+    "amount_unit": "whole XAF",
+    "rail_mapping": {"mtn_momo": "mtn", "orange_money": "orange"}
+  },
+  "callback": {
+    "event_header": "X-Xafpay-Event-Id",
+    "signature_header": "X-Xafpay-Signature",
+    "signature": "HMAC-SHA256 lowercase hexadecimal over exact raw body",
+    "secret_required": true,
+    "replay_identity": ["tenant_id", "provider_account_id", "provider_event_reference"],
+    "replay_rule": "same event and same payload hash returns the original result",
+    "conflict_rule": "same event and different payload hash is rejected",
+    "terminal_rule": "later callbacks cannot regress a terminal attempt"
+  },
+  "success": {
+    "attempt_state": "succeeded",
+    "settlement_state": "confirmed",
+    "settlement_finality": "final",
+    "settlement_availability": "available",
+    "atomic": true
+  },
+  "security": [
+    "fail closed when callback secret, event id, or signature is absent",
+    "constant-time signature comparison",
+    "tenant and organization scope checked before mutation",
+    "provider account and provider identity checked",
+    "amount and currency checked against the canonical attempt",
+    "secrets are never canonicalized or persisted"
+  ],
+  "acceptance": [
+    "initiation translation",
+    "verified success settlement",
+    "identical callback replay",
+    "callback identity conflict",
+    "invalid signature rejection",
+    "out-of-order terminal protection",
+    "tenant isolation",
+    "callback immutability",
+    "transactional rollback",
+    "development database remains empty"
+  ]
+}
