@@ -1,0 +1,36 @@
+{
+  "contract_code": "XBOS_M53_TIPS_AND_COMMISSIONS",
+  "contract_version": 1,
+  "milestone": "M5.3",
+  "purpose": "Recognize tips and commissions with explicit beneficiary policy, deterministic calculation evidence, and matching participant payables without pretending either is a payment settlement.",
+  "canonical_head": "m46_provider_financials_015",
+  "migration": false,
+  "tips": {
+    "event": "TIP_RECOGNIZED",
+    "policies": {
+      "staff_beneficiary": {"posting_profile": "tip_staff_liability", "payable_required": true},
+      "tenant_income": {"posting_profile": "tip_tenant_income", "payable_forbidden": true}
+    },
+    "source_kinds": ["commercial_adjustment", "commercial_transaction_component"]
+  },
+  "commissions": {
+    "event": "EXPENSE_RECOGNIZED",
+    "posting_profile": "expense_accrual",
+    "source_kind": "expense_transaction",
+    "basis_types": ["fixed", "percentage"],
+    "payable_required": true
+  },
+  "invariants": [
+    "staff tips identify one beneficiary and create an equal expense payable",
+    "tenant-income tips create no participant payable",
+    "percentage commission equals basis amount times rate divided by 100",
+    "fixed commission basis equals recognized commission amount",
+    "earning and payable tenant organization currency amount beneficiary and recognition date match",
+    "source authority is tenant and organization scoped",
+    "event outbox journal and payable commit or roll back together",
+    "replay is idempotent and conflicting reuse is rejected",
+    "tips and commissions do not create payment settlement evidence"
+  ],
+  "development_policy": "read_only_and_empty",
+  "excluded_scope": ["commission payout settlement", "payroll withholding", "tips pooling distribution", "refunds", "public routes", "WND writer cutover"]
+}
