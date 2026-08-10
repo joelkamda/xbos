@@ -1,0 +1,27 @@
+{
+  "contract_code": "XBOS_M52_COMMERCIAL_TERMS_TAXES_AND_FEES",
+  "contract_version": 1,
+  "milestone": "M5.2",
+  "purpose": "Recognize discounts, complimentary value, customer-facing service fees, and output taxes as distinct canonical financial facts without conflating provider charges or rewriting gross commercial truth.",
+  "canonical_head": "m46_provider_financials_015",
+  "migration": false,
+  "component_types": {
+    "discount": {"event": "DISCOUNT_GRANTED", "source_kind": "commercial_adjustment", "profile": "discount_contra_revenue"},
+    "complimentary": {"event": "COMPLIMENTARY_GRANTED", "source_kind": "commercial_adjustment", "profiles": ["complimentary_contra_revenue", "complimentary_promotion", "complimentary_service_recovery"]},
+    "customer_service_fee": {"event": "COMMERCIAL_REVENUE_RECOGNIZED", "source_kind": "commercial_transaction_line", "profile": "commercial_recognition"},
+    "output_tax": {"event": "TAX_LIABILITY_RECOGNIZED", "source_kind": "commercial_transaction_component", "profile": "output_tax_recognition"}
+  },
+  "collectible_formula": "gross_sales - discounts - complimentary + customer_service_fees + output_tax",
+  "invariants": [
+    "every component amount is positive",
+    "discount plus complimentary value cannot exceed gross sales",
+    "declared customer collectible equals the governed formula",
+    "component source authority is tenant and organization scoped",
+    "provider fees remain governed by M4.6 and cannot be submitted as customer service fees",
+    "all component events, outbox messages, and journals commit or roll back together",
+    "replay is idempotent and conflicting reuse is rejected",
+    "gross commercial truth is preserved in immutable event metadata"
+  ],
+  "development_policy": "read_only_and_empty",
+  "excluded_scope": ["tips", "commissions", "refunds", "chargebacks", "tax filing and remittance", "public routes", "WND writer cutover"]
+}
