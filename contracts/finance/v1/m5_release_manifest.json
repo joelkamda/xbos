@@ -1,0 +1,15 @@
+{
+  "baseline_code": "XBOS_M5_COMPLETE_FINANCIAL_LIFECYCLES_RELEASE",
+  "baseline_version": 1,
+  "approved_commit_parent": "de66f4a",
+  "canonical_head": "m46_provider_financials_015",
+  "components": [
+    {"sequence": 1, "milestone": "M5.0", "path": "contracts/finance/v1/m50_receivables_and_customer_balances.json", "semantic_sha256": "b382d0240cbf3d20493c2f44665703aa2c266094d86d301c14966088d2d711e6"},
+    {"sequence": 2, "milestone": "M5.1", "path": "contracts/finance/v1/m51_payables_and_governed_disbursements.json", "semantic_sha256": "047a3469429204094d66ca24e42901533db753bac1887c2fece6e47236eea747"},
+    {"sequence": 3, "milestone": "M5.2", "path": "contracts/finance/v1/m52_commercial_terms_taxes_and_fees.json", "semantic_sha256": "27ec7f1d3ff8f5ed543a0ab76ad941361001ea0c2adc0edc1fbc146daaee05d1"},
+    {"sequence": 4, "milestone": "M5.3", "path": "contracts/finance/v1/m53_tips_and_commissions.json", "semantic_sha256": "d20636d3276f13075557c2486fbe7513b267277d11cb23f66bf98f98d627f404"},
+    {"sequence": 5, "milestone": "M5.4", "path": "contracts/finance/v1/m54_refunds_corrections_and_loss_events.json", "semantic_sha256": "eeac03189a79bac2d2ef866d9e40c16c09bb7d6506b1a6619c38093b277e690d"},
+    {"sequence": 6, "milestone": "M5.5", "path": "contracts/finance/v1/m55_financial_statements_and_m5_freeze.json", "semantic_sha256": "15aaaacddedb269a13d38affae6caaea160201ddaa301f04c0caedab981b1bb3"}
+  ],
+  "release_tag": "track-b-m5-complete-financial-lifecycles-20260810"
+}

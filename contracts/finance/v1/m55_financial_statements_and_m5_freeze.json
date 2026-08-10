@@ -1,0 +1,27 @@
+{
+  "contract_code": "XBOS_M55_FINANCIAL_STATEMENTS_AND_M5_FREEZE",
+  "contract_version": 1,
+  "canonical_head": "m46_provider_financials_015",
+  "migration": false,
+  "statement_types": ["customer", "supplier"],
+  "statement_invariants": [
+    "tenant and optional organization scope are mandatory",
+    "opening balance is derived from facts before the period",
+    "period lines are ordered by occurred_at sequence and immutable reference",
+    "allocations and reversals determine credits without mutable balance columns",
+    "closing balance equals opening plus debits less credits",
+    "as_of is timezone-aware and cannot precede period end",
+    "identical facts and query produce an identical semantic digest"
+  ],
+  "release_scope": ["M5.0", "M5.1", "M5.2", "M5.3", "M5.4", "M5.5"],
+  "release_invariants": [
+    "receivable repayment aging credit deposit advance and overpayment lifecycles conform",
+    "payable and governed disbursement lifecycles conform",
+    "discount complimentary fee and tax classifications conform",
+    "tips and commissions preserve beneficiary authority",
+    "refund correction chargeback and writeoff authority conforms",
+    "customer and supplier statements are deterministic and tenant isolated",
+    "development financial state remains empty",
+    "canonical migration head remains unchanged"
+  ]
+}
