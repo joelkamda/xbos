@@ -1,0 +1,56 @@
+{
+  "contract_code": "XBOS_M71_WND_SOURCE_TO_CANONICAL_FINANCIAL_MAPPING",
+  "contract_version": 1,
+  "source_checkpoint": {
+    "branch": "track-b/m7-finance-facing-wnd-migration-support",
+    "commit": "181de99"
+  },
+  "canonical_head": "m64_reconciliation_controls_020",
+  "migration": false,
+  "execution_mode": "mapping_plan_only",
+  "writer_routing": "unchanged",
+  "live_cutover_owner": "R6",
+  "mapping_kinds": {
+    "commercial_sale": [
+      "CanonicalFinancialEventCommand:COMMERCIAL_REVENUE_RECOGNIZED",
+      "RecognizeCommercialTermsCommand:when_allowances_exist",
+      "OpenReceivableCommand:when_unpaid_exists"
+    ],
+    "payment_settlement": [
+      "CreatePaymentIntentCommand",
+      "CreatePaymentSettlementCommand"
+    ],
+    "receivable_repayment": [
+      "CreatePaymentIntentCommand",
+      "CreatePaymentSettlementCommand",
+      "ReceiveReceivablePaymentCommand"
+    ],
+    "refund": [
+      "RecognizeRefundCommand"
+    ]
+  },
+  "invariants": [
+    "mapping_is_deterministic_and_side_effect_free",
+    "same_source_and_payload_returns_same_plan",
+    "same_source_with_changed_payload_is_a_conflict",
+    "commercial_collectible_equals_gross_less_discount_and_complimentary",
+    "collected_plus_unpaid_equals_customer_collectible",
+    "discounts_and_complimentary_value_are_not_payment",
+    "payment_settlement_does_not_create_revenue",
+    "receivable_repayment_does_not_create_revenue",
+    "raw_provider_success_is_not_verified_settlement",
+    "refunds_append_correction_truth_and_do_not_mutate_original_revenue",
+    "tenant_and_organization_scope_fail_closed",
+    "m71_does_not_reroute_legacy_writers",
+    "r6_owns_live_operational_cutover"
+  ],
+  "explicit_exclusions": [
+    "inventory_and_cogs_handoff",
+    "receipt_and_document_linkage",
+    "shadow_execution",
+    "control_total_comparison",
+    "dual_read_routing",
+    "legacy_writer_retirement",
+    "live_wnd_cutover"
+  ]
+}

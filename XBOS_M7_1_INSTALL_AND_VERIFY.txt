@@ -1,0 +1,16 @@
+XBOS Track B M7.1 — WND Source-to-Canonical Financial Mapping
+
+Prerequisites
+- Repository: C:\Users\jdkam\XBOS
+- Branch: track-b/m7-finance-facing-wnd-migration-support
+- Source commit: 181de99
+- Development revision: m64_reconciliation_controls_020
+- Clean tracked working tree and index
+
+Install
+  powershell -NoProfile -Command "Expand-Archive -LiteralPath '%USERPROFILE%\Downloads\XBOS_M7_1_WND_SOURCE_TO_CANONICAL_FINANCIAL_MAPPING.zip' -DestinationPath '.' -Force"
+
+Accept
+  XBOS_M7_1_RUN_ACCEPTANCE.cmd
+
+M7.1 is schema-neutral and read-only. It builds deterministic command plans but never executes them, writes shadow state, reroutes a legacy writer, or performs cutover. Do not commit until control-room approval and do not begin M7.2 from a failed gate.
