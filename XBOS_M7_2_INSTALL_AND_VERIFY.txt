@@ -1,0 +1,19 @@
+XBOS Track B M7.2 — Install and verify
+
+Prerequisites
+- Branch: track-b/m7-finance-facing-wnd-migration-support
+- Starting commit: 1bc83f7
+- Development revision: m64_reconciliation_controls_020
+- Clean tracked working tree
+
+From C:\Users\jdkam\XBOS run:
+
+powershell -NoProfile -Command "Expand-Archive -LiteralPath '%USERPROFILE%\Downloads\XBOS_M7_2_WND_INVENTORY_COGS_AND_DOCUMENT_LINKAGE_REVISION_2.zip' -DestinationPath '.' -Force"
+
+XBOS_M7_2_RUN_ACCEPTANCE.cmd
+
+Expected final line begins:
+M72_SINGLE_GATE=PASS
+
+M7.2 is schema-neutral. It does not create a migration, execute canonical commands,
+reroute WND writers, regenerate historical receipts, or perform production cutover.

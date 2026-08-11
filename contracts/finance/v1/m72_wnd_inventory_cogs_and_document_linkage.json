@@ -1,0 +1,50 @@
+{
+  "contract_code": "XBOS_M72_WND_INVENTORY_COGS_AND_DOCUMENT_LINKAGE",
+  "contract_version": 1,
+  "canonical_head": "m64_reconciliation_controls_020",
+  "source_commit": "1bc83f7",
+  "migration": false,
+  "execution_mode": "mapping_plan_only",
+  "writer_routing": "unchanged",
+  "live_cutover_owner": "R6",
+  "scope": [
+    "inventory_movement_to_fulfillment_cost_handoff",
+    "verified_cost_basis_only",
+    "missing_cost_basis_withheld_without_zero_cogs",
+    "receipt_and_financial_document_linkage",
+    "historical_document_identity_and_hash_preservation"
+  ],
+  "canonical_targets": [
+    "CanonicalFinancialEventCommand:COST_OF_FULFILLMENT_RECOGNIZED",
+    "FinancialDocumentLinkagePlan"
+  ],
+  "inherited_authorities": {
+    "inventory_quantity_truth": "WND inventory_movements",
+    "inventory_quantity_cache": "WND inventory_items.quantity_on_hand",
+    "financial_event_truth": "M2 canonical event and posting authority",
+    "commercial_payment_mapping": "M7.1",
+    "documents": "evidence links only; no general document storage"
+  },
+  "invariants": [
+    "inventory movement does not itself prove a financial cost basis",
+    "cost of fulfillment requires a positive exact unit cost and verified provenance evidence",
+    "missing or unreliable historical cost is withheld and never represented as zero COGS",
+    "stock-in does not recognize COGS",
+    "fulfillment cost reduces inventory/deferred-cost asset and creates no revenue",
+    "historical receipt numbers and content hashes are preserved",
+    "documents explain canonical facts but do not become financial authority",
+    "mapping replay is stable and conflicting replay fails closed",
+    "tenant and organization scope are mandatory",
+    "M7.2 does not execute commands, reroute writers, or perform cutover"
+  ],
+  "explicit_exclusions": [
+    "generic_file_storage",
+    "OCR_or_document_rendering",
+    "historical_receipt_regeneration",
+    "invented_historical_food_COGS",
+    "automatic_cost_inference_from_mutable_current_item_metadata",
+    "live_writer_routing",
+    "production_cutover",
+    "M7.3_shadow_execution"
+  ]
+}
