@@ -1,0 +1,29 @@
+XBOS Track B M8.0 — Global invariants, property tests, concurrency and replay
+
+Required branch:
+  track-b/m8-financial-hardening-and-exit
+
+Starting checkpoint:
+  b1ec385 test: freeze finance-facing WND migration support baseline
+
+Canonical database head:
+  m64_reconciliation_controls_020
+
+Install from C:\Users\jdkam\XBOS:
+  powershell -NoProfile -Command "Expand-Archive -LiteralPath '%USERPROFILE%\Downloads\XBOS_M8_0_GLOBAL_INVARIANTS_PROPERTY_CONCURRENCY_AND_REPLAY.zip' -DestinationPath '.' -Force"
+
+Run the single gate:
+  XBOS_M8_0_RUN_ACCEPTANCE.cmd
+
+If the disposable rehearsal is interrupted, inspect it with:
+  python scripts\verify_m80_global_financial_invariants.py status
+
+Drop only the exact retained disposable database with:
+  python scripts\verify_m80_global_financial_invariants.py drop --confirm-database-name xbos_track_b_m80_invariants_test
+
+Expected terminal result:
+  M80_SINGLE_GATE=PASS
+
+This package is schema-neutral. It does not reroute writers, authorize cutover,
+or execute WND migration. Do not commit until the complete gate passes and the
+staged diff is reviewed.

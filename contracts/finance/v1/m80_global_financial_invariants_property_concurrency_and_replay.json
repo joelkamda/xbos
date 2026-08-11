@@ -1,0 +1,57 @@
+{
+  "contract_code": "XBOS_M80_GLOBAL_FINANCIAL_INVARIANTS_PROPERTY_CONCURRENCY_AND_REPLAY",
+  "contract_version": 1,
+  "canonical_head": "m64_reconciliation_controls_020",
+  "migration": false,
+  "source_checkpoint": {
+    "branch": "track-b/m8-financial-hardening-and-exit",
+    "commit": "b1ec385"
+  },
+  "scope": [
+    "global_financial_invariant_suite",
+    "deterministic_property_corpus",
+    "transactional_concurrency",
+    "replay_and_idempotency"
+  ],
+  "authorities_under_test": [
+    "canonical_financial_events",
+    "balanced_journals",
+    "obligations_and_allocations",
+    "settlements_and_reversals",
+    "treasury_transfers",
+    "reconciliation_and_close"
+  ],
+  "global_invariants": [
+    "journal_debits_equal_journal_credits",
+    "effective_allocation_never_exceeds_obligation_capacity",
+    "allocation_reversal_never_exceeds_allocated_value",
+    "settlement_reversal_never_exceeds_settled_value",
+    "treasury_transfer_is_bilateral_and_value_conserving",
+    "identical_replay_has_one_stable_economic_effect",
+    "conflicting_replay_fails_closed",
+    "concurrent_identical_commands_produce_one_event_and_one_outbox_message",
+    "rollback_leaves_no_idempotency_event_or_outbox_residue",
+    "tenant_and_organization_references_fail_closed",
+    "append_only_financial_history_remains_immutable"
+  ],
+  "property_testing": {
+    "strategy": "deterministic_seeded_boundary_and_random_corpus",
+    "minimum_cases": 512,
+    "seed": 8000,
+    "exact_decimal_arithmetic": true,
+    "float_conversion_allowed": false
+  },
+  "concurrency": {
+    "workers": 8,
+    "database": "disposable_local_postgresql_clone",
+    "expected_new_effects": 1,
+    "expected_replays": 7
+  },
+  "boundaries": {
+    "new_financial_authority": false,
+    "new_schema": false,
+    "writer_routing": "unchanged",
+    "cutover_authorized": false,
+    "live_cutover_owner": "R6"
+  }
+}
