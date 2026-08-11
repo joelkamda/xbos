@@ -1,0 +1,43 @@
+{
+  "contract_code": "XBOS_M73_WND_SHADOW_EXECUTION_AND_CONTROL_TOTALS",
+  "contract_version": 1,
+  "source_commit": "beab542",
+  "canonical_head": "m64_reconciliation_controls_020",
+  "migration": false,
+  "scope": [
+    "shadow_financial_execution",
+    "production_shaped_rehearsal",
+    "control_total_comparison"
+  ],
+  "execution_environment": "isolated_disposable",
+  "writer_routing": "unchanged",
+  "production_writes_allowed": false,
+  "live_cutover_owner": "R6",
+  "control_totals": [
+    "commercial_revenue",
+    "customer_allowances",
+    "cash_collections",
+    "receivables_opened",
+    "receivables_satisfied",
+    "refunds",
+    "fulfillment_cost",
+    "financial_documents"
+  ],
+  "invariants": [
+    "shadow cases are tenant and organization scoped",
+    "source and mapping fingerprints are retained",
+    "withheld mappings cannot be executed",
+    "control totals use exact decimals and one currency per case",
+    "matched and varianced outcomes are deterministic",
+    "replay returns the same rehearsal and conflicting replay fails closed",
+    "legacy writer routing remains unchanged",
+    "M7.3 performs no live cutover or production writes"
+  ],
+  "exclusions": [
+    "dual-read compatibility",
+    "financial cutover readiness",
+    "legacy writer retirement support",
+    "live WND operational migration",
+    "production cutover"
+  ]
+}
