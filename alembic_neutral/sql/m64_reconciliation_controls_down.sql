@@ -1,0 +1,13 @@
+DROP VIEW IF EXISTS public.current_reconciliation_controls;
+DROP TRIGGER IF EXISTS trg_reconciliation_evidence_immutable ON public.reconciliation_evidence_references;
+DROP TRIGGER IF EXISTS trg_reconciliation_control_items_immutable ON public.reconciliation_control_items;
+DROP TRIGGER IF EXISTS trg_reconciliation_controls_immutable ON public.reconciliation_controls;
+DROP TRIGGER IF EXISTS trg_reconciliation_evidence_validate ON public.reconciliation_evidence_references;
+DROP TRIGGER IF EXISTS trg_reconciliation_control_items_validate ON public.reconciliation_control_items;
+DROP TRIGGER IF EXISTS trg_reconciliation_controls_validate ON public.reconciliation_controls;
+DROP FUNCTION IF EXISTS public.xbos_reject_reconciliation_control_mutation();
+DROP FUNCTION IF EXISTS public.xbos_validate_reconciliation_control_child();
+DROP FUNCTION IF EXISTS public.xbos_validate_reconciliation_control();
+DROP TABLE IF EXISTS public.reconciliation_evidence_references;
+DROP TABLE IF EXISTS public.reconciliation_control_items;
+DROP TABLE IF EXISTS public.reconciliation_controls;

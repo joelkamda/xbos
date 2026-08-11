@@ -1,0 +1,50 @@
+{
+  "contract_code": "XBOS_M64_BANK_AR_AP_RECONCILIATION_EVIDENCE_AND_REPORTS",
+  "contract_version": 1,
+  "authority": {
+    "kind": "control_and_explanation",
+    "pattern": "canonical_position_to_external_control_to_variance_to_evidence_to_governed_result",
+    "canonical_truth_remains_external": true,
+    "shared_primitive": true
+  },
+  "control_types": ["bank", "accounts_receivable", "accounts_payable"],
+  "canonical_sources": {
+    "bank": ["operational_financial_accounts", "financial_events", "reconciliation_windows"],
+    "accounts_receivable": ["financial_obligations", "payment_allocations", "allocation_reversals"],
+    "accounts_payable": ["financial_obligations", "payment_allocations", "allocation_reversals"]
+  },
+  "statuses": ["balanced", "explained", "exception"],
+  "invariants": [
+    "no_duplicate_financial_authority",
+    "tenant_and_organization_fail_closed",
+    "currency_exact",
+    "deterministic_as_of",
+    "immutable_evidence_and_results",
+    "append_only_revisions",
+    "replay_safe_conflict_closed",
+    "reconciliation_creates_no_profit_or_loss",
+    "bank_transfers_remain_non_pnl",
+    "ar_repayment_is_not_revenue",
+    "ap_disbursement_is_not_expense"
+  ],
+  "reports": {
+    "authority": "read_model_only",
+    "deterministic_ordering": true,
+    "semantic_fingerprint": true,
+    "historical_reproducibility": true
+  },
+  "evidence": {
+    "references_only": true,
+    "immutable_hash": true,
+    "generic_document_management": false
+  },
+  "close_coordination": {
+    "reconciliation_window_close": "m63",
+    "accounting_period_close": "m24",
+    "relationship": "separate_but_coordinated"
+  },
+  "explicit_exclusions": [
+    "generic_document_storage", "ocr", "bank_feed_import", "external_accounting_connectors",
+    "wnd_specific_bank_names", "frontend_screens", "m6_freeze", "m7_migration", "m8_hardening"
+  ]
+}
