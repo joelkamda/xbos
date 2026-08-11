@@ -1,0 +1,194 @@
+{
+  "contract_code": "XBOS_M70_LEGACY_FINANCIAL_AUTHORITY_INVENTORY_AND_ADAPTER_BOUNDARY",
+  "contract_version": 1,
+  "source_checkpoint": {
+    "branch": "track-b/m7-finance-facing-wnd-migration-support",
+    "commit": "9ccddd3"
+  },
+  "canonical_head": "m64_reconciliation_controls_020",
+  "migration": false,
+  "writer_routing": "unchanged",
+  "live_cutover_owner": "R6",
+  "adapter_mode": "inventory_and_assessment_only",
+  "required_surface_codes": [
+    "legacy_treasury_event_writer",
+    "commercial_sale_writer",
+    "payment_settlement_writer",
+    "xafpay_callback_writer",
+    "receivable_writer",
+    "receivable_repayment_writer",
+    "refund_event_writer",
+    "inventory_movement_writer",
+    "receipt_projection_reader",
+    "legacy_reconciliation_writer",
+    "legacy_treasury_reader",
+    "legacy_statement_reader",
+    "manual_accounting_writer",
+    "legacy_financial_api_surface"
+  ],
+  "invariants": [
+    "m70_does_not_reroute_any_legacy_writer",
+    "m70_does_not_execute_canonical_financial_commands",
+    "every_surface_has_tenant_scope_and_canonical_target",
+    "inventory_and_cogs_history_is_not_fabricated",
+    "historical_receipts_are_not_regenerated_as_originals",
+    "live_wnd_cutover_remains_owned_by_r6",
+    "adapter_assessment_is_deterministic_and_side_effect_free"
+  ],
+  "surfaces": [
+    {
+      "code": "legacy_treasury_event_writer",
+      "source_path": "core/domain/accounting/emitter.py",
+      "source_symbol": "FinancialEventEmitter.emit",
+      "authority_mode": "writer",
+      "legacy_stores": ["treasury_logs"],
+      "canonical_targets": ["financial_events", "journal_entries"],
+      "mapping_package": "M7.1",
+      "disposition": "shadow_candidate",
+      "evidence_markers": ["The ONLY component allowed to create TreasuryLog records", "TreasuryRepository.record"]
+    },
+    {
+      "code": "commercial_sale_writer",
+      "source_path": "core/domain/sales/service.py",
+      "source_symbol": "SaleService.create_sale",
+      "authority_mode": "writer",
+      "legacy_stores": ["sales", "sale_items", "treasury_logs"],
+      "canonical_targets": ["financial_events", "financial_obligations", "commercial_terms"],
+      "mapping_package": "M7.1",
+      "disposition": "shadow_candidate",
+      "evidence_markers": ["_emit_sale_accounting_events", "db.commit()"]
+    },
+    {
+      "code": "payment_settlement_writer",
+      "source_path": "core/domain/payments/service.py",
+      "source_symbol": "PaymentService.apply_pos_settlement",
+      "authority_mode": "writer",
+      "legacy_stores": ["payment_intents", "payment_attempts", "payments", "treasury_logs"],
+      "canonical_targets": ["canonical_payment_intents", "canonical_payment_attempts", "payment_settlements", "value_sources", "payment_allocations"],
+      "mapping_package": "M7.1",
+      "disposition": "shadow_candidate",
+      "evidence_markers": ["_emit_settlement_accounting_events", "payment_received"]
+    },
+    {
+      "code": "xafpay_callback_writer",
+      "source_path": "core/api/xafpay_webhook.py",
+      "source_symbol": "xafpay_webhook",
+      "authority_mode": "writer",
+      "legacy_stores": ["payment_intents", "payment_attempts"],
+      "canonical_targets": ["provider_callback_events", "canonical_payment_attempts", "payment_settlements"],
+      "mapping_package": "M7.1",
+      "disposition": "retirement_candidate",
+      "evidence_markers": ["Apply settlement (Financial Authority)", "db.commit()"]
+    },
+    {
+      "code": "receivable_writer",
+      "source_path": "core/domain/accounting/accounts_receivable/service.py",
+      "source_symbol": "AccountsReceivableService.create_or_update_from_settlement",
+      "authority_mode": "writer",
+      "legacy_stores": ["accounts_receivable"],
+      "canonical_targets": ["financial_obligations"],
+      "mapping_package": "M7.1",
+      "disposition": "shadow_candidate",
+      "evidence_markers": ["balance_due", "AccountsReceivableRepository.create"]
+    },
+    {
+      "code": "receivable_repayment_writer",
+      "source_path": "core/domain/accounting/accounts_receivable/service.py",
+      "source_symbol": "AccountsReceivableService.record_repayment",
+      "authority_mode": "writer",
+      "legacy_stores": ["accounts_receivable", "accounts_receivable_repayments", "payment_attempts", "payment_intents", "treasury_logs"],
+      "canonical_targets": ["payment_settlements", "value_sources", "payment_allocations"],
+      "mapping_package": "M7.1",
+      "disposition": "shadow_candidate",
+      "evidence_markers": ["DEBT_REPAYMENT is the only treasury event emitted here", "get_by_id_for_update"]
+    },
+    {
+      "code": "refund_event_writer",
+      "source_path": "core/domain/accounting/emitter.py",
+      "source_symbol": "FinancialEventEmitter.refund_paid",
+      "authority_mode": "writer",
+      "legacy_stores": ["treasury_logs"],
+      "canonical_targets": ["financial_events", "payment_settlements", "correction_documents"],
+      "mapping_package": "M7.1",
+      "disposition": "shadow_candidate",
+      "evidence_markers": ["movement_direction", "refund_paid"]
+    },
+    {
+      "code": "inventory_movement_writer",
+      "source_path": "core/domain/inventory/service.py",
+      "source_symbol": "InventoryService.finalize_sale_inventory",
+      "authority_mode": "writer",
+      "legacy_stores": ["inventory_items", "inventory_movements"],
+      "canonical_targets": ["inventory_financial_handoff", "financial_events"],
+      "mapping_package": "M7.2",
+      "disposition": "shadow_candidate",
+      "evidence_markers": ["Permanently apply inventory impact for a sale", "MOVEMENT_SALE_COMMIT"]
+    },
+    {
+      "code": "receipt_projection_reader",
+      "source_path": "core/api/payments/receipts_controller.py",
+      "source_symbol": "ReceiptsController",
+      "authority_mode": "reader",
+      "legacy_stores": ["sales", "sale_items", "payment_intents", "payment_attempts"],
+      "canonical_targets": ["receipt_document_linkage", "financial_statements"],
+      "mapping_package": "M7.2",
+      "disposition": "dual_read_candidate",
+      "evidence_markers": ["class ReceiptsController", "PaymentAttemptRepository.list_for_intent"]
+    },
+    {
+      "code": "legacy_reconciliation_writer",
+      "source_path": "core/domain/accounting/accounting_controller.py",
+      "source_symbol": "AccountingController.close_reconciliation",
+      "authority_mode": "writer",
+      "legacy_stores": ["recon_sheets", "treasury_logs"],
+      "canonical_targets": ["reconciliation_windows", "reconciliation_controls", "reconciliation_window_governance_events"],
+      "mapping_package": "M7.3",
+      "disposition": "control_total_source",
+      "evidence_markers": ["def close_reconciliation", "upsert_reconciliation_rows"]
+    },
+    {
+      "code": "legacy_treasury_reader",
+      "source_path": "core/domain/accounting/repository.py",
+      "source_symbol": "TreasuryRepository.daily_summary",
+      "authority_mode": "reader",
+      "legacy_stores": ["treasury_logs", "recon_sheets"],
+      "canonical_targets": ["financial_statements", "reconciliation_reports"],
+      "mapping_package": "M7.3",
+      "disposition": "control_total_source",
+      "evidence_markers": ["def daily_summary", "daily_rows"]
+    },
+    {
+      "code": "legacy_statement_reader",
+      "source_path": "core/domain/reports/reports_service.py",
+      "source_symbol": "ReportsService.monthly_statement",
+      "authority_mode": "reader",
+      "legacy_stores": ["treasury_logs", "sales", "taxonomy_nodes"],
+      "canonical_targets": ["financial_statements", "reconciliation_reports"],
+      "mapping_package": "M7.3",
+      "disposition": "control_total_source",
+      "evidence_markers": ["def monthly_statement", "_build_cogs_section"]
+    },
+    {
+      "code": "manual_accounting_writer",
+      "source_path": "core/domain/accounting/accounting_controller.py",
+      "source_symbol": "AccountingController.create_manual_income",
+      "authority_mode": "writer",
+      "legacy_stores": ["treasury_logs"],
+      "canonical_targets": ["financial_events", "journal_entries"],
+      "mapping_package": "M7.4",
+      "disposition": "retirement_candidate",
+      "evidence_markers": ["def create_manual_income", "manual_income"]
+    },
+    {
+      "code": "legacy_financial_api_surface",
+      "source_path": "core/api/accounting/accounting_router.py",
+      "source_symbol": "close_reconciliation",
+      "authority_mode": "reader_writer",
+      "legacy_stores": ["treasury_logs", "recon_sheets", "accounts_receivable"],
+      "canonical_targets": ["wnd_finance_adapter_boundary"],
+      "mapping_package": "M7.4",
+      "disposition": "dual_read_candidate",
+      "evidence_markers": ["/reconciliation/close", "/accounts/ar/{ar_id}/repay"]
+    }
+  ]
+}

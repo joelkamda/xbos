@@ -1,0 +1,18 @@
+XBOS Track B M7.0 — Legacy Financial Authority Inventory and Adapter Boundary
+
+Prerequisites
+- Repository: C:\Users\jdkam\XBOS
+- Branch: track-b/m7-finance-facing-wnd-migration-support
+- Source commit: 9ccddd3
+- Development database revision: m64_reconciliation_controls_020
+- Clean unstaged and staged tracked changes
+
+Install
+  powershell -NoProfile -Command "Expand-Archive -LiteralPath '%USERPROFILE%\Downloads\XBOS_M7_0_LEGACY_FINANCIAL_AUTHORITY_INVENTORY_AND_ADAPTER_BOUNDARY.zip' -DestinationPath '.' -Force"
+
+Accept
+  XBOS_M7_0_RUN_ACCEPTANCE.cmd
+
+The gate is read-only with respect to PostgreSQL. M7.0 creates no migration, tables, financial events, shadow writes, or production routes. It verifies the existing development head, the complete source inventory, the assessment-only adapter boundary, and the full regression suite.
+
+Do not commit until control-room review. Do not begin M7.1 from a failed gate.
