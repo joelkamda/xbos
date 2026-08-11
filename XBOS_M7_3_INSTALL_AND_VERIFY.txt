@@ -1,0 +1,19 @@
+XBOS Track B M7.3 install and verification
+
+Prerequisites:
+- branch track-b/m7-finance-facing-wnd-migration-support
+- clean committed checkpoint beab542
+- canonical database head m64_reconciliation_controls_020
+
+Install from C:\Users\jdkam\XBOS:
+
+  powershell -NoProfile -Command "Expand-Archive -LiteralPath '%USERPROFILE%\Downloads\XBOS_M7_3_SHADOW_EXECUTION_PRODUCTION_REHEARSAL_AND_CONTROL_TOTALS.zip' -DestinationPath '.' -Force"
+
+Run the single gate:
+
+  XBOS_M7_3_RUN_ACCEPTANCE.cmd
+
+The gate is read-only with respect to PostgreSQL and production WND. M7.3 is
+schema-neutral; it creates no Alembic revision and never reroutes legacy writers.
+
+Do not commit until the gate passes and control-room review approves staging.

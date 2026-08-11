@@ -1,0 +1,44 @@
+{
+  "contract_code": "XBOS_M74_WND_DUAL_READ_CUTOVER_READINESS_AND_WRITER_RETIREMENT_SUPPORT",
+  "contract_version": 1,
+  "source_archive_sha256": "d9d8f7f38574ba27cfcb80f6045dfc19f6ca8175b9ed8d49d9604ff4ecb69490",
+  "canonical_head": "m64_reconciliation_controls_020",
+  "migration": false,
+  "scope": [
+    "dual_read_compatibility",
+    "financial_cutover_readiness",
+    "legacy_writer_retirement_support"
+  ],
+  "dual_read_mode": "legacy_primary_canonical_shadow",
+  "writer_routing": "unchanged",
+  "cutover_authorized": false,
+  "retirement_execution_allowed": false,
+  "live_cutover_owner": "R6",
+  "required_readiness_evidence": [
+    "legacy_authority_inventory",
+    "canonical_mapping_coverage",
+    "shadow_rehearsal",
+    "control_total_parity",
+    "tenant_organization_isolation",
+    "replay_conflict_safety",
+    "recovery_rehearsal",
+    "dual_read_compatibility",
+    "rollback_runbook"
+  ],
+  "invariants": [
+    "legacy and canonical projections are compared at identical tenant organization subject currency and as-of scope",
+    "dual-read variances remain visible and never force canonical or legacy truth to agree",
+    "technical readiness is advisory and cannot authorize production cutover",
+    "retirement candidates are inventory-derived and preserve explicit rollback references",
+    "writer retirement plans are reversible and non-executing",
+    "legacy writer routing remains unchanged",
+    "R6 retains live WND migration and production cutover authority"
+  ],
+  "exclusions": [
+    "live authority switch",
+    "production writer disablement",
+    "production database migration",
+    "operational cutover execution",
+    "M7 conformance and freeze"
+  ]
+}

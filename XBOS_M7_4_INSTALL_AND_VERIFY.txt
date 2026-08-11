@@ -1,0 +1,19 @@
+XBOS Track B M7.4 install and verification
+
+Prerequisites:
+- branch track-b/m7-finance-facing-wnd-migration-support
+- accepted and committed M7.3 checkpoint
+- canonical database head m64_reconciliation_controls_020
+
+Install from C:\Users\jdkam\XBOS:
+
+  powershell -NoProfile -Command "Expand-Archive -LiteralPath '%USERPROFILE%\Downloads\XBOS_M7_4_DUAL_READ_CUTOVER_READINESS_AND_WRITER_RETIREMENT_SUPPORT.zip' -DestinationPath '.' -Force"
+
+Run:
+
+  XBOS_M7_4_RUN_ACCEPTANCE.cmd
+
+M7.4 is schema-neutral and read-only. It does not authorize cutover, reroute or
+disable legacy writers, or execute a retirement plan.
+
+Do not commit until the gate passes and control-room review approves staging.
