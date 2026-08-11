@@ -1,0 +1,42 @@
+{
+  "contract_code": "XBOS_M65_M6_ACCEPTANCE_AND_FREEZE",
+  "contract_version": 1,
+  "canonical_head": "m64_reconciliation_controls_020",
+  "migration": false,
+  "source_checkpoint": {
+    "branch": "track-b/m6-treasury-reconciliation-close-control",
+    "commit": "521dab7"
+  },
+  "release_tag": "track-b-m6-treasury-reconciliation-close-control-20260811",
+  "acceptance": [
+    "single_canonical_head_and_frozen_lineage",
+    "semantic_manifest_digests",
+    "empty_development_financial_state",
+    "m60_operational_account_balance_authority",
+    "m61_bilateral_non_pnl_transfers_and_series",
+    "m62_continuity_calendar_and_correction_cascades",
+    "m63_close_protection_and_governed_reopen",
+    "m64_bank_ar_ap_controls_evidence_and_reports",
+    "replay_conflict_tenant_and_organization_isolation",
+    "concurrency_lock_and_uniqueness_guards",
+    "final_migration_downgrade_upgrade_recovery",
+    "full_regression"
+  ],
+  "freeze_invariants": [
+    "operational_balances_retain_provenance",
+    "transfers_are_bilateral_non_pnl_value_movements",
+    "required_reconciliation_predecessors_cannot_be_skipped",
+    "calendar_and_shift_attribution_is_deterministic",
+    "corrections_append_and_cascade_without_rewriting_history",
+    "close_and_reopen_history_is_immutable_and_evidenced",
+    "accounting_period_and_reconciliation_close_are_separate_but_coordinated",
+    "reconciliation_is_control_and_explanation_not_financial_authority",
+    "tenant_and_organization_scope_fail_closed"
+  ],
+  "post_acceptance_actions": [
+    "commit_and_push_freeze_package",
+    "create_and_push_annotated_release_tag",
+    "verify_remote_tag",
+    "update_running_implementation_ledger"
+  ]
+}

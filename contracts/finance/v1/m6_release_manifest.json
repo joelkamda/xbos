@@ -1,0 +1,14 @@
+{
+  "baseline_code": "XBOS_M6_TREASURY_RECONCILIATION_CLOSE_CONTROL_RELEASE",
+  "baseline_version": 1,
+  "approved_commit_parent": "521dab7",
+  "canonical_head": "m64_reconciliation_controls_020",
+  "components": [
+    {"sequence": 1, "milestone": "M6.0", "path": "contracts/finance/v1/m60_operational_account_and_balance_authority.json", "semantic_sha256": "2386f08c4d0e9e0365bb6b1e3db49ec62412a08bebd4590e0b0f27cf437977f8"},
+    {"sequence": 2, "milestone": "M6.1", "path": "contracts/finance/v1/m61_operational_transfers_and_reconciliation_series.json", "semantic_sha256": "2ec5d36646629296437bd8b1a0b22516d34c9369b677db21cdf1af075c242855"},
+    {"sequence": 3, "milestone": "M6.2", "path": "contracts/finance/v1/m62_reconciliation_windows_continuity_and_cascades.json", "semantic_sha256": "4464a1b61f2c61a778ec94f363dd3cb2e792cc332499d29fe926f4340e65a82b"},
+    {"sequence": 4, "milestone": "M6.3", "path": "contracts/finance/v1/m63_formal_close_reopen_and_closed_period_governance.json", "semantic_sha256": "e39de50f5f87516103049461f19b7bf1989675764cbc68a530888454d65e3319"},
+    {"sequence": 5, "milestone": "M6.4", "path": "contracts/finance/v1/m64_bank_ar_ap_reconciliation_evidence_and_reports.json", "semantic_sha256": "d612588ff214b3f3d5c5e4a2367f564f76930b34d807e8285a9826624ff77cb0"}
+  ],
+  "release_tag": "track-b-m6-treasury-reconciliation-close-control-20260811"
+}

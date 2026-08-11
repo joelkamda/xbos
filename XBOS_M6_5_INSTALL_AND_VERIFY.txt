@@ -1,0 +1,21 @@
+XBOS Track B M6.5 — Conformance, hardening, and M6 freeze
+
+Prerequisites
+- Branch: track-b/m6-treasury-reconciliation-close-control
+- HEAD: 521dab7
+- Development database revision: m64_reconciliation_controls_020
+- Clean tracked and staged state
+
+Install from Windows Command Prompt
+
+powershell -NoProfile -Command "Expand-Archive -LiteralPath '%USERPROFILE%\Downloads\XBOS_M6_5_CONFORMANCE_HARDENING_AND_M6_FREEZE.zip' -DestinationPath '.' -Force"
+
+Run the single acceptance gate
+
+XBOS_M6_5_RUN_ACCEPTANCE.cmd
+
+Expected final marker
+
+M65_SINGLE_GATE=PASS head=m64_reconciliation_controls_020 manifest=PASS development=PASS m60_m64=PASS recovery=PASS replay=PASS concurrency=PASS correction_cascade=PASS close_reopen=PASS bank_ar_ap=PASS regression=PASS
+
+Do not stage, commit, push, or tag until the gate passes and control room reviews the changed-file inventory.
