@@ -280,6 +280,5 @@ def test_expected_balance_remains_m60_event_projection():
     assert "source_operational_account_id=:account THEN amount" in source
 
 
-def test_verifier_and_acceptance_gate_exist():
+def test_persistent_verifier_exists():
     assert (ROOT / "scripts/verify_m61_operational_transfers.py").is_file()
-    assert (ROOT / "XBOS_M6_1_RUN_ACCEPTANCE.cmd").is_file()

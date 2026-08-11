@@ -1,0 +1,55 @@
+{
+  "contract_code": "XBOS_M62_RECONCILIATION_WINDOWS_CONTINUITY_AND_CASCADES",
+  "contract_version": 1,
+  "milestone": "M6.2",
+  "canonical_parent_revision": "m61_transfers_reconciliation_017",
+  "canonical_target_revision": "m62_reconciliation_windows_018",
+  "calendar_authority": {
+    "neutral": true,
+    "required": ["timezone_name", "business_day_boundary", "ordered_shift_boundaries", "effective_from", "policy_version"],
+    "business_date_rule": "local instants before the boundary belong to the preceding business date",
+    "shift_rule": "the latest configured local boundary names the shift, wrapping across midnight",
+    "wnd_specific_policy": false,
+    "policy_facts_are_immutable_and_versioned": true
+  },
+  "series_authority": {
+    "one_series_per_operational_account": true,
+    "requires_m60_reconciliation_enabled_leaf_account": true,
+    "currency_inherited_from_operational_account": true,
+    "series_start_must_be_shift_aligned": true,
+    "competing_balance_authority": false
+  },
+  "window_authority": {
+    "window_kind": "one configured shift interval",
+    "first_window_starts_at_series_start": true,
+    "later_window_requires_latest_predecessor": true,
+    "predecessor_end_equals_successor_start": true,
+    "skipped_middle_window": "rejected",
+    "expected_balances": "snapshots_from_M6.0_OperationalBalanceRepository",
+    "actual_balance": "references_latest_M6.0_observation_within_window",
+    "formal_close_state": false,
+    "readiness": ["awaiting_actual", "ready"]
+  },
+  "correction_cascade": {
+    "mode": "append_only_window_revisions",
+    "changed_from_at_selects_affected_window_and_all_successors": true,
+    "later_actual_observations_are_preserved_or_refreshed_by_reference": true,
+    "unchanged_windows_do_not_receive_duplicate_revisions": true,
+    "superseded_revision_remains_visible": true,
+    "idempotent_cascade_runs": true,
+    "financial_events_are_never_rewritten": true
+  },
+  "invariants": [
+    "tenant_organization_account_and_calendar_scope_fail_closed",
+    "windows_cannot_overlap_or_skip",
+    "accepted_window_definitions_and_revisions_are_immutable",
+    "revision_numbers_append_without_gaps",
+    "reconciliation_observes_M6.0_and_M6.1_truth_without_replacing_it",
+    "corrections_cascade_forward_without_discarding_later_counts"
+  ],
+  "deferred_to_m63_plus": [
+    "formal_close", "closed_period_protection", "approval", "reopen", "bank_reconciliation",
+    "accounts_receivable_reconciliation", "accounts_payable_reconciliation", "supporting_document_workflows",
+    "reconciliation_reports", "milestone_freeze"
+  ]
+}
