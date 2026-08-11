@@ -1,0 +1,47 @@
+{
+  "contract_code": "XBOS_M63_FORMAL_CLOSE_REOPEN_AND_CLOSED_PERIOD_GOVERNANCE",
+  "contract_version": 1,
+  "status": "candidate",
+  "authority": {
+    "window_close": "reconciliation_window_governance_events",
+    "current_state": "current_reconciliation_window_governance",
+    "posting_period": "accounting_periods",
+    "relationship": "separate_but_coordinated"
+  },
+  "commands": {
+    "close_reconciliation_window": {
+      "required": [
+        "public_id", "tenant_id", "organization_unit_id", "reconciliation_window_public_id",
+        "governed_revision_number", "accounting_period_code", "close_disposition",
+        "transition_reason", "evidence_payload", "occurred_at", "business_date",
+        "calendar_policy_version", "correlation_id", "source_component", "source_record_id",
+        "idempotency_scope", "idempotency_key"
+      ],
+      "close_dispositions": ["balanced", "explained_variance", "approved_exception"]
+    },
+    "reopen_reconciliation_window": {
+      "required": [
+        "public_id", "tenant_id", "organization_unit_id", "reconciliation_window_public_id",
+        "governed_revision_number", "accounting_period_code", "prior_close_public_id",
+        "transition_reason", "evidence_payload", "approved_by_user_id", "approved_at",
+        "occurred_at", "business_date", "calendar_policy_version", "correlation_id",
+        "source_component", "source_record_id", "idempotency_scope", "idempotency_key"
+      ]
+    }
+  },
+  "invariants": [
+    "close targets the current ready reconciliation revision",
+    "required predecessor is formally closed",
+    "close disposition agrees with current variance",
+    "covering accounting period is open or separately reopened",
+    "close and reopen alternate from the latest immutable transition",
+    "reopen links the prior close and preserves approval and evidence",
+    "facts, cascades, and revisions cannot enter a formally closed window",
+    "idempotent replay returns the accepted transition and conflicts fail closed",
+    "tenant and organization scope fail closed"
+  ],
+  "explicit_exclusions": [
+    "bank_reconciliation", "accounts_receivable_reconciliation", "accounts_payable_reconciliation",
+    "supporting_document_management", "reconciliation_reporting", "m6_freeze"
+  ]
+}

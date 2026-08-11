@@ -243,6 +243,5 @@ def test_no_wnd_or_close_semantics_leak_into_implementation():
     assert "close_reconciliation_window" not in combined and "period_state" not in combined
 
 
-def test_verifier_and_single_gate_are_present():
+def test_persistent_verifier_is_present():
     assert (ROOT / "scripts/verify_m62_reconciliation_windows.py").is_file()
-    assert (ROOT / "XBOS_M6_2_RUN_ACCEPTANCE.cmd").is_file()

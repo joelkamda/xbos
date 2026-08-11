@@ -1,0 +1,15 @@
+DROP VIEW IF EXISTS public.current_reconciliation_window_governance;
+DROP TRIGGER IF EXISTS tr_closed_window_revision_protection ON public.reconciliation_window_revisions;
+DROP TRIGGER IF EXISTS tr_closed_window_cascade_protection ON public.reconciliation_cascade_runs;
+DROP TRIGGER IF EXISTS tr_closed_window_financial_event_protection ON public.financial_events;
+DROP TRIGGER IF EXISTS tr_closed_window_observation_protection ON public.operational_account_balance_observations;
+DROP TRIGGER IF EXISTS tr_closed_window_anchor_protection ON public.operational_account_balance_anchors;
+DROP TRIGGER IF EXISTS tr_reconciliation_governance_immutable ON public.reconciliation_window_governance_events;
+DROP TRIGGER IF EXISTS tr_reconciliation_governance_validate ON public.reconciliation_window_governance_events;
+DROP FUNCTION IF EXISTS public.xbos_protect_closed_reconciliation_revision();
+DROP FUNCTION IF EXISTS public.xbos_protect_closed_reconciliation_cascade();
+DROP FUNCTION IF EXISTS public.xbos_protect_closed_reconciliation_window_fact();
+DROP FUNCTION IF EXISTS public.xbos_assert_reconciliation_window_open(INTEGER,BIGINT,TIMESTAMPTZ);
+DROP FUNCTION IF EXISTS public.xbos_reject_reconciliation_governance_mutation();
+DROP FUNCTION IF EXISTS public.xbos_validate_reconciliation_governance_transition();
+DROP TABLE IF EXISTS public.reconciliation_window_governance_events;
