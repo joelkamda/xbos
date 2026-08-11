@@ -1,0 +1,49 @@
+{
+  "contract_code": "XBOS_M75_FINANCE_MIGRATION_SUPPORT_ACCEPTANCE_AND_FREEZE",
+  "contract_version": 1,
+  "canonical_head": "m64_reconciliation_controls_020",
+  "migration": false,
+  "source_checkpoint": {
+    "branch": "track-b/m7-finance-facing-wnd-migration-support",
+    "commit": "5eea325"
+  },
+  "release_tag": "track-b-m7-finance-facing-wnd-migration-support-20260811",
+  "writer_routing": "unchanged",
+  "cutover_authorized": false,
+  "retirement_execution_allowed": false,
+  "live_cutover_owner": "R6",
+  "acceptance": [
+    "single_canonical_head_and_unchanged_migration_lineage",
+    "semantic_manifest_digests",
+    "empty_development_financial_state",
+    "m70_legacy_financial_authority_inventory_and_adapter_boundary",
+    "m71_source_to_canonical_financial_mapping",
+    "m72_verified_inventory_cogs_and_document_linkage",
+    "m73_shadow_execution_production_shaped_rehearsal_and_control_totals",
+    "m74_dual_read_cutover_readiness_and_writer_retirement_support",
+    "deterministic_replay_and_conflict_safety",
+    "tenant_and_organization_scope",
+    "legacy_writer_routing_unchanged",
+    "live_cutover_and_writer_retirement_not_executed",
+    "full_regression"
+  ],
+  "freeze_invariants": [
+    "M7_is_finance_facing_migration_support_not_live_operational_cutover",
+    "R6_exclusively_owns_live_WND_migration_and_production_cutover",
+    "legacy_writer_routing_remains_unchanged",
+    "canonical_financial_commands_are_planned_or_rehearsed_without_production_writes",
+    "payment_and_receivable_repayment_mapping_never_create_revenue",
+    "missing_or_unreliable_historical_cost_is_withheld_and_never_fabricated",
+    "historical_financial_documents_preserve_original_identity_and_hashes",
+    "shadow_and_dual_read_variances_remain_visible",
+    "readiness_is_advisory_and_cannot_authorize_cutover",
+    "writer_retirement_support_is_reversible_and_non_executing",
+    "tenant_and_organization_scope_fail_closed"
+  ],
+  "post_acceptance_actions": [
+    "commit_and_push_freeze_package",
+    "create_and_push_annotated_release_tag",
+    "verify_remote_tag",
+    "update_running_implementation_ledger"
+  ]
+}

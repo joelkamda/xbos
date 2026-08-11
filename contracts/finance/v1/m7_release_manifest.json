@@ -1,0 +1,14 @@
+{
+  "baseline_code": "XBOS_M7_FINANCE_FACING_WND_MIGRATION_SUPPORT_RELEASE",
+  "baseline_version": 1,
+  "approved_commit_parent": "5eea325",
+  "canonical_head": "m64_reconciliation_controls_020",
+  "components": [
+    {"sequence": 1, "milestone": "M7.0", "path": "contracts/finance/v1/m70_legacy_financial_authority_inventory_and_adapter_boundary.json", "semantic_sha256": "15ca47c56ebf0423f902453fac1e50861dc32ea9ce77bac0cc6776e51bd16586"},
+    {"sequence": 2, "milestone": "M7.1", "path": "contracts/finance/v1/m71_wnd_source_to_canonical_financial_mapping.json", "semantic_sha256": "805717fb6a3eb12071767c3c472e6829210be36699f8c97aaa989455724d1529"},
+    {"sequence": 3, "milestone": "M7.2", "path": "contracts/finance/v1/m72_wnd_inventory_cogs_and_document_linkage.json", "semantic_sha256": "06a25f3fa795f5961f46355a627c3720d4ea6c469f1a1f04268f342be8903a31"},
+    {"sequence": 4, "milestone": "M7.3", "path": "contracts/finance/v1/m73_wnd_shadow_execution_rehearsal_and_control_totals.json", "semantic_sha256": "ee86ba6e82205c1b106b0b508fd9921bcdbeacfe5b0484272429cffb1a588bd6"},
+    {"sequence": 5, "milestone": "M7.4", "path": "contracts/finance/v1/m74_wnd_dual_read_cutover_readiness_and_writer_retirement_support.json", "semantic_sha256": "30ce7f23690e05f6f4bfa50d6432b41f083243016b1988377bf2c18e3422f3de"}
+  ],
+  "release_tag": "track-b-m7-finance-facing-wnd-migration-support-20260811"
+}

@@ -1,0 +1,22 @@
+XBOS Track B M7.5 install and verification
+
+Prerequisites:
+- branch track-b/m7-finance-facing-wnd-migration-support
+- clean committed checkpoint 5eea325
+- canonical database head m64_reconciliation_controls_020
+- M7.0 through M7.4 accepted and present
+
+Install from C:\Users\jdkam\XBOS:
+
+  powershell -NoProfile -Command "Expand-Archive -LiteralPath '%USERPROFILE%\Downloads\XBOS_M7_5_FINANCE_MIGRATION_SUPPORT_CONFORMANCE_AND_FREEZE.zip' -DestinationPath '.' -Force"
+
+Run the single gate:
+
+  XBOS_M7_5_RUN_ACCEPTANCE.cmd
+
+The gate is read-only with respect to PostgreSQL and production WND. M7.5 is
+schema-neutral and does not reroute or disable legacy writers, authorize
+cutover, execute retirement, or perform live migration.
+
+Do not commit or tag until the gate passes and control-room review approves
+the freeze actions.
