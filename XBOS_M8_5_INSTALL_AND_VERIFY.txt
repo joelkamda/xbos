@@ -1,0 +1,22 @@
+XBOS Track B M8.5 — Aggregate Conformance, Freeze and Approved Exit
+
+Prerequisites
+- Branch: track-b/m8-financial-hardening-and-exit
+- Starting checkpoint: ab43fbd
+- DATABASE_URL selects local PostgreSQL database xbos_track_b_dev.
+- xbos_track_b_dev is at m64_reconciliation_controls_020 and financially empty.
+- Accepted M7 and M8.0-M8.4 root acceptance/install artifacts remain present.
+- PostgreSQL client tools required by accepted M8.3 recovery proof are on PATH.
+
+Install from C:\Users\jdkam\XBOS
+  powershell -NoProfile -Command "Expand-Archive -LiteralPath '%USERPROFILE%\Downloads\XBOS_M8_5_TRACK_B_AGGREGATE_CONFORMANCE_FREEZE_AND_APPROVED_EXIT.zip' -DestinationPath '.' -Force"
+
+Run the only acceptance gate
+  XBOS_M8_5_RUN_ACCEPTANCE.cmd
+
+On a failed clean-replay rehearsal, retain the database for diagnosis. Drop it only by exact name before retry:
+  python scripts\verify_m85_track_b_approved_exit.py drop --confirm-database-name xbos_track_b_m85_exit_test
+
+The selected M8.0-M8.4 verifiers print their own retained-artifact names and exact cleanup commands on failure. Do not manually edit financial tables or bypass their cleanup guards.
+
+Success requires M85_SINGLE_GATE=PASS. Work does not commit or tag. After control-room approval, stage the exact M8.5 artifacts, inspect them, commit and push, then create/push/remote-verify the annotated Track B financial-hardening-and-approved-exit tag.

@@ -1,0 +1,73 @@
+{
+  "baseline_code": "XBOS_TRACK_B_FINANCIAL_HARDENING_AND_APPROVED_EXIT",
+  "baseline_version": 1,
+  "status": "approved_exit_candidate",
+  "source_checkpoint": "ab43fbd",
+  "canonical_head": "m64_reconciliation_controls_020",
+  "schema_neutral": true,
+  "migration": false,
+  "components": [
+    {"sequence": 1, "milestone": "M2", "path": "contracts/finance/v1/m2_release_manifest.json", "semantic_sha256": "d0eb6a94482f5b1ac34421f11594c2d8e212b902a3c37533d31eabd7661ee75e"},
+    {"sequence": 2, "milestone": "M3", "path": "contracts/finance/v1/m3_release_manifest.json", "semantic_sha256": "7aeab5979e1eb6f66ec2b737c5318f371e5dc54ebc633e965d01f9f6a11aea28"},
+    {"sequence": 3, "milestone": "M4", "path": "contracts/finance/v1/m4_release_manifest.json", "semantic_sha256": "b551911afe4eff8627129efac37a9adf020551cb2faff088cc30d028e1e2af42"},
+    {"sequence": 4, "milestone": "M5", "path": "contracts/finance/v1/m5_release_manifest.json", "semantic_sha256": "f722df4e935ed07fdf10201797a949c0bf1ef3358f99cbf3244665cdd8e79c01"},
+    {"sequence": 5, "milestone": "M6", "path": "contracts/finance/v1/m6_release_manifest.json", "semantic_sha256": "671e2368852baa1b308a0d8f2b4cbd6fc2b181d4a33ebb86fca3c1cae8ef036a"},
+    {"sequence": 6, "milestone": "M7", "path": "contracts/finance/v1/m7_release_manifest.json", "semantic_sha256": "c7ef0e1769c6b5363369150798ec894ccdc4d04e9fddded21e5ff91fa7f90051"},
+    {"sequence": 7, "milestone": "M8.0", "path": "contracts/finance/v1/m80_global_financial_invariants_property_concurrency_and_replay.json", "semantic_sha256": "ff76ff833d279b063eb2f2dba45829044ad2ea0a0f84e3f32e97e4539fee253f"},
+    {"sequence": 8, "milestone": "M8.1", "path": "contracts/finance/v1/m81_ordering_offline_isolation_and_authorization.json", "semantic_sha256": "ce73684c9deafff6934a7f282c6a48c5b2e5cc137ee5402f838187d60b1f1675"},
+    {"sequence": 9, "milestone": "M8.2", "path": "contracts/finance/v1/m82_external_provider_and_infrastructure_failure_resilience.json", "semantic_sha256": "2e19eb5dcff5abc4cebb58144c32fb08ef701022ae66b801806c5b65b268f8bb"},
+    {"sequence": 10, "milestone": "M8.3", "path": "contracts/finance/v1/m83_performance_index_backup_restore_and_deployment_recovery.json", "semantic_sha256": "d6b1cec0f6166ce101c482d5c8a9c07a2c919ad66c0c919e0f165820f5b6ad7c"},
+    {"sequence": 11, "milestone": "M8.4", "path": "contracts/finance/v1/m84_pack_financial_conformance_and_production_readiness.json", "semantic_sha256": "8ed098fc3d304e18dcfcdd8ca7a85b7f5ebdbdc43537fe81a7d066114921d7fd"},
+    {"sequence": 12, "milestone": "M8.5", "path": "contracts/finance/v1/m85_track_b_aggregate_conformance_freeze_and_approved_exit.json", "semantic_sha256": "048c45642cd395f8040e05829b7d494fc1c76502afed50f1e60b0e2e524b6f7e"}
+  ],
+  "canonical_migration_lineage": [
+    "m13_source_state_001",
+    "m13_financial_foundation_002",
+    "m20_event_catalog_003",
+    "m22_transactional_delivery_004",
+    "m23_reversal_capacity_005",
+    "m24_balanced_posting_006",
+    "m25_financial_dimensions_007",
+    "m30_obligation_foundation_008",
+    "m32_allocation_engine_009",
+    "m34_obligation_aging_010",
+    "m40_payment_foundation_011",
+    "m42_payment_attempts_012",
+    "m43_payment_settlements_013",
+    "m44_payment_patterns_014",
+    "m46_provider_financials_015",
+    "m60_operational_balance_authority_016",
+    "m61_transfers_reconciliation_017",
+    "m62_reconciliation_windows_018",
+    "m63_reconciliation_close_019",
+    "m64_reconciliation_controls_020"
+  ],
+  "acceptance_evidence": {
+    "aggregate_conformance": "PASS",
+    "canonical_lineage": "PASS",
+    "clean_replay": "PASS",
+    "financial_invariants": "PASS",
+    "cross_milestone_scenario": "PASS",
+    "selected_adversarial_recovery": "PASS",
+    "pack_conformance": "PASS",
+    "hidden_writers": "NONE",
+    "development_empty": "PASS",
+    "full_regression": "PASS"
+  },
+  "M7_dependency": {
+    "release_tag": "track-b-m7-finance-facing-wnd-migration-support-20260811",
+    "frozen": true
+  },
+  "cutover": "NOT_AUTHORIZED",
+  "writer_retirement": "NOT_EXECUTED",
+  "writer_routing": "unchanged",
+  "live_cutover_owner": "R6",
+  "known_exclusions": [
+    "live_WND_authoritative_writer_cutover",
+    "legacy_writer_retirement_execution",
+    "generic_document_or_infrastructure_platform_buildout",
+    "new_industry_pack_product_functionality"
+  ],
+  "next_owner": "Platform Core, Shared Operations and R6 under separately approved scopes",
+  "proposed_release_tag": "track-b-financial-hardening-and-approved-exit-20260812"
+}

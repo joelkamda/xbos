@@ -1,0 +1,54 @@
+{
+  "contract_code": "XBOS_M85_TRACK_B_AGGREGATE_CONFORMANCE_FREEZE_AND_APPROVED_EXIT",
+  "contract_version": 1,
+  "source_checkpoint": {
+    "branch": "track-b/m8-financial-hardening-and-exit",
+    "commit": "ab43fbd"
+  },
+  "canonical_head": "m64_reconciliation_controls_020",
+  "migration": false,
+  "scope": [
+    "aggregate_M2_through_M8_4_release_conformance",
+    "canonical_migration_lineage_and_clean_install_replay",
+    "representative_cross_milestone_financial_composition",
+    "selected_adversarial_recovery_and_pack_conformance_proof",
+    "development_database_freeze_proof",
+    "final_Track_B_release_manifest_and_exit_evidence"
+  ],
+  "required_proofs": [
+    "one_canonical_migration_head_without_divergence",
+    "clean_template0_upgrade_to_canonical_head",
+    "empty_state_after_clean_migration",
+    "balanced_and_traceable_posted_financial_events",
+    "obligation_value_source_and_allocation_consistency",
+    "payment_intent_attempt_and_settlement_consistency",
+    "stable_replay_and_explicit_conflict",
+    "append_only_reversal_and_closed_period_protection",
+    "transactional_event_outbox_rollback_atomicity",
+    "tenant_and_organization_isolation",
+    "provider_uncertainty_never_manufactures_settlement_truth",
+    "backup_restore_financial_equivalence",
+    "pack_conformance_without_hidden_financial_writers",
+    "frozen_M7_authority_and_unchanged_writer_routing",
+    "read_only_empty_development_financial_state",
+    "complete_regression_and_whitespace_validation"
+  ],
+  "selected_adversarial_evidence": {
+    "M8.0": "concurrency_replay_conflict_and_atomicity",
+    "M8.1": "ordering_offline_isolation_permissions_and_approvals",
+    "M8.2": "webhook_provider_uncertainty_and_database_rollback",
+    "M8.3": "performance_query_plans_backup_restore_and_recovery_equivalence",
+    "M8.4": "generic_pack_conformance_WND_specimen_and_hidden_writer_detection"
+  },
+  "boundaries": {
+    "schema_neutral": true,
+    "new_financial_authority": false,
+    "production_data_mutation": false,
+    "writer_routing": "unchanged",
+    "cutover": "NOT_AUTHORIZED",
+    "writer_retirement": "NOT_EXECUTED",
+    "live_cutover_owner": "R6",
+    "next_owner": "Platform Core, Shared Operations and R6 under their separately approved scopes"
+  },
+  "proposed_release_tag": "track-b-financial-hardening-and-approved-exit-20260812"
+}
