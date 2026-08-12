@@ -1,0 +1,10 @@
+"""M8.2 verifies existing atomic persistence; it creates no authority."""
+
+SCHEMA_NEUTRAL = True
+WRITES_NEW_TABLES = False
+CREATES_PROVIDER_LEDGER = False
+FABRICATES_SETTLEMENT = False
+LIVE_PROVIDER_CALLS = False
+REROUTES_LEGACY_WRITERS = False
+CUTOVER_AUTHORIZED = False
+LIVE_CUTOVER_OWNER = "R6"

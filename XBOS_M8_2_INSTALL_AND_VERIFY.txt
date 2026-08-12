@@ -1,0 +1,23 @@
+XBOS Track B M8.2 — External-provider and infrastructure failure resilience
+
+Prerequisites
+- Branch: track-b/m8-financial-hardening-and-exit
+- Starting commit: f5f2efb
+- Development database: xbos_track_b_dev
+- Canonical head: m64_reconciliation_controls_020
+- PostgreSQL must be local. Acceptance makes no live provider calls.
+
+Install from C:\Users\jdkam\XBOS
+  powershell -NoProfile -Command "Expand-Archive -LiteralPath '%USERPROFILE%\Downloads\XBOS_M8_2_EXTERNAL_PROVIDER_AND_INFRASTRUCTURE_FAILURE_RESILIENCE.zip' -DestinationPath '.' -Force"
+
+Run
+  XBOS_M8_2_RUN_ACCEPTANCE.cmd
+
+If a prior failed disposable database was intentionally retained
+  python scripts\verify_m82_external_failure_resilience.py drop --confirm-database-name xbos_track_b_m82_failure_test
+  XBOS_M8_2_RUN_ACCEPTANCE.cmd
+
+Expected final line
+  M82_SINGLE_GATE=PASS head=m64_reconciliation_controls_020 webhook_security=PASS provider_outage=PASS uncertainty=PASS replay=PASS rollback=PASS atomicity=PASS tenant_scope=PASS schema_neutral=PASS regression=PASS
+
+This package contains no migration. Do not commit until the complete gate passes and the control room approves staging.

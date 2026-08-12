@@ -1,0 +1,19 @@
+{
+  "contract_code": "XBOS_M82_EXTERNAL_PROVIDER_AND_INFRASTRUCTURE_FAILURE_RESILIENCE",
+  "contract_version": 1,
+  "milestone": "M8.2",
+  "canonical_head": "m64_reconciliation_controls_020",
+  "source_checkpoint": {"commit": "f5f2efb", "branch": "track-b/m8-financial-hardening-and-exit"},
+  "migration": false,
+  "coverage": ["webhook_security", "duplicate_callbacks", "out_of_order_callbacks", "provider_outage", "explicit_uncertainty", "transaction_rollback", "atomic_retry", "tenant_isolation"],
+  "webhooks": {"raw_body_signature_required": true, "event_identity_required": true, "tamper_rejected": true, "identical_replay_is_one_effect": true, "conflicting_replay_fails_closed": true, "terminal_state_cannot_regress": true},
+  "provider_outcomes": {
+    "uncertain": ["timeout", "provider_unavailable", "retryable_failure", "unknown"],
+    "terminal_failure": "failed",
+    "authoritative_success": "succeeded",
+    "uncertainty_may_settle": false,
+    "live_provider_calls_in_acceptance": false
+  },
+  "atomicity": {"event": true, "journal": true, "allocation": true, "settlement": true, "outbox": true, "idempotency": true, "retry_after_rollback_is_one_effect": true},
+  "boundaries": {"provider_is_financial_ledger": false, "writer_routing": "UNCHANGED", "cutover": "NOT_AUTHORIZED", "live_cutover_owner": "R6"}
+}
