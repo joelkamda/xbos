@@ -1,0 +1,28 @@
+XBOS Track B M8.1 — Ordering, Offline, Isolation and Authorization
+
+Prerequisites
+- Branch: track-b/m8-financial-hardening-and-exit
+- Starting commit: e0feabe
+- Development database: xbos_track_b_dev
+- Canonical head: m64_reconciliation_controls_020
+- Clean working tree
+
+Install from C:\Users\jdkam\XBOS
+
+python scripts\verify_m81_ordering_offline_isolation_authorization.py drop --confirm-database-name xbos_track_b_m81_ordering_test
+
+powershell -NoProfile -Command "Expand-Archive -LiteralPath '%USERPROFILE%\Downloads\XBOS_M8_1_ORDERING_OFFLINE_ISOLATION_AND_AUTHORIZATION_REVISION_2.zip' -DestinationPath '.' -Force"
+
+Run the single gate
+
+XBOS_M8_1_RUN_ACCEPTANCE.cmd
+
+Expected terminal result
+
+M81_SINGLE_GATE=PASS head=m64_reconciliation_controls_020 ordering=PASS offline=PASS tenant_scope=PASS organization_scope=PASS permissions=PASS approvals=PASS replay=PASS conflict=PASS schema_neutral=PASS regression=PASS
+
+If a disposable rehearsal fails, inspect the retained database xbos_track_b_m81_ordering_test. To remove it explicitly:
+
+python scripts\verify_m81_ordering_offline_isolation_authorization.py drop --confirm-database-name xbos_track_b_m81_ordering_test
+
+Do not commit, tag, reroute writers or begin M8.2 until the control room approves the complete gate output.

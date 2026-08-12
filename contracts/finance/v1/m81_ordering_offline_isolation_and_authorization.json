@@ -1,0 +1,37 @@
+{
+  "contract_code": "XBOS_M81_ORDERING_OFFLINE_ISOLATION_AND_AUTHORIZATION",
+  "contract_version": 1,
+  "milestone": "M8.1",
+  "canonical_head": "m64_reconciliation_controls_020",
+  "source_checkpoint": {"commit": "e0feabe", "branch": "track-b/m8-financial-hardening-and-exit"},
+  "migration": false,
+  "coverage": ["out_of_order_events", "offline_replay", "tenant_isolation", "organization_isolation", "permission_enforcement", "approval_separation"],
+  "ordering": {
+    "arrival_order_is_authority": false,
+    "keys": ["business_date", "occurred_at", "source_sequence", "source_system", "source_record_id", "payload_fingerprint"],
+    "preserve_source_occurrence": true,
+    "corrections_append": true
+  },
+  "offline": {
+    "stable_source_identity_required": true,
+    "exact_payload_fingerprint_required": true,
+    "identical_replay_is_one_effect": true,
+    "conflicting_replay_fails_closed": true,
+    "closed_window_requires_governed_reopen_or_correction": true
+  },
+  "isolation": {"tenant": "fail_closed", "organization": "fail_closed:organization_unit_not_active", "cross_scope_projection": "forbidden"},
+  "authorization": {
+    "authority": "existing_rbac_and_domain_guards",
+    "permissions": ["accounting.post", "accounting.reconcile", "accounting.close_period", "payments.refund"],
+    "reopen_requires_approval": true,
+    "requester_approver_separation": true,
+    "evidence_required": true
+  },
+  "boundaries": {
+    "new_chronology_authority": false,
+    "new_permission_authority": false,
+    "writer_routing": "UNCHANGED",
+    "cutover": "NOT_AUTHORIZED",
+    "live_cutover_owner": "R6"
+  }
+}

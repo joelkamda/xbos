@@ -1,0 +1,9 @@
+"""M8.1 is an adversarial proof package, not a new persistence authority."""
+
+SCHEMA_NEUTRAL = True
+WRITES_NEW_TABLES = False
+CREATES_CHRONOLOGY_AUTHORITY = False
+CREATES_PERMISSION_AUTHORITY = False
+REROUTES_LEGACY_WRITERS = False
+CUTOVER_AUTHORIZED = False
+LIVE_CUTOVER_OWNER = "R6"
