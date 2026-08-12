@@ -498,7 +498,7 @@ class AccountingController:
                 window_start=start_dt,
                 window_end=end_dt,
                 rows=cleaned_rows,
-                closed_by_user_id=user_id,
+                closed_by_user_id=None,
                 status="draft",
             )
 
@@ -947,7 +947,7 @@ class AccountingController:
 
         tenant_id = ctx["tenant_id"]
         branch_id = ctx["branch_id"]
-        user_id = ctx.get("user_id")
+        user_id = ctx.get("id") or ctx.get("user_id")
 
         amount = _d(payload.get("amount"))
         channel = _safe_channel(payload.get("channel"))
@@ -1208,6 +1208,7 @@ class AccountingController:
             meta={
                 "reason": payload.get("reason"),
                 "reference": payload.get("reference"),
+                "business_date": payload.get("business_date"),
                 "created_by_user_id": user_id,
             },
         )

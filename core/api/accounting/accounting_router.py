@@ -640,11 +640,17 @@ def _load_previous_closing_map(
     before: Optional[datetime],
 ) -> Dict[str, float]:
     """
-    Returns the latest closed/approved actual closing balance per channel before
-    the selected reconciliation window.
+    Return actual closings from the exact immediately preceding reconciliation
+    window.
 
-    Carry-forward rule:
-    previous actual close => next opening.
+    Financial-truth rule:
+    - Never search backwards past a missing/unclosed middle window.
+    - A persisted physical actual from the exact predecessor is the next opening
+      even while that predecessor is still draft. Close control remains separate
+      and will continue to block until the predecessor is formally closed.
+    - When multiple reconciliation views end at the same boundary (for example
+      Night and Full24 at 08:00), choose the candidate with the latest start;
+      this mirrors get_reconciliation_continuity().
     """
 
     if not before:
@@ -653,15 +659,26 @@ def _load_previous_closing_map(
     result = db.execute(
         text(
             """
-            SELECT DISTINCT ON (channel)
-                channel,
-                actual_closing_amount
-            FROM recon_sheets
-            WHERE tenant_id = :tenant_id
-              AND branch_id = :branch_id
-              AND status IN ('closed', 'approved')
-              AND window_end <= :before
-            ORDER BY channel, window_end DESC, id DESC
+            WITH predecessor_window AS (
+                SELECT window_start, window_end
+                FROM recon_sheets
+                WHERE tenant_id = :tenant_id
+                  AND branch_id = :branch_id
+                  AND window_end = :before
+                GROUP BY window_start, window_end
+                ORDER BY window_start DESC
+                LIMIT 1
+            )
+            SELECT DISTINCT ON (rs.channel)
+                rs.channel,
+                rs.actual_closing_amount
+            FROM recon_sheets rs
+            JOIN predecessor_window pw
+              ON pw.window_start = rs.window_start
+             AND pw.window_end = rs.window_end
+            WHERE rs.tenant_id = :tenant_id
+              AND rs.branch_id = :branch_id
+            ORDER BY rs.channel, rs.id DESC
             """
         ),
         {
@@ -763,8 +780,8 @@ def _apply_reconciliation_persistence(
     """
     Applies persisted reconciliation behavior to computed treasury rows.
 
-    - New/draft window: opening comes from previous actual close.
-    - Persisted window: opening/actual/note/status come from recon_sheets.
+    - Opening is recomputed from the exact predecessor actual when available.
+    - Persisted current-window actual/note/status are preserved so corrections cascade without losing physical counts.
     """
 
     next_rows: List[Dict[str, Any]] = []
@@ -773,12 +790,22 @@ def _apply_reconciliation_persistence(
         channel = str(row.get("channel") or "").strip().lower()
         persisted = existing_recon.get(channel)
 
-        if persisted:
+        if channel in previous_closing:
+            # Always recompute the opening from the exact predecessor so later
+            # windows cascade when an earlier physical actual is corrected.
+            # The current window's persisted actual is preserved below.
+            row["opening"] = _f(previous_closing[channel])
+        elif persisted:
+            # First historical window / no exact predecessor: preserve the
+            # opening that was explicitly persisted for this window.
             row["opening"] = _f(persisted.get("opening_amount"))
+        else:
+            row["opening"] = 0.0
+
+        if persisted:
             row["note"] = persisted.get("note") or ""
             row["status"] = persisted.get("status") or "draft"
         else:
-            row["opening"] = _f(previous_closing.get(channel, 0))
             row["note"] = row.get("note") or ""
             row["status"] = "draft"
 

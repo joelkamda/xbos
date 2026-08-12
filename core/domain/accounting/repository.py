@@ -458,45 +458,47 @@ class TreasuryRepository:
         before: Optional[datetime],
     ) -> Dict[str, float]:
         """
-        Return the latest actual closing amount per channel before a window.
+        Return actual closings from the exact immediately preceding window.
 
-        Carry-forward rule:
-            previous actual_closing_amount => next opening_amount
-
-        Includes both closed and approved statuses so future approval workflow
-        does not break opening balance carry-forward.
+        The legacy method name is retained to avoid widening the Track A patch,
+        but the behavior is intentionally stricter:
+        - no fallback to an older closed/approved window;
+        - exact window_end == current window_start only;
+        - persisted draft actuals are valid opening observations, while separate
+          continuity logic still blocks formal close until the predecessor closes;
+        - if overlapping views end at the same boundary, use the candidate with
+          the latest window_start, matching get_reconciliation_continuity().
         """
 
         before_dt = _normalize_dt(before)
-
         if not before_dt:
             return {}
 
-        rows = (
+        exact_rows = (
             db.query(ReconSheet)
             .filter(
                 ReconSheet.tenant_id == tenant_id,
                 ReconSheet.branch_id == branch_id,
-                ReconSheet.window_end <= before_dt,
-                ReconSheet.status.in_(["closed", "approved"]),
+                ReconSheet.window_end == before_dt,
             )
             .order_by(
-                ReconSheet.channel.asc(),
-                ReconSheet.window_end.desc(),
-                ReconSheet.id.desc(),
+                ReconSheet.window_start.desc(),
+                ReconSheet.shift.asc(),
+                ReconSheet.id.asc(),
             )
             .all()
         )
 
+        if not exact_rows:
+            return {}
+
+        latest_start = max(row.window_start for row in exact_rows)
+        candidate_rows = [row for row in exact_rows if row.window_start == latest_start]
+
         result: Dict[str, float] = {}
-
-        for row in rows:
+        for row in sorted(candidate_rows, key=lambda item: item.id, reverse=True):
             channel = str(row.channel or "").strip().lower()
-
-            if not channel:
-                continue
-
-            if channel not in result:
+            if channel and channel not in result:
                 result[channel] = _f(row.actual_closing_amount)
 
         return result
@@ -639,8 +641,12 @@ class TreasuryRepository:
                 row.variance_amount = variance
                 row.note = note
                 row.status = safe_status
-                row.closed_by_user_id = closed_by_user_id
-                row.closed_at = now
+                if safe_status == "draft":
+                    row.closed_by_user_id = None
+                    row.closed_at = None
+                else:
+                    row.closed_by_user_id = closed_by_user_id
+                    row.closed_at = now
                 row.updated_at = now
                 row.meta = meta or row.meta
             else:
@@ -661,8 +667,8 @@ class TreasuryRepository:
                     variance_amount=variance,
                     note=note,
                     status=safe_status,
-                    closed_by_user_id=closed_by_user_id,
-                    closed_at=now,
+                    closed_by_user_id=(None if safe_status == "draft" else closed_by_user_id),
+                    closed_at=(None if safe_status == "draft" else now),
                     meta=meta,
                 )
 

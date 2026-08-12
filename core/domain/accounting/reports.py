@@ -544,10 +544,8 @@ class AccountingReportsService:
         """
         Applies persisted reconciliation behavior.
 
-        - Draft window:
-            opening = previous closed actual close per channel.
-        - Closed/approved window:
-            opening, actual, note, status come from recon_sheets.
+        - Opening comes from the exact predecessor actual when available.
+        - Persisted current-window actual/note/status are preserved.
         """
 
         next_rows: List[Dict[str, Any]] = []
@@ -556,13 +554,21 @@ class AccountingReportsService:
             channel = str(row.get("channel") or "").strip().lower()
             persisted = existing_recon.get(channel)
 
-            if persisted:
+            if channel in previous_closing:
+                # Recalculate opening from the exact predecessor on every read so
+                # earlier actual corrections cascade without overwriting this
+                # window's persisted physical actual.
+                row["opening"] = _f(previous_closing[channel])
+            elif persisted:
                 row["opening"] = _f(persisted.opening_amount)
+            else:
+                row["opening"] = 0.0
+
+            if persisted:
                 row["actual"] = _f(persisted.actual_closing_amount)
                 row["note"] = persisted.note or ""
                 row["status"] = persisted.status or "closed"
             else:
-                row["opening"] = _f(previous_closing.get(channel, 0))
                 row["note"] = row.get("note") or ""
                 row["status"] = "draft"
 
@@ -792,10 +798,8 @@ class AccountingReportsService:
         Returns channel reconciliation plus commercial settlement summary.
 
         Persistence behavior:
-        - Draft window:
-            opening = previous closed actual close per channel.
-        - Closed/approved window:
-            opening, actual, note, status come from recon_sheets.
+        - Opening comes from the exact predecessor actual when available.
+        - Persisted current-window actual/note/status are preserved.
         """
 
         logs = TreasuryRepository.list_logs(
