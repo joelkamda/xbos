@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "source_checkpoint": "3190a07",
+  "migration": "pc2_party_authority_022",
+  "entries": [
+    {"authority":"users","classification":"MAP/BRIDGE","current_role":"authentication identity with profile fields","target":"explicit user-to-Person mapping only when approved","automatic_conversion":false,"retirement_owner":"PC5","retirement_milestone":"PC5 identity adoption"},
+    {"authority":"financial_counterparties","classification":"PRESERVE/BRIDGE","current_role":"Finance-owned counterparty snapshot","target":"nullable explicit PC2 Party reference candidate","automatic_conversion":false,"retirement_owner":"Neutral Finance + PC2","retirement_milestone":"explicit counterparty mapping acceptance"},
+    {"authority":"legal_entities","classification":"PRESERVE/LINK","current_role":"PC1 juridical/accounting owner","target":"one-to-one explicit Organization Party link","automatic_conversion":false,"retirement_owner":"PC2","retirement_milestone":"PC2.8"},
+    {"authority":"organization_units","classification":"PRESERVE/REFERENCE","current_role":"PC1 operational hierarchy","target":"optional Party Role structural context","automatic_conversion":false,"retirement_owner":"PC2","retirement_milestone":"PC2.6"},
+    {"authority":"locations","classification":"PRESERVE/REFERENCE","current_role":"PC1 place authority","target":"optional Party Role structural context","automatic_conversion":false,"retirement_owner":"PC2","retirement_milestone":"PC2.6"},
+    {"authority":"legacy customer supplier staff contact records","classification":"MAP","current_role":"domain-specific compatibility/projection","target":"explicit party_compatibility_mappings after evidence","automatic_conversion":false,"retirement_owner":"downstream module owners","retirement_milestone":"post-PC2 consumer migration"}
+  ]
+}

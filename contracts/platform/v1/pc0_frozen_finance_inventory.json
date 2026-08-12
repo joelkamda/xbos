@@ -15,6 +15,9 @@
     {"root":"alembic_neutral","path":"versions/pc1_structural_context_021_tenant_organization_legal_location.py","sha256":"686eca52c5e9d9d1ac282400c584c947fe267b0deead18fcc8876e01650fde11","owner":"PC1"},
     {"root":"alembic_neutral","path":"sql/pc1_structural_context_up.sql","sha256":"727400217b5624c37f5f0a4de9ba7ae8f0e9c26cca1f1c3659ae9ac8a1ca3d66","owner":"PC1"},
     {"root":"alembic_neutral","path":"sql/pc1_structural_context_down.sql","sha256":"c20ce1980591af505e03e71a09f665b558922721a529ed5c72db9211bbae77c8","owner":"PC1"}
+    ,{"root":"alembic_neutral","path":"versions/pc2_party_authority_022_party_person_organization_roles_relationships.py","sha256":"e5494c2b58361888f868cf666f7f43dedf260af541f8072568367a9e34d27834","owner":"PC1","reason":"PC2 canonical lineage descendant"}
+    ,{"root":"alembic_neutral","path":"sql/pc2_party_authority_up.sql","sha256":"610371d25b07cab18ba5cc9ed48490ba1852579661ed783f309ca828a5b7f58c","owner":"PC1","reason":"PC2 canonical lineage descendant"}
+    ,{"root":"alembic_neutral","path":"sql/pc2_party_authority_down.sql","sha256":"73e7ca0e3b688fcdf025820419ffbf978242e819b76f653d182796e8030ece80","owner":"PC1","reason":"PC2 canonical lineage descendant"}
   ],
   "trees": [
     {

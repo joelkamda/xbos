@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "module": "party",
+  "public": [
+    "core.platform.party.PartyAuthority",
+    "core.platform.party.Party",
+    "core.platform.party.Person",
+    "core.platform.party.OrganizationParty",
+    "core.platform.party.PartyIdentifier",
+    "core.platform.party.PartyContact",
+    "core.platform.party.PartyRole",
+    "core.platform.party.PartyRelationship",
+    "core.platform.party.SQLPartyRepository"
+  ],
+  "private": ["party_commands","party_compatibility_mappings","SQL statements","normalization implementation"],
+  "future_associations": ["PC5 Identity to Person/Party through an explicit tenant membership mapping"],
+  "rules": ["no authentication writer","no Finance writer","no fuzzy identity resolver","all reads are tenant-scoped"]
+}

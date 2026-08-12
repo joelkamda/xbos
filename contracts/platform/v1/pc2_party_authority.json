@@ -1,0 +1,32 @@
+{
+  "schema_version": 1,
+  "contract": "XBOS_PLATFORM_CORE_PC2_PARTY_AUTHORITY",
+  "source_checkpoint": "3190a07",
+  "previous_head": "pc1_structural_context_021",
+  "accepted_head": "pc2_party_authority_022",
+  "scope": ["PC2.1","PC2.2","PC2.3","PC2.4","PC2.5","PC2.6","PC2.7","PC2.8","PC2.9","PC2.10","PC2.11"],
+  "canonical_root": "parties",
+  "subtypes": {"person":"persons","organization":"organization_parties"},
+  "tenant_model": "tenant-scoped and fail-closed; no global cross-tenant Party identity",
+  "business_roles": {"authority":"PC2","authorization_roles":false,"multi_role":true,"historical_validity":true},
+  "relationships": {"typed":true,"direction_explicit":true,"validity_period":true,"self_relationship":false},
+  "reference_resolution": {"exact_identifiers":true,"tenant_scoped":true,"fuzzy_identity_truth":false,"ambiguous_deduplication":false},
+  "replay": {"command_key":true,"canonical_sha256":true,"conflict":"fail_closed","generic_idempotency_authority":false},
+  "export": {"schema":"xbos.pc2.party-export.v1","encoding":"canonical JSON UTF-8 LF","tenant_scoped":true,"deterministic":true},
+  "boundaries": {
+    "tenant_and_structure":"PC1",
+    "authentication_identity_and_authorization":"PC5",
+    "financial_truth_and_counterparty_snapshots":"Neutral Finance",
+    "documents":"SO7"
+  },
+  "invariants": [
+    "one canonical Party root",
+    "Person and Organization Party are exclusive distinct subtypes",
+    "Party is not Identity Tenant Legal Entity Organization Unit or Location",
+    "business roles are not authorization roles",
+    "cross-tenant reads roles and relationships fail closed",
+    "Legal Entity linkage preserves PC1 authority",
+    "no automatic fuzzy deduplication",
+    "historical records use lifecycle and validity rather than destructive deletion"
+  ]
+}

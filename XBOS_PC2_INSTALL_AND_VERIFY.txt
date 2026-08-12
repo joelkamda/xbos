@@ -1,0 +1,26 @@
+XBOS PLATFORM CORE PC2 — INSTALL AND VERIFY
+===========================================
+
+Package: XBOS_PLATFORM_CORE_PC2_IMPLEMENTATION.zip
+Source checkpoint: 3190a07 (accepted PC1)
+Migration: pc1_structural_context_021 -> pc2_party_authority_022
+
+PRECONDITIONS
+1. Use the accepted PC1 checkout at commit 3190a07 and activate the existing
+   xbos-track-b-b1 virtual environment.
+2. `python --version` must be exactly Python 3.13.3 and `python` must resolve from
+   `%VIRTUAL_ENV%\Scripts\python.exe`. Do not create or install another environment.
+3. The configured local database must be xbos_track_b_dev at the accepted PC1 head
+   (or PC2 head on an intentional gate rerun).
+
+INSTALL
+Expand the ZIP over the repository root with `Expand-Archive -Force`. Do not invoke
+Alembic manually; the gate proves a template0 replay before controlled dev adoption.
+
+ACCEPT
+Run `XBOS_PC2_RUN_ACCEPTANCE.cmd`.
+
+On failure the disposable database is retained for diagnosis. On complete success it
+is dropped and the final line is `PC2_SINGLE_GATE=PASS`.
+
+No commit or tag is created by the package or gate.

@@ -1,0 +1,35 @@
+XBOS Platform Core PC2 installation package
+Revision: 1 — tenant-scoped Party graph and canonical PC2 migration
+Source checkpoint: 3190a07 (accepted PC1)
+Migration before: pc1_structural_context_021
+Migration after: pc2_party_authority_022
+File count: 28
+
+PC2_INSTALL_MANIFEST.txt
+XBOS_PC2_INSTALL_AND_VERIFY.txt
+XBOS_PC2_RUN_ACCEPTANCE.cmd
+contracts/platform/v1/pc0_module_map.json
+contracts/platform/v1/pc0_data_authority_register.json
+contracts/platform/v1/pc0_reference_authority_migration_register.json
+contracts/platform/v1/pc0_dependency_policy.json
+contracts/platform/v1/pc0_public_private_interfaces.json
+contracts/platform/v1/pc0_frozen_finance_inventory.json
+contracts/platform/v1/pc0_release_manifest.json
+core/platform/architecture_contract.py
+tests/contracts/test_pc0_kernel_boundaries.py
+scripts/verify_pc1_structural_authority.py
+contracts/platform/v1/pc2_party_authority.json
+contracts/platform/v1/pc2_compatibility_migration_manifest.json
+contracts/platform/v1/pc2_public_interfaces.json
+contracts/platform/v1/pc2_release_manifest.json
+core/platform/party/__init__.py
+core/platform/party/contracts.py
+core/platform/party/service.py
+core/platform/party/sql_repository.py
+alembic_neutral/sql/pc2_party_authority_up.sql
+alembic_neutral/sql/pc2_party_authority_down.sql
+alembic_neutral/versions/pc2_party_authority_022_party_person_organization_roles_relationships.py
+docs/platform_core/PC2_PARTY_AUTHORITY.md
+docs/platform_core/adr/0005_PC2_TENANT_SCOPED_PARTY_GRAPH.md
+scripts/verify_pc2_party_authority.py
+tests/contracts/test_pc2_party_authority.py

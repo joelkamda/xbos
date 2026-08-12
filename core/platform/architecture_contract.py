@@ -26,6 +26,7 @@ CONTRACT_FILES = {
     "finance": "pc0_frozen_finance_baseline.json",
     "finance_inventory": "pc0_frozen_finance_inventory.json",
     "pc1": "pc1_structural_authority.json",
+    "pc2": "pc2_party_authority.json",
     "kernel": "pc0_kernel_boundaries.json",
 }
 ROOT_PYTHON_MODULES = {
@@ -357,7 +358,9 @@ def _migration_revisions(root: Path) -> tuple[list[str], list[str]]:
     return heads, list(reversed(lineage))
 
 
-def _validate_finance(root: Path, finance: dict[str, Any], inventory: dict[str, Any], accepted_head: str | None = None) -> None:
+def _validate_finance(root: Path, finance: dict[str, Any], inventory: dict[str, Any], accepted_heads: Iterable[str] = ()) -> None:
+    if isinstance(accepted_heads, str):
+        accepted_heads = (accepted_heads,)
     if finance.get("fingerprint_mode") != "sha256_git_canonical_lf":
         _fail("PC0-FINANCE-FINGERPRINT-MODE", str(finance.get("fingerprint_mode")))
     if inventory.get("freeze_commit") != finance.get("freeze_commit"):
@@ -381,9 +384,10 @@ def _validate_finance(root: Path, finance: dict[str, Any], inventory: dict[str, 
             _fail("PC0-FROZEN-FINANCE-CHANGED", f"{tree['root']}: count={count}, sha256={actual}")
     heads, lineage = _migration_revisions(root)
     expected_lineage = finance.get("lineage", [])
-    if accepted_head:
-        expected_lineage = [*expected_lineage, accepted_head]
-    if heads != [accepted_head or finance.get("canonical_head")] or lineage != expected_lineage:
+    descendants = [head for head in accepted_heads if head]
+    expected_lineage = [*expected_lineage, *descendants]
+    expected_head = descendants[-1] if descendants else finance.get("canonical_head")
+    if heads != [expected_head] or lineage != expected_lineage:
         _fail("PC0-MIGRATION-HEAD", f"heads={heads}, lineage={lineage}")
     boundaries = finance.get("boundaries", {})
     if boundaries.get("migration") != "NONE" or boundaries.get("schema_neutral") is not True:
@@ -411,7 +415,12 @@ def validate_pc0(root: str | Path, validate_release: bool = True) -> dict[str, A
     _validate_authorities(contracts["authorities"])
     _validate_reference_migrations(contracts["reference_migrations"])
     _validate_composition(root_path, contracts["composition"])
-    _validate_finance(root_path, contracts["finance"], contracts["finance_inventory"], contracts["pc1"].get("accepted_head"))
+    _validate_finance(
+        root_path,
+        contracts["finance"],
+        contracts["finance_inventory"],
+        (contracts["pc1"].get("accepted_head"), contracts["pc2"].get("accepted_head")),
+    )
     _validate_kernel(contracts["kernel"])
 
     roots = _module_roots(contracts["module_map"])

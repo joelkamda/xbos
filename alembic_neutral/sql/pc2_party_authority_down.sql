@@ -1,0 +1,14 @@
+COMMENT ON COLUMN public.financial_counterparties.party_id IS NULL;
+DROP TABLE IF EXISTS public.party_commands;
+DROP TABLE IF EXISTS public.party_compatibility_mappings;
+DROP TABLE IF EXISTS public.legal_entity_party_links;
+DROP TABLE IF EXISTS public.party_relationships;
+DROP TABLE IF EXISTS public.party_roles;
+DROP TABLE IF EXISTS public.party_contacts;
+DROP TABLE IF EXISTS public.party_identifiers;
+DROP TRIGGER IF EXISTS trg_pc2_organization_subtype ON public.organization_parties;
+DROP TRIGGER IF EXISTS trg_pc2_person_subtype ON public.persons;
+DROP FUNCTION IF EXISTS public.pc2_enforce_party_subtype();
+DROP TABLE IF EXISTS public.organization_parties;
+DROP TABLE IF EXISTS public.persons;
+DROP TABLE IF EXISTS public.parties;

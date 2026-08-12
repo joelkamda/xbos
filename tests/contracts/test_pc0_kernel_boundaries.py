@@ -31,16 +31,17 @@ class PC0KernelBoundaryTests(unittest.TestCase):
         return json.loads((ROOT / "contracts/platform/v1/pc0_composition_baseline.json").read_text(encoding="utf-8"))
 
     @staticmethod
-    def _finance_contracts() -> tuple[dict, dict, str]:
+    def _finance_contracts() -> tuple[dict, dict, tuple[str, ...]]:
         directory = ROOT / "contracts/platform/v1"
         baseline = json.loads((directory / "pc0_frozen_finance_baseline.json").read_text(encoding="utf-8"))
         inventory = json.loads((directory / "pc0_frozen_finance_inventory.json").read_text(encoding="utf-8"))
         pc1 = json.loads((directory / "pc1_structural_authority.json").read_text(encoding="utf-8"))
-        return baseline, inventory, pc1["accepted_head"]
+        pc2 = json.loads((directory / "pc2_party_authority.json").read_text(encoding="utf-8"))
+        return baseline, inventory, (pc1["accepted_head"], pc2["accepted_head"])
 
     @classmethod
-    def _copy_frozen_finance(cls, destination: Path) -> tuple[dict, dict, str]:
-        baseline, inventory, accepted_head = cls._finance_contracts()
+    def _copy_frozen_finance(cls, destination: Path) -> tuple[dict, dict, tuple[str, ...]]:
+        baseline, inventory, accepted_heads = cls._finance_contracts()
         for tree in inventory["trees"]:
             for relative in tree["files"]:
                 source = ROOT / tree["root"] / relative
@@ -52,7 +53,7 @@ class PC0KernelBoundaryTests(unittest.TestCase):
             target = destination / item["root"] / item["path"]
             target.parent.mkdir(parents=True, exist_ok=True)
             shutil.copyfile(source, target)
-        return baseline, inventory, accepted_head
+        return baseline, inventory, accepted_heads
 
     def test_complete_repository_contract_passes(self) -> None:
         report = validate_pc0(ROOT)
