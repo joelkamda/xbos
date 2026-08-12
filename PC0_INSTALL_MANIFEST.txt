@@ -1,0 +1,28 @@
+XBOS Platform Core PC0 installation package
+Revision: 3 — active approved virtual-environment acceptance gate repair
+Base checkpoint: fa9b17e473105c7c70b8faa3a0a946ee9117d37e
+Install root: repository root
+File count: 22
+
+PC0_INSTALL_MANIFEST.txt
+XBOS_PC0_INSTALL_AND_VERIFY.txt
+XBOS_PC0_RUN_ACCEPTANCE.cmd
+contracts/platform/v1/pc0_composition_baseline.json
+contracts/platform/v1/pc0_data_authority_register.json
+contracts/platform/v1/pc0_dependency_policy.json
+contracts/platform/v1/pc0_frozen_finance_baseline.json
+contracts/platform/v1/pc0_frozen_finance_inventory.json
+contracts/platform/v1/pc0_kernel_boundaries.json
+contracts/platform/v1/pc0_legacy_exception_baseline.json
+contracts/platform/v1/pc0_module_map.json
+contracts/platform/v1/pc0_public_private_interfaces.json
+contracts/platform/v1/pc0_reference_authority_migration_register.json
+contracts/platform/v1/pc0_release_manifest.json
+core/platform/__init__.py
+core/platform/architecture_contract.py
+docs/platform_core/PC0_KERNEL_BOUNDARIES.md
+docs/platform_core/adr/0001_AUTHORITY_OWNERSHIP_AND_REFERENCE_MIGRATION.md
+docs/platform_core/adr/0002_MODULAR_MONOLITH_DEPENDENCY_AND_INTERFACE_LAW.md
+docs/platform_core/adr/0003_COMPOSITION_ENTRYPOINT_AND_OPERABILITY.md
+scripts/verify_pc0_kernel_boundaries.py
+tests/contracts/test_pc0_kernel_boundaries.py

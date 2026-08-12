@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "default": "deny",
+  "self_dependency": "allow",
+  "unknown_internal_source_or_target": "deny",
+  "exception_matching": "exact_source_path_import_name_source_module_target_module",
+  "wildcard_exceptions": false,
+  "allowed_directions": {
+    "architecture": [],
+    "application": ["composition", "identity", "persistence", "tenancy"],
+    "composition": ["catalog", "identity", "inventory", "legacy_accounting", "legacy_payments", "orders", "reports", "sales", "taxonomy", "tenancy"],
+    "persistence": [],
+    "tenancy": ["shared"],
+    "identity": ["shared", "tenancy"],
+    "taxonomy": ["identity", "shared"],
+    "catalog": ["identity", "shared"],
+    "inventory": ["identity", "shared"],
+    "orders": ["identity", "shared"],
+    "sales": ["identity", "shared"],
+    "legacy_accounting": ["identity", "shared"],
+    "legacy_payments": ["identity", "shared"],
+    "reports": ["identity", "shared"],
+    "commerce": [],
+    "finance": [],
+    "xafpay": ["finance"],
+    "shared": []
+  },
+  "law": [
+    "composition may assemble modules but domain modules may not depend on composition",
+    "cross-cutting identity and error contracts may be consumed through declared interfaces",
+    "operational and industry modules may not import another module's private models repositories or services",
+    "adapters may call only declared public authority interfaces",
+    "Neutral Finance is frozen and may not depend on Platform Core implementation modules",
+    "new disallowed imports are never grandfathered automatically"
+  ]
+}

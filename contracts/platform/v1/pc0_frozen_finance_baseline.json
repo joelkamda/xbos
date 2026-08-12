@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "fingerprint_mode":"sha256_git_canonical_lf",
+  "freeze_commit":"fa9b17e473105c7c70b8faa3a0a946ee9117d37e",
+  "canonical_head":"m64_reconciliation_controls_020",
+  "lineage":[
+    "m13_source_state_001","m13_financial_foundation_002","m20_event_catalog_003",
+    "m22_transactional_delivery_004","m23_reversal_capacity_005","m24_balanced_posting_006",
+    "m25_financial_dimensions_007","m30_obligation_foundation_008","m32_allocation_engine_009",
+    "m34_obligation_aging_010","m40_payment_foundation_011","m42_payment_attempts_012",
+    "m43_payment_settlements_013","m44_payment_patterns_014","m46_provider_financials_015",
+    "m60_operational_balance_authority_016","m61_transfers_reconciliation_017",
+    "m62_reconciliation_windows_018","m63_reconciliation_close_019","m64_reconciliation_controls_020"
+  ],
+  "trees": [
+    {"root":"core/domain/finance","file_count":120,"sha256":"95450351a97c384db52190f6680504ee8d772b16ea43c7523194db6e2deb94ad"},
+    {"root":"contracts/finance","file_count":66,"sha256":"8923dcb34c332b9e08edfcf4721f90828f1c6a3a502610f939571fd6ac425dcb"},
+    {"root":"alembic_neutral","file_count":57,"sha256":"0e6f1880a392fe15519fce40950f5fc049739253c189c7247a4b49782068bdd3"}
+  ],
+  "boundaries": {
+    "schema_neutral":true,
+    "migration":"NONE",
+    "cutover":"NOT_AUTHORIZED",
+    "writer_retirement":"NOT_EXECUTED",
+    "live_cutover_owner":"R6"
+  }
+}

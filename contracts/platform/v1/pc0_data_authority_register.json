@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "authorities": [
+    {"code":"tenant","owner":"PC1","current_store":"tenants","boundary":"isolation and customer boundary"},
+    {"code":"organization_unit","owner":"PC1","current_store":"organization_units","boundary":"operational and management hierarchy; adopt in place"},
+    {"code":"legal_entity","owner":"PC1","current_store":"organization_units compatibility semantics","boundary":"juridical and accounting owner; distinct future authority"},
+    {"code":"location","owner":"PC1","current_store":"branches compatibility fields","boundary":"physical or virtual place; distinct future authority"},
+    {"code":"party","owner":"PC2","current_store":"financial_counterparties snapshots and domain-specific person fields","boundary":"business party and relationships; not login identity"},
+    {"code":"semantic_identity","owner":"PC3","current_store":"taxonomy_nodes compatibility semantics","boundary":"stable namespaced meaning independent of label or tree position"},
+    {"code":"taxonomy_tree","owner":"PC3","current_store":"taxonomy_nodes","boundary":"versioned classification structure and mappings"},
+    {"code":"configuration","owner":"PC4","current_store":"tenants.settings, tenants.extra_metadata, tenant_defaults.json and environment settings","boundary":"typed scoped business configuration"},
+    {"code":"core_module_registry","owner":"PC4","current_store":"static startup/router/model imports","boundary":"installed core-module composition only"},
+    {"code":"entitlement_context","owner":"PC4","current_store":"absent","boundary":"commercially permitted capability; distinct from feature flags"},
+    {"code":"feature_flags","owner":"PC4","current_store":"environment and code flags","boundary":"deployment/release control; distinct from configuration and entitlements"},
+    {"code":"secrets","owner":"PC4","current_store":"environment references","boundary":"secret references only; secret material is never configuration data"},
+    {"code":"business_time","owner":"PC4","current_store":"business_cycle_policies and reconciliation_calendar_policies","boundary":"prospective generic calendars and shifts"},
+    {"code":"authentication_identity","owner":"PC5","current_store":"users","boundary":"global authentication identity with tenant memberships"},
+    {"code":"tenant_membership","owner":"PC5","current_store":"users.tenant_id compatibility binding","boundary":"identity participation in a tenant"},
+    {"code":"authorization","owner":"PC5","current_store":"roles, user.role, permission registry, levels and role packs","boundary":"scoped permissions, roles and policy decisions"},
+    {"code":"approval_policy","owner":"PC5","current_store":"finance-specific approval inputs and route policies","boundary":"generic maker/checker, segregation and step-up policy"},
+    {"code":"generic_audit","owner":"PC5","current_store":"absent as a unified authority","boundary":"append-only actor/action evidence; not economic truth"},
+    {"code":"financial_truth","owner":"Neutral Finance","current_store":"financial events, journals, obligations, allocations, settlements, treasury and reconciliation tables","boundary":"frozen economic and accounting authority"},
+    {"code":"financial_source_identity","owner":"Neutral Finance","current_store":"kernel_source_records","boundary":"frozen transactional source authority"},
+    {"code":"financial_idempotency","owner":"Neutral Finance","current_store":"idempotency_records","boundary":"frozen transactional command identity"},
+    {"code":"financial_outbox","owner":"Neutral Finance","current_store":"outbox_messages","boundary":"frozen atomic financial publication intent"},
+    {"code":"generic_delivery_jobs_offline","owner":"SO9","current_store":"legacy idempotency_keys helper and event dispatcher stub","boundary":"generic delivery, jobs, retry and offline operations"},
+    {"code":"document_file","owner":"SO7","current_store":"financial evidence references and legacy receipt artifacts","boundary":"generic document, file and issued-record authority"},
+    {"code":"atomic_unit","owner":"SO0","current_store":"atomic_units","boundary":"neutral operational unit identity and capability"},
+    {"code":"inventory_stock","owner":"SO3","current_store":"inventory_items and inventory_movements","boundary":"stock and quantity truth"},
+    {"code":"pack_manifest_lifecycle","owner":"PK","current_store":"absent","boundary":"pack identity, dependency graph, installation and lifecycle"},
+    {"code":"wnd_cutover","owner":"R6","current_store":"legacy production routing","boundary":"live WND migration, cutover and writer retirement"}
+  ],
+  "rules": [
+    "authority codes are unique",
+    "every authority has exactly one declared owner",
+    "compatibility stores do not become permanent target authority by implication",
+    "Neutral Finance ownership cannot be reassigned by Platform Core"
+  ]
+}

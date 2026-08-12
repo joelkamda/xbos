@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "interfaces": [
+    {"module":"architecture","public":["core.platform.architecture_contract.validate_pc0","core.platform.architecture_contract.evaluate_source_text"],"private":["contract loading and scan helpers"]},
+    {"module":"application","public":["startup.create_app","database.get_db"],"private":["startup.init_database","startup.seed_rbac","database.engine","database.SessionLocal"]},
+    {"module":"composition","public":["core.api.kernel_router.kernel_router","core.models_import.MODEL_MODULES"],"private":[]},
+    {"module":"persistence","public":["core.persistence.database_config.resolve_database_url","core.persistence.metadata.metadata"],"private":["core.persistence.* implementation helpers"]},
+    {"module":"tenancy","public":["request.state.tenant_id compatibility context","request.state.branch_id compatibility context"],"private":["core.tenants.* repositories models and services"]},
+    {"module":"identity","public":["request.state.user","request.state.permissions","core.rbac.utils.permission_decorator.require_permissions"],"private":["core.auth.*","core.users.*","core.rbac.roles.* repositories and seeders"]},
+    {"module":"taxonomy","public":["/kernel/taxonomy API compatibility surface"],"private":["core.domain.taxonomy.models","core.domain.taxonomy.repository","core.domain.taxonomy.service"]},
+    {"module":"catalog","public":["/kernel/catalog API compatibility surface"],"private":["core.domain.catalog.*"]},
+    {"module":"inventory","public":["/kernel/inventory API compatibility surface"],"private":["core.domain.inventory.*"]},
+    {"module":"orders","public":["/kernel/orders API compatibility surface"],"private":["core.domain.orders.*"]},
+    {"module":"sales","public":["/kernel/sales API compatibility surface"],"private":["core.domain.sales.*"]},
+    {"module":"legacy_accounting","public":["/kernel/accounting API compatibility surface"],"private":["core.domain.accounting.*"]},
+    {"module":"legacy_payments","public":["/kernel/payments API compatibility surface"],"private":["core.domain.payments.*"]},
+    {"module":"reports","public":["/kernel/reports API compatibility surface"],"private":["core.domain.reports.*"]},
+    {"module":"commerce","public":[],"private":["core.domain.commerce.*"]},
+    {"module":"finance","public":["typed command contracts","transactional authority engines","deterministic read services","accepted release contracts"],"private":["finance-owned SQL tables","repository implementation details","migration SQL"]},
+    {"module":"xafpay","public":["provider-neutral adapter contract"],"private":["adapter repository and orchestration implementation"]},
+    {"module":"shared","public":["core.errors.api_error.APIError"],"private":["core.shared.idempotency","core.events.event_dispatcher"]}
+  ],
+  "rules": [
+    "every module appears exactly once",
+    "a symbol or pattern cannot be both public and private",
+    "private cross-module imports require an exact legacy exception",
+    "declaration does not authorize new runtime APIs or writers"
+  ]
+}

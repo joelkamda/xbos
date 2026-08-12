@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "contract": "XBOS_PLATFORM_CORE_PC0_KERNEL_BOUNDARIES",
+  "checkpoint": "fa9b17e473105c7c70b8faa3a0a946ee9117d37e",
+  "platform_core_wbs_obligations": 80,
+  "execution_order": ["PC0", "PC1", "PC2", "PC3", "PC4", "PC5", "PC6"],
+  "scope": ["PC0.1", "PC0.2", "PC0.3", "PC0.4", "PC0.5", "PC0.6", "PC0.7", "PC0.8"],
+  "scope_delivery": {
+    "PC0.1": "machine-readable module ownership map",
+    "PC0.2": "machine-readable data-authority register",
+    "PC0.3": "reference-authority migration register",
+    "PC0.4": "explicit modular-monolith dependency law",
+    "PC0.5": "public and private interface declarations",
+    "PC0.6": "ownership and modular-monolith ADRs",
+    "PC0.7": "exact legacy exception baseline with retirement accountability",
+    "PC0.8": "automated enforcement, verifier, release contract and Windows gate"
+  },
+  "invariants": [
+    "every inventoried authority has one declared owner",
+    "legacy exceptions match exact source path, import name, source module and target module",
+    "wildcard exceptions are forbidden",
+    "new unauthorized dependency edges fail",
+    "main:app remains canonical and app:app remains compatibility-only",
+    "Neutral Finance source, contracts, migrations, writers and semantics remain frozen",
+    "canonical Alembic head remains m64_reconciliation_controls_020",
+    "production dependency authority remains an explicit operability gap"
+  ],
+  "exclusions": [
+    "alembic_migration",
+    "database_write",
+    "runtime_behavior_change",
+    "pc1_pc6_implementation",
+    "legacy_violation_cleanup",
+    "wnd_cutover_or_writer_retirement",
+    "generic_outbox_jobs_documents_observability_or_pack_lifecycle_implementation",
+    "production_dependency_manifest_invention"
+  ],
+  "acceptance_boundary": {
+    "static_contract": "scripts/verify_pc0_kernel_boundaries.py",
+    "focused_tests": "tests/contracts/test_pc0_kernel_boundaries.py",
+    "single_windows_gate": "XBOS_PC0_RUN_ACCEPTANCE.cmd",
+    "success_marker": "PC0_SINGLE_GATE=PASS",
+    "database_access": "read-only verification only; no schema or data writes"
+  }
+}

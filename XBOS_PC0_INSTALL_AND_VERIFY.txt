@@ -1,0 +1,39 @@
+XBOS PLATFORM CORE PC0 — INSTALL AND VERIFY
+===========================================
+
+Package: XBOS_PC0_KERNEL_BOUNDARIES_IMPLEMENTATION_REVISION_3.zip
+Base checkpoint: fa9b17e473105c7c70b8faa3a0a946ee9117d37e
+Canonical Alembic head: m64_reconciliation_controls_020
+
+PRECONDITIONS
+1. Use the operator-verified repository checkout at the base checkpoint. Leave the
+   accepted annotated tag unchanged; PC0 is installed as uncommitted working-tree
+   content for review.
+2. Activate the already-approved xbos-track-b-b1 environment. Its `python` must
+   report exactly Python 3.13.3, resolve from that environment's Scripts folder,
+   and provide pytest. The gate deliberately uses `python`, not the global `py`
+   launcher. Do not create another environment or install packages globally.
+3. Ensure .env still selects xbos_track_b_dev. The gate reads that database only;
+   it never migrates or writes it. Existing characterization tests select their
+   dedicated xbos_track_b_test database in their established fixture.
+4. PC0 does not contain or invent a production dependency manifest. The existing
+   operator environment must already provide the repository's runtime/test tools.
+
+INSTALL
+1. From the repository root, inspect the ZIP's PC0_INSTALL_MANIFEST.txt.
+2. Expand the ZIP over the repository root, preserving relative paths.
+3. Do not run Alembic upgrade/downgrade. The package contains no migration.
+
+ACCEPT
+Run exactly:
+
+    XBOS_PC0_RUN_ACCEPTANCE.cmd
+
+The gate checks the frozen Git base, exact Python version, focused PC0 fixtures,
+the full regression suite, the static/release contract, read-only configured-DB
+identity/head, and git diff whitespace integrity. Success is only:
+
+    PC0_SINGLE_GATE=PASS
+
+The package does not commit or tag. Review the resulting uncommitted diff before
+the control room authorizes any later source-control operation.
