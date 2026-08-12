@@ -1,0 +1,39 @@
+XBOS Track B M8.3 — install and verify (revision 3)
+
+Preconditions
+- Branch: track-b/m8-financial-hardening-and-exit
+- Starting checkpoint: 7f240cb
+- Development database: xbos_track_b_dev at m64_reconciliation_controls_020 and financially empty
+- Local PostgreSQL client tools pg_dump and pg_restore available on PATH
+- No retained xbos_track_b_m83_* database from an earlier failed run
+
+Revision 2 repair
+- Keeps canonical payment-intent expiry enforcement unchanged.
+- Separates stable fixture identity numbers from deterministic lifecycle time.
+- Bounds attempt, transition, settlement and confirmation timestamps inside each intent lifetime.
+
+Revision 3 repair
+- Uses the accepted M2.4 `journal_entry_event_links` trace authority.
+- Verifies the tenant-scoped `(tenant_id, financial_event_id, journal_entry_id)` index path.
+- Includes the real event/journal link table in backup/restore financial fingerprints.
+
+Cleanup required after a retained revision 1 or revision 2 rehearsal
+  python scripts\verify_m83_performance_recovery.py drop --confirm-database-name xbos_track_b_m83_volume_test
+
+Install from C:\Users\jdkam\XBOS
+  powershell -NoProfile -Command "Expand-Archive -LiteralPath '%USERPROFILE%\Downloads\XBOS_M8_3_PERFORMANCE_INDEX_BACKUP_RESTORE_AND_DEPLOYMENT_RECOVERY.zip' -DestinationPath '.' -Force"
+
+Run the complete gate
+  XBOS_M8_3_RUN_ACCEPTANCE.cmd
+
+Inspect retained evidence after failure
+  python scripts\verify_m83_performance_recovery.py status
+
+Drop one retained disposable database only after inspection
+  python scripts\verify_m83_performance_recovery.py drop --confirm-database-name xbos_track_b_m83_volume_test
+  python scripts\verify_m83_performance_recovery.py drop --confirm-database-name xbos_track_b_m83_restore_test
+  python scripts\verify_m83_performance_recovery.py drop --confirm-database-name xbos_track_b_m83_rollback_test
+
+Success requires M83_SINGLE_GATE=PASS. The gate records fixture sizes, plan/index evidence, backup size, an exact financial fingerprint, rollback/recovery evidence and full regression. It removes the temporary backup and all three disposable databases after success. It never writes to xbos_track_b_dev.
+
+Do not commit, tag or begin M8.4 until control-room approval.

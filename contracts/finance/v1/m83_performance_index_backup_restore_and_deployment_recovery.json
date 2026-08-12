@@ -1,0 +1,57 @@
+{
+  "contract": "XBOS_M83_PERFORMANCE_INDEX_BACKUP_RESTORE_AND_DEPLOYMENT_RECOVERY",
+  "contract_version": 1,
+  "source_checkpoint": {
+    "branch": "track-b/m8-financial-hardening-and-exit",
+    "commit": "7f240cb"
+  },
+  "canonical_head": "m64_reconciliation_controls_020",
+  "migration": false,
+  "scope": [
+    "production_shaped_volume",
+    "index_and_query_plan_evidence",
+    "backup_restore_financial_equivalence",
+    "deployment_rollback_rehearsal",
+    "operator_recovery"
+  ],
+  "performance_evidence": {
+    "latency_is_recorded": true,
+    "machine_variable_latency_threshold": false,
+    "tenant_scoped_queries_required": true,
+    "index_usability_required": true,
+    "fixture_sizes_recorded": true
+  },
+  "backup_restore": {
+    "source_database": "xbos_track_b_m83_volume_test",
+    "restore_database": "xbos_track_b_m83_restore_test",
+    "different_clean_database_required": true,
+    "structural_restore_alone_is_sufficient": false,
+    "semantic_fingerprint_required": true,
+    "balanced_journals_required": true
+  },
+  "rollback_rehearsal": {
+    "candidate_database": "xbos_track_b_m83_rollback_test",
+    "boundary": "m64_reconciliation_controls_020_to_m63_reconciliation_close_019",
+    "populated_financial_history_downgrade_forbidden": true,
+    "application_rollback_is_database_restore": false,
+    "financial_correction_is_technical_retry": false
+  },
+  "invariants": {
+    "balanced_journals": true,
+    "immutable_history": true,
+    "append_only_corrections": true,
+    "idempotent_effects": true,
+    "tenant_isolation": true,
+    "closed_period_protection": true,
+    "provider_uncertainty_preserved": true,
+    "transactional_outbox_atomicity": true,
+    "manual_financial_truth_edits": false
+  },
+  "boundaries": {
+    "development_database_read_only": true,
+    "development_financially_empty": true,
+    "live_provider_calls": false,
+    "live_cutover_owner": "R6",
+    "wnd_specific_kernel_semantics": false
+  }
+}
