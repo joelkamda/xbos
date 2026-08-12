@@ -1,0 +1,69 @@
+{
+  "contract_code": "XBOS_M84_PACK_FINANCIAL_CONFORMANCE_AND_PRODUCTION_READINESS",
+  "contract_version": 1,
+  "source_checkpoint": {
+    "branch": "track-b/m8-financial-hardening-and-exit",
+    "commit": "f049a26"
+  },
+  "canonical_head": "m64_reconciliation_controls_020",
+  "migration": false,
+  "generic_conformance_requirements": [
+    "authoritative_operational_source_declaration",
+    "domain_source_to_neutral_finance_mapping",
+    "exact_once_financial_effect",
+    "idempotent_replay_and_conflicting_duplicate_rejection",
+    "tenant_and_organization_scope",
+    "permission_and_approval_compatibility",
+    "no_direct_financial_authority_mutation",
+    "no_hidden_financial_writers",
+    "deterministic_control_totals",
+    "source_to_canonical_traceability",
+    "atomic_failure_and_recovery",
+    "versioned_conformance_evidence"
+  ],
+  "first_specimen": {
+    "code": "wnd.restaurant",
+    "authority_source": "frozen_M7_finance_facing_WND_migration_support",
+    "covered_flows": [
+      "commercial_sale_with_discount_complimentary_and_receivable",
+      "payment_collection",
+      "receivable_repayment",
+      "refund_reversal",
+      "verified_inventory_cogs",
+      "financial_document_handoff",
+      "reconciliation_control_totals"
+    ],
+    "writer_routing": "unchanged",
+    "read_mode": "legacy_primary_canonical_shadow",
+    "cutover": "NOT_AUTHORIZED",
+    "writer_retirement": "NOT_EXECUTED"
+  },
+  "hidden_writer_evidence": {
+    "static_architecture_scan": true,
+    "runtime_canonical_authority_probe": true,
+    "database_control_total_comparison": true,
+    "protected_authorities": [
+      "financial_events", "journals", "obligations", "settlements", "allocations",
+      "reconciliation", "period_close", "outbox", "idempotency"
+    ]
+  },
+  "invariants": [
+    "the_pack_conformance_harness_is_industry_neutral",
+    "specimen_specific_language_remains_outside_the_neutral_contract",
+    "one_operational_source_creates_one_canonical_effect_bundle",
+    "replay_returns_the_same_result_and_conflict_fails_closed",
+    "balanced_journals_do_not_substitute_for_correct_economic_control_totals",
+    "pack_commands_cannot_bypass_tenant_organization_permission_approval_or_close_controls",
+    "recovery_never_manufactures_additional_financial_truth",
+    "M7_authority_semantics_remain_frozen",
+    "M8_4_does_not_authorize_cutover_or_writer_retirement"
+  ],
+  "boundaries": {
+    "schema_neutral": true,
+    "parallel_ledger": false,
+    "pack_owned_settlement_or_receivable_truth": false,
+    "live_provider_calls": false,
+    "live_cutover_owner": "R6",
+    "production_data_mutation": false
+  }
+}

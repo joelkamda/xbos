@@ -1,0 +1,28 @@
+XBOS Track B M8.4 — Pack Financial Conformance and Production-Readiness Evidence
+
+Prerequisites
+- Branch: track-b/m8-financial-hardening-and-exit
+- Starting checkpoint: f049a26
+- Development database: xbos_track_b_dev at m64_reconciliation_controls_020
+- The source tree must be clean before installing the package.
+
+Install from C:\Users\jdkam\XBOS
+
+  powershell -NoProfile -Command "Expand-Archive -LiteralPath '%USERPROFILE%\Downloads\XBOS_M8_4_PACK_FINANCIAL_CONFORMANCE_AND_PRODUCTION_READINESS.zip' -DestinationPath '.' -Force"
+
+Run the complete gate
+
+  XBOS_M8_4_RUN_ACCEPTANCE.cmd
+
+If a failed rehearsal retains the disposable database, inspect it first. When ready to retry:
+
+  python scripts\verify_m84_pack_financial_conformance.py drop --confirm-database-name xbos_track_b_m84_pack_test
+  XBOS_M8_4_RUN_ACCEPTANCE.cmd
+
+Expected terminal result
+
+  M84_SINGLE_GATE=PASS ... cutover=NOT_AUTHORIZED writer_retirement=NOT_EXECUTED schema_neutral=PASS migration=NONE regression=PASS
+
+M8.4 is schema neutral. It does not modify M7 authority semantics, reroute a legacy writer, authorize cutover, retire a writer, call a live provider, or mutate xbos_track_b_dev.
+
+Do not commit or begin M8.5 until the complete Windows/PostgreSQL gate passes and the control room approves the staged inventory.
