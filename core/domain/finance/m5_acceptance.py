@@ -2,7 +2,7 @@
 from __future__ import annotations
 import hashlib,json
 from pathlib import Path
-from .m4_acceptance import EXPECTED_HEAD,EXPECTED_LINEAGE,live_migration_lineage
+from .m4_acceptance import EXPECTED_HEAD,EXPECTED_LINEAGE,HistoricalLineageError,live_migration_lineage,validate_historical_lineage_prefix
 
 class M5AcceptanceError(RuntimeError):
     def __init__(self,code,detail):super().__init__(detail);self.code=code
@@ -18,7 +18,9 @@ def validate_release_manifest(root):
         if component.get("sequence")!=sequence:raise M5AcceptanceError("sequence",repr(component))
         actual=semantic_sha256(root/component["path"])
         if actual!=component["semantic_sha256"]:raise M5AcceptanceError("semantic_fingerprint_mismatch",f"{component['path']}: expected {component['semantic_sha256']}, found {actual}")
+    if "canonical_migration_lineage" in manifest:raise M5AcceptanceError("manifest_lineage_changed","historical M5 manifest did not declare canonical_migration_lineage")
     lineage=live_migration_lineage(root)
-    if lineage[:len(EXPECTED_LINEAGE)]!=EXPECTED_LINEAGE:raise M5AcceptanceError("lineage_changed","frozen M5 canonical lineage prefix changed")
+    try:validate_historical_lineage_prefix(lineage,EXPECTED_LINEAGE)
+    except HistoricalLineageError as exc:raise M5AcceptanceError("lineage_changed",str(exc)) from exc
     if tuple((root/"alembic_neutral/versions").glob("m5*.py")):raise M5AcceptanceError("unexpected_m5_migration","M5 is schema neutral")
     return len(components)

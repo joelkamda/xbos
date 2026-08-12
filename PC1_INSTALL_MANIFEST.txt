@@ -1,0 +1,39 @@
+XBOS Platform Core PC1 installation package
+Revision: 3 — Revision 2 structural-distinction carry-forward and historical-lineage descendant compatibility
+Source checkpoint: 9830ebb (accepted PC0)
+Migration before: m64_reconciliation_controls_020
+Migration after: pc1_structural_context_021
+File count: 32
+
+PC1_INSTALL_MANIFEST.txt
+XBOS_PC1_INSTALL_AND_VERIFY.txt
+XBOS_PC1_RUN_ACCEPTANCE.cmd
+contracts/platform/v1/pc0_dependency_policy.json
+contracts/platform/v1/pc0_frozen_finance_baseline.json
+contracts/platform/v1/pc0_frozen_finance_inventory.json
+contracts/platform/v1/pc0_module_map.json
+contracts/platform/v1/pc0_public_private_interfaces.json
+contracts/platform/v1/pc0_release_manifest.json
+contracts/platform/v1/pc1_compatibility_migration_manifest.json
+contracts/platform/v1/pc1_public_interfaces.json
+contracts/platform/v1/pc1_release_manifest.json
+contracts/platform/v1/pc1_structural_authority.json
+core/domain/finance/m4_acceptance.py
+core/domain/finance/m5_acceptance.py
+core/domain/finance/m6_acceptance.py
+core/domain/finance/m7_acceptance.py
+core/domain/finance/track_b_acceptance.py
+core/platform/architecture_contract.py
+core/platform/structure/__init__.py
+core/platform/structure/contracts.py
+core/platform/structure/service.py
+core/platform/structure/sql_repository.py
+alembic_neutral/sql/pc1_structural_context_down.sql
+alembic_neutral/sql/pc1_structural_context_up.sql
+alembic_neutral/versions/pc1_structural_context_021_tenant_organization_legal_location.py
+docs/platform_core/PC1_STRUCTURAL_CONTEXT_AUTHORITY.md
+docs/platform_core/adr/0004_PC1_STRUCTURAL_AUTHORITY_ADOPTION.md
+scripts/verify_pc1_structural_authority.py
+tests/contracts/test_pc0_kernel_boundaries.py
+tests/contracts/test_pc1_structural_authority.py
+tests/contracts/test_historical_frozen_lineage_descendants.py

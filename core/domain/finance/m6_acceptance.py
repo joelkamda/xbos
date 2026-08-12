@@ -6,7 +6,12 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from .m4_acceptance import EXPECTED_LINEAGE as M4_LINEAGE
-from .m4_acceptance import live_migration_lineage, semantic_sha256
+from .m4_acceptance import (
+    HistoricalLineageError,
+    live_migration_lineage,
+    semantic_sha256,
+    validate_historical_lineage_prefix,
+)
 
 EXPECTED_HEAD = "m64_reconciliation_controls_020"
 EXPECTED_LINEAGE = M4_LINEAGE + (
@@ -72,6 +77,11 @@ def validate_release_manifest(root: Path) -> ManifestCheck:
         raise M6AcceptanceError("unexpected_manifest", "baseline_code")
     if manifest.get("canonical_head") != EXPECTED_HEAD:
         raise M6AcceptanceError("unexpected_head", repr(manifest.get("canonical_head")))
+    if "canonical_migration_lineage" in manifest:
+        raise M6AcceptanceError(
+            "manifest_lineage_changed",
+            "historical M6 manifest did not declare canonical_migration_lineage",
+        )
     if manifest.get("release_tag") != EXPECTED_TAG:
         raise M6AcceptanceError("unexpected_release_tag", repr(manifest.get("release_tag")))
     components = manifest.get("components")
@@ -87,9 +97,11 @@ def validate_release_manifest(root: Path) -> ManifestCheck:
         actual = semantic_sha256(root / relative)
         if actual != expected:
             raise M6AcceptanceError("semantic_fingerprint_mismatch", f"{relative}: expected {expected}, found {actual}")
-    lineage = live_migration_lineage(root)
-    if lineage != EXPECTED_LINEAGE:
-        raise M6AcceptanceError("unexpected_migration_lineage", repr(lineage))
+    live_lineage = live_migration_lineage(root)
+    try:
+        lineage = validate_historical_lineage_prefix(live_lineage, EXPECTED_LINEAGE)
+    except HistoricalLineageError as exc:
+        raise M6AcceptanceError("unexpected_migration_lineage", str(exc)) from exc
     if tuple((root / "alembic_neutral" / "versions").glob("m65_*.py")):
         raise M6AcceptanceError("unexpected_m6_closure_migration", "M6.5 must be schema neutral")
     return ManifestCheck(len(components), EXPECTED_HEAD, lineage)

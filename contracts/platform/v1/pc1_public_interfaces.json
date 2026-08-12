@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "module": "structure",
+  "public": [
+    "core.platform.structure.Tenant",
+    "core.platform.structure.TenantLifecycle",
+    "core.platform.structure.OrganizationUnit",
+    "core.platform.structure.LegalEntity",
+    "core.platform.structure.Location",
+    "core.platform.structure.StructuralContext",
+    "core.platform.structure.StructuralAuthority",
+    "core.platform.structure.SQLStructuralRepository"
+  ],
+  "private": [
+    "tenant_provisioning_commands persistence",
+    "legacy_branch_structural_mappings persistence",
+    "SQL statement implementation",
+    "migration backfill implementation"
+  ],
+  "consumers": {
+    "PC2": "legal-entity to future Party association boundary",
+    "PC4": "structural inheritance order only",
+    "PC5": "tenant membership and scoped authorization references",
+    "Neutral Finance": "preserved organization-unit references only"
+  },
+  "runtime_api_added": false
+}

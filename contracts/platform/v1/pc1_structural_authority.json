@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "contract": "XBOS_PLATFORM_CORE_PC1_STRUCTURAL_AUTHORITY",
+  "source_checkpoint": "9830ebb",
+  "previous_head": "m64_reconciliation_controls_020",
+  "accepted_head": "pc1_structural_context_021",
+  "scope": ["PC1.1","PC1.2","PC1.3","PC1.4","PC1.5","PC1.6","PC1.7","PC1.8","PC1.9","PC1.10"],
+  "authorities": {
+    "tenant": "customer and isolation boundary",
+    "organization_unit": "operational and management hierarchy",
+    "legal_entity": "juridical and accounting owner context",
+    "location": "physical or virtual place"
+  },
+  "lifecycle": {
+    "states": ["provisioned","active","suspended","retired"],
+    "transitions": {
+      "provisioned": ["active","retired"],
+      "active": ["suspended","retired"],
+      "suspended": ["active","retired"],
+      "retired": []
+    },
+    "destructive_delete": false
+  },
+  "context_order": ["tenant","legal_entity","organization_ancestry_root_to_leaf","location"],
+  "fail_closed": ["unknown_tenant","cross_tenant_reference","missing_parent","organization_cycle","ambiguous_legal_entity","conflicting_branch_mapping","suspended_or_retired_tenant"],
+  "provisioning": {
+    "command_identity": "command_key",
+    "replay_fingerprint": "canonical SHA-256 payload",
+    "same_replay": "same structural result",
+    "conflicting_replay": "fail",
+    "generic_idempotency_authority": false
+  },
+  "export": {"schema":"xbos.pc1.structural-export.v1","encoding":"canonical JSON UTF-8 LF","tenant_scoped":true,"deterministic":true},
+  "boundaries": {
+    "identity":"PC5","party":"PC2","configuration_values":"PC4","financial_truth":"Neutral Finance","branch_retirement":"later compatibility exit"
+  }
+}

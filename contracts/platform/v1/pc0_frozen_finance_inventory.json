@@ -6,6 +6,16 @@
     "suffix in [.pyc,.pyo]",
     "path_component in [.pytest_cache,.mypy_cache,.ruff_cache,.hypothesis]"
   ],
+  "authorized_non_finance_extensions": [
+    {"root":"core/domain/finance","path":"m4_acceptance.py","sha256":"6d0ed40d9d8496fd0ddd5eec115796a4bbeae90ce6742a9f3a25cff0f59f2cde","owner":"PC1","reason":"historical-release descendant compatibility"},
+    {"root":"core/domain/finance","path":"m5_acceptance.py","sha256":"c2d06c6e0c0cafbf590072fa4a57adc38b5b69e17b4a825094b61d4dfb7d46cb","owner":"PC1","reason":"historical-release descendant compatibility"},
+    {"root":"core/domain/finance","path":"m6_acceptance.py","sha256":"ed5ddfa3bc6bf223ed5dd40e1c051ea8b987e0a8002c3a99113a09e4d05b7c3d","owner":"PC1","reason":"historical-release descendant compatibility"},
+    {"root":"core/domain/finance","path":"m7_acceptance.py","sha256":"5323d1c9780eda5f5bc6265c5ff493cc1b6b31da3f9ab80ac5ff4c65d57d68a3","owner":"PC1","reason":"historical-release descendant compatibility"},
+    {"root":"core/domain/finance","path":"track_b_acceptance.py","sha256":"e841139a56063d6d20d18535d166034b3bb66d680d67e9ad4a81f1eded457827","owner":"PC1","reason":"historical-release descendant compatibility"},
+    {"root":"alembic_neutral","path":"versions/pc1_structural_context_021_tenant_organization_legal_location.py","sha256":"686eca52c5e9d9d1ac282400c584c947fe267b0deead18fcc8876e01650fde11","owner":"PC1"},
+    {"root":"alembic_neutral","path":"sql/pc1_structural_context_up.sql","sha256":"727400217b5624c37f5f0a4de9ba7ae8f0e9c26cca1f1c3659ae9ac8a1ca3d66","owner":"PC1"},
+    {"root":"alembic_neutral","path":"sql/pc1_structural_context_down.sql","sha256":"c20ce1980591af505e03e71a09f665b558922721a529ed5c72db9211bbae77c8","owner":"PC1"}
+  ],
   "trees": [
     {
       "root": "core/domain/finance",
@@ -43,10 +53,6 @@
         "legacy_authority_inventory.py",
         "m2_acceptance.py",
         "m3_acceptance.py",
-        "m4_acceptance.py",
-        "m5_acceptance.py",
-        "m6_acceptance.py",
-        "m7_acceptance.py",
         "obligation_aging_service.py",
         "obligation_balance_service.py",
         "obligation_contract.py",
@@ -117,7 +123,6 @@
         "trace_contract.py",
         "trace_repository.py",
         "trace_service.py",
-        "track_b_acceptance.py",
         "track_b_exit_contract.py",
         "transactional_event_engine.py",
         "value_application_contract.py",

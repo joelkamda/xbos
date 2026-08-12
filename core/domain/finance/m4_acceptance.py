@@ -35,6 +35,45 @@ class M4AcceptanceError(RuntimeError):
         self.detail = detail
 
 
+class HistoricalLineageError(ValueError):
+    """Raised when a live lineage does not preserve a frozen release prefix."""
+
+
+def validate_historical_lineage_prefix(
+    live_lineage: tuple[str, ...],
+    expected_frozen_lineage: tuple[str, ...],
+) -> tuple[str, ...]:
+    """Validate an exact, ordered historical prefix and allow later descendants.
+
+    The returned value is the frozen release lineage, not the live lineage. This
+    keeps historical release evidence immutable while permitting descendants
+    only after the release's frozen canonical head.
+    """
+
+    if not expected_frozen_lineage:
+        raise HistoricalLineageError("frozen lineage is empty")
+    if len(live_lineage) < len(expected_frozen_lineage):
+        raise HistoricalLineageError(
+            "live lineage is shorter than frozen lineage: "
+            f"{len(live_lineage)} < {len(expected_frozen_lineage)}"
+        )
+    live_prefix = live_lineage[: len(expected_frozen_lineage)]
+    if live_prefix != expected_frozen_lineage:
+        mismatch = next(
+            index
+            for index, (actual, expected) in enumerate(
+                zip(live_prefix, expected_frozen_lineage, strict=True)
+            )
+            if actual != expected
+        )
+        raise HistoricalLineageError(
+            "historical lineage mismatch at index "
+            f"{mismatch}: {live_prefix[mismatch]!r} != "
+            f"{expected_frozen_lineage[mismatch]!r}"
+        )
+    return expected_frozen_lineage
+
+
 @dataclass(frozen=True)
 class ManifestCheck:
     checked_components: int
@@ -114,9 +153,11 @@ def validate_release_manifest(root: Path) -> ManifestCheck:
         actual = semantic_sha256(root / relative)
         if actual != expected:
             raise M4AcceptanceError("semantic_fingerprint_mismatch", f"{relative}: expected {expected}, found {actual}")
-    lineage = live_migration_lineage(root)
-    if lineage != EXPECTED_LINEAGE:
-        raise M4AcceptanceError("unexpected_migration_lineage", repr(lineage))
+    live_lineage = live_migration_lineage(root)
+    try:
+        lineage = validate_historical_lineage_prefix(live_lineage, EXPECTED_LINEAGE)
+    except HistoricalLineageError as exc:
+        raise M4AcceptanceError("unexpected_migration_lineage", str(exc)) from exc
     if tuple(manifest.get("canonical_migration_lineage", ())) != EXPECTED_LINEAGE:
         raise M4AcceptanceError("manifest_lineage_mismatch", "canonical_migration_lineage")
     if tuple((root / "alembic_neutral" / "versions").glob("m47_*.py")):

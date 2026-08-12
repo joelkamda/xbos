@@ -1,0 +1,134 @@
+{
+  "schema_version": 1,
+  "release": "XBOS_PLATFORM_CORE_PC1",
+  "source_checkpoint": "9830ebb",
+  "previous_head": "m64_reconciliation_controls_020",
+  "accepted_head": "pc1_structural_context_021",
+  "migration_count": 1,
+  "commit": "NOT_CREATED",
+  "tag": "NOT_CREATED",
+  "operator_gate": "XBOS_PC1_RUN_ACCEPTANCE.cmd",
+  "success_marker": "PC1_SINGLE_GATE=PASS",
+  "artifacts": [
+    {
+      "path": "XBOS_PC1_INSTALL_AND_VERIFY.txt",
+      "sha256": "3f1d6089f6b55b9d824b09272a2750504adb2256e9a3aeaddad9ec3ff26fcf0d"
+    },
+    {
+      "path": "XBOS_PC1_RUN_ACCEPTANCE.cmd",
+      "sha256": "89f2bf3cbba1c6b33bb517f16b1619fd13a4f73aebf589c8d5c6d9dbba639f30"
+    },
+    {
+      "path": "contracts/platform/v1/pc0_dependency_policy.json",
+      "sha256": "8889f59c573bc4fd26072091418155492b212711798752d132845b3f1cee17c2"
+    },
+    {
+      "path": "contracts/platform/v1/pc0_frozen_finance_baseline.json",
+      "sha256": "69b2228e41a708fbba502dc87f089b546e215bef91a89df04c79987fbd78f2fb"
+    },
+    {
+      "path": "contracts/platform/v1/pc0_frozen_finance_inventory.json",
+      "sha256": "cc09f761922396baf3d3827b817554c04797fb3d0e6f006631b8619c766b961d"
+    },
+    {
+      "path": "contracts/platform/v1/pc0_module_map.json",
+      "sha256": "b7aa3da6c481d3957773b0943adbb41b3ae6e9da0c5c5a2f942de2a0a357f98e"
+    },
+    {
+      "path": "contracts/platform/v1/pc0_public_private_interfaces.json",
+      "sha256": "e89f7d8fc0a2e2ee5c40dbc0172a4e04c47095c8a5b1f7f862af3ef40df2f5bd"
+    },
+    {
+      "path": "contracts/platform/v1/pc0_release_manifest.json",
+      "sha256": "489eb41292bf57c44396498e12fcfcd5260faeff0f6acc791d6945d0daa0eda8"
+    },
+    {
+      "path": "contracts/platform/v1/pc1_compatibility_migration_manifest.json",
+      "sha256": "ebef628d9f272c18094b996eeb8d8aed4a9dc742769a6f820c7e7657b8f66353"
+    },
+    {
+      "path": "contracts/platform/v1/pc1_public_interfaces.json",
+      "sha256": "182d0b92e136e564d82c97059701497e332fee20a5243399b2e13440f2ef873e"
+    },
+    {
+      "path": "contracts/platform/v1/pc1_structural_authority.json",
+      "sha256": "56560e018ef330c4367e9e00e00cf898fc5b6c396f7086046a85e617cf4f5753"
+    },
+    {
+      "path": "core/domain/finance/m4_acceptance.py",
+      "sha256": "ecf8738a23a82be0a1e81dbb895488e938145c65f05f3021a6932231423873a2"
+    },
+    {
+      "path": "core/domain/finance/m5_acceptance.py",
+      "sha256": "cb729a01007ae8e655c941b7281b82dabc957efaa0596aa5fbb8bacbeafd2694"
+    },
+    {
+      "path": "core/domain/finance/m6_acceptance.py",
+      "sha256": "3f89e2f52f761d5902f006ed52d24ad85904d8ad82f2f4f53fef30ea4b1a73f6"
+    },
+    {
+      "path": "core/domain/finance/m7_acceptance.py",
+      "sha256": "9a1ad4ece0e0a7c2177279b2c66876d97c48ac9d34fcd58d364762f74cbff4ae"
+    },
+    {
+      "path": "core/domain/finance/track_b_acceptance.py",
+      "sha256": "e19895c16ca109bfcd7b2ab1f74a42c88ff6a6c60c9d388aa6585b4299c8c331"
+    },
+    {
+      "path": "core/platform/architecture_contract.py",
+      "sha256": "b649c1971e1d6ffa3614dda021520130461aeb7a2da8d14208b760820bc86385"
+    },
+    {
+      "path": "core/platform/structure/__init__.py",
+      "sha256": "9d91a22bc1bda97598e558cf34795451598ff370bb695ae915d7344282f4ed50"
+    },
+    {
+      "path": "core/platform/structure/contracts.py",
+      "sha256": "7214b0356caac803d521a47a7b15d56992326328af5077f2736639f3a5693d4b"
+    },
+    {
+      "path": "core/platform/structure/service.py",
+      "sha256": "adcb3499ade59253a17c146b94ce6b9262c615201f2ad3df4621935349429777"
+    },
+    {
+      "path": "core/platform/structure/sql_repository.py",
+      "sha256": "49466eb58c945f09cfc9a14ab3e137b76911c2008138e7bb3f2823674211c1b1"
+    },
+    {
+      "path": "alembic_neutral/sql/pc1_structural_context_down.sql",
+      "sha256": "c20ce1980591af505e03e71a09f665b558922721a529ed5c72db9211bbae77c8"
+    },
+    {
+      "path": "alembic_neutral/sql/pc1_structural_context_up.sql",
+      "sha256": "727400217b5624c37f5f0a4de9ba7ae8f0e9c26cca1f1c3659ae9ac8a1ca3d66"
+    },
+    {
+      "path": "alembic_neutral/versions/pc1_structural_context_021_tenant_organization_legal_location.py",
+      "sha256": "686eca52c5e9d9d1ac282400c584c947fe267b0deead18fcc8876e01650fde11"
+    },
+    {
+      "path": "docs/platform_core/PC1_STRUCTURAL_CONTEXT_AUTHORITY.md",
+      "sha256": "f00462b1ebfed4b510ccd462aceb1b2bbbf3462870fe8ce14a8fe0aa9f0be921"
+    },
+    {
+      "path": "docs/platform_core/adr/0004_PC1_STRUCTURAL_AUTHORITY_ADOPTION.md",
+      "sha256": "b64a176f9f86c499fecac0242400403213f12f4818f60beecf50db11415a03dc"
+    },
+    {
+      "path": "scripts/verify_pc1_structural_authority.py",
+      "sha256": "f49143c258469259cc2f8960a1cf29c3608cf58818868f3d95f8aa8c7f3961c8"
+    },
+    {
+      "path": "tests/contracts/test_pc0_kernel_boundaries.py",
+      "sha256": "bdfdaa5715b446d6248bd5df66b551ce6a3a9637e7ee840445a9b4ae39539879"
+    },
+    {
+      "path": "tests/contracts/test_pc1_structural_authority.py",
+      "sha256": "90690bc65ee755b0b2b37386bb94cf6e4e5e60786d570483a0d041718f8adb40"
+    },
+    {
+      "path": "tests/contracts/test_historical_frozen_lineage_descendants.py",
+      "sha256": "346a6aa7b7813ea8f1307e27047b22f64744128c2aae695649cf735d9ba8f67f"
+    }
+  ]
+}

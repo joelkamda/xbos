@@ -7,7 +7,12 @@ from pathlib import Path
 
 from .m2_acceptance import validate_release_manifest as validate_m2
 from .m3_acceptance import validate_release_manifest as validate_m3
-from .m4_acceptance import live_migration_lineage, semantic_sha256
+from .m4_acceptance import (
+    HistoricalLineageError,
+    live_migration_lineage,
+    semantic_sha256,
+    validate_historical_lineage_prefix,
+)
 from .m5_acceptance import validate_release_manifest as validate_m5
 from .m6_acceptance import (
     EXPECTED_HEAD,
@@ -79,9 +84,11 @@ def validate_release_manifest(root: Path) -> TrackBManifestCheck:
             raise TrackBAcceptanceError("semantic_fingerprint_mismatch", f"{relative}: expected {expected}, found {actual}")
     if tuple(manifest.get("canonical_migration_lineage", ())) != EXPECTED_LINEAGE:
         raise TrackBAcceptanceError("manifest_lineage_changed", "canonical_migration_lineage")
-    lineage = live_migration_lineage(root)
-    if lineage != EXPECTED_LINEAGE:
-        raise TrackBAcceptanceError("repository_lineage_changed", repr(lineage))
+    live_lineage = live_migration_lineage(root)
+    try:
+        lineage = validate_historical_lineage_prefix(live_lineage, EXPECTED_LINEAGE)
+    except HistoricalLineageError as exc:
+        raise TrackBAcceptanceError("repository_lineage_changed", str(exc)) from exc
     if tuple((root / "alembic_neutral/versions").glob("m8*.py")):
         raise TrackBAcceptanceError("unexpected_m8_migration", "M8 must remain schema neutral")
 

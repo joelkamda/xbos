@@ -5,7 +5,12 @@ import json
 from dataclasses import dataclass
 from pathlib import Path
 
-from .m4_acceptance import live_migration_lineage, semantic_sha256
+from .m4_acceptance import (
+    HistoricalLineageError,
+    live_migration_lineage,
+    semantic_sha256,
+    validate_historical_lineage_prefix,
+)
 from .m6_acceptance import EXPECTED_HEAD, EXPECTED_LINEAGE
 
 EXPECTED_TAG = "track-b-m7-finance-facing-wnd-migration-support-20260811"
@@ -46,6 +51,11 @@ def validate_release_manifest(root: Path) -> ManifestCheck:
         raise M7AcceptanceError("unexpected_parent", repr(manifest.get("approved_commit_parent")))
     if manifest.get("canonical_head") != EXPECTED_HEAD:
         raise M7AcceptanceError("unexpected_head", repr(manifest.get("canonical_head")))
+    if "canonical_migration_lineage" in manifest:
+        raise M7AcceptanceError(
+            "manifest_lineage_changed",
+            "historical M7 manifest did not declare canonical_migration_lineage",
+        )
     if manifest.get("release_tag") != EXPECTED_TAG:
         raise M7AcceptanceError("unexpected_release_tag", repr(manifest.get("release_tag")))
     components = manifest.get("components")
@@ -64,9 +74,11 @@ def validate_release_manifest(root: Path) -> ManifestCheck:
                 "semantic_fingerprint_mismatch",
                 f"{relative}: expected {expected}, found {actual}",
             )
-    lineage = live_migration_lineage(root)
-    if lineage != EXPECTED_LINEAGE:
-        raise M7AcceptanceError("unexpected_migration_lineage", repr(lineage))
+    live_lineage = live_migration_lineage(root)
+    try:
+        lineage = validate_historical_lineage_prefix(live_lineage, EXPECTED_LINEAGE)
+    except HistoricalLineageError as exc:
+        raise M7AcceptanceError("unexpected_migration_lineage", str(exc)) from exc
     if tuple((root / "alembic_neutral" / "versions").glob("m7*.py")):
         raise M7AcceptanceError("unexpected_m7_migration", "M7 must remain schema neutral")
     return ManifestCheck(len(components), EXPECTED_HEAD, lineage)

@@ -25,6 +25,7 @@ CONTRACT_FILES = {
     "composition": "pc0_composition_baseline.json",
     "finance": "pc0_frozen_finance_baseline.json",
     "finance_inventory": "pc0_frozen_finance_inventory.json",
+    "pc1": "pc1_structural_authority.json",
     "kernel": "pc0_kernel_boundaries.json",
 }
 ROOT_PYTHON_MODULES = {
@@ -82,7 +83,7 @@ def _is_transient_runtime_artifact(relative: Path) -> bool:
     return any(part in _TRANSIENT_CACHE_COMPONENTS for part in relative.parts)
 
 
-def _tree_fingerprint(root: Path, relative_root: str, inventory: Iterable[str]) -> tuple[int, str]:
+def _tree_fingerprint(root: Path, relative_root: str, inventory: Iterable[str], extensions: dict[str, str] | None = None) -> tuple[int, str]:
     base = root / relative_root
     expected = list(inventory)
     if len(expected) != len(set(expected)) or expected != sorted(expected):
@@ -92,13 +93,19 @@ def _tree_fingerprint(root: Path, relative_root: str, inventory: Iterable[str]) 
         for path in base.rglob("*")
         if path.is_file() and not _is_transient_runtime_artifact(path.relative_to(base))
     )
-    if actual != expected:
+    extensions = extensions or {}
+    allowed = set(expected) | set(extensions)
+    if set(actual) != allowed:
         missing = sorted(set(expected) - set(actual))
-        unexpected = sorted(set(actual) - set(expected))
+        unexpected = sorted(set(actual) - allowed)
         _fail(
             "PC0-FROZEN-FINANCE-INVENTORY",
             f"{relative_root}: missing={missing}, unexpected={unexpected}",
         )
+    for relative, expected_hash in extensions.items():
+        actual_hash = _source_sha256(base / relative)
+        if actual_hash != expected_hash:
+            _fail("PC0-NON-FINANCE-EXTENSION-CHANGED", f"{relative_root}/{relative}")
     files = [base / relative for relative in expected]
     digest = hashlib.sha256()
     for path in files:
@@ -350,7 +357,7 @@ def _migration_revisions(root: Path) -> tuple[list[str], list[str]]:
     return heads, list(reversed(lineage))
 
 
-def _validate_finance(root: Path, finance: dict[str, Any], inventory: dict[str, Any]) -> None:
+def _validate_finance(root: Path, finance: dict[str, Any], inventory: dict[str, Any], accepted_head: str | None = None) -> None:
     if finance.get("fingerprint_mode") != "sha256_git_canonical_lf":
         _fail("PC0-FINANCE-FINGERPRINT-MODE", str(finance.get("fingerprint_mode")))
     if inventory.get("freeze_commit") != finance.get("freeze_commit"):
@@ -358,17 +365,25 @@ def _validate_finance(root: Path, finance: dict[str, Any], inventory: dict[str, 
     inventory_trees = {tree.get("root"): tree for tree in inventory.get("trees", [])}
     if set(inventory_trees) != {tree.get("root") for tree in finance.get("trees", [])}:
         _fail("PC0-FROZEN-FINANCE-INVENTORY", "protected tree coverage does not match baseline")
+    extensions_by_root: dict[str, dict[str, str]] = {}
+    for item in inventory.get("authorized_non_finance_extensions", []):
+        if item.get("owner") != "PC1" or not all(isinstance(item.get(key), str) and item[key] for key in ("root","path","sha256")):
+            _fail("PC0-NON-FINANCE-EXTENSION", str(item))
+        extensions_by_root.setdefault(item["root"], {})[item["path"]] = item["sha256"]
     for tree in finance.get("trees", []):
         declared = inventory_trees[tree["root"]]
         files = declared.get("files", [])
         suffixes = set(declared.get("protected_suffixes", []))
         if not suffixes or any(Path(relative).suffix not in suffixes for relative in files):
             _fail("PC0-FROZEN-FINANCE-INVENTORY", f"{tree['root']}: invalid protected suffix declaration")
-        count, actual = _tree_fingerprint(root, tree["root"], files)
+        count, actual = _tree_fingerprint(root, tree["root"], files, extensions_by_root.get(tree["root"]))
         if count != tree["file_count"] or actual != tree["sha256"]:
             _fail("PC0-FROZEN-FINANCE-CHANGED", f"{tree['root']}: count={count}, sha256={actual}")
     heads, lineage = _migration_revisions(root)
-    if heads != [finance.get("canonical_head")] or lineage != finance.get("lineage"):
+    expected_lineage = finance.get("lineage", [])
+    if accepted_head:
+        expected_lineage = [*expected_lineage, accepted_head]
+    if heads != [accepted_head or finance.get("canonical_head")] or lineage != expected_lineage:
         _fail("PC0-MIGRATION-HEAD", f"heads={heads}, lineage={lineage}")
     boundaries = finance.get("boundaries", {})
     if boundaries.get("migration") != "NONE" or boundaries.get("schema_neutral") is not True:
@@ -396,7 +411,7 @@ def validate_pc0(root: str | Path, validate_release: bool = True) -> dict[str, A
     _validate_authorities(contracts["authorities"])
     _validate_reference_migrations(contracts["reference_migrations"])
     _validate_composition(root_path, contracts["composition"])
-    _validate_finance(root_path, contracts["finance"], contracts["finance_inventory"])
+    _validate_finance(root_path, contracts["finance"], contracts["finance_inventory"], contracts["pc1"].get("accepted_head"))
     _validate_kernel(contracts["kernel"])
 
     roots = _module_roots(contracts["module_map"])

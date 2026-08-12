@@ -1,0 +1,28 @@
+XBOS PLATFORM CORE PC1 — INSTALL AND VERIFY
+===========================================
+
+Package: XBOS_PLATFORM_CORE_PC1_IMPLEMENTATION_REVISION_3.zip
+Source checkpoint: 9830ebb (accepted PC0)
+Migration: m64_reconciliation_controls_020 -> pc1_structural_context_021
+
+PRECONDITIONS
+1. Use the accepted PC0 checkout and activate the existing xbos-track-b-b1 virtual environment.
+2. `python --version` must be exactly Python 3.13.3 and `python` must resolve from
+   `%VIRTUAL_ENV%\Scripts\python.exe`. Do not create another environment or install globally.
+3. The configured local database must be xbos_track_b_dev at accepted head
+   m64_reconciliation_controls_020 (or the PC1 head on an intentional gate rerun).
+4. Ensure disposable database xbos_platform_core_pc1_test does not already exist.
+
+INSTALL
+Expand the ZIP over the repository root. Do not manually invoke Alembic; the single
+gate performs disposable rehearsal before controlled development adoption.
+
+ACCEPT
+Run:
+
+    XBOS_PC1_RUN_ACCEPTANCE.cmd
+
+On failure, the disposable database is intentionally retained for diagnosis. On full
+success it is dropped and the final line is `PC1_SINGLE_GATE=PASS`.
+
+No commit or tag is created by this package or gate.

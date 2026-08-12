@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "source_checkpoint": "9830ebb",
+  "entries": [
+    {"authority":"tenants","classification":"ADOPT/EVOLVE","action":"preserve IDs and add governed lifecycle/version columns","compatibility":"existing tenant API remains registered","retirement_owner":"PC1","milestone":"PC1.10"},
+    {"authority":"organization_units","classification":"ADOPT/PROMOTE","action":"retain table, IDs, tenant composite keys and all Finance references; add nullable legal-entity context","compatibility":"existing Finance FKs remain unchanged","retirement_owner":"PC1","milestone":"PC1.10"},
+    {"authority":"branches","classification":"MAP/BRIDGE","action":"deterministically map each branch to one organization unit and one location","compatibility":"legacy branch table, APIs, readers and writers remain operational","retirement_owner":"PC1","milestone":"PC1.10 compatibility exit"},
+    {"authority":"finance_organization_references","classification":"PRESERVE","action":"no ID, FK, writer or semantic change","compatibility":"organization_units stays the referenced authority","retirement_owner":"Neutral Finance","milestone":"permanent boundary"},
+    {"authority":"legal_entity_typed_organization_units","classification":"MAP","action":"create distinct legal-entity records and retain original organization-unit records","compatibility":"organization-unit IDs and Finance meaning remain unchanged","retirement_owner":"PC1","milestone":"PC1.10"}
+  ],
+  "legacy_branch_new_canonical_dependencies_forbidden": true,
+  "wnd_cutover": "NOT_AUTHORIZED"
+}
