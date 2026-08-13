@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import argparse
-import hashlib
 import json
 import os
 import sys
@@ -15,6 +14,7 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path: sys.path.insert(0, str(ROOT))
 
 from core.platform.architecture_contract import validate_pc0
+from core.platform.release_integrity import verify_historical_release
 
 EXPECTED_PREVIOUS_HEAD = "m64_reconciliation_controls_020"
 EXPECTED_HEAD = "pc1_structural_context_021"
@@ -67,25 +67,7 @@ def static_verify() -> dict[str, object]:
     up = (ROOT / "alembic_neutral/sql/pc1_structural_context_up.sql").read_text(encoding="utf-8")
     forbidden = ("INSERT INTO public.financial_events","UPDATE public.journal_entries","DELETE FROM public.financial_")
     if any(marker in up for marker in forbidden): raise RuntimeError("PC1 migration contains financial economic mutation")
-    replacements = {}
-    for manifest_name in ("pc4_release_manifest.json", "pc3_release_manifest.json", "pc2_release_manifest.json"):
-        descendant_manifest = ROOT / "contracts/platform/v1" / manifest_name
-        if descendant_manifest.is_file():
-            descendant = json.loads(descendant_manifest.read_text(encoding="utf-8"))
-            replacements = {item["path"]: item for item in descendant.get("historical_pc1_replacements", [])}
-            if replacements:
-                break
-    for artifact in release.get("artifacts", []):
-        path = ROOT / artifact["path"]
-        actual = hashlib.sha256(path.read_bytes()).hexdigest() if path.is_file() else None
-        replacement = replacements.get(artifact["path"])
-        accepted = actual == artifact["sha256"] or (
-            replacement is not None
-            and replacement.get("historical_sha256") == artifact["sha256"]
-            and replacement.get("descendant_sha256") == actual
-        )
-        if not accepted:
-            raise RuntimeError(f"PC1 release manifest mismatch={artifact['path']}")
+    verify_historical_release(ROOT, 1)
     pc0 = validate_pc0(ROOT)
     return {"status":"PASS","pc0":pc0["status"],"previous_head":EXPECTED_PREVIOUS_HEAD,"accepted_head":EXPECTED_HEAD,"compatibility_entries":len(compatibility["entries"]),"release_artifacts":len(release["artifacts"])}
 

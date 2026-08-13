@@ -24,6 +24,9 @@
     ,{"root":"alembic_neutral","path":"versions/pc4_operating_context_024_typed_configuration_modules_time.py","sha256":"a7317487bf800e2852cbb85c9d2cf1941c2b88876bb12e03ca353f82b8ce8348","owner":"PC1","reason":"PC4 canonical lineage descendant"}
     ,{"root":"alembic_neutral","path":"sql/pc4_operating_context_up.sql","sha256":"8ed296e754ee471003f47e6300c08cecaeccb838cdcc0780878e5b72f0c4147f","owner":"PC1","reason":"PC4 canonical lineage descendant"}
     ,{"root":"alembic_neutral","path":"sql/pc4_operating_context_down.sql","sha256":"09248770d7a0a8d03808ffe0c88270c3432c34a3939f9b5a5617e207df7e787b","owner":"PC1","reason":"PC4 canonical lineage descendant"}
+    ,{"root":"alembic_neutral","path":"versions/pc5_identity_policy_audit_025_canonical_security_authority.py","sha256":"55242e039b9de43ea2cbfecc0eb8c3e122576ae22c44fa4b65687afd9d6b69f6","owner":"PC1","reason":"PC5 canonical lineage descendant"}
+    ,{"root":"alembic_neutral","path":"sql/pc5_identity_policy_audit_up.sql","sha256":"8e63fa97749ab66b577d93f28df3db744c802348260ea4f80e5ab27f7033c831","owner":"PC1","reason":"PC5 canonical lineage descendant"}
+    ,{"root":"alembic_neutral","path":"sql/pc5_identity_policy_audit_down.sql","sha256":"b76df91f9d0f63106e4acb3ec02dabacb08cd819e254b5a19de12d5a4cb7ca08","owner":"PC1","reason":"PC5 canonical lineage descendant"}
   ],
   "trees": [
     {

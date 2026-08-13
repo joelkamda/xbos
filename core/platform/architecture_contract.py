@@ -13,6 +13,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Iterable
 
+from core.platform.release_integrity import canonical_sha256
+
 
 CONTRACT_DIRECTORY = Path("contracts/platform/v1")
 CONTRACT_FILES = {
@@ -29,6 +31,7 @@ CONTRACT_FILES = {
     "pc2": "pc2_party_authority.json",
     "pc3": "pc3_semantic_authority.json",
     "pc4": "pc4_operating_context_authority.json",
+    "pc5": "pc5_identity_policy_audit_authority.json",
     "kernel": "pc0_kernel_boundaries.json",
 }
 ROOT_PYTHON_MODULES = {
@@ -69,7 +72,7 @@ def _load_json(root: Path, name: str) -> dict[str, Any]:
 
 
 def _sha256_file(path: Path) -> str:
-    return hashlib.sha256(path.read_bytes()).hexdigest()
+    return canonical_sha256(path)
 
 
 def _source_sha256(path: Path) -> str:
@@ -426,6 +429,7 @@ def validate_pc0(root: str | Path, validate_release: bool = True) -> dict[str, A
             contracts["pc2"].get("accepted_head"),
             contracts["pc3"].get("accepted_head"),
             contracts["pc4"].get("accepted_head"),
+            contracts["pc5"].get("accepted_head"),
         ),
     )
     _validate_kernel(contracts["kernel"])

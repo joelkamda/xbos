@@ -1,0 +1,18 @@
+{
+  "schema_version":1,
+  "module":"security_authority",
+  "public":[
+    "core.platform.security_authority.SecurityAuthority",
+    "core.platform.security_authority.SecurityAuthorityError",
+    "core.platform.security_authority.SQLSecurityRepository",
+    "core.platform.security_authority.AuthorizationRequest",
+    "core.platform.security_authority.AuthorizationDecision",
+    "core.platform.security_authority.AuditEnvelope",
+    "core.platform.security_authority.AuditQuery",
+    "core.platform.security_authority.PermissionDefinition",
+    "core.platform.security_authority.StructuralScope"
+  ],
+  "private":["PC5 SQL statements","security command ledger","legacy identity/RBAC mapping implementation","credential and token material"],
+  "rules":["deny unless positively established","service/domain authorization is authoritative","route guards and hidden UI are convenience layers","secret material never crosses public interfaces","audit query is itself authorized"],
+  "external_owners":{"party":"PC2","structural_scope":"PC1","entitlement_feature_context":"PC4","financial_truth":"Neutral Finance","general_workflow":"SO6","documents":"SO7","generic_delivery":"SO9","pack_declarations":"PK"}
+}

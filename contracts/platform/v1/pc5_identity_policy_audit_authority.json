@@ -1,0 +1,32 @@
+{
+  "schema_version":1,
+  "source_checkpoint":"26b673e",
+  "previous_head":"pc4_operating_context_024",
+  "accepted_head":"pc5_identity_policy_audit_025",
+  "scope":["PC5.1","PC5.2","PC5.3","PC5.4","PC5.5","PC5.6","PC5.7","PC5.8","PC5.9","PC5.10","PC5.11","PC5.12","PC5.13","PC5.14","PC5.15"],
+  "distinctions":[
+    "Identity != Party != PartyRole != Tenant != Staff record != Authorization Role",
+    "PC2 PartyRole != PC5 authorization Role",
+    "platform operator scope != tenant administrator scope",
+    "membership != permission",
+    "PC4 entitlement and feature availability != PC5 authorization and approval",
+    "service identity != human identity != device identity",
+    "audit evidence != financial economic truth"
+  ],
+  "authorities":{
+    "identity":{"owner":"PC5","model":"global authentication principal with optional explicit Party association","legacy":"users bridged; not silently copied"},
+    "authentication":{"owner":"PC5","credential_rule":"references and mechanisms are separate; secret material never exported","legacy":"password hashing and JWT mechanics preserved behind compatibility path"},
+    "membership":{"owner":"PC5","model":"tenant-scoped participation with lifecycle and validity","grants_permission":false},
+    "session":{"owner":"PC5","model":"revocable server-side session and assurance context","old_jwt_after_revocation":"deny"},
+    "permission_registry":{"owner":"PC5","identity":"stable owner.module.resource.action namespace","unknown":"deny"},
+    "authorization_role":{"owner":"PC5","distinct_from":"PC2 PartyRole","scope_types":["platform","tenant","legal_entity","organization_unit","location"]},
+    "policy":{"owner":"PC5","language":"typed constrained fields only","default":"deny","ambiguity":"deny"},
+    "approval":{"owner":"PC5","boundary":"security/control approval only; SO6 owns generalized workflow"},
+    "step_up":{"owner":"PC5","model":"expiring revocable session-scoped assurance; no provider integration"},
+    "service_device":{"owner":"PC5","credentials":"references only","human_impersonation":false},
+    "delegated_support":{"owner":"PC5","model":"explicit permission-specific time-bound approved support or break-glass grant","invisible_superuser_bypass":false},
+    "audit":{"owner":"PC5","model":"append-only safe envelope and authorized query","delivery_owner":"SO9","financial_truth_owner":"Neutral Finance"}
+  },
+  "exports":{"identity_profile":true,"memberships":true,"authorization_assignments":true,"credentials":false,"session_secrets":false,"audit_requires_permission":true},
+  "exclusions":["frontend portals","external IdP integration","MFA provider integration","broad or invisible impersonation","general workflow/tasks/queues","generic outbox/jobs/retries","generic documents/files","pack lifecycle","Finance semantic or writer change","PC6 portability proof","WND cutover"]
+}

@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import argparse
-import hashlib
 import json
 import os
 import sys
@@ -16,6 +15,7 @@ ROOT=Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:sys.path.insert(0,str(ROOT))
 
 from core.platform.architecture_contract import validate_pc0
+from core.platform.release_integrity import verify_historical_release
 
 EXPECTED_SOURCE="3190a07"
 EXPECTED_PREVIOUS_HEAD="pc1_structural_context_021"
@@ -43,18 +43,7 @@ def static_verify() -> dict[str,object]:
     up=(ROOT/"alembic_neutral/sql/pc2_party_authority_up.sql").read_text(encoding="utf-8")
     forbidden=("UPDATE public.financial_","DELETE FROM public.financial_","INSERT INTO public.users","INSERT INTO public.parties")
     if any(marker in up for marker in forbidden):raise RuntimeError("PC2 migration contains forbidden data mutation or seed")
-    replacements = {}
-    for manifest_name in ("pc4_release_manifest.json","pc3_release_manifest.json"):
-        descendant_manifest=ROOT/"contracts/platform/v1"/manifest_name
-        if descendant_manifest.is_file():
-            descendant=json.loads(descendant_manifest.read_text(encoding="utf-8"));replacements={item["path"]:item for item in descendant.get("historical_pc2_replacements",[])}
-            if replacements:break
-    for item in release["artifacts"]:
-        path=ROOT/item["path"]
-        actual=hashlib.sha256(path.read_bytes()).hexdigest() if path.is_file() else None
-        replacement=replacements.get(item["path"])
-        accepted=actual==item["sha256"] or (replacement is not None and replacement.get("historical_sha256")==item["sha256"] and replacement.get("descendant_sha256")==actual)
-        if not accepted:raise RuntimeError(f"PC2 release manifest mismatch={item['path']}")
+    verify_historical_release(ROOT,2)
     pc0=validate_pc0(ROOT)
     return {"status":"PASS","pc0":pc0["status"],"previous_head":EXPECTED_PREVIOUS_HEAD,"accepted_head":EXPECTED_HEAD,"compatibility_entries":len(compatibility["entries"]),"release_artifacts":len(release["artifacts"])}
 

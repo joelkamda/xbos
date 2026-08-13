@@ -1,0 +1,22 @@
+XBOS PLATFORM CORE PC5 — INSTALL AND VERIFY
+===========================================
+
+Package: XBOS_PLATFORM_CORE_PC5_IMPLEMENTATION_REVISION_6.zip
+Source checkpoint: 26b673e
+Migration: pc4_operating_context_024 -> pc5_identity_policy_audit_025
+
+Use the accepted PC4 checkout and activated xbos-track-b-b1 environment. Python
+must be 3.13.3 and resolve from `%VIRTUAL_ENV%\Scripts\python.exe`.
+
+Expand the ZIP over the repository root. Do not invoke Alembic manually. Run:
+
+    XBOS_PC5_RUN_ACCEPTANCE.cmd
+
+The gate reconstructs a disposable template0 database, proves PC0–PC5 cumulative
+integrity and PC5 security behavior, then performs controlled development adoption.
+A failing disposable database is retained for diagnosis. Complete success drops it
+and ends with `PC5_SINGLE_GATE=PASS`.
+
+The package contains no credential material, tokens, secrets, database dump, commit,
+or tag. Existing password/JWT/RBAC runtime paths remain explicit compatibility paths;
+PC5 does not silently migrate tenant users or activate support access.

@@ -39,7 +39,8 @@ class PC0KernelBoundaryTests(unittest.TestCase):
         pc2 = json.loads((directory / "pc2_party_authority.json").read_text(encoding="utf-8"))
         pc3 = json.loads((directory / "pc3_semantic_authority.json").read_text(encoding="utf-8"))
         pc4 = json.loads((directory / "pc4_operating_context_authority.json").read_text(encoding="utf-8"))
-        return baseline, inventory, (pc1["accepted_head"], pc2["accepted_head"], pc3["accepted_head"], pc4["accepted_head"])
+        pc5 = json.loads((directory / "pc5_identity_policy_audit_authority.json").read_text(encoding="utf-8"))
+        return baseline, inventory, (pc1["accepted_head"], pc2["accepted_head"], pc3["accepted_head"], pc4["accepted_head"], pc5["accepted_head"])
 
     @classmethod
     def _copy_frozen_finance(cls, destination: Path) -> tuple[dict, dict, tuple[str, ...]]:

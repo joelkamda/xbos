@@ -9,26 +9,93 @@
   "tag": "NOT_CREATED",
   "success_marker": "PC0_SINGLE_GATE=PASS",
   "artifacts": [
-    {"path":"PC0_INSTALL_MANIFEST.txt","sha256":"cd67ff31285f53961bb461f53c6db0993c7c939ba32ffc3311514b14098f1bcf"},
-    {"path":"contracts/platform/v1/pc0_module_map.json","sha256":"84e13a6903be265fbe1c3a51691a6df50115bb49e678a7e292896fecb97703b7"},
-    {"path":"contracts/platform/v1/pc0_data_authority_register.json","sha256":"c1a0b7fc9bfd8fccb215bcc4d8c85b9d0592ac31eeb1c4b3ffd553c28e63f9bd"},
-    {"path":"contracts/platform/v1/pc0_reference_authority_migration_register.json","sha256":"ff041b05b790990f78a0cc553244305793ecea63aaf5ec413ec441ec2641f241"},
-    {"path":"contracts/platform/v1/pc0_dependency_policy.json","sha256":"6124920b5b51becd41229f8326dc14889f3c0adda39d290a4eef881939b1cddf"},
-    {"path":"contracts/platform/v1/pc0_public_private_interfaces.json","sha256":"9e4562c17235e8adc7b0beab03f9bcb9cc6a589eadb9017f825682b35e767d70"},
-    {"path":"contracts/platform/v1/pc0_legacy_exception_baseline.json","sha256":"1ca75b94489ddfe899a6b93cf3fee6c6416b704735c272e39c1a9d94f97cac03"},
-    {"path":"contracts/platform/v1/pc0_composition_baseline.json","sha256":"2dce4a75ac15a807af38b740ac98a2711f6b20e44a02e391f153117d1981801d"},
-    {"path":"contracts/platform/v1/pc0_frozen_finance_baseline.json","sha256":"69b2228e41a708fbba502dc87f089b546e215bef91a89df04c79987fbd78f2fb"},
-    {"path":"contracts/platform/v1/pc0_frozen_finance_inventory.json","sha256":"8b466e2a78efe2967fbb1c8a4a8521791b1f7656c0e91e458cb9532dec85f420"},
-    {"path":"contracts/platform/v1/pc0_kernel_boundaries.json","sha256":"0d013f144789bd78fde7ec59e689e0dc9fabc3cce7733e0c87d11717f23d5ab7"},
-    {"path":"core/platform/__init__.py","sha256":"6e0df8485310a0f6ec16154bc1500a66f17cba2a489b3c285a558ae623a13d16"},
-    {"path":"core/platform/architecture_contract.py","sha256":"3627ac0ff53f9aed487e4dfb412fd03c1f156aadb34a253ad5ea81a64051edc5"},
-    {"path":"scripts/verify_pc0_kernel_boundaries.py","sha256":"87952bc5ede91f87dd7663740a2bf848221b7ff43db882d73573c81779f8ef5d"},
-    {"path":"tests/contracts/test_pc0_kernel_boundaries.py","sha256":"789617715628e9545e19679df21081ffe0b4ada0026a484c86030a2fc4adca2b"},
-    {"path":"docs/platform_core/PC0_KERNEL_BOUNDARIES.md","sha256":"84fc611556fc6e1ab4f2162d495f5a0e28b830774545ff641bc073f244f5e755"},
-    {"path":"docs/platform_core/adr/0001_AUTHORITY_OWNERSHIP_AND_REFERENCE_MIGRATION.md","sha256":"904600767bcd32d57ac60d8856ad4077d96564a2dfafe40080aa9572d9e54297"},
-    {"path":"docs/platform_core/adr/0002_MODULAR_MONOLITH_DEPENDENCY_AND_INTERFACE_LAW.md","sha256":"5480d3498478ee16d4f29e03fd1dbff8df78bb92f97a0d60a8880baf6bf67c1a"},
-    {"path":"docs/platform_core/adr/0003_COMPOSITION_ENTRYPOINT_AND_OPERABILITY.md","sha256":"5fb636d11957ee8499196554eb69694b7b08bfe07dc0728402acb73db3b37ca2"},
-    {"path":"XBOS_PC0_INSTALL_AND_VERIFY.txt","sha256":"376d5feda478a7545e875151e30d8050131f98b15e5a1ee5c9b0fd1bcb6845cb"},
-    {"path":"XBOS_PC0_RUN_ACCEPTANCE.cmd","sha256":"bca73508d6a47dc7b05463ecd070b9af678b025e3dad6eb041840a0f308942a7"}
+    {
+      "path": "PC0_INSTALL_MANIFEST.txt",
+      "sha256": "cd67ff31285f53961bb461f53c6db0993c7c939ba32ffc3311514b14098f1bcf"
+    },
+    {
+      "path": "contracts/platform/v1/pc0_module_map.json",
+      "sha256": "7f73a85016c667c67342167729be2e51ddc3bca7d02547f33b7b467b090345f5"
+    },
+    {
+      "path": "contracts/platform/v1/pc0_data_authority_register.json",
+      "sha256": "77b8ad503514a0e659f24211c956618c432522e25460eb04863915b851dc4207"
+    },
+    {
+      "path": "contracts/platform/v1/pc0_reference_authority_migration_register.json",
+      "sha256": "a76f072f1cd963cbdfc55076a22237af5f1a55e4a13adb6d0efc59ab8d86916f"
+    },
+    {
+      "path": "contracts/platform/v1/pc0_dependency_policy.json",
+      "sha256": "eda6dd5cb8aa6d43f05b276c3fe4c5118b5c599a838338558fbe6ddb87fa80c6"
+    },
+    {
+      "path": "contracts/platform/v1/pc0_public_private_interfaces.json",
+      "sha256": "537f758eaf42f24c898d31730085e2d8eb67c405930d06c349fba2a427a48423"
+    },
+    {
+      "path": "contracts/platform/v1/pc0_legacy_exception_baseline.json",
+      "sha256": "1ca75b94489ddfe899a6b93cf3fee6c6416b704735c272e39c1a9d94f97cac03"
+    },
+    {
+      "path": "contracts/platform/v1/pc0_composition_baseline.json",
+      "sha256": "2dce4a75ac15a807af38b740ac98a2711f6b20e44a02e391f153117d1981801d"
+    },
+    {
+      "path": "contracts/platform/v1/pc0_frozen_finance_baseline.json",
+      "sha256": "69b2228e41a708fbba502dc87f089b546e215bef91a89df04c79987fbd78f2fb"
+    },
+    {
+      "path": "contracts/platform/v1/pc0_frozen_finance_inventory.json",
+      "sha256": "b58527481b5979df4478faebded3ca474f7bd77940a236c3988955dd0ce56622"
+    },
+    {
+      "path": "contracts/platform/v1/pc0_kernel_boundaries.json",
+      "sha256": "0d013f144789bd78fde7ec59e689e0dc9fabc3cce7733e0c87d11717f23d5ab7"
+    },
+    {
+      "path": "core/platform/__init__.py",
+      "sha256": "6e0df8485310a0f6ec16154bc1500a66f17cba2a489b3c285a558ae623a13d16"
+    },
+    {
+      "path": "core/platform/architecture_contract.py",
+      "sha256": "d6126f44340dc53436fc80313248ee7844c64abf421166e148ab49bb763f5f84"
+    },
+    {
+      "path": "core/platform/release_integrity.py",
+      "sha256": "70723212b5358925a980d1b65405e57704f16641a1758a4cf432ca812b5f2f21"
+    },
+    {
+      "path": "scripts/verify_pc0_kernel_boundaries.py",
+      "sha256": "87952bc5ede91f87dd7663740a2bf848221b7ff43db882d73573c81779f8ef5d"
+    },
+    {
+      "path": "tests/contracts/test_pc0_kernel_boundaries.py",
+      "sha256": "c98caeeb6dfe73bfbf8f1ae2da8c0fbabaa4407999bb3e33cb321f631029a675"
+    },
+    {
+      "path": "docs/platform_core/PC0_KERNEL_BOUNDARIES.md",
+      "sha256": "84fc611556fc6e1ab4f2162d495f5a0e28b830774545ff641bc073f244f5e755"
+    },
+    {
+      "path": "docs/platform_core/adr/0001_AUTHORITY_OWNERSHIP_AND_REFERENCE_MIGRATION.md",
+      "sha256": "904600767bcd32d57ac60d8856ad4077d96564a2dfafe40080aa9572d9e54297"
+    },
+    {
+      "path": "docs/platform_core/adr/0002_MODULAR_MONOLITH_DEPENDENCY_AND_INTERFACE_LAW.md",
+      "sha256": "5480d3498478ee16d4f29e03fd1dbff8df78bb92f97a0d60a8880baf6bf67c1a"
+    },
+    {
+      "path": "docs/platform_core/adr/0003_COMPOSITION_ENTRYPOINT_AND_OPERABILITY.md",
+      "sha256": "5fb636d11957ee8499196554eb69694b7b08bfe07dc0728402acb73db3b37ca2"
+    },
+    {
+      "path": "XBOS_PC0_INSTALL_AND_VERIFY.txt",
+      "sha256": "376d5feda478a7545e875151e30d8050131f98b15e5a1ee5c9b0fd1bcb6845cb"
+    },
+    {
+      "path": "XBOS_PC0_RUN_ACCEPTANCE.cmd",
+      "sha256": "bca73508d6a47dc7b05463ecd070b9af678b025e3dad6eb041840a0f308942a7"
+    }
   ]
 }

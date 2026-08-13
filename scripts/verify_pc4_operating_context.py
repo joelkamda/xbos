@@ -1,6 +1,6 @@
 """PC4 static validation and controlled local PostgreSQL acceptance."""
 from __future__ import annotations
-import argparse,hashlib,json,os,sys
+import argparse,json,os,sys
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import contextmanager
 from datetime import date,datetime,time,timedelta,timezone
@@ -8,6 +8,7 @@ from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:sys.path.insert(0,str(ROOT))
 from core.platform.architecture_contract import validate_pc0
+from core.platform.release_integrity import verify_historical_release
 SOURCE="601a395";PREVIOUS="pc3_semantic_authority_023";HEAD="pc4_operating_context_024"
 DEV="xbos_track_b_dev";TEST="xbos_platform_core_pc4_test";LOCAL={"localhost","127.0.0.1","::1"}
 FINANCIAL=("financial_events","journal_entries","journal_lines","financial_obligations","value_sources","payment_allocations","canonical_payment_intents","payment_settlements","outbox_messages","reconciliation_controls","reconciliation_calendar_policies")
@@ -29,9 +30,7 @@ def static_verify():
     if "secret_material_forbidden" not in up or "does not dynamically import" not in up:raise RuntimeError("PC4 secret or composition boundary absent")
     pc3=(ROOT/"scripts/verify_pc3_semantic_authority.py").read_text()
     if "name,semantic_level,taxonomy_type,sort_order" not in pc3 or "'Child','domain','COMMERCE'" not in pc3:raise RuntimeError("accepted PC3 Revision 1 verifier repair not preserved")
-    for item in release["artifacts"]:
-        path=ROOT/item["path"]
-        if not path.is_file() or hashlib.sha256(path.read_bytes()).hexdigest()!=item["sha256"]:raise RuntimeError(f"PC4 release manifest mismatch={item['path']}")
+    verify_historical_release(ROOT,4)
     pc0=validate_pc0(ROOT)
     return {"status":"PASS","pc0":pc0["status"],"previous_head":PREVIOUS,"accepted_head":HEAD,"compatibility_entries":len(adoption["entries"]),"release_artifacts":len(release["artifacts"]),"pc3_revision_1":"PRESERVED"}
 
