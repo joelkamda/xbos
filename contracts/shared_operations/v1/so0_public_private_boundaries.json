@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "module_structure": {
+    "public": ["contracts/public"],
+    "internal": ["application/service", "domain"],
+    "private": ["repository/private persistence", "adapters/integrations"]
+  },
+  "cross_module_law": {
+    "allowed": "another_SO_module_contracts_public_only",
+    "forbidden": ["another_module_repository", "another_module_private_persistence", "another_module_SQL", "another_module_internal_domain", "private_Platform_Core_repository", "private_Finance_SQL"]
+  },
+  "dependency_direction": [
+    "SO_public_contract_to_Platform_Core_public_facade",
+    "SO_application_to_own_domain_and_public_contract",
+    "SO_private_repository_implements_own_public_port",
+    "SO_adapter_implements_own_public_integration_port",
+    "SO_module_to_other_SO_public_contract_only",
+    "SO_XA_projection_to_frozen_XA_contract",
+    "SO_Finance_integration_to_approved_Finance_contract_only"
+  ],
+  "wildcard_exceptions": "FORBIDDEN",
+  "future_module_dependency_declaration": "MANDATORY",
+  "runtime_dynamic_plugin_loading": "NOT_IMPLEMENTED"
+}

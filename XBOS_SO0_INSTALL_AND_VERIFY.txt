@@ -1,0 +1,13 @@
+XBOS SO0 SHARED OPERATIONS CONSTITUTIONAL FOUNDATION
+Source checkpoint: 56cbbb8a220fe881fcceb05b4e217e0b6c79da3c
+Source tag: xa-frontend-experience-architecture-gate-20260813
+Migration: NONE (accepted head remains pc5_identity_policy_audit_025)
+
+1. Start from the exact source checkpoint with a clean working tree.
+2. Expand XBOS_SO0_SHARED_OPERATIONS_CONSTITUTION.zip at the repository root with -Force.
+3. Activate the approved Python 3.13.3 environment; do not install dependencies.
+4. Run XBOS_SO0_RUN_ACCEPTANCE.cmd.
+5. Accept only SO0_SINGLE_GATE=PASS.
+
+The package adds constitutional contracts, dependency-free validation, documentation,
+verification and tests. It contains no migration and no SO1+, PK, PA or frontend implementation.

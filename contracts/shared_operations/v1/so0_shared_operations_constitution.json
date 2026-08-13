@@ -1,0 +1,75 @@
+{
+  "schema_version": 1,
+  "constitution": "xbos.shared-operations.so0.v1",
+  "source_checkpoint": "56cbbb8a220fe881fcceb05b4e217e0b6c79da3c",
+  "migration": "NONE",
+  "accepted_head": "pc5_identity_policy_audit_025",
+  "constitutional_rule": {
+    "platform_core": "who_where_semantics_configuration_business_time_permission_audit",
+    "shared_operations": "reusable_operational_truth_and_execution_capabilities",
+    "packs_templates": "industry_meaning_and_composition",
+    "finance": "financial_truth",
+    "frontend": "presentation_and_operation_through_XA"
+  },
+  "domains": [
+    {"code": "SO1", "name": "Atomic Units, catalog, offers and pricing", "owner": "Shared Operations SO1", "implementation_status": "NOT_IMPLEMENTED"},
+    {"code": "SO2", "name": "CRM and operational Party relationships", "owner": "Shared Operations SO2", "implementation_status": "NOT_IMPLEMENTED"},
+    {"code": "SO3", "name": "Inventory and stock movement", "owner": "Shared Operations SO3", "implementation_status": "NOT_IMPLEMENTED"},
+    {"code": "SO4", "name": "Procurement and supplier operations", "owner": "Shared Operations SO4", "implementation_status": "NOT_IMPLEMENTED"},
+    {"code": "SO5", "name": "Resources and operational assignment", "owner": "Shared Operations SO5", "implementation_status": "NOT_IMPLEMENTED"},
+    {"code": "SO6", "name": "Workflows, tasks and operational approvals", "owner": "Shared Operations SO6", "implementation_status": "NOT_IMPLEMENTED"},
+    {"code": "SO7", "name": "Documents, files, evidence and search", "owner": "Shared Operations SO7", "implementation_status": "NOT_IMPLEMENTED"},
+    {"code": "SO8", "name": "Communications, notifications, integration delivery and offline support", "owner": "Shared Operations SO8", "implementation_status": "NOT_IMPLEMENTED"},
+    {"code": "SO9", "name": "Operational reporting, read models and automation support", "owner": "Shared Operations SO9", "implementation_status": "NOT_IMPLEMENTED"},
+    {"code": "SO10", "name": "Scheduling, appointments, reservations and service execution", "owner": "Shared Operations SO10", "implementation_status": "NOT_IMPLEMENTED"}
+  ],
+  "external_authorities": [
+    {"authority": "PC1", "owns": ["tenant", "organization_unit", "legal_entity", "location"]},
+    {"authority": "PC2", "owns": ["party", "person_identity", "organization_identity", "party_reference"]},
+    {"authority": "PC3", "owns": ["semantic_identity", "taxonomy", "classification"]},
+    {"authority": "PC4", "owns": ["typed_configuration", "module_context", "entitlement_context", "feature_flags", "business_time"]},
+    {"authority": "PC5", "owns": ["global_identity", "membership", "session", "permission", "authorization", "approval_policy", "generic_audit"]},
+    {"authority": "Neutral Finance", "owns": ["financial_truth", "financial_source_identity", "financial_idempotency", "financial_outbox", "posting", "settlement", "obligation", "reconciliation"]},
+    {"authority": "XA", "owns": ["frontend_experience_architecture"]},
+    {"authority": "PK", "owns": ["pack_manifest", "dependency_graph", "pack_lifecycle", "template_inheritance", "template_registry", "template_upgrade"]}
+  ],
+  "authority_law": {
+    "rule": "consume_platform_core_authority_never_duplicate_it",
+    "forbidden_so_authorities": ["tenant", "organization_unit", "legal_entity", "location", "person_identity", "organization_identity", "semantic_identity", "taxonomy_identity", "permission", "role_engine", "business_calendar", "generic_audit", "financial_journal", "settlement", "obligation", "reconciliation"]
+  },
+  "identifier_law": ["stable_public_id_across_boundaries", "explicit_tenant_context", "explicit_authority_type", "public_contract_cross_module_reference", "table_local_integer_ids_never_imply_same_entity", "no_industry_specific_identifier"],
+  "lifecycle_law": ["created_updated_timestamps", "actor_identity_attribution", "tenant_org_location_scope", "explicit_status", "effective_dates_when_required", "cancel_void_reverse_correct_are_distinct", "append_only_history_when_historical_truth_matters", "optimistic_concurrency_when_required", "no_universal_state_machine"],
+  "command_query_fact_law": {
+    "command": "requested_operational_change",
+    "query": "read_or_projection_without_mutation",
+    "operational_fact": "accepted_operational_domain_truth",
+    "command_requirements": ["validate_tenant_scope", "authorize_through_PC5", "resolve_relevant_PC4_context", "reference_PC3_semantics", "reject_cross_tenant_references", "deterministic_result_or_error"],
+    "query_rule": "never_a_mutation_backdoor"
+  },
+  "delivery_boundary": {
+    "finance_retains": ["financial_source_identity", "financial_idempotency", "transactional_outbox", "settlement_posting_atomicity"],
+    "SO8_future_scope": ["operational_command_idempotency", "delivery_jobs", "retries", "notifications", "integration_delivery", "offline_synchronization"],
+    "SO9_future_scope": ["operational_reporting", "read_models", "report_automation"],
+    "implementation": "NONE",
+    "rule": "shared_operations_must_not_weaken_finance_atomicity"
+  },
+  "finance_boundary": {
+    "equation": "operational_fact_not_equal_financial_event",
+    "allowed": ["emit_operational_evidence_through_approved_contract"],
+    "forbidden": ["invent_revenue", "invent_expense", "invent_settlement", "invent_accounts_receivable", "invent_accounts_payable", "private_SQL_journal_posting", "infer_reconciliation_truth", "redefine_financial_event_semantics"]
+  },
+  "party_boundary": {"identity_owner": "PC2", "SO_may_own": ["customer_account_relationship", "supplier_relationship", "assigned_worker_resource_relationship"], "competing_identity_system": "FORBIDDEN"},
+  "atomic_unit_boundary": {"canonical_future_owner": "SO1", "SO0_persistence_change": "NONE", "legacy_atomic_units": "PRESERVE_FOR_SO1_ADOPTION_OR_MAPPING", "legacy_taxonomy_bridge": "PRESERVE_FOR_SO1_ADOPTION_OR_MAPPING"},
+  "security_isolation": ["tenant_isolation_fail_closed", "org_location_scope_enforced", "server_side_permission_check", "no_role_name_shortcut", "no_frontend_trust", "global_identity_does_not_imply_access", "audit_through_PC5", "secrets_never_in_normal_contracts"],
+  "neutrality": {
+    "active_industry_defaults_forbidden": ["legacy_tenant_code", "legacy_business_name", "legacy_neighborhood", "restaurant_only_terminology", "hospitality_only_workflow", "country_specific_payment_assumption"],
+    "historical_compatibility": "allowed_only_when_named_and_documented",
+    "industry_meaning_owner": "PK_and_industry_packs"
+  },
+  "compatibility_provenance": [
+    {"frozen_reference": "PC0 atomic_unit owner SO0", "constitutional_interpretation": "SO0 was the Shared Operations program placeholder; implementation authority is SO1", "data_change": "NONE"},
+    {"frozen_reference": "PC0 generic_delivery_jobs_offline owner SO9", "constitutional_interpretation": "delivery/retry/offline capabilities are SO8; SO9 retains reporting/read-model automation", "data_change": "NONE"}
+  ],
+  "production_dependency_authority": {"python": "3.13.3", "manifest": "requirements-prod.txt", "changes": "NONE"},
+  "scope_exclusions": ["SO1_through_SO10_features", "PK", "PA", "frontend", "legacy_tenant_cutover", "Finance_redesign", "database_migration"]
+}

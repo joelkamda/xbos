@@ -1,0 +1,18 @@
+XBOS SO0 SHARED OPERATIONS CONSTITUTIONAL FOUNDATION
+Source checkpoint: 56cbbb8a220fe881fcceb05b4e217e0b6c79da3c
+Migration: NONE
+Files: 13
+
+SO0_INSTALL_MANIFEST.txt
+XBOS_SO0_INSTALL_AND_VERIFY.txt
+XBOS_SO0_RUN_ACCEPTANCE.cmd
+contracts/shared_operations/v1/so0_module_contract.json
+contracts/shared_operations/v1/so0_public_private_boundaries.json
+contracts/shared_operations/v1/so0_release_manifest.json
+contracts/shared_operations/v1/so0_shared_operations_constitution.json
+docs/shared_operations/SO0_SHARED_OPERATIONS_CONSTITUTION.md
+docs/shared_operations/adr/0011_SO0_AUTHORITY_MODULE_AND_FINANCE_BOUNDARIES.md
+shared_operations_contracts/__init__.py
+shared_operations_contracts/constitution.py
+scripts/verify_so0_shared_operations.py
+tests/contracts/test_so0_shared_operations_constitution.py

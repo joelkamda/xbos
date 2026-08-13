@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "release": "XBOS_SO0_SHARED_OPERATIONS_CONSTITUTION",
+  "source_checkpoint": "56cbbb8",
+  "source_checkpoint_full": "56cbbb8a220fe881fcceb05b4e217e0b6c79da3c",
+  "source_tag": "xa-frontend-experience-architecture-gate-20260813",
+  "previous_head": "pc5_identity_policy_audit_025",
+  "accepted_head": "pc5_identity_policy_audit_025",
+  "migration": "NONE",
+  "fingerprint_mode": "sha256_crlf_to_lf_only",
+  "commit": "NOT_CREATED",
+  "tag": "NOT_CREATED",
+  "artifacts": [
+    {"path": "SO0_INSTALL_MANIFEST.txt", "sha256": "ccfd035da66e8dfd8abd321343da949b895b2532c2a4de7e75c1d2cb9fd6120d"},
+    {"path": "XBOS_SO0_INSTALL_AND_VERIFY.txt", "sha256": "9dfad145b6c150388407562d91ffdf9faa5a91eeabcf5658c778f425e9b52767"},
+    {"path": "XBOS_SO0_RUN_ACCEPTANCE.cmd", "sha256": "1a6043e27bae069d1687426a8f58c1284441eefecb5a38ad117bcfb8eeebef59"},
+    {"path": "contracts/shared_operations/v1/so0_module_contract.json", "sha256": "fd2742916b64991ae738792dcad7f1136f084a7a1688090183cf1d6acc84f3ef"},
+    {"path": "contracts/shared_operations/v1/so0_public_private_boundaries.json", "sha256": "aa68bdb31b25979e72478b8794c78671a5175c7bde1d0f241ea220a6dcf9c1dd"},
+    {"path": "contracts/shared_operations/v1/so0_shared_operations_constitution.json", "sha256": "18b8fb8ac074847c9901e25ef57d84d9e523d58ec3757a919adabfb69e4482fe"},
+    {"path": "docs/shared_operations/SO0_SHARED_OPERATIONS_CONSTITUTION.md", "sha256": "7bb08776e71d1b10a7cad0423f1b90bbb0f9e3f884d8e01a8698c366ebbdeae4"},
+    {"path": "docs/shared_operations/adr/0011_SO0_AUTHORITY_MODULE_AND_FINANCE_BOUNDARIES.md", "sha256": "fb455d8f7ffc4a68e4c95c3a288259640bb553038d0eb036a9b11421fe645cc6"},
+    {"path": "shared_operations_contracts/__init__.py", "sha256": "2e83830abda01681449dfe49fd804ba09cb568d1ba59de7d5f129e4a50c2a9f6"},
+    {"path": "shared_operations_contracts/constitution.py", "sha256": "639089e9c422dde3f8bf7e9b40b0157a7882b923c438635adff46f28c12240f0"},
+    {"path": "scripts/verify_so0_shared_operations.py", "sha256": "eab77ae9ccf551cd52bdb793dcdbd549fc90b61910ef60816b7900ef44e3dd58"},
+    {"path": "tests/contracts/test_so0_shared_operations_constitution.py", "sha256": "51ec45c8b9b3eb557b71f46c544809dc1df196215cf13d2967e4280735ca454a"}
+  ]
+}

@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "contract": "xbos.shared-operations.module-declaration.v1",
+  "required_fields": ["module_code", "name", "capability_codes", "public_commands", "public_queries", "operational_facts", "platform_authorities", "finance_integration_points", "required_permissions", "configuration_dependencies", "semantic_dependencies", "xa_hooks", "lifecycle", "pack_declaration_hooks", "ownership_classification"],
+  "field_law": {
+    "module_code": {"pattern": "^SO(?:[1-9]|10)$", "stable": true},
+    "capability_codes": {"unique": true, "minimum": 1},
+    "public_commands": {"command_law_required": true},
+    "public_queries": {"mutation_forbidden": true},
+    "operational_facts": {"financial_event_equivalence": "FORBIDDEN"},
+    "platform_authorities": {"minimum_required": ["PC1", "PC3", "PC4", "PC5"], "PC2_required_when_party_referenced": true},
+    "finance_integration_points": {"private_SQL": "FORBIDDEN", "approved_contracts_only": true},
+    "required_permissions": {"server_enforcement": "PC5"},
+    "configuration_dependencies": {"owner": "PC4"},
+    "semantic_dependencies": {"owner": "PC3"},
+    "xa_hooks": {"allowed": ["navigation", "actions", "work_queue", "configuration", "dashboard", "documents", "search", "offline"], "owner": "XA"},
+    "lifecycle": {"required": ["contract_version", "status"]},
+    "pack_declaration_hooks": {"declaration_only": true, "dynamic_plugin_engine": "FORBIDDEN"},
+    "ownership_classification": {"const": "shared_operations"}
+  },
+  "error_contract": {
+    "required": ["code", "category", "safe_explanation", "retryable", "details"],
+    "frontend_behavior": "stable_code_only_never_parse_human_text",
+    "categories": ["validation_failure", "not_found", "scope_mismatch", "permission_denied", "approval_required", "step_up_required", "conflict", "stale_version", "unavailable_capability", "invalid_state_transition", "dependency_unavailable"]
+  },
+  "pack_template_hooks": ["required_capabilities", "required_semantics", "suggested_configuration_defaults", "enabled_workflows", "composition_references"],
+  "pack_implementation": "NONE",
+  "example": {
+    "module_code": "SO10", "name": "Scheduling declaration", "capability_codes": ["scheduling.read"],
+    "public_commands": [], "public_queries": ["ScheduleQuery"], "operational_facts": [],
+    "platform_authorities": ["PC1", "PC3", "PC4", "PC5"], "finance_integration_points": [],
+    "required_permissions": ["scheduling.read"], "configuration_dependencies": [], "semantic_dependencies": [],
+    "xa_hooks": ["navigation", "actions"], "lifecycle": {"contract_version": 1, "status": "declaration_only"},
+    "pack_declaration_hooks": ["required_capabilities", "required_semantics"], "ownership_classification": "shared_operations"
+  }
+}
