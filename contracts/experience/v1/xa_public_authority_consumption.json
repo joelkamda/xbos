@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "consumer": "XA frontend experience contracts",
+  "mode": "approved_public_facades_only",
+  "interfaces": [
+    {"authority": "PC1", "facade": "core.platform.structure", "operations": ["StructuralAuthority.resolve", "StructuralAuthority.export"]},
+    {"authority": "PC2", "facade": "core.platform.party", "operations": ["PartyAuthority.resolve_reference", "PartyAuthority.export"]},
+    {"authority": "PC3", "facade": "core.platform.semantics", "operations": ["SemanticAuthority.resolve", "SemanticAuthority.export"]},
+    {"authority": "PC4", "facade": "core.platform.operating_context", "operations": ["OperatingContextAuthority.resolve", "OperatingContextAuthority.capability_context", "BusinessTimeResolver.resolve", "OperatingContextAuthority.export"]},
+    {"authority": "PC5", "facade": "core.platform.security_authority", "operations": ["SecurityAuthority.authorize", "SecurityAuthority.query_audit", "SecurityAuthority.export_identity"]}
+  ],
+  "forbidden_consumption": ["private table identity", "private SQL statement", "repository implementation import", "legacy tenant authority", "frontend-owned truth"],
+  "adapter_behavior": "read_only_projection_and_reference_mapping",
+  "writes": "NONE"
+}

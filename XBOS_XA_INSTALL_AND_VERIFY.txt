@@ -1,0 +1,12 @@
+XBOS XA FRONTEND EXPERIENCE ARCHITECTURE GATE
+Source checkpoint: 9ce8c1a5746ec7607636d6a9be20102194e9f230
+Migration: NONE (accepted head remains pc5_identity_policy_audit_025)
+
+1. Start from the exact accepted source checkpoint with a clean working tree.
+2. Expand XBOS_XA_FRONTEND_EXPERIENCE_ARCHITECTURE_GATE.zip at the repository root with -Force.
+3. Activate the approved Python 3.13.3 environment. Do not install a frontend toolchain.
+4. Run XBOS_XA_RUN_ACCEPTANCE.cmd.
+5. Accept only XA_SINGLE_GATE=PASS.
+
+This package adds contracts, examples, schema-neutral DTO validation, documentation,
+verification and conformance tests. It adds no migration, UI, React, SO, PK, PA, or WND cutover.

@@ -1,0 +1,32 @@
+{
+  "schema_version": "xa.frontend-experience.v1",
+  "profile_id": "northstar-merchant-admin",
+  "portal_context": {
+    "portal_kind": "merchant_admin",
+    "identity": {"identity_id": "id-northstar-1", "platform_authority": false},
+    "membership": {"tenant_id": "tenant-northstar", "membership_id": "membership-81"},
+    "structural_context": {"scope_type": "tenant", "organization_unit_id": "ou-community-services", "legal_entity_id": "le-northstar-coop", "location_id": "loc-toronto-virtual"},
+    "locale": "en-CA", "timezone": "America/Toronto", "business_date": {"value": "2026-08-13", "source_authority": "PC4"},
+    "active_modules": ["people", "scheduling"], "capabilities": ["people.read", "schedule.manage"]
+  },
+  "navigation": [{
+    "route_id": "merchant.people", "path_template": "/workspace/people", "module": "people", "visible": true, "permission": "people.read", "entitlement": "people", "feature_flag": "people-directory", "profiles": ["northstar-merchant-admin"], "can_invoke": false,
+    "authorization": {"decision": "deny", "reason_code": "MISSING_SCOPE", "explanation": "The active organization unit is outside the assignment.", "missing_permission": null, "missing_scope": "organization_unit:ou-community-services", "unavailable": null, "source_authority": "PC5"}
+  }],
+  "configuration": [
+    {"key": "scheduling.day_boundary", "field_type": "time", "scope": "tenant", "effective_value": "04:30:00", "value_source": "tenant_override", "inherited": false, "editable": true, "validation": {"required": true, "format": "time"}, "terminology_key": "schedule.day_boundary", "secret": false, "value_exposed": true},
+    {"key": "integration.api_secret", "field_type": "secret", "scope": "tenant", "effective_value": null, "value_source": "tenant_secret_store", "inherited": false, "editable": true, "validation": {"write_only": true}, "terminology_key": "integration.api_secret", "secret": true, "value_exposed": false}
+  ],
+  "actions": [{
+    "action_id": "schedule.publish", "source_authority": "SO", "from_states": ["draft"], "to_state": "published", "required_permission": "schedule.publish", "approval": {"policy_reference": "approval:schedule-publish"}, "step_up": null,
+    "execution": {"mode": "asynchronous", "offline": "online_only"},
+    "authorization": {"decision": "approval_required", "reason_code": "APPROVAL_POLICY", "explanation": "A configured approval must complete before publication.", "approval": {"policy_reference": "approval:schedule-publish"}, "source_authority": "PC5"}
+  }],
+  "work_queue": [{"work_item_id": "work-ns-10", "type": "schedule_approval", "priority": "normal", "assignee": "role:operations-manager", "scope": {"type": "tenant", "id": "tenant-northstar"}, "status": "waiting", "due_at": "2026-08-14T16:00:00Z", "available_actions": ["schedule.publish"], "source_authority": "SO"}],
+  "dashboard": [{"widget_id": "today-services", "projection": true, "source_authority": "SO", "refresh": {"mode": "event", "max_age_seconds": 300}, "as_of": "2026-08-13T12:00:00Z", "permission_filter": "schedule.read", "states": ["empty", "error", "stale", "ready"]}],
+  "documents": [{"document_id": "doc-ns-10", "document_type": "service_schedule", "rendering": {"media_type": "application/pdf", "download_name": "service-schedule.pdf"}, "allowed_actions": ["view", "download"], "permission_reference": "schedule.read", "evidence_references": [], "source_authority": "SO7"}],
+  "search": [{"result_id": "person:101", "category": "party", "tenant_id": "tenant-northstar", "scope": {"type": "organization_unit", "id": "ou-community-services"}, "permitted_actions": ["view"], "source_authority": "PC2", "authorization": {"decision": "allow", "reason_code": "AUTHORIZED", "explanation": "Tenant-scoped party read assignment is active.", "source_authority": "PC5"}}],
+  "offline": [{"operation_id": "schedule.read", "mode": "read_only_cache", "server_truth": "SO", "conflict_state": "stale", "retry": {"mode": "refresh_on_reconnect"}, "idempotency": false}],
+  "composition": {"template_profile_reference": "future-pk:community-services-admin", "terminology": {"party": "Community Member", "location": "Service Site"}, "layout_regions": ["tenant-navigation", "approval-inbox", "work-area"], "module_slots": ["people", "scheduling"], "engine_implemented": false},
+  "frontend_authorities": []
+}

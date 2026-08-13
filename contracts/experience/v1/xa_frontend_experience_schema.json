@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:xbos:xa:frontend-experience:v1",
+  "title": "XBOS XA frontend experience envelope",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "profile_id", "portal_context", "navigation", "configuration", "actions", "work_queue", "dashboard", "documents", "search", "offline", "composition", "frontend_authorities"],
+  "properties": {
+    "schema_version": {"const": "xa.frontend-experience.v1"},
+    "profile_id": {"type": "string", "minLength": 1},
+    "portal_context": {"type": "object"},
+    "navigation": {"type": "array", "items": {"type": "object"}},
+    "configuration": {"type": "array", "items": {"type": "object"}},
+    "actions": {"type": "array", "items": {"type": "object"}},
+    "work_queue": {"type": "array", "items": {"type": "object"}},
+    "dashboard": {"type": "array", "items": {"type": "object"}},
+    "documents": {"type": "array", "items": {"type": "object"}},
+    "search": {"type": "array", "items": {"type": "object"}},
+    "offline": {"type": "array", "items": {"type": "object"}},
+    "composition": {"type": "object"},
+    "frontend_authorities": {"type": "array", "maxItems": 0}
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "contract": "xa.frontend-experience.v1",
+  "source_checkpoint": "9ce8c1a5746ec7607636d6a9be20102194e9f230",
+  "constitutional_rule": {
+    "kernel": "truth",
+    "modules": "capabilities",
+    "template": "composition",
+    "merchant_configuration": "customization",
+    "frontend": "presentation_and_operation"
+  },
+  "contracts": [
+    {"id": "portal_context", "required": ["portal_kind", "identity", "membership", "structural_context", "locale", "timezone", "business_date", "active_modules", "capabilities"], "authorities": ["PC1", "PC4", "PC5"]},
+    {"id": "navigation", "required": ["route_id", "path_template", "module", "visible", "permission", "entitlement", "feature_flag", "profiles", "authorization"], "rule": "visibility_never_grants_authorization", "authorities": ["PC4", "PC5"]},
+    {"id": "permission_explanation", "decisions": ["allow", "deny", "approval_required", "step_up_required"], "required": ["reason_code", "explanation", "source_authority"], "rule": "frontend_never_infers_authorization", "authority": "PC5"},
+    {"id": "typed_configuration", "required": ["field_type", "scope", "effective_value", "value_source", "inherited", "editable", "validation", "terminology_key", "secret"], "rule": "secret_value_never_exposed", "authority": "PC4"},
+    {"id": "action_workflow", "required": ["action_id", "from_states", "to_state", "required_permission", "approval", "step_up", "execution", "authorization", "source_authority"], "rule": "frontend_never_invents_transitions"},
+    {"id": "work_queue", "required": ["work_item_id", "type", "priority", "assignee", "scope", "status", "due_at", "available_actions", "source_authority"], "future_owner": "Shared Operations"},
+    {"id": "dashboard", "required": ["widget_id", "projection", "source_authority", "refresh", "as_of", "permission_filter", "states"], "states": ["empty", "error", "stale", "ready"], "rule": "projection_never_canonical_truth"},
+    {"id": "document_rendering", "required": ["document_id", "document_type", "rendering", "allowed_actions", "permission_reference", "evidence_references", "source_authority"], "future_owner": "SO7"},
+    {"id": "search_command", "required": ["result_id", "category", "tenant_id", "scope", "permitted_actions", "authorization", "source_authority"], "rule": "no_authorization_bypass"},
+    {"id": "responsive_mobile_pos_offline", "modes": ["online_only", "read_only_cache", "queueable"], "required": ["server_truth", "conflict_state", "retry", "idempotency"], "future_owner": "SO9"},
+    {"id": "template_composition_readiness", "required": ["template_profile_reference", "terminology", "layout_regions", "module_slots"], "rule": "consume_future_PK_composition_without_implementing_PK"},
+    {"id": "frontend_authority_boundary", "forbidden": ["permissions", "financial_semantics", "party_identity", "taxonomy_semantic_identity", "workflow_transition_legality", "reconciliation_truth", "business_date_truth", "audit_truth", "entitlement_truth"]}
+  ],
+  "scope_exclusions": ["frontend_implementation", "react", "page_layouts", "css", "design_system", "shared_operations", "pack_template_engine", "provisioning_automation", "wnd_cutover"],
+  "migration": "NONE"
+}

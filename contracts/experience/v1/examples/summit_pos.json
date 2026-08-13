@@ -1,0 +1,29 @@
+{
+  "schema_version": "xa.frontend-experience.v1",
+  "profile_id": "summit-mobile-pos",
+  "portal_context": {
+    "portal_kind": "pos",
+    "identity": {"identity_id": "id-summit-9", "platform_authority": false},
+    "membership": {"tenant_id": "tenant-summit", "membership_id": "membership-209"},
+    "structural_context": {"scope_type": "location", "organization_unit_id": "ou-field-ops", "legal_entity_id": "le-summit-services", "location_id": "loc-nairobi-depot"},
+    "locale": "sw-KE", "timezone": "Africa/Nairobi", "business_date": {"value": "2026-08-13", "source_authority": "PC4"},
+    "active_modules": ["field_orders", "payments"], "capabilities": ["order.read", "order.capture_offline"]
+  },
+  "navigation": [{
+    "route_id": "pos.orders", "path_template": "/pos/orders", "module": "field_orders", "visible": true, "permission": "order.read", "entitlement": "field-orders", "feature_flag": "mobile-order-capture", "profiles": ["summit-mobile-pos"], "can_invoke": true,
+    "authorization": {"decision": "allow", "reason_code": "AUTHORIZED", "explanation": "Location-scoped order read is authorized.", "source_authority": "PC5"}
+  }],
+  "configuration": [{"key": "receipt.label", "field_type": "localized_text", "scope": "location", "effective_value": "Stakabadhi", "value_source": "location_override", "inherited": false, "editable": true, "validation": {"max_length": 40}, "terminology_key": "receipt.label", "secret": false, "value_exposed": true}],
+  "actions": [{
+    "action_id": "order.capture", "source_authority": "SO", "from_states": ["new"], "to_state": "submitted", "required_permission": "order.capture", "approval": null, "step_up": null,
+    "execution": {"mode": "asynchronous", "offline": "queueable", "idempotency_key_required": true, "retry_policy": "server_directed", "conflict_policy": "surface_server_conflict"},
+    "authorization": {"decision": "allow", "reason_code": "AUTHORIZED", "explanation": "The cached signed authorization envelope permits queuing, subject to server revalidation.", "source_authority": "PC5"}
+  }],
+  "work_queue": [{"work_item_id": "work-summit-5", "type": "order_delivery", "priority": "urgent", "assignee": "id-summit-9", "scope": {"type": "location", "id": "loc-nairobi-depot"}, "status": "assigned", "due_at": "2026-08-13T15:00:00Z", "available_actions": ["order.capture"], "source_authority": "SO"}],
+  "dashboard": [{"widget_id": "route-progress", "projection": true, "source_authority": "SO", "refresh": {"mode": "on_reconnect", "max_age_seconds": 900}, "as_of": "2026-08-13T11:45:00Z", "permission_filter": "order.read", "states": ["empty", "error", "stale", "ready"]}],
+  "documents": [{"document_id": "doc-summit-5", "document_type": "delivery_receipt", "rendering": {"media_type": "application/pdf", "download_name": "receipt.pdf"}, "allowed_actions": ["view"], "permission_reference": "order.read", "evidence_references": ["evidence:delivery:5"], "source_authority": "SO7"}],
+  "search": [{"result_id": "order:5", "category": "work_item", "tenant_id": "tenant-summit", "scope": {"type": "location", "id": "loc-nairobi-depot"}, "permitted_actions": ["order.capture"], "source_authority": "SO", "authorization": {"decision": "allow", "reason_code": "AUTHORIZED", "explanation": "The result is tenant- and location-scoped.", "source_authority": "PC5"}}],
+  "offline": [{"operation_id": "order.capture", "mode": "queueable", "server_truth": "SO", "conflict_state": "requires_operator_resolution", "retry": {"mode": "server_directed", "maximum_attempts": 5}, "idempotency": true}],
+  "composition": {"template_profile_reference": "future-pk:field-services-pos", "terminology": {"work_item": "Delivery", "location": "Depot"}, "layout_regions": ["status-strip", "task-list", "primary-action"], "module_slots": ["field-orders", "payments"], "engine_implemented": false},
+  "frontend_authorities": []
+}

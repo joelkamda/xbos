@@ -1,0 +1,21 @@
+XBOS XA FRONTEND EXPERIENCE ARCHITECTURE GATE
+Source checkpoint: 9ce8c1a5746ec7607636d6a9be20102194e9f230
+Migration: NONE
+Files: 16
+
+XA_INSTALL_MANIFEST.txt
+XBOS_XA_INSTALL_AND_VERIFY.txt
+XBOS_XA_RUN_ACCEPTANCE.cmd
+contracts/experience/v1/examples/northstar_merchant_admin.json
+contracts/experience/v1/examples/platform_operator.json
+contracts/experience/v1/examples/summit_pos.json
+contracts/experience/v1/xa_frontend_experience_contract.json
+contracts/experience/v1/xa_frontend_experience_schema.json
+contracts/experience/v1/xa_public_authority_consumption.json
+contracts/experience/v1/xa_release_manifest.json
+docs/experience/XA_FRONTEND_EXPERIENCE_ARCHITECTURE_GATE.md
+docs/experience/adr/0010_XA_FRONTEND_AUTHORITY_AND_COMPOSITION_BOUNDARY.md
+experience_contracts/__init__.py
+experience_contracts/contracts.py
+scripts/verify_xa_frontend_experience_architecture.py
+tests/contracts/test_xa_frontend_experience_architecture.py
