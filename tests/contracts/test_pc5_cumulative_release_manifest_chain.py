@@ -22,15 +22,16 @@ CONTRACTS=ROOT/"contracts/platform/v1"
 def _json(name):return json.loads((CONTRACTS/name).read_text(encoding="utf-8"))
 
 
-def test_every_historical_release_resolves_exactly_through_pc5():
-    reports=[verify_historical_release(ROOT,number) for number in range(1,5)]
-    assert [x["latest"] for x in reports]==[5,5,5,5]
+def test_every_historical_release_resolves_exactly_through_latest_descendant():
+    current,_=latest_release(ROOT)
+    reports=[verify_historical_release(ROOT,number) for number in range(1,current)]
+    assert [x["latest"] for x in reports]==[current]*(current-1)
     assert all(x["replacement_count"]>0 for x in reports)
 
 
-def test_pc5_latest_manifest_exactly_fingerprints_canonical_current_sources():
+def test_latest_manifest_exactly_fingerprints_canonical_current_sources():
     number,manifest=latest_release(ROOT)
-    assert number==5 and verify_latest_release(ROOT)["artifact_count"]==len(manifest["artifacts"])
+    assert number>=5 and verify_latest_release(ROOT)["artifact_count"]==len(manifest["artifacts"])
     policy=fingerprint_policy(manifest)
     assert policy["text_normalization"]=="crlf_to_lf_only" and policy["binary_normalization"]=="exact_bytes"
 
@@ -82,10 +83,12 @@ def test_pc4_historical_hash_is_preserved_and_latest_replacement_is_canonical():
 
 
 def test_pc5_sql_wrapper_and_release_metadata_mutations_fail():
-    artifacts={x["path"]:x["sha256"] for x in _json("pc5_release_manifest.json")["artifacts"]}
+    _,latest=latest_release(ROOT)
+    historical={x["path"]:x["sha256"] for x in _json("pc5_release_manifest.json")["artifacts"]}
+    replacements={x["path"]:x["descendant_sha256"] for x in latest["historical_pc5_replacements"]}
     for path in ("alembic_neutral/sql/pc5_identity_policy_audit_up.sql","alembic_neutral/versions/pc5_identity_policy_audit_025_canonical_security_authority.py","contracts/platform/v1/pc0_frozen_finance_inventory.json"):
         mutated=canonical_bytes((ROOT/path).read_bytes()+b"unauthorized",artifact_kind="text")
-        assert hashlib.sha256(mutated).hexdigest()!=artifacts[path]
+        assert hashlib.sha256(mutated).hexdigest()!=replacements.get(path,historical[path])
 
 
 def test_frozen_finance_baseline_content_and_heads_remain_immutable():

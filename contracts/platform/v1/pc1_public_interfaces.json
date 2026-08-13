@@ -7,6 +7,8 @@
     "core.platform.structure.OrganizationUnit",
     "core.platform.structure.LegalEntity",
     "core.platform.structure.Location",
+    "core.platform.structure.LocationKind",
+    "core.platform.structure.ProvisionTenant",
     "core.platform.structure.StructuralContext",
     "core.platform.structure.StructuralAuthority",
     "core.platform.structure.SQLStructuralRepository"

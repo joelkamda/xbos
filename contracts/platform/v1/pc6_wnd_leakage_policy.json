@@ -1,0 +1,10 @@
+{
+  "schema_version": 1,
+  "active_roots": ["core/platform", "main.py", "app.py", "startup.py", "database.py", "settings.py"],
+  "patterns": ["\\bWND\\b", "Wine\\s*&\\s*Dine", "Logpom", "8-to-8", "6\\s*p\\.?m\\.?"],
+  "allowed_active_references": [
+    {"path": "core/platform/neutral_proof/service.py", "marker": "wnd_profile_forbidden", "classification": "proof guard rejecting WND as the neutral second-tenant profile"}
+  ],
+  "historical_compatibility_roots": ["contracts/platform", "docs/platform_core", "core/domain/finance", "tests"],
+  "rule": "no WND-specific literal may select active neutral structure, defaults, calendar, taxonomy, permissions or runtime behavior"
+}

@@ -15,7 +15,7 @@
     },
     {
       "path": "contracts/platform/v1/pc0_module_map.json",
-      "sha256": "7f73a85016c667c67342167729be2e51ddc3bca7d02547f33b7b467b090345f5"
+      "sha256": "4445c561a8248b17ead5195816a6e3df382f9df9027429c1171bd4daab8d8eb5"
     },
     {
       "path": "contracts/platform/v1/pc0_data_authority_register.json",
@@ -23,15 +23,15 @@
     },
     {
       "path": "contracts/platform/v1/pc0_reference_authority_migration_register.json",
-      "sha256": "a76f072f1cd963cbdfc55076a22237af5f1a55e4a13adb6d0efc59ab8d86916f"
+      "sha256": "f44298b9e100c3b439d3b0ab40dba92fbc83a90b2f7c304f0e6a6c959e396b37"
     },
     {
       "path": "contracts/platform/v1/pc0_dependency_policy.json",
-      "sha256": "eda6dd5cb8aa6d43f05b276c3fe4c5118b5c599a838338558fbe6ddb87fa80c6"
+      "sha256": "8371f72f471a6fd7f767e9e446eb20f65be85fb56a77db91709a58ad15215910"
     },
     {
       "path": "contracts/platform/v1/pc0_public_private_interfaces.json",
-      "sha256": "537f758eaf42f24c898d31730085e2d8eb67c405930d06c349fba2a427a48423"
+      "sha256": "8849fba868b2fb7806a10d2e2a7454903c1e6ff718f87cd6e2b6992847e383b3"
     },
     {
       "path": "contracts/platform/v1/pc0_legacy_exception_baseline.json",
@@ -39,7 +39,7 @@
     },
     {
       "path": "contracts/platform/v1/pc0_composition_baseline.json",
-      "sha256": "2dce4a75ac15a807af38b740ac98a2711f6b20e44a02e391f153117d1981801d"
+      "sha256": "befdec312345164fac24aae67824ebd5bdf6ef861fab02c8331fd371090c75c8"
     },
     {
       "path": "contracts/platform/v1/pc0_frozen_finance_baseline.json",
@@ -51,7 +51,7 @@
     },
     {
       "path": "contracts/platform/v1/pc0_kernel_boundaries.json",
-      "sha256": "0d013f144789bd78fde7ec59e689e0dc9fabc3cce7733e0c87d11717f23d5ab7"
+      "sha256": "b3937ffa5a1066249e098d51b577ec20e351d4c90d5b5600320de2c22d997229"
     },
     {
       "path": "core/platform/__init__.py",
@@ -59,7 +59,7 @@
     },
     {
       "path": "core/platform/architecture_contract.py",
-      "sha256": "d6126f44340dc53436fc80313248ee7844c64abf421166e148ab49bb763f5f84"
+      "sha256": "52c466c0abae6b29107b866628fef7f8ef93219399d376ccfb081a9a683d474c"
     },
     {
       "path": "core/platform/release_integrity.py",
@@ -75,7 +75,7 @@
     },
     {
       "path": "docs/platform_core/PC0_KERNEL_BOUNDARIES.md",
-      "sha256": "84fc611556fc6e1ab4f2162d495f5a0e28b830774545ff641bc073f244f5e755"
+      "sha256": "098dc6ad560db5d17647db785ffd6e6155a35cab94a9507bb602949e1167cb18"
     },
     {
       "path": "docs/platform_core/adr/0001_AUTHORITY_OWNERSHIP_AND_REFERENCE_MIGRATION.md",
@@ -87,11 +87,11 @@
     },
     {
       "path": "docs/platform_core/adr/0003_COMPOSITION_ENTRYPOINT_AND_OPERABILITY.md",
-      "sha256": "5fb636d11957ee8499196554eb69694b7b08bfe07dc0728402acb73db3b37ca2"
+      "sha256": "6d8a4b8ce3ca0d1d871ad8ffa391517861650c980f627ca3d57c16560ff22161"
     },
     {
       "path": "XBOS_PC0_INSTALL_AND_VERIFY.txt",
-      "sha256": "376d5feda478a7545e875151e30d8050131f98b15e5a1ee5c9b0fd1bcb6845cb"
+      "sha256": "066235e9a9ab11d65d061838a4ae75cba67ae0548e9971c6b357a4d9ce8b5251"
     },
     {
       "path": "XBOS_PC0_RUN_ACCEPTANCE.cmd",

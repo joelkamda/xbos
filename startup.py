@@ -2,10 +2,10 @@
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from database import Base, engine, SessionLocal
 
 # ------------------------------------------------------------
-# Load ALL SQLAlchemy models so metadata.create_all() sees them
+# Register models for compatibility consumers. Alembic owns canonical schema
+# installation; application import must not execute database DDL or DML.
 # ------------------------------------------------------------
 import core.models_import
 
@@ -20,34 +20,35 @@ from core.middleware.auth_middleware import AuthMiddleware
 # RBAC imports (FINAL)
 # ------------------------------------------------------------
 from core.rbac.permissions.permission_registry import PERMISSION_REGISTRY
-from core.rbac.seeds.seed_roles import seed_roles
-from core.rbac.seeds.seed_role_permissions import seed_role_permissions
-
-
 # ============================================================
 # 1) DATABASE INITIALIZATION
 # ============================================================
 def init_database():
+    """Compatibility-only explicit initializer; never run on app import."""
+    from database import Base, engine
     Base.metadata.create_all(bind=engine)
 
 
 # ============================================================
 # 2) PERMISSION VALIDATION
 # ============================================================
-def validate_permissions():
-    print("🔍 Validating RBAC permissions...")
-
+def validate_permissions() -> int:
+    """Validate the in-process registry without writing to stdout or storage."""
     all_perms = PERMISSION_REGISTRY.ALL
     if not isinstance(all_perms, set):
         raise TypeError("PERMISSION_REGISTRY.ALL must be a set")
-
-    print(f"✅ Permission registry OK ({len(all_perms)} permissions)")
+    return len(all_perms)
 
 
 # ============================================================
 # 3) RBAC SEEDING (LEVEL-BASED ONLY)
 # ============================================================
 def seed_rbac():
+    """Compatibility-only legacy RBAC bootstrap; PC5 is canonical authority."""
+    from database import SessionLocal
+    from core.rbac.seeds.seed_roles import seed_roles
+    from core.rbac.seeds.seed_role_permissions import seed_role_permissions
+
     print("🔐 Seeding RBAC (roles + level-based permissions)...")
 
     db = SessionLocal()
@@ -102,19 +103,14 @@ def register_routes(app: FastAPI):
 def create_app() -> FastAPI:
     app = FastAPI(title="XBOS Kernel")
 
-    # 1) DB schema
-    init_database()
-
-    # 2) Permission sanity check
+    # Pure contract validation only. Alembic installs schema and explicit
+    # provisioning establishes data; importing main:app must require neither.
     validate_permissions()
 
-    # 3) RBAC bootstrap (CANONICAL)
-    seed_rbac()
-
-    # 4) Middleware (CORS FIRST)
+    # Middleware (CORS FIRST)
     register_middlewares(app)
 
-    # 5) Routes
+    # Routes
     register_routes(app)
 
     return app

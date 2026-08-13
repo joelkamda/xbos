@@ -7,7 +7,7 @@
 
 `main:app` is the canonical deployment entrypoint. `app:app` is compatibility-only and remains byte-for-byte unchanged in PC0. The application factory, router assembly, middleware registration/effective ordering, ORM model registration, startup side effects, and composition files are fingerprinted as frozen evidence.
 
-The repository's absent production dependency authority is an explicit operability gap. PC0 does not invent requirements or lock files. Platform Operations owns retirement of the gap at E5.
+PC0 originally recorded the absent production dependency authority as an operability gap. PC6 closes that gap under explicit control-room authorization with the exact-pinned `requirements-prod.txt` baseline derived from the accepted Python 3.13.3 environment. `requirements-test.txt` stays separate; Platform Operations owns later maintenance and approved upgrades at E5.
 
 ## Consequences
 

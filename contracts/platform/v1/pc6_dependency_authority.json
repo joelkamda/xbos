@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "authority": "XBOS_PRODUCTION_PYTHON_DEPENDENCIES",
+  "source_checkpoint": "17c1d9c",
+  "python": "3.13.3",
+  "canonical_manifest": "requirements-prod.txt",
+  "test_manifest": "requirements-test.txt",
+  "pin_rule": "every production requirement uses one exact == pin",
+  "version_provenance": "accepted operator environment C:/Users/jdkam/venvs/xbos-track-b-b1",
+  "future_maintenance_owner": "Platform Operations / E5",
+  "module_to_distribution": {
+    "alembic": "alembic",
+    "babel": "Babel",
+    "fastapi": "fastapi",
+    "httpx": "httpx",
+    "jose": "python-jose",
+    "passlib": "passlib",
+    "pycountry": "pycountry",
+    "pydantic": "pydantic",
+    "pydantic_settings": "pydantic-settings",
+    "pytz": "pytz",
+    "sqlalchemy": "SQLAlchemy",
+    "starlette": "starlette",
+    "uvicorn": "uvicorn"
+  },
+  "runtime_drivers": {
+    "postgresql+psycopg2": "psycopg2-binary"
+  },
+  "accepted_pins": {
+    "alembic": "1.17.2",
+    "Babel": "2.17.0",
+    "fastapi": "0.115.12",
+    "httpx": "0.28.1",
+    "passlib": "1.7.4",
+    "psycopg2-binary": "2.9.10",
+    "pycountry": "24.6.1",
+    "pydantic": "2.11.4",
+    "pydantic-settings": "2.12.0",
+    "python-jose": "3.5.0",
+    "pytz": "2025.2",
+    "SQLAlchemy": "2.0.41",
+    "starlette": "0.46.2",
+    "uvicorn": "0.34.2"
+  },
+  "excluded_environment_residue": [
+    "asyncpg",
+    "databases",
+    "numpy",
+    "openpyxl",
+    "pandas"
+  ]
+}

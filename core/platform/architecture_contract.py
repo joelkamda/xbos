@@ -329,8 +329,8 @@ def _validate_composition(root: Path, composition: dict[str, Any]) -> None:
     facts = composition.get("facts", {})
     if facts.get("canonical_entrypoint") != "main:app" or facts.get("compatibility_entrypoint") != "app:app":
         _fail("PC0-ENTRYPOINT", "canonical or compatibility entrypoint changed")
-    if facts.get("production_dependency_authority") != "ABSENT_OPERABILITY_GAP":
-        _fail("PC0-DEPENDENCY-GAP", "production dependency gap must remain explicit")
+    if facts.get("production_dependency_authority") != "requirements-prod.txt":
+        _fail("PC0-DEPENDENCY-AUTHORITY", "requirements-prod.txt must remain canonical")
 
 
 def _migration_revisions(root: Path) -> tuple[list[str], list[str]]:

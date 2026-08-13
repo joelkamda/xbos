@@ -12,6 +12,7 @@
     "semantics": [],
     "operating_context": [],
     "security_authority": ["structure", "party", "operating_context"],
+    "neutral_proof": ["structure", "party", "semantics", "operating_context", "security_authority"],
     "application": ["composition", "identity", "persistence", "tenancy"],
     "composition": ["catalog", "identity", "inventory", "legacy_accounting", "legacy_payments", "orders", "reports", "sales", "taxonomy", "tenancy"],
     "persistence": [],

@@ -1,0 +1,60 @@
+{
+  "schema_version": 1,
+  "contract": "XBOS_PLATFORM_CORE_PC6_NEUTRAL_PLATFORM_PROOF",
+  "source_checkpoint": "17c1d9c",
+  "previous_head": "pc5_identity_policy_audit_025",
+  "accepted_head": "pc5_identity_policy_audit_025",
+  "migration": "NONE",
+  "scope": ["PC6.1", "PC6.2", "PC6.3", "PC6.4", "PC6.5", "PC6.6", "PC6.7", "PC6.8", "PC6.9", "PC6.10", "PC6.11", "PC6.12"],
+  "profile_schema": "xbos.pc6.tenant-profile.v1",
+  "portable_export_schema": "xbos.pc6.platform-core-portable-export.v1",
+  "authorities_consumed": ["PC1 structure", "PC2 Party", "PC3 semantics", "PC4 operating context", "PC5 security and audit"],
+  "portability_classes": ["PORTABLE", "REFERENCE_ONLY", "EXCLUDED", "SECRET", "HISTORICAL_EVIDENCE"],
+  "isolation_attacks": [
+    "tenant structural lookup",
+    "organization scope",
+    "legal entity",
+    "location",
+    "Party reference and relationship",
+    "semantic namespace and classification",
+    "typed configuration",
+    "calendar and shift",
+    "identity membership",
+    "role assignment and authorization",
+    "approval",
+    "audit query",
+    "same numeric ID across authority types",
+    "stale membership",
+    "platform operator versus tenant administrator"
+  ],
+  "performance_bounds_seconds": {
+    "complete_disposable_proof": 120,
+    "individual_public_resolution": 5,
+    "second_tenant_bootstrap": 30,
+    "portable_restore": 30,
+    "postgresql_backup_restore": 60
+  },
+  "invariants": [
+    "second tenant requires no neutral source change",
+    "profile contains no credentials, secrets, sessions, tokens or financial transactions",
+    "stable codes and external references replace database-local integer identity across restore",
+    "all cross-tenant authority attempts fail closed",
+    "platform operator and tenant administrator authority remain distinct",
+    "main:app remains canonical and app:app remains compatibility-only",
+    "canonical application import executes no database DDL or legacy RBAC seeding",
+    "canonical application construction emits no console output and is strict-ASCII compatible",
+    "canonical migration head remains pc5_identity_policy_audit_025",
+    "frozen Finance bytes, semantics and effects remain unchanged",
+    "requirements-prod.txt is the exact-pinned production Python authority"
+  ],
+  "exclusions": [
+    "XA or frontend implementation",
+    "Shared Operations implementation",
+    "pack or template lifecycle",
+    "industry semantics",
+    "WND cutover or writer retirement",
+    "new database schema",
+    "financial export authority",
+    "credential or secret portability"
+  ]
+}

@@ -16,14 +16,14 @@ class Settings(BaseSettings):
     # -------------------------------------------------
     # JWT settings
     # -------------------------------------------------
-    JWT_SECRET: str = "supersecretkey_change_me"
+    JWT_SECRET: str
     JWT_ALGORITHM: str = "HS256"
     JWT_EXPIRE_MINUTES: int = 60
 
     # -------------------------------------------------
     # Database (PostgreSQL)
     # -------------------------------------------------
-    DATABASE_URL: str = "postgresql+psycopg2://postgres:Becky@8282@localhost:5432/xbos"
+    DATABASE_URL: str
 
     # -------------------------------------------------
     # Gateway Integration (XafPay)

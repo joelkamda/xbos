@@ -5,34 +5,63 @@
   "supplemental_archive_sha256": "2ee135996ac55982b85b7a2c5ec0328f55ca5eb1379c1e7bdd6b8b122cbad3ea",
   "fingerprint_mode": "sha256_git_canonical_lf",
   "files": {
-    "main.py":"6dfa312afd3d98753f960570ead8dc58f5f408ceb6b139a93b83d252de9a45d0",
-    "app.py":"90c9287ac4dc154b07f49d110c9add0d5960d0bb2651add8f3cba2fa3b522fd7",
-    "startup.py":"8c228c84873f7c8b677177c05d913e2871397398afdf673dfe03044c3adfeda7",
-    "database.py":"6c991cecc514ed36b4b6723453ab6a483de7fdc63cebf95928a75d573dd7b2d8",
-    "settings.py":"db5b50b80f1e5319789959cc0b8228e281fc66fd23c9a64acaecb8864a7a586b",
-    "core/api/kernel_router.py":"e3bd3ee9be4006337ecb07eb53f61fb01838c2d952f915c3361481d0fd109d7f",
-    "core/models_import.py":"1058c5d579a4bbf9a9e73550d6898b198257dee4b7680866ee36828a25664dc6",
-    "core/middleware/auth_middleware.py":"4a8cafe8e87069499da4ee798ba060e54b757224930e131a434f8b99f18e2366",
-    "core/middleware/tenant_middleware.py":"5151239379e4b6e686bc168818d655c94e2945df324ee5452441549deb83dd9d",
-    "core/middleware/branch_middleware.py":"af0c6cc09242d60f54c7d300e5fadda872b13db2e793307afedf47036bd5554f",
-    "core/middleware/permission_middleware.py":"a368c524c41542a6c15eb8677a3d7b0f654023cdb838d3994a99ef73e77b1991",
-    "core/rbac/middleware/rbac_middleware.py":"1e8cc650892e12a77ef4d202c3e01fa4cef953a6f1222a6ae4514cbb3d0c1fa1"
+    "main.py": "6dfa312afd3d98753f960570ead8dc58f5f408ceb6b139a93b83d252de9a45d0",
+    "app.py": "90c9287ac4dc154b07f49d110c9add0d5960d0bb2651add8f3cba2fa3b522fd7",
+    "startup.py": "465fb8e613f66de8f77b7a3d4b4566c42dda1ad5db9435608a66cfa2fb20e698",
+    "database.py": "6c991cecc514ed36b4b6723453ab6a483de7fdc63cebf95928a75d573dd7b2d8",
+    "settings.py": "38befbb010086c27a0a6612643340e8a5f761133282b27f5fb92336b5e05476f",
+    "core/api/kernel_router.py": "e3bd3ee9be4006337ecb07eb53f61fb01838c2d952f915c3361481d0fd109d7f",
+    "core/models_import.py": "1058c5d579a4bbf9a9e73550d6898b198257dee4b7680866ee36828a25664dc6",
+    "core/middleware/auth_middleware.py": "4a8cafe8e87069499da4ee798ba060e54b757224930e131a434f8b99f18e2366",
+    "core/middleware/tenant_middleware.py": "5151239379e4b6e686bc168818d655c94e2945df324ee5452441549deb83dd9d",
+    "core/middleware/branch_middleware.py": "af0c6cc09242d60f54c7d300e5fadda872b13db2e793307afedf47036bd5554f",
+    "core/middleware/permission_middleware.py": "a368c524c41542a6c15eb8677a3d7b0f654023cdb838d3994a99ef73e77b1991",
+    "core/rbac/middleware/rbac_middleware.py": "1e8cc650892e12a77ef4d202c3e01fa4cef953a6f1222a6ae4514cbb3d0c1fa1"
   },
   "facts": {
-    "canonical_entrypoint":"main:app",
-    "compatibility_entrypoint":"app:app",
-    "application_factory":"startup.create_app",
-    "effective_middleware_order":["AuthMiddleware","TenantMiddleware","BranchMiddleware","CORSMiddleware"],
-    "registered_router":"core.api.kernel_router.kernel_router",
-    "orm_registration":"core.models_import.MODEL_MODULES",
-    "startup_side_effects":["Base.metadata.create_all","RBAC seed_roles","RBAC seed_role_permissions"],
-    "production_dependency_authority":"ABSENT_OPERABILITY_GAP"
+    "canonical_entrypoint": "main:app",
+    "compatibility_entrypoint": "app:app",
+    "application_factory": "startup.create_app",
+    "effective_middleware_order": [
+      "AuthMiddleware",
+      "TenantMiddleware",
+      "BranchMiddleware",
+      "CORSMiddleware"
+    ],
+    "registered_router": "core.api.kernel_router.kernel_router",
+    "orm_registration": "core.models_import.MODEL_MODULES",
+    "startup_side_effects": [
+      "Base.metadata.create_all",
+      "RBAC seed_roles",
+      "RBAC seed_role_permissions"
+    ],
+    "production_dependency_authority": "requirements-prod.txt"
   },
   "markers": {
-    "main.py":["from startup import create_app","app: FastAPI = create_app()"],
-    "app.py":["from startup import create_app","app = create_app()"],
-    "startup.py":["Base.metadata.create_all(bind=engine)","seed_roles(db)","seed_role_permissions(db)","app.add_middleware(BranchMiddleware)","app.add_middleware(TenantMiddleware)","app.add_middleware(AuthMiddleware)","app.include_router(kernel_router)"],
-    "core/models_import.py":["MODEL_MODULES =","EXCLUDED_DUPLICATE_MODEL_MODULES ="],
-    "core/api/kernel_router.py":["kernel_router = APIRouter","kernel_router.include_router"]
+    "main.py": [
+      "from startup import create_app",
+      "app: FastAPI = create_app()"
+    ],
+    "app.py": [
+      "from startup import create_app",
+      "app = create_app()"
+    ],
+    "startup.py": [
+      "Base.metadata.create_all(bind=engine)",
+      "seed_roles(db)",
+      "seed_role_permissions(db)",
+      "app.add_middleware(BranchMiddleware)",
+      "app.add_middleware(TenantMiddleware)",
+      "app.add_middleware(AuthMiddleware)",
+      "app.include_router(kernel_router)"
+    ],
+    "core/models_import.py": [
+      "MODEL_MODULES =",
+      "EXCLUDED_DUPLICATE_MODEL_MODULES ="
+    ],
+    "core/api/kernel_router.py": [
+      "kernel_router = APIRouter",
+      "kernel_router.include_router"
+    ]
   }
 }

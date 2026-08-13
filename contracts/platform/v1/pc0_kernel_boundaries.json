@@ -23,7 +23,7 @@
     "main:app remains canonical and app:app remains compatibility-only",
     "Neutral Finance source, contracts, migrations, writers and semantics remain frozen",
     "canonical Alembic head remains m64_reconciliation_controls_020",
-    "production dependency authority remains an explicit operability gap"
+    "requirements-prod.txt is the exact-pinned production dependency authority established by PC6"
   ],
   "exclusions": [
     "alembic_migration",
@@ -33,7 +33,7 @@
     "legacy_violation_cleanup",
     "wnd_cutover_or_writer_retirement",
     "generic_outbox_jobs_documents_observability_or_pack_lifecycle_implementation",
-    "production_dependency_manifest_invention"
+    "unapproved_package_management_system"
   ],
   "acceptance_boundary": {
     "static_contract": "scripts/verify_pc0_kernel_boundaries.py",

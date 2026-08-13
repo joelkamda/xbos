@@ -1,0 +1,30 @@
+XBOS PLATFORM CORE PC6 — INSTALL AND VERIFY
+===========================================
+
+Package: XBOS_PLATFORM_CORE_PC6_IMPLEMENTATION_REVISION_2.zip
+Source checkpoint: 17c1d9c
+Migration: NO NEW MIGRATION
+Previous/accepted head: pc5_identity_policy_audit_025
+
+Use the accepted PC5 checkout and activate:
+
+    C:\Users\jdkam\venvs\xbos-track-b-b1
+
+Its `python` must be Python 3.13.3. Expand the ZIP over the repository root and
+run only:
+
+    XBOS_PC6_RUN_ACCEPTANCE.cmd
+
+`requirements-prod.txt` is the canonical exact-pinned production dependency
+authority. `requirements-test.txt` remains test-only. The gate creates a temporary
+clean Python environment beneath `%TEMP%`, installs production pins before test
+pins, verifies runtime imports, then removes that environment after success. It
+does not install packages globally or alter the approved active environment.
+
+The PC6 verifier uses only local disposable PostgreSQL databases. Successful
+acceptance removes them; failure retains them for diagnosis. PC6 adds no Alembic
+revision and performs no development migration. The development database must
+already remain at `pc5_identity_policy_audit_025`.
+
+The package contains no secrets, credentials, database dumps, virtual environment,
+commit or tag. Success is only `PC6_SINGLE_GATE=PASS`.

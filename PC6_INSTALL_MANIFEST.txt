@@ -1,0 +1,44 @@
+XBOS Platform Core PC6 Revision 2 installation package
+Source checkpoint: 17c1d9c (17c1d9c0732bf40c435315ad28f8fef79678826b)
+Migration before: pc5_identity_policy_audit_025
+Migration after: pc5_identity_policy_audit_025 (no migration)
+WBS coverage: PC6.1-PC6.12 (Final Master WBS V2, 2026-08-13)
+File count: 37
+
+PC6_INSTALL_MANIFEST.txt
+XBOS_PC0_INSTALL_AND_VERIFY.txt
+XBOS_PC6_INSTALL_AND_VERIFY.txt
+XBOS_PC6_RUN_ACCEPTANCE.cmd
+contracts/platform/v1/pc0_composition_baseline.json
+contracts/platform/v1/pc0_dependency_policy.json
+contracts/platform/v1/pc0_kernel_boundaries.json
+contracts/platform/v1/pc0_module_map.json
+contracts/platform/v1/pc0_public_private_interfaces.json
+contracts/platform/v1/pc0_reference_authority_migration_register.json
+contracts/platform/v1/pc0_release_manifest.json
+contracts/platform/v1/pc1_public_interfaces.json
+contracts/platform/v1/pc6_dependency_authority.json
+contracts/platform/v1/pc6_neutral_platform_proof.json
+contracts/platform/v1/pc6_public_contract_inventory.json
+contracts/platform/v1/pc6_release_manifest.json
+contracts/platform/v1/pc6_wnd_leakage_policy.json
+core/platform/architecture_contract.py
+core/platform/neutral_proof/__init__.py
+core/platform/neutral_proof/dependency_authority.py
+core/platform/neutral_proof/leakage.py
+core/platform/neutral_proof/service.py
+core/platform/structure/__init__.py
+docs/platform_core/PC0_KERNEL_BOUNDARIES.md
+docs/platform_core/PC6_NEUTRAL_PLATFORM_PROOF_AND_FREEZE.md
+docs/platform_core/adr/0003_COMPOSITION_ENTRYPOINT_AND_OPERABILITY.md
+docs/platform_core/adr/0009_PC6_PROOF_PROFILE_PORTABILITY_AND_DEPENDENCY_AUTHORITY.md
+profiles/platform_core/pc6_second_tenant.json
+requirements-prod.txt
+scripts/bootstrap_pc6_tenant.py
+scripts/verify_pc6_neutral_platform.py
+settings.py
+startup.py
+tests/contracts/test_pc4_cumulative_release_manifest_chain.py
+tests/contracts/test_pc5_cumulative_release_manifest_chain.py
+tests/contracts/test_pc6_cumulative_release_manifest_chain.py
+tests/contracts/test_pc6_neutral_platform_proof.py

@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "consumer": "future Shared Operations and XA",
+  "interfaces": [
+    {"authority": "PC1", "facade": "core.platform.structure", "operations": ["StructuralAuthority.provision", "StructuralAuthority.resolve", "StructuralAuthority.export"]},
+    {"authority": "PC2", "facade": "core.platform.party", "operations": ["PartyAuthority.create_person", "PartyAuthority.create_organization", "PartyAuthority.create_relationship", "PartyAuthority.resolve_reference", "PartyAuthority.export"]},
+    {"authority": "PC3", "facade": "core.platform.semantics", "operations": ["SemanticAuthority.create_namespace", "SemanticAuthority.create_concept", "SemanticAuthority.create_version", "SemanticAuthority.resolve", "SemanticAuthority.export"]},
+    {"authority": "PC4", "facade": "core.platform.operating_context", "operations": ["OperatingContextAuthority.resolve", "OperatingContextAuthority.capability_context", "BusinessTimeResolver.resolve", "OperatingContextAuthority.export"]},
+    {"authority": "PC5", "facade": "core.platform.security_authority", "operations": ["SecurityAuthority.authorize", "SecurityAuthority.append_audit", "SecurityAuthority.query_audit", "SecurityAuthority.export_identity"]}
+  ],
+  "forbidden_consumption": ["private table identity", "private SQL statement", "repository implementation import", "legacy WND authority", "frontend implementation"]
+}

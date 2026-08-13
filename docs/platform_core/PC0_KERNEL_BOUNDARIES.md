@@ -26,7 +26,7 @@ The verifier also proves interface/register coverage, composition fingerprints a
 
 ## Operability gap
 
-The frozen repository has no production dependency authority. PC0 records that gap and does not invent a dependency manifest or lock file. Dependency-authority remediation remains owned by Platform Operations at milestone E5.
+PC6 closes the frozen repository's production dependency-authority gap under explicit control-room authorization. `requirements-prod.txt` is now the canonical exact-pinned runtime manifest derived from the accepted Python 3.13.3 operator environment; `requirements-test.txt` remains test-only. Platform Operations owns later maintenance and approved upgrades at E5.
 
 ## Verification
 

@@ -11,6 +11,7 @@ from core.platform.release_integrity import (
     ReleaseIntegrityError,
     canonical_bytes,
     canonical_sha256,
+    latest_release,
     release_chain,
     verify_historical_release,
 )
@@ -38,8 +39,9 @@ def test_pc1_pc2_pc3_to_pc4_historical_replacement_snapshots_remain_exact():
 
 def test_pc4_history_resolves_to_current_only_through_latest_authorized_descendant():
     report=verify_historical_release(ROOT,4)
-    assert report["milestone"]==4 and report["latest"]==5 and report["replacement_count"]>0
-    assert [number for number,_ in release_chain(ROOT)]==[1,2,3,4,5]
+    current,_=latest_release(ROOT)
+    assert report["milestone"]==4 and report["latest"]==current and report["replacement_count"]>0
+    assert [number for number,_ in release_chain(ROOT)]==list(range(1,current+1))
 
 
 def test_pc4_manifest_and_historical_head_are_preserved():
@@ -61,7 +63,7 @@ def test_corrected_pc4_sql_remains_the_pc0_authorized_source():
 
 
 def test_pc4_sql_and_wrapper_arbitrary_mutations_are_rejected():
-    latest=_json("pc5_release_manifest.json")
+    _,latest=latest_release(ROOT)
     replacements={x["path"]:x for x in latest["historical_pc4_replacements"]}
     for relative in ("alembic_neutral/sql/pc4_operating_context_up.sql","alembic_neutral/versions/pc4_operating_context_024_typed_configuration_modules_time.py"):
         mutation=hashlib.sha256(canonical_bytes((ROOT/relative).read_bytes()+b"unauthorized",artifact_kind="text")).hexdigest()
@@ -78,9 +80,10 @@ def test_pc4_frozen_finance_and_historical_lineage_remain_immutable():
 
 def test_descendant_resolution_is_behavioral_and_unknown_chain_fails(tmp_path):
     directory=tmp_path/"contracts/platform/v1";directory.mkdir(parents=True)
-    for number in range(1,6):(directory/f"pc{number}_release_manifest.json").write_bytes((CONTRACTS/f"pc{number}_release_manifest.json").read_bytes())
-    assert [number for number,_ in release_chain(tmp_path)]==[1,2,3,4,5]
-    (directory/"pc6_release_manifest.json").write_text(json.dumps({"previous_head":"unknown","accepted_head":"pc6_unknown"}),encoding="utf-8")
+    current,_=latest_release(ROOT)
+    for number in range(1,current+1):(directory/f"pc{number}_release_manifest.json").write_bytes((CONTRACTS/f"pc{number}_release_manifest.json").read_bytes())
+    assert [number for number,_ in release_chain(tmp_path)]==list(range(1,current+1))
+    (directory/f"pc{current+1}_release_manifest.json").write_text(json.dumps({"previous_head":"unknown","accepted_head":"unknown"}),encoding="utf-8")
     with pytest.raises(ReleaseIntegrityError,match="unauthorized descendant lineage"):release_chain(tmp_path)
 
 

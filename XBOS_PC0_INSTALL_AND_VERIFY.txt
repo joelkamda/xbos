@@ -16,8 +16,9 @@ PRECONDITIONS
 3. Ensure .env still selects xbos_track_b_dev. The gate reads that database only;
    it never migrates or writes it. Existing characterization tests select their
    dedicated xbos_track_b_test database in their established fixture.
-4. PC0 does not contain or invent a production dependency manifest. The existing
-   operator environment must already provide the repository's runtime/test tools.
+4. PC0 originally prohibited inventing a dependency manifest. PC6 later establishes
+   the control-room-authorized exact-pinned `requirements-prod.txt`; test dependencies
+   remain separately governed by `requirements-test.txt`.
 
 INSTALL
 1. From the repository root, inspect the ZIP's PC0_INSTALL_MANIFEST.txt.

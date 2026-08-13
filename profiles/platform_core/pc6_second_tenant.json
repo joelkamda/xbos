@@ -1,0 +1,73 @@
+{
+  "schema": "xbos.pc6.tenant-profile.v1",
+  "profile_id": "pc6-northstar-neutral-proof",
+  "tenant": {
+    "code": "NORTHSTAR",
+    "name": "Northstar Community Services Cooperative",
+    "country_code": "CA",
+    "currency": "CAD",
+    "locale": "en-CA",
+    "timezone": "America/Toronto"
+  },
+  "structure": {
+    "legal_entity_code": "NCSC",
+    "legal_entity_name": "Northstar Community Services Cooperative",
+    "root_organization_code": "NETWORK",
+    "root_organization_name": "Distributed Service Network",
+    "primary_location_code": "REMOTE-HUB",
+    "primary_location_name": "Remote Operations Hub",
+    "primary_location_kind": "virtual"
+  },
+  "parties": {
+    "legal_organization_external_key": "northstar-legal-organization",
+    "administrator_external_key": "northstar-profile-administrator",
+    "administrator_given_name": "Morgan",
+    "administrator_family_name": "Reed",
+    "administrator_relationship": "administrator_of"
+  },
+  "semantics": {
+    "namespace_code": "tenant.northstar",
+    "owner_code": "tenant.northstar",
+    "concept_code": "primary_engagement",
+    "canonical_label": "Service engagement",
+    "definition": "A tenant-scoped label for the primary governed engagement without changing platform semantic identity.",
+    "effective_from": "2026-01-01"
+  },
+  "configuration": [
+    {"key": "ui.language", "value_type": "code", "scope": "tenant", "value": "en-ca"},
+    {"key": "operations.service_mode", "value_type": "code", "scope": "tenant", "value": "appointment"},
+    {"key": "operations.queue_mode", "value_type": "code", "scope": "location", "value": "scheduled"}
+  ],
+  "calendar": {
+    "code": "northstar-operations",
+    "timezone": "America/Toronto",
+    "business_day_boundary": "04:30:00",
+    "operating_weekdays": [0, 1, 2, 3, 4],
+    "effective_from": "2026-01-01T00:00:00+00:00",
+    "shifts": [
+      {"code": "service", "display_name": "Service Window", "starts_at": "07:30:00", "ends_at": "16:30:00"},
+      {"code": "after_hours", "display_name": "After Hours", "starts_at": "16:30:00", "ends_at": "07:30:00"}
+    ]
+  },
+  "localization": {
+    "date_format": "yyyy-MM-dd",
+    "decimal_separator": ".",
+    "currency_display": "code",
+    "business_display_name": "Northstar Community Services",
+    "branding_asset_reference": "so7://asset/northstar-mark",
+    "terminology": {"customer": "member", "receipt": "service record", "branch": "service hub"}
+  },
+  "capability": {
+    "module_code": "platform_core",
+    "capability_code": "context.read",
+    "feature_flag": "context.read"
+  },
+  "security": {
+    "administrator_login": "profile-admin@northstar.invalid",
+    "role_code": "context_viewer",
+    "permission_code": "platform.context.read",
+    "permission_codes": ["platform.context.read", "pc5.audit.evidence.query"],
+    "scope": "organization_unit"
+  },
+  "proof_dimensions": ["virtual location", "CAD and en-CA", "Toronto timezone", "04:30 business boundary", "weekday schedule", "appointment mode", "tenant terminology", "organization-scoped authorization"]
+}

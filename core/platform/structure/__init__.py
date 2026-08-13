@@ -3,7 +3,9 @@
 from .contracts import (
     LegalEntity,
     Location,
+    LocationKind,
     OrganizationUnit,
+    ProvisionTenant,
     StructuralContext,
     Tenant,
     TenantLifecycle,
@@ -17,6 +19,6 @@ except ModuleNotFoundError:  # static/archive verification has no production dep
     SQLStructuralRepository = None  # type: ignore[assignment]
 
 __all__ = [
-    "LegalEntity", "Location", "OrganizationUnit", "StructuralAuthority",
+    "LegalEntity", "Location", "LocationKind", "OrganizationUnit", "ProvisionTenant", "StructuralAuthority",
     "SQLStructuralRepository", "StructuralAuthorityError", "StructuralContext", "Tenant", "TenantLifecycle",
 ]
