@@ -1,0 +1,14 @@
+{
+  "schema_version":1,
+  "migration":"pc3_semantic_authority_023",
+  "entries":[
+    {"authority":"taxonomy_nodes","classification":"ADOPT/EVOLVE","treatment":"preserve rows and IDs; add optional system/concept/effective links; retain labels and tree placement"},
+    {"authority":"atomic_unit_taxonomy","classification":"PRESERVE/BRIDGE","treatment":"preserve many-to-many rows; SO0 Atomic Units remain owned outside PC3"},
+    {"authority":"atomic_units","classification":"PRESERVE","treatment":"no schema ownership or data rewrite by PC3"},
+    {"authority":"semantic_level","classification":"BRIDGE","treatment":"legacy navigation/grouping hint only; never canonical meaning without explicit mapping"},
+    {"authority":"taxonomy_type","classification":"BRIDGE","treatment":"legacy taxonomy-system hint; no automatic namespace promotion"},
+    {"authority":"Finance semantic catalogs","classification":"PRESERVE","treatment":"no row, manifest, definition or fingerprint change"},
+    {"authority":"WND and pack classifications","classification":"MAP","treatment":"remain tenant/pack-owned; explicit mapping sets only; no bulk rewrite"},
+    {"authority":"country/default classifications","classification":"MAP","treatment":"future explicit namespace mapping; not generic PC4 configuration"}
+  ]
+}

@@ -27,6 +27,7 @@ CONTRACT_FILES = {
     "finance_inventory": "pc0_frozen_finance_inventory.json",
     "pc1": "pc1_structural_authority.json",
     "pc2": "pc2_party_authority.json",
+    "pc3": "pc3_semantic_authority.json",
     "kernel": "pc0_kernel_boundaries.json",
 }
 ROOT_PYTHON_MODULES = {
@@ -419,7 +420,11 @@ def validate_pc0(root: str | Path, validate_release: bool = True) -> dict[str, A
         root_path,
         contracts["finance"],
         contracts["finance_inventory"],
-        (contracts["pc1"].get("accepted_head"), contracts["pc2"].get("accepted_head")),
+        (
+            contracts["pc1"].get("accepted_head"),
+            contracts["pc2"].get("accepted_head"),
+            contracts["pc3"].get("accepted_head"),
+        ),
     )
     _validate_kernel(contracts["kernel"])
 

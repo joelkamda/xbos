@@ -1,0 +1,18 @@
+{
+  "schema_version":1,
+  "contract":"XBOS_PLATFORM_CORE_PC3_SEMANTIC_AUTHORITY",
+  "source_checkpoint":"0163039",
+  "previous_head":"pc2_party_authority_022",
+  "accepted_head":"pc3_semantic_authority_023",
+  "scope":["PC3.1","PC3.2","PC3.3","PC3.4","PC3.5","PC3.6","PC3.7","PC3.8","PC3.9","PC3.10","PC3.11"],
+  "identity":"namespace_code + concept_code; labels and database IDs are non-authoritative",
+  "namespace_scopes":["kernel","finance","pack","tenant","external"],
+  "lifecycle":["active","deprecated","retired"],
+  "mapping_types":["exact","broader","narrower","related","legacy_replacement"],
+  "historical_reference":["qualified semantic code","semantic version","definition fingerprint","classification date"],
+  "taxonomy":{"authority":"taxonomy_nodes adopted in place","semantic_identity":"separate nullable explicit link","universal_tree":false},
+  "lookup":{"effective_dated":true,"ambiguous":"fail_closed","absent_mapping":"fail_closed","fuzzy_source_truth":false},
+  "impact_analysis":{"read_only":true,"destructive_cascade":false},
+  "export":{"schema":"xbos.pc3.semantic-export.v1","deterministic":true,"tenant_safe":true},
+  "boundaries":{"atomic_units":"SO0","finance_semantics":"Neutral Finance frozen","localization_policy":"PC4","configuration":"PC4"}
+}

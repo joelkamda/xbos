@@ -1,0 +1,6 @@
+{
+  "schema_version":1,"module":"semantics",
+  "public":["core.platform.semantics.SemanticAuthority","core.platform.semantics.SemanticNamespace","core.platform.semantics.SemanticConcept","core.platform.semantics.SemanticVersion","core.platform.semantics.SemanticMapping","core.platform.semantics.ClassificationSnapshot","core.platform.semantics.SQLSemanticRepository"],
+  "private":["semantic_commands","SQL statements","legacy taxonomy bridge mechanics"],
+  "rules":["labels are presentation metadata","exact effective-dated resolution only","no fuzzy identity mapping","no Atomic Unit writer","no Finance catalog writer","impact analysis is read-only"]
+}

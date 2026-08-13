@@ -9,6 +9,7 @@
     "architecture": [],
     "structure": [],
     "party": [],
+    "semantics": [],
     "application": ["composition", "identity", "persistence", "tenancy"],
     "composition": ["catalog", "identity", "inventory", "legacy_accounting", "legacy_payments", "orders", "reports", "sales", "taxonomy", "tenancy"],
     "persistence": [],

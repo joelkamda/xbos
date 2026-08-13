@@ -1,0 +1,19 @@
+XBOS PLATFORM CORE PC3 — INSTALL AND VERIFY
+===========================================
+
+Package: XBOS_PLATFORM_CORE_PC3_IMPLEMENTATION.zip
+Source checkpoint: 0163039 (accepted PC2)
+Migration: pc2_party_authority_022 -> pc3_semantic_authority_023
+
+Use the accepted PC2 checkout and activated xbos-track-b-b1 environment. Python
+must be 3.13.3 and resolve from `%VIRTUAL_ENV%\Scripts\python.exe`.
+
+Expand the ZIP over the repository root. Do not invoke Alembic manually. Run:
+
+    XBOS_PC3_RUN_ACCEPTANCE.cmd
+
+The gate reconstructs a disposable template0 database before controlled development
+adoption. A failed disposable database is retained for diagnosis; complete success
+drops it and ends with `PC3_SINGLE_GATE=PASS`.
+
+No commit or tag is created by this package or gate.

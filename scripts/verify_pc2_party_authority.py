@@ -43,9 +43,17 @@ def static_verify() -> dict[str,object]:
     up=(ROOT/"alembic_neutral/sql/pc2_party_authority_up.sql").read_text(encoding="utf-8")
     forbidden=("UPDATE public.financial_","DELETE FROM public.financial_","INSERT INTO public.users","INSERT INTO public.parties")
     if any(marker in up for marker in forbidden):raise RuntimeError("PC2 migration contains forbidden data mutation or seed")
+    replacements = {}
+    pc3_manifest = ROOT / "contracts/platform/v1/pc3_release_manifest.json"
+    if pc3_manifest.is_file():
+        descendant = json.loads(pc3_manifest.read_text(encoding="utf-8"))
+        replacements = {item["path"]: item for item in descendant.get("historical_pc2_replacements", [])}
     for item in release["artifacts"]:
         path=ROOT/item["path"]
-        if not path.is_file() or hashlib.sha256(path.read_bytes()).hexdigest()!=item["sha256"]:raise RuntimeError(f"PC2 release manifest mismatch={item['path']}")
+        actual=hashlib.sha256(path.read_bytes()).hexdigest() if path.is_file() else None
+        replacement=replacements.get(item["path"])
+        accepted=actual==item["sha256"] or (replacement is not None and replacement.get("historical_sha256")==item["sha256"] and replacement.get("descendant_sha256")==actual)
+        if not accepted:raise RuntimeError(f"PC2 release manifest mismatch={item['path']}")
     pc0=validate_pc0(ROOT)
     return {"status":"PASS","pc0":pc0["status"],"previous_head":EXPECTED_PREVIOUS_HEAD,"accepted_head":EXPECTED_HEAD,"compatibility_entries":len(compatibility["entries"]),"release_artifacts":len(release["artifacts"])}
 
