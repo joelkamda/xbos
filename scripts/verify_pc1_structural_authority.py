@@ -68,7 +68,7 @@ def static_verify() -> dict[str, object]:
     forbidden = ("INSERT INTO public.financial_events","UPDATE public.journal_entries","DELETE FROM public.financial_")
     if any(marker in up for marker in forbidden): raise RuntimeError("PC1 migration contains financial economic mutation")
     replacements = {}
-    for manifest_name in ("pc3_release_manifest.json", "pc2_release_manifest.json"):
+    for manifest_name in ("pc4_release_manifest.json", "pc3_release_manifest.json", "pc2_release_manifest.json"):
         descendant_manifest = ROOT / "contracts/platform/v1" / manifest_name
         if descendant_manifest.is_file():
             descendant = json.loads(descendant_manifest.read_text(encoding="utf-8"))

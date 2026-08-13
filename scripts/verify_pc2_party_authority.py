@@ -44,10 +44,11 @@ def static_verify() -> dict[str,object]:
     forbidden=("UPDATE public.financial_","DELETE FROM public.financial_","INSERT INTO public.users","INSERT INTO public.parties")
     if any(marker in up for marker in forbidden):raise RuntimeError("PC2 migration contains forbidden data mutation or seed")
     replacements = {}
-    pc3_manifest = ROOT / "contracts/platform/v1/pc3_release_manifest.json"
-    if pc3_manifest.is_file():
-        descendant = json.loads(pc3_manifest.read_text(encoding="utf-8"))
-        replacements = {item["path"]: item for item in descendant.get("historical_pc2_replacements", [])}
+    for manifest_name in ("pc4_release_manifest.json","pc3_release_manifest.json"):
+        descendant_manifest=ROOT/"contracts/platform/v1"/manifest_name
+        if descendant_manifest.is_file():
+            descendant=json.loads(descendant_manifest.read_text(encoding="utf-8"));replacements={item["path"]:item for item in descendant.get("historical_pc2_replacements",[])}
+            if replacements:break
     for item in release["artifacts"]:
         path=ROOT/item["path"]
         actual=hashlib.sha256(path.read_bytes()).hexdigest() if path.is_file() else None

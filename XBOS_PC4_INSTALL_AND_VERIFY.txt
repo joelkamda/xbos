@@ -1,0 +1,20 @@
+XBOS PLATFORM CORE PC4 — INSTALL AND VERIFY
+===========================================
+
+Package: XBOS_PLATFORM_CORE_PC4_IMPLEMENTATION_REVISION_6.zip
+Source checkpoint: 601a395 (accepted PC3 Revision 1)
+Migration: pc3_semantic_authority_023 -> pc4_operating_context_024
+
+Use the accepted PC3 checkout and activated xbos-track-b-b1 environment. Python
+must be 3.13.3 and resolve from `%VIRTUAL_ENV%\Scripts\python.exe`.
+
+Expand the ZIP over the repository root. Do not invoke Alembic manually. Run:
+
+    XBOS_PC4_RUN_ACCEPTANCE.cmd
+
+The gate reconstructs a disposable template0 database before controlled development
+adoption. A failed disposable database is retained for diagnosis; complete success
+drops it and ends with `PC4_SINGLE_GATE=PASS`.
+
+The package carries the accepted PC3 Revision 1 taxonomy fixture repair. It contains
+no credentials, secret values, database dump, commit, or tag.

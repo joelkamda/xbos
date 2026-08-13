@@ -1,0 +1,8 @@
+{
+  "schema_version":1,
+  "module":"operating_context",
+  "public":["DefineConfiguration","SetConfiguration","BindSecretReference","OperatingContextAuthority.define","OperatingContextAuthority.set_value","OperatingContextAuthority.bind_secret","OperatingContextAuthority.resolve","RegisterModule","SetModuleEnablement","GrantEntitlement","SetFeatureFlag","OperatingContextAuthority.capability_context","BusinessCalendarVersion","BusinessTimeResolver.resolve","LocalizationProfile","OperatingContextAuthority.export"],
+  "private":["SQL statements","table identities","command ledger","legacy tenant JSON adapters","secret material resolution","runtime import mechanics"],
+  "external_owners":{"permission_authorization":"PC5","pack_manifests_and_lifecycle":"PK","binary_brand_assets":"SO7","historical_financial_time":"Neutral Finance"},
+  "stability":"v1"
+}

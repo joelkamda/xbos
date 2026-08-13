@@ -28,9 +28,14 @@ def static_verify():
     up=(ROOT/"alembic_neutral/sql/pc3_semantic_authority_up.sql").read_text()
     forbidden=("INSERT INTO public.taxonomy_nodes","UPDATE public.taxonomy_nodes","DELETE FROM public.taxonomy_nodes","ALTER TABLE public.atomic_units","UPDATE public.financial_","DELETE FROM public.financial_")
     if any(value in up for value in forbidden):raise RuntimeError("PC3 migration contains forbidden legacy/Finance mutation")
+    replacements={}
+    pc4_manifest=ROOT/"contracts/platform/v1/pc4_release_manifest.json"
+    if pc4_manifest.is_file():
+        descendant=json.loads(pc4_manifest.read_text(encoding="utf-8"));replacements={item["path"]:item for item in descendant.get("historical_pc3_replacements",[])}
     for item in release["artifacts"]:
-        path=ROOT/item["path"]
-        if not path.is_file() or hashlib.sha256(path.read_bytes()).hexdigest()!=item["sha256"]:raise RuntimeError(f"PC3 release manifest mismatch={item['path']}")
+        path=ROOT/item["path"];actual=hashlib.sha256(path.read_bytes()).hexdigest() if path.is_file() else None;replacement=replacements.get(item["path"])
+        accepted=actual==item["sha256"] or (replacement is not None and replacement.get("historical_sha256")==item["sha256"] and replacement.get("descendant_sha256")==actual)
+        if not accepted:raise RuntimeError(f"PC3 release manifest mismatch={item['path']}")
     pc0=validate_pc0(ROOT)
     return {"status":"PASS","pc0":pc0["status"],"previous_head":PREVIOUS,"accepted_head":HEAD,"adoption_entries":len(adoption["entries"]),"release_artifacts":len(release["artifacts"])}
 

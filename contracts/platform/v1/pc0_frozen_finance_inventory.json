@@ -21,6 +21,9 @@
     ,{"root":"alembic_neutral","path":"versions/pc3_semantic_authority_023_namespaces_taxonomy_mapping_classification.py","sha256":"c3b4d975073a6c7aeaf4b0c57f157dff808bd147a5604bc60706e017d9fe24ab","owner":"PC1","reason":"PC3 canonical lineage descendant"}
     ,{"root":"alembic_neutral","path":"sql/pc3_semantic_authority_up.sql","sha256":"2235f4edb3935df39707523373fb6c0b61a52a4ca1b3a205c658881d411a9719","owner":"PC1","reason":"PC3 canonical lineage descendant"}
     ,{"root":"alembic_neutral","path":"sql/pc3_semantic_authority_down.sql","sha256":"590f0453d90305a6a3a76c09db6541d3f62084c876f7bae09813bd214bc9ac71","owner":"PC1","reason":"PC3 canonical lineage descendant"}
+    ,{"root":"alembic_neutral","path":"versions/pc4_operating_context_024_typed_configuration_modules_time.py","sha256":"a7317487bf800e2852cbb85c9d2cf1941c2b88876bb12e03ca353f82b8ce8348","owner":"PC1","reason":"PC4 canonical lineage descendant"}
+    ,{"root":"alembic_neutral","path":"sql/pc4_operating_context_up.sql","sha256":"8ed296e754ee471003f47e6300c08cecaeccb838cdcc0780878e5b72f0c4147f","owner":"PC1","reason":"PC4 canonical lineage descendant"}
+    ,{"root":"alembic_neutral","path":"sql/pc4_operating_context_down.sql","sha256":"09248770d7a0a8d03808ffe0c88270c3432c34a3939f9b5a5617e207df7e787b","owner":"PC1","reason":"PC4 canonical lineage descendant"}
   ],
   "trees": [
     {

@@ -8,6 +8,7 @@
     {"code":"structure","owner":"PC1","kind":"platform_authority","source_roots":["core/platform/structure"]},
     {"code":"party","owner":"PC2","kind":"platform_authority","source_roots":["core/platform/party"]},
     {"code":"semantics","owner":"PC3","kind":"platform_authority","source_roots":["core/platform/semantics"]},
+    {"code":"operating_context","owner":"PC4","kind":"platform_authority","source_roots":["core/platform/operating_context"]},
     {"code":"application","owner":"PC0","kind":"platform_composition","source_roots":["app.py","container.py","database.py","logging_config.py","main.py","settings.py","startup.py"]},
     {"code":"composition","owner":"PC0","kind":"platform_composition","source_roots":["core/api/kernel_router.py","core/models_import.py"]},
     {"code":"persistence","owner":"Neutral Finance / canonical persistence","kind":"frozen_foundation","source_roots":["core/persistence"]},

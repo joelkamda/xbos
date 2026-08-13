@@ -10,6 +10,7 @@
     "structure": [],
     "party": [],
     "semantics": [],
+    "operating_context": [],
     "application": ["composition", "identity", "persistence", "tenancy"],
     "composition": ["catalog", "identity", "inventory", "legacy_accounting", "legacy_payments", "orders", "reports", "sales", "taxonomy", "tenancy"],
     "persistence": [],

@@ -1,0 +1,38 @@
+XBOS Platform Core PC4 installation package
+Revision: 6 — cumulative integrity-chain regeneration after authorized PC4 SQL repair
+Source checkpoint: 601a395 (accepted PC3 Revision 1)
+Migration before: pc3_semantic_authority_023
+Migration after: pc4_operating_context_024
+File count: 31
+
+PC4_INSTALL_MANIFEST.txt
+XBOS_PC4_INSTALL_AND_VERIFY.txt
+XBOS_PC4_RUN_ACCEPTANCE.cmd
+contracts/platform/v1/pc0_module_map.json
+contracts/platform/v1/pc0_data_authority_register.json
+contracts/platform/v1/pc0_reference_authority_migration_register.json
+contracts/platform/v1/pc0_dependency_policy.json
+contracts/platform/v1/pc0_public_private_interfaces.json
+contracts/platform/v1/pc0_frozen_finance_inventory.json
+contracts/platform/v1/pc0_release_manifest.json
+core/platform/architecture_contract.py
+tests/contracts/test_pc0_kernel_boundaries.py
+scripts/verify_pc1_structural_authority.py
+scripts/verify_pc2_party_authority.py
+scripts/verify_pc3_semantic_authority.py
+contracts/platform/v1/pc4_operating_context_authority.json
+contracts/platform/v1/pc4_compatibility_migration_manifest.json
+contracts/platform/v1/pc4_public_interfaces.json
+contracts/platform/v1/pc4_release_manifest.json
+core/platform/operating_context/__init__.py
+core/platform/operating_context/contracts.py
+core/platform/operating_context/service.py
+core/platform/operating_context/sql_repository.py
+alembic_neutral/sql/pc4_operating_context_up.sql
+alembic_neutral/sql/pc4_operating_context_down.sql
+alembic_neutral/versions/pc4_operating_context_024_typed_configuration_modules_time.py
+docs/platform_core/PC4_OPERATING_CONTEXT_AUTHORITY.md
+docs/platform_core/adr/0007_PC4_TYPED_CONFIGURATION_MODULES_AND_PROSPECTIVE_TIME.md
+scripts/verify_pc4_operating_context.py
+tests/contracts/test_pc4_operating_context.py
+tests/contracts/test_pc4_cumulative_release_manifest_chain.py

@@ -1,0 +1,21 @@
+{
+  "schema_version":1,
+  "source_checkpoint":"601a395",
+  "previous_head":"pc3_semantic_authority_023",
+  "accepted_head":"pc4_operating_context_024",
+  "scope":["PC4.1","PC4.2","PC4.3","PC4.4","PC4.5","PC4.6","PC4.7","PC4.8","PC4.9","PC4.10","PC4.11","PC4.12","PC4.13","PC4.14"],
+  "authorities":{
+    "configuration":{"owner":"PC4","identity":"canonical key","types":["boolean","integer","decimal","string","code","date","time","duration","json"],"scopes":["platform","tenant","legal_entity","organization_unit","location"],"effective_dated":true},
+    "secrets":{"owner":"PC4 contract only","material_persistence":"FORBIDDEN","ordinary_export":"FORBIDDEN","binding":"opaque operator/environment reference"},
+    "module_registry":{"owner":"PC4","runtime_dynamic_import":false,"pack_lifecycle_owner":"PK"},
+    "entitlements":{"meaning":"commercial or plan capability right"},
+    "feature_flags":{"meaning":"operational/release activation"},
+    "permissions":{"owner":"PC5","implemented_by_pc4":false},
+    "business_time":{"owner":"PC4 prospective generic policy","finance_historical_owner":"Neutral Finance","retroactive_finance_recalculation":false},
+    "localization":{"owner":"PC4 presentation context","semantic_identity_owner":"PC3","financial_currency_owner":"Finance"}
+  },
+  "resolution":{"declared_per_definition":true,"candidate_scopes":["location","organization_unit","legal_entity","tenant","platform"],"universal_order":false,"required_missing":"FAIL_CLOSED","ambiguous":"FAIL_CLOSED"},
+  "capability_equation":"module_available AND module_enabled AND entitled AND feature_active AND PC5_permission_authorized",
+  "exports":{"tenant_scoped":true,"deterministic":true,"secret_material":false,"platform_defaults_duplicated_as_tenant":false},
+  "exclusions":["PC5 authorization","PK pack lifecycle","SO7 binary assets","runtime dynamic imports","generic outbox/jobs","production WND cutover","Finance historical time reinterpretation","industry-specific shift rules"]
+}
