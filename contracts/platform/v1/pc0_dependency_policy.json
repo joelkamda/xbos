@@ -92,7 +92,10 @@
       "finance"
     ],
     "shared": [],
-    "resources": []
+    "resources": [],
+    "workflows": [
+      "resources"
+    ]
   },
   "law": [
     "composition may assemble modules but domain modules may not depend on composition",

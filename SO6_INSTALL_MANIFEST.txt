@@ -1,0 +1,41 @@
+SO6 cumulative overlay inventory
+Source checkpoint: a6292ca36b458aafabff0e2f81766ccd9e5db42b
+Previous head: so5_resources_operational_assignment_030
+Accepted head: so6_workflows_tasks_operational_approvals_031
+
+SO6_INSTALL_MANIFEST.txt
+XBOS_SO6_INSTALL_AND_VERIFY.txt
+XBOS_SO6_RUN_ACCEPTANCE.cmd
+alembic_neutral/sql/so6_workflows_tasks_operational_approvals_down.sql
+alembic_neutral/sql/so6_workflows_tasks_operational_approvals_up.sql
+alembic_neutral/versions/so6_workflows_tasks_operational_approvals_031.py
+contracts/platform/v1/pc0_data_authority_register.json
+contracts/platform/v1/pc0_dependency_policy.json
+contracts/platform/v1/pc0_frozen_finance_inventory.json
+contracts/platform/v1/pc0_module_map.json
+contracts/platform/v1/pc0_public_private_interfaces.json
+contracts/platform/v1/pc0_reference_authority_migration_register.json
+contracts/platform/v1/pc0_release_manifest.json
+contracts/platform/v1/pc6_release_manifest.json
+contracts/shared_operations/v1/examples/clinical_review_workflow_profile.json
+contracts/shared_operations/v1/examples/field_service_workflow_profile.json
+contracts/shared_operations/v1/so1_release_manifest.json
+contracts/shared_operations/v1/so2_release_manifest.json
+contracts/shared_operations/v1/so3_release_manifest.json
+contracts/shared_operations/v1/so4_release_manifest.json
+contracts/shared_operations/v1/so5_release_manifest.json
+contracts/shared_operations/v1/so6_authority.json
+contracts/shared_operations/v1/so6_legacy_adoption_manifest.json
+contracts/shared_operations/v1/so6_public_interfaces.json
+contracts/shared_operations/v1/so6_xa_metadata.json
+core/platform/architecture_contract.py
+docs/shared_operations/SO6_WORKFLOWS_TASKS_OPERATIONAL_APPROVALS.md
+docs/shared_operations/adr/0017_SO6_OPERATIONAL_WORKFLOW_SEPARATE_FROM_PC5_SECURITY_APPROVAL.md
+scripts/verify_so6_workflows_tasks_operational_approvals.py
+shared_operations/so6/__init__.py
+shared_operations/so6/contracts.py
+shared_operations/so6/service.py
+shared_operations/so6/sql_repository.py
+tests/contracts/test_pc0_kernel_boundaries.py
+tests/contracts/test_so6_workflows_tasks_operational_approvals.py
+contracts/shared_operations/v1/so6_release_manifest.json

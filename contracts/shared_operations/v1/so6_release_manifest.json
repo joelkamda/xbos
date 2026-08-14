@@ -1,0 +1,154 @@
+{
+  "schema_version": 1,
+  "release": "SO6",
+  "source_checkpoint": "a6292ca",
+  "source_checkpoint_full": "a6292ca36b458aafabff0e2f81766ccd9e5db42b",
+  "previous_head": "so5_resources_operational_assignment_030",
+  "accepted_head": "so6_workflows_tasks_operational_approvals_031",
+  "migration_count": 1,
+  "fingerprint_mode": "sha256_git_canonical_lf",
+  "commit": "NONE",
+  "tag": "NONE",
+  "artifacts": [
+    {
+      "path": "SO6_INSTALL_MANIFEST.txt",
+      "sha256": "6cc0db7b1d2f05aff4be2e98df241b7ed25a02251561c85332639ee1b891d296"
+    },
+    {
+      "path": "XBOS_SO6_INSTALL_AND_VERIFY.txt",
+      "sha256": "a616f9daf2123adf6d0fc87fabc1ccd039a1ccbae719dc7ecfb548fb0334f0a6"
+    },
+    {
+      "path": "XBOS_SO6_RUN_ACCEPTANCE.cmd",
+      "sha256": "961310148b9b067649c0bf51b460b0776d776c0d72310b697b2934a5b0f52be8"
+    },
+    {
+      "path": "alembic_neutral/sql/so6_workflows_tasks_operational_approvals_down.sql",
+      "sha256": "fe0ec96767f34425ae07ff9c45b5bdbd188c6ce67560274e8858cce827f2b69d"
+    },
+    {
+      "path": "alembic_neutral/sql/so6_workflows_tasks_operational_approvals_up.sql",
+      "sha256": "6c9eed5a2383eef1ea21ec5e9b67e14b266466b068e661ba7b6213dd91e797c6"
+    },
+    {
+      "path": "alembic_neutral/versions/so6_workflows_tasks_operational_approvals_031.py",
+      "sha256": "2bc7d7c249b2ee1ea5a9d98d902e962ec39b1876922c53f9e4f03b92cb97a804"
+    },
+    {
+      "path": "contracts/platform/v1/pc0_data_authority_register.json",
+      "sha256": "f647d5d182c7e38c3b3fd88cb7bf3fcf53e35925eec06ae126740de51d912311"
+    },
+    {
+      "path": "contracts/platform/v1/pc0_dependency_policy.json",
+      "sha256": "24b570b095d658cbae3cd11500aec78a31c41c751015a9f32aee6471a968dd93"
+    },
+    {
+      "path": "contracts/platform/v1/pc0_frozen_finance_inventory.json",
+      "sha256": "53f17fb1c6234df68ed10d22bf03b018c3fb2a095f4554a0e7e4860dd25ee44d"
+    },
+    {
+      "path": "contracts/platform/v1/pc0_module_map.json",
+      "sha256": "773d72f9841333338e2d4dabcbf2a42f2bb74d29fe9f867cae25a84bea8040e7"
+    },
+    {
+      "path": "contracts/platform/v1/pc0_public_private_interfaces.json",
+      "sha256": "3fb7988df30eb7bd976c9ff10a1b89631b78a8e5e89c6c1ae3f8c6b39c95473d"
+    },
+    {
+      "path": "contracts/platform/v1/pc0_reference_authority_migration_register.json",
+      "sha256": "24c1a05ea43f7d199130c1d426b714c528c649a7047732cb8e8ff5a4433269ef"
+    },
+    {
+      "path": "contracts/platform/v1/pc0_release_manifest.json",
+      "sha256": "a9c3020b700af6a5bde2723ac180600652e164d68c7bdec7afe52f16a7d2b92f"
+    },
+    {
+      "path": "contracts/platform/v1/pc6_release_manifest.json",
+      "sha256": "1ae66f2648a8fdb4bc1038772ee826570f9e5ff9d0e6de2e44b6ac0efc18d4fb"
+    },
+    {
+      "path": "contracts/shared_operations/v1/examples/clinical_review_workflow_profile.json",
+      "sha256": "c56f894d24ec20c08415c74fad7a7daa9d6409804d466009f634ce81ebc1e9ba"
+    },
+    {
+      "path": "contracts/shared_operations/v1/examples/field_service_workflow_profile.json",
+      "sha256": "e8357545108e8db413b2557798038f672f609abf9f0dfa57a0e82e7c2736455f"
+    },
+    {
+      "path": "contracts/shared_operations/v1/so1_release_manifest.json",
+      "sha256": "a198124ef9cd6a552ecc73155801c19f3743f41f9721aa6edcdc8e63d3faf145"
+    },
+    {
+      "path": "contracts/shared_operations/v1/so2_release_manifest.json",
+      "sha256": "5b99afd2d36538fad766b24a9385165490911be3809f9f76acddc314c3ac2037"
+    },
+    {
+      "path": "contracts/shared_operations/v1/so3_release_manifest.json",
+      "sha256": "d96915c97d65d5c70b3d499cd00611ead4c50ae2047d75047da61fdefe6e70e9"
+    },
+    {
+      "path": "contracts/shared_operations/v1/so4_release_manifest.json",
+      "sha256": "d8a4f9bea0ba242c19701fa8ff3479d1c8503f7279421af78c39480b4c8e5876"
+    },
+    {
+      "path": "contracts/shared_operations/v1/so5_release_manifest.json",
+      "sha256": "7c58e29ffb9d18abee49d99359636d23a166fe7276b09ea27f25534f0e6a3e97"
+    },
+    {
+      "path": "contracts/shared_operations/v1/so6_authority.json",
+      "sha256": "5bd3f918b63d08754b77fb621a26717f4d53d99f25576a31f0948908897550aa"
+    },
+    {
+      "path": "contracts/shared_operations/v1/so6_legacy_adoption_manifest.json",
+      "sha256": "8dad85dd4be85dbb40cb4e3c86e33d3fe00261242af29dac80c40224e9b4017c"
+    },
+    {
+      "path": "contracts/shared_operations/v1/so6_public_interfaces.json",
+      "sha256": "44cdf9693de2bc6300feb7cbb6e7a94766bcbb8b1d55b9bb256b5aaf4dcdcde9"
+    },
+    {
+      "path": "contracts/shared_operations/v1/so6_xa_metadata.json",
+      "sha256": "1b9caeec98b71c9b5f66f9acd9660eb001a731768c324444e8dbdfedcbad9f53"
+    },
+    {
+      "path": "core/platform/architecture_contract.py",
+      "sha256": "ad0a4e2524d6c2f40633b6ccb723130d3b7f63a4930a8dfb6ba3585a5f89a4ef"
+    },
+    {
+      "path": "docs/shared_operations/SO6_WORKFLOWS_TASKS_OPERATIONAL_APPROVALS.md",
+      "sha256": "7e83d1c1df7e726a8e200d88fa25ed352e5834dd7c8d167340f5d28592f62781"
+    },
+    {
+      "path": "docs/shared_operations/adr/0017_SO6_OPERATIONAL_WORKFLOW_SEPARATE_FROM_PC5_SECURITY_APPROVAL.md",
+      "sha256": "34ef7a787215ca1f13b3b3a4a45ec9b97c98250b0d3fe80e9df0f1b0a6ce0d41"
+    },
+    {
+      "path": "scripts/verify_so6_workflows_tasks_operational_approvals.py",
+      "sha256": "0b2a9645621ea5e3600d9f7803bb7f3e8b8f294c6b469f860f04a5cb8c457218"
+    },
+    {
+      "path": "shared_operations/so6/__init__.py",
+      "sha256": "c18d8dfe99130f21c0ed7ae800b692834aa41cbcbef784361c9725cd355250d5"
+    },
+    {
+      "path": "shared_operations/so6/contracts.py",
+      "sha256": "68126ca43eb7285f5d5547f1fa6a3f18302a7eb475acf10bf391c48f953c094a"
+    },
+    {
+      "path": "shared_operations/so6/service.py",
+      "sha256": "3b4a1323143d0d7e46f2031eab4ce35e087c25cef88a26d740f658eb0e737835"
+    },
+    {
+      "path": "shared_operations/so6/sql_repository.py",
+      "sha256": "050a1de7493523974af6c1535d233fb366a4affc0149d61ad87ee78a83754435"
+    },
+    {
+      "path": "tests/contracts/test_pc0_kernel_boundaries.py",
+      "sha256": "8044fef205a7dcae5e0455e95b946dc9868ade168f8267d81cc0cd7701fd669f"
+    },
+    {
+      "path": "tests/contracts/test_so6_workflows_tasks_operational_approvals.py",
+      "sha256": "23c9d19410543cedec34ac86f9436abab5595427dd78645fa913ab8b461fa4a9"
+    }
+  ]
+}

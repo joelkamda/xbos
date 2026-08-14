@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "release": "SO6",
+  "decisions": [
+    {
+      "authority": "PC5 authorization and protected-action approvals",
+      "classification": "ADOPT",
+      "decision": "Reuse PC5 for server-side permission/security-control decisions; SO6 operational approvals never grant authorization."
+    },
+    {
+      "authority": "SO5 operational resources and assignments",
+      "classification": "ADOPT",
+      "decision": "Task assignees and operational approvers reference SO5 Resource public identity without duplicating resource or Party identity."
+    },
+    {
+      "authority": "legacy domain status fields and assigned-actor snapshots",
+      "classification": "MAP",
+      "decision": "Existing order/procurement/resource lifecycle facts remain source-domain truth and may map prospectively to SO6 subject references without bulk conversion."
+    },
+    {
+      "authority": "source references, reasons and evidence identifiers",
+      "classification": "BRIDGE",
+      "decision": "SO6 stores bounded references only; SO7 later owns files/documents and source modules retain their canonical records."
+    },
+    {
+      "authority": "existing PC5 security approvals and domain histories",
+      "classification": "PRESERVE",
+      "decision": "Historical security approvals and source-domain histories remain unchanged; SO6 does not reinterpret them as operational approval decisions."
+    },
+    {
+      "authority": "ad hoc operational task/workflow writers",
+      "classification": "RETIRE_LATER",
+      "decision": "Source-specific writers retire only after controlled SO6 mapping and R6/owner acceptance."
+    }
+  ]
+}

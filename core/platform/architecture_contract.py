@@ -446,7 +446,7 @@ def _validate_finance(root: Path, finance: dict[str, Any], inventory: dict[str, 
         _fail("PC0-FROZEN-FINANCE-INVENTORY", "protected tree coverage does not match baseline")
     extensions_by_root: dict[str, dict[str, str]] = {}
     for item in inventory.get("authorized_non_finance_extensions", []):
-        if item.get("owner") not in {"PC1", "SO1", "SO2", "SO3", "SO4", "SO5"} or not all(isinstance(item.get(key), str) and item[key] for key in ("root","path","sha256")):
+        if item.get("owner") not in {"PC1", "SO1", "SO2", "SO3", "SO4", "SO5", "SO6"} or not all(isinstance(item.get(key), str) and item[key] for key in ("root","path","sha256")):
             _fail("PC0-NON-FINANCE-EXTENSION", str(item))
         extensions_by_root.setdefault(item["root"], {})[item["path"]] = item["sha256"]
     for tree in finance.get("trees", []):
@@ -506,6 +506,9 @@ def validate_pc0(root: str | Path, validate_release: bool = True) -> dict[str, A
     so5_contract = root_path / "contracts/shared_operations/v1/so5_authority.json"
     if so5_contract.is_file():
         descendant_heads.append(json.loads(so5_contract.read_text(encoding="utf-8")).get("accepted_head"))
+    so6_contract = root_path / "contracts/shared_operations/v1/so6_authority.json"
+    if so6_contract.is_file():
+        descendant_heads.append(json.loads(so6_contract.read_text(encoding="utf-8")).get("accepted_head"))
     _validate_finance(
         root_path,
         contracts["finance"],

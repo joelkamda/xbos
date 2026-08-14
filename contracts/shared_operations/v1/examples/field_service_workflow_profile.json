@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "profile": "field_service",
+  "terminology": {
+    "workflow": "service case",
+    "task": "work step",
+    "approval": "operational sign-off"
+  },
+  "workflow_types": [
+    "equipment_service_case"
+  ],
+  "task_types": [
+    "inspect",
+    "repair",
+    "quality_check"
+  ],
+  "approval_types": [
+    "quality_release"
+  ],
+  "resource_capabilities": [
+    "field_technician",
+    "quality_inspector"
+  ],
+  "scheduling": "SO10_LATER"
+}

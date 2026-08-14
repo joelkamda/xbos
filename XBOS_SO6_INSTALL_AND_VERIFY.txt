@@ -1,0 +1,13 @@
+XBOS SO6 — Workflows, Tasks and Operational Approvals
+
+Source checkpoint: a6292ca36b458aafabff0e2f81766ccd9e5db42b
+Previous head: so5_resources_operational_assignment_030
+Accepted head: so6_workflows_tasks_operational_approvals_031
+
+Install the cumulative ZIP at repository root with Expand-Archive -Force. Do not run Alembic manually. Use the existing xbos-track-b-b1 virtual environment and run:
+
+XBOS_SO6_RUN_ACCEPTANCE.cmd
+
+The gate performs static predecessor verification, focused contracts, disposable PostgreSQL replay/upgrade/downgrade/re-upgrade, development adoption, full regression, compilation/JSON and whitespace checks. It refuses an unexpected development head and does not touch production or tenant-clone databases.
+
+No commit/tag is authorized until SO6_SINGLE_GATE=PASS and control-room scope review.

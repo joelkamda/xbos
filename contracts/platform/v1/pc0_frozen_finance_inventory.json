@@ -248,6 +248,27 @@
       "sha256": "b4d84269a50e5dc2b1a3da2bfd886db92367d2fc135dd39a0b5afbfc936edfd6",
       "owner": "SO5",
       "reason": "SO5 authorized non-Finance canonical descendant"
+    },
+    {
+      "root": "alembic_neutral",
+      "path": "versions/so6_workflows_tasks_operational_approvals_031.py",
+      "sha256": "2bc7d7c249b2ee1ea5a9d98d902e962ec39b1876922c53f9e4f03b92cb97a804",
+      "owner": "SO6",
+      "reason": "SO6 authorized non-Finance canonical descendant"
+    },
+    {
+      "root": "alembic_neutral",
+      "path": "sql/so6_workflows_tasks_operational_approvals_up.sql",
+      "sha256": "6c9eed5a2383eef1ea21ec5e9b67e14b266466b068e661ba7b6213dd91e797c6",
+      "owner": "SO6",
+      "reason": "SO6 authorized non-Finance canonical descendant"
+    },
+    {
+      "root": "alembic_neutral",
+      "path": "sql/so6_workflows_tasks_operational_approvals_down.sql",
+      "sha256": "fe0ec96767f34425ae07ff9c45b5bdbd188c6ce67560274e8858cce827f2b69d",
+      "owner": "SO6",
+      "reason": "SO6 authorized non-Finance canonical descendant"
     }
   ],
   "trees": [

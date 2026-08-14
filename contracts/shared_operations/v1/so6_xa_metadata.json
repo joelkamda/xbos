@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "release": "SO6",
+  "frontend_implementation": "NONE",
+  "views": [
+    "workflow.list",
+    "workflow.detail",
+    "workflow.task.queue",
+    "workflow.task.detail",
+    "workflow.approval.queue",
+    "workflow.history"
+  ],
+  "actions": [
+    "workflow.create",
+    "workflow.task.create",
+    "workflow.task.transition",
+    "workflow.task.reassign",
+    "workflow.approval.request",
+    "workflow.approval.decide",
+    "workflow.complete",
+    "workflow.cancel"
+  ],
+  "fields": [
+    "workflow_type_code",
+    "subject_reference",
+    "status",
+    "priority",
+    "due_at",
+    "task_type_code",
+    "assignee_resource",
+    "required_capability_code",
+    "approval_type_code",
+    "approval_status",
+    "evidence_reference"
+  ],
+  "authorization_source": "PC5",
+  "resource_source": "SO5",
+  "conflict_states": [
+    "stale_version",
+    "idempotency_conflict",
+    "workflow_conflict"
+  ],
+  "document_rendering": "SO7_LATER",
+  "notifications": "SO8_LATER",
+  "automation": "SO9_LATER",
+  "scheduling": "SO10_LATER"
+}

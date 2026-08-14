@@ -162,6 +162,14 @@
       ]
     },
     {
+      "code": "workflows",
+      "owner": "SO6",
+      "kind": "shared_operations_authority",
+      "source_roots": [
+        "shared_operations/so6"
+      ]
+    },
+    {
       "code": "orders",
       "owner": "Restaurant Pack",
       "kind": "legacy_industry",

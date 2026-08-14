@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "profile": "clinical_review",
+  "terminology": {
+    "workflow": "review case",
+    "task": "review item",
+    "approval": "operational review decision"
+  },
+  "workflow_types": [
+    "supply_review_case"
+  ],
+  "task_types": [
+    "verify_request",
+    "review_inventory",
+    "record_disposition"
+  ],
+  "approval_types": [
+    "operational_release"
+  ],
+  "resource_capabilities": [
+    "clinical_reviewer",
+    "supply_coordinator"
+  ],
+  "scheduling": "SO10_LATER"
+}

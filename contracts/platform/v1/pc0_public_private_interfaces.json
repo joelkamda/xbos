@@ -230,6 +230,28 @@
       ]
     },
     {
+      "module": "workflows",
+      "public": [
+        "shared_operations.so6.SO6Authority",
+        "shared_operations.so6.SO6AuthorityError",
+        "shared_operations.so6.Workflow",
+        "shared_operations.so6.WorkflowTask",
+        "shared_operations.so6.OperationalApproval",
+        "shared_operations.so6.CreateWorkflow",
+        "shared_operations.so6.AddTask",
+        "shared_operations.so6.ChangeTaskStatus",
+        "shared_operations.so6.ReassignTask",
+        "shared_operations.so6.RequestOperationalApproval",
+        "shared_operations.so6.DecideOperationalApproval",
+        "shared_operations.so6.CompleteWorkflow",
+        "shared_operations.so6.CancelWorkflow"
+      ],
+      "private": [
+        "shared_operations.so6.sql_repository",
+        "SO6 workflow, task, operational-approval, history and command tables"
+      ]
+    },
+    {
       "module": "orders",
       "public": [
         "/kernel/orders API compatibility surface"

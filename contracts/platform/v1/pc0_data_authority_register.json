@@ -203,6 +203,13 @@
       "boundary": "operational resource/capacity and assignment truth; Party PC2, auth PC5, structure PC1, workflow SO6, scheduling SO10 and Finance remain external authorities"
     },
     {
+      "code": "operational_workflow_task",
+      "module": "workflows",
+      "owner": "SO6",
+      "current_store": "so6_workflows, so6_workflow_tasks, so6_operational_approvals and append-only workflow history",
+      "boundary": "operational execution/work-item and business-operational approval truth; PC5 security approval/authorization, SO5 Resource, SO7 documents, SO8 delivery, SO9 automation, SO10 scheduling and Finance remain external authorities"
+    },
+    {
       "code": "pack_manifest_lifecycle",
       "owner": "PK",
       "current_store": "absent",

@@ -200,6 +200,14 @@
       "retirement_milestone": "source-specific resource writer convergence"
     },
     {
+      "reference": "legacy_operational_workflow_task",
+      "current_authority": "domain-specific status fields, assigned-actor snapshots and ad hoc operational handoffs",
+      "target_authority": "SO6 generalized workflow/task authority referencing SO5 Resource and consuming PC5 authorization",
+      "compatibility_path": "preserve source-domain lifecycle and PC5 protected approvals; map prospectively through explicit subject/reference contracts without bulk reinterpretation",
+      "retirement_owner": "SO6 with source owners",
+      "retirement_milestone": "source-specific operational workflow writer convergence"
+    },
+    {
       "reference": "legacy_financial_writers",
       "current_authority": "legacy accounting/payment writers",
       "target_authority": "Neutral Finance public commands",
@@ -233,6 +241,7 @@
     "legacy_inventory_location_unit",
     "legacy_procurement_supplier_evidence",
     "legacy_staff_resource_assignment",
+    "legacy_operational_workflow_task",
     "legacy_financial_writers"
   ]
 }

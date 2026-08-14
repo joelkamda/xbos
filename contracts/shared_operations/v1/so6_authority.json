@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "release": "SO6",
+  "source_checkpoint": "a6292ca36b458aafabff0e2f81766ccd9e5db42b",
+  "previous_head": "so5_resources_operational_assignment_030",
+  "accepted_head": "so6_workflows_tasks_operational_approvals_031",
+  "security_authority": "PC5_REUSED",
+  "resource_authority": "SO5_REUSED",
+  "structure_authority": "PC1_REUSED",
+  "workflow_authority": "SO6_OPERATIONAL_ONLY",
+  "task_authority": "SO6_OPERATIONAL_ONLY",
+  "operational_approval_authority": "SO6_OPERATIONAL_ONLY",
+  "security_approval_boundary": "PC5_ONLY",
+  "document_authority": "SO7_EXCLUDED",
+  "communications_authority": "SO8_EXCLUDED",
+  "reporting_automation_authority": "SO9_EXCLUDED",
+  "scheduling_authority": "SO10_EXCLUDED",
+  "finance": "UNCHANGED",
+  "production_dependency_changes": "NONE"
+}

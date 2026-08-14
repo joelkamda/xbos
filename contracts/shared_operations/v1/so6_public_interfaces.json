@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "release": "SO6",
+  "module": "workflows",
+  "commands": [
+    "CreateWorkflow",
+    "AddTask",
+    "ChangeTaskStatus",
+    "ReassignTask",
+    "RequestOperationalApproval",
+    "DecideOperationalApproval",
+    "CompleteWorkflow",
+    "CancelWorkflow"
+  ],
+  "queries": [
+    "workflow",
+    "list_workflows",
+    "task",
+    "tasks",
+    "approval",
+    "approvals",
+    "history"
+  ],
+  "stable_errors": [
+    "SO6_PERMISSION_DENIED",
+    "SO6_WORKFLOW_NOT_FOUND",
+    "SO6_TASK_NOT_FOUND",
+    "SO6_APPROVAL_NOT_FOUND",
+    "SO6_RESOURCE_NOT_FOUND",
+    "SO6_RESOURCE_NOT_ACTIVE",
+    "SO6_WORKFLOW_CLOSED",
+    "SO6_INVALID_TASK_TRANSITION",
+    "SO6_WORKFLOW_CONFLICT",
+    "SO6_STALE_TASK",
+    "SO6_STALE_APPROVAL",
+    "SO6_COMMAND_CONFLICT",
+    "SO6_TASK_SCOPE_MISMATCH"
+  ],
+  "security_role_writer": "NONE",
+  "pc5_protected_approval_writer": "NONE",
+  "finance_writer": "NONE",
+  "document_store": "NONE",
+  "notification_delivery": "NONE",
+  "scheduling_engine": "NONE"
+}
