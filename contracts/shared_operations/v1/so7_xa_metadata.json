@@ -1,0 +1,43 @@
+{
+  "schema_version": 1,
+  "release": "SO7",
+  "frontend_implementation": "NONE",
+  "views": [
+    "document.list",
+    "document.detail",
+    "document.version.history",
+    "document.evidence.panel",
+    "document.search"
+  ],
+  "actions": [
+    "document.create",
+    "document.version.register",
+    "document.evidence.link",
+    "document.evidence.end",
+    "document.status.change"
+  ],
+  "fields": [
+    "title",
+    "classification_code",
+    "status",
+    "current_version_number",
+    "file_name",
+    "content_type",
+    "content_length",
+    "content_sha256",
+    "storage_provider",
+    "subject_reference",
+    "relation_code"
+  ],
+  "authorization_source": "PC5",
+  "semantic_source": "PC3",
+  "search_authority": "SO7_DERIVED",
+  "conflict_states": [
+    "stale_version",
+    "idempotency_conflict",
+    "evidence_conflict"
+  ],
+  "communications": "SO8_LATER",
+  "automation": "SO9_LATER",
+  "scheduling": "SO10_LATER"
+}

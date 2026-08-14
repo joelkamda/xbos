@@ -37,35 +37,35 @@
     },
     {
       "path": "contracts/platform/v1/pc0_data_authority_register.json",
-      "sha256": "f647d5d182c7e38c3b3fd88cb7bf3fcf53e35925eec06ae126740de51d912311"
+      "sha256": "e7272315fcb76ec6cf13c16d6162615a8fe6a19e6738ac537d6538bbb78cfe69"
     },
     {
       "path": "contracts/platform/v1/pc0_dependency_policy.json",
-      "sha256": "24b570b095d658cbae3cd11500aec78a31c41c751015a9f32aee6471a968dd93"
+      "sha256": "fd0da054ba7e1ccc9469edb58993a30524e4bf4e60b2669e1cabf8f8b05077ea"
     },
     {
       "path": "contracts/platform/v1/pc0_frozen_finance_inventory.json",
-      "sha256": "53f17fb1c6234df68ed10d22bf03b018c3fb2a095f4554a0e7e4860dd25ee44d"
+      "sha256": "23c81211c8afb0955dd02067324f04bd0c9dc0626bea394674d678ef1aedc583"
     },
     {
       "path": "contracts/platform/v1/pc0_module_map.json",
-      "sha256": "773d72f9841333338e2d4dabcbf2a42f2bb74d29fe9f867cae25a84bea8040e7"
+      "sha256": "19ee00794165b8128bda416506017b76bdcb6b30d3afa4c59f07b4bb9e42d801"
     },
     {
       "path": "contracts/platform/v1/pc0_public_private_interfaces.json",
-      "sha256": "3fb7988df30eb7bd976c9ff10a1b89631b78a8e5e89c6c1ae3f8c6b39c95473d"
+      "sha256": "5572ae544498c5be3c5c7ce27214cd4ce3b080b13469e89b4e685b0a9a95ec76"
     },
     {
       "path": "contracts/platform/v1/pc0_reference_authority_migration_register.json",
-      "sha256": "24c1a05ea43f7d199130c1d426b714c528c649a7047732cb8e8ff5a4433269ef"
+      "sha256": "b39fc163446d07c3c3e56f548ec2929522925c220ab96e0d09878b5357796f5e"
     },
     {
       "path": "contracts/platform/v1/pc0_release_manifest.json",
-      "sha256": "a9c3020b700af6a5bde2723ac180600652e164d68c7bdec7afe52f16a7d2b92f"
+      "sha256": "f92d97d762f674e7659df8118585a51f3fe1569bc2878a7ddb59af9e348e84f4"
     },
     {
       "path": "contracts/platform/v1/pc6_release_manifest.json",
-      "sha256": "1ae66f2648a8fdb4bc1038772ee826570f9e5ff9d0e6de2e44b6ac0efc18d4fb"
+      "sha256": "788b14defbaf3c94e58df0b1b0b00649d3612658fae19ccef752102fe5d3c74c"
     },
     {
       "path": "contracts/shared_operations/v1/examples/professional_service_crm_profile.json",
@@ -77,7 +77,7 @@
     },
     {
       "path": "contracts/shared_operations/v1/so1_release_manifest.json",
-      "sha256": "a198124ef9cd6a552ecc73155801c19f3743f41f9721aa6edcdc8e63d3faf145"
+      "sha256": "ef77a040cf908a2630a1b5b7cddeb1cb189ae3185698015ba37aeff4ab43e94a"
     },
     {
       "path": "contracts/shared_operations/v1/so2_authority.json",
@@ -97,7 +97,7 @@
     },
     {
       "path": "core/platform/architecture_contract.py",
-      "sha256": "ad0a4e2524d6c2f40633b6ccb723130d3b7f63a4930a8dfb6ba3585a5f89a4ef"
+      "sha256": "aba43109d8f2eae7585dd84c73a8eb6d73f43f1e6d6c261541bd7f8d41c5249c"
     },
     {
       "path": "docs/shared_operations/SO2_CRM_OPERATIONAL_PARTY_RELATIONSHIPS.md",

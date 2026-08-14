@@ -166,8 +166,9 @@
     {
       "code": "document_file",
       "owner": "SO7",
-      "current_store": "financial evidence references and legacy receipt artifacts",
-      "boundary": "generic document, file and issued-record authority"
+      "current_store": "so7_documents, append-only so7_document_versions, so7_evidence_links and derived so7_document_search_projection",
+      "boundary": "tenant-scoped logical document, storage-neutral file-version identity, evidence linkage and derived search; source-domain, PC5 audit and Finance truth remain external",
+      "module": "documents"
     },
     {
       "code": "atomic_unit",

@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "profile": "clinical_documents",
+  "terminology": {
+    "document": "controlled record",
+    "version": "record version",
+    "evidence_link": "supporting record"
+  },
+  "classifications": [
+    "clinical_certificate",
+    "supply_authorization",
+    "inspection_record"
+  ],
+  "subject_authorities": [
+    "workflow",
+    "resource"
+  ],
+  "storage": "adapter_selected",
+  "text_extraction": "DOWNSTREAM_OPTIONAL"
+}

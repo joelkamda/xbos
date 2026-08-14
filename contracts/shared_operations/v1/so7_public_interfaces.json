@@ -1,0 +1,44 @@
+{
+  "schema_version": 1,
+  "release": "SO7",
+  "module": "documents",
+  "commands": [
+    "CreateDocument",
+    "RegisterFileVersion",
+    "LinkEvidence",
+    "EndEvidenceLink",
+    "ChangeDocumentStatus"
+  ],
+  "queries": [
+    "document",
+    "list_documents",
+    "version",
+    "versions",
+    "current_version",
+    "evidence",
+    "evidence_for_subject",
+    "search"
+  ],
+  "stable_errors": [
+    "SO7_PERMISSION_DENIED",
+    "SO7_DOCUMENT_NOT_FOUND",
+    "SO7_VERSION_NOT_FOUND",
+    "SO7_EVIDENCE_NOT_FOUND",
+    "SO7_CLASSIFICATION_NOT_FOUND",
+    "SO7_SUBJECT_NOT_FOUND",
+    "SO7_VERSION_SCOPE_MISMATCH",
+    "SO7_DOCUMENT_NOT_ACTIVE",
+    "SO7_DOCUMENT_WITHDRAWN",
+    "SO7_INVALID_DOCUMENT_TRANSITION",
+    "SO7_STALE_DOCUMENT",
+    "SO7_STALE_EVIDENCE",
+    "SO7_EVIDENCE_CONFLICT",
+    "SO7_COMMAND_CONFLICT"
+  ],
+  "finance_writer": "NONE",
+  "security_role_writer": "NONE",
+  "pc5_audit_writer": "NONE",
+  "workflow_writer": "NONE",
+  "storage_bytes_writer": "ADAPTER_ONLY",
+  "search_source_of_truth": "NONE"
+}

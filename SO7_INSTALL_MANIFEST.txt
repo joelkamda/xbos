@@ -1,0 +1,42 @@
+SO7 cumulative overlay inventory
+Source checkpoint: 7fb3be466787144f1f0e09e930ef7bb6707418f0
+Previous head: so6_workflows_tasks_operational_approvals_031
+Accepted head: so7_documents_files_evidence_search_032
+
+SO7_INSTALL_MANIFEST.txt
+XBOS_SO7_INSTALL_AND_VERIFY.txt
+XBOS_SO7_RUN_ACCEPTANCE.cmd
+alembic_neutral/sql/so7_documents_files_evidence_search_down.sql
+alembic_neutral/sql/so7_documents_files_evidence_search_up.sql
+alembic_neutral/versions/so7_documents_files_evidence_search_032.py
+contracts/platform/v1/pc0_data_authority_register.json
+contracts/platform/v1/pc0_dependency_policy.json
+contracts/platform/v1/pc0_frozen_finance_inventory.json
+contracts/platform/v1/pc0_module_map.json
+contracts/platform/v1/pc0_public_private_interfaces.json
+contracts/platform/v1/pc0_reference_authority_migration_register.json
+contracts/platform/v1/pc0_release_manifest.json
+contracts/platform/v1/pc6_release_manifest.json
+contracts/shared_operations/v1/examples/clinical_document_profile.json
+contracts/shared_operations/v1/examples/field_service_evidence_profile.json
+contracts/shared_operations/v1/so1_release_manifest.json
+contracts/shared_operations/v1/so2_release_manifest.json
+contracts/shared_operations/v1/so3_release_manifest.json
+contracts/shared_operations/v1/so4_release_manifest.json
+contracts/shared_operations/v1/so5_release_manifest.json
+contracts/shared_operations/v1/so6_release_manifest.json
+contracts/shared_operations/v1/so7_authority.json
+contracts/shared_operations/v1/so7_legacy_adoption_manifest.json
+contracts/shared_operations/v1/so7_public_interfaces.json
+contracts/shared_operations/v1/so7_release_manifest.json
+contracts/shared_operations/v1/so7_xa_metadata.json
+core/platform/architecture_contract.py
+docs/shared_operations/SO7_DOCUMENTS_FILES_EVIDENCE_SEARCH.md
+docs/shared_operations/adr/0018_SO7_DOCUMENT_VERSION_AND_EVIDENCE_AUTHORITY.md
+scripts/verify_so7_documents_files_evidence_search.py
+shared_operations/so7/__init__.py
+shared_operations/so7/contracts.py
+shared_operations/so7/service.py
+shared_operations/so7/sql_repository.py
+tests/contracts/test_pc0_kernel_boundaries.py
+tests/contracts/test_so7_documents_files_evidence_search.py

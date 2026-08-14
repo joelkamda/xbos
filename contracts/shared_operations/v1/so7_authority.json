@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "release": "SO7",
+  "source_checkpoint": "7fb3be466787144f1f0e09e930ef7bb6707418f0",
+  "previous_head": "so6_workflows_tasks_operational_approvals_031",
+  "accepted_head": "so7_documents_files_evidence_search_032",
+  "semantic_authority": "PC3_REUSED",
+  "security_authority": "PC5_REUSED",
+  "workflow_authority": "SO6_EXTERNAL",
+  "document_authority": "SO7_LOGICAL_DOCUMENT",
+  "file_version_authority": "SO7_STORAGE_NEUTRAL",
+  "evidence_link_authority": "SO7_REFERENCE_ONLY",
+  "search_authority": "SO7_DERIVED_PROJECTION",
+  "storage_provider_authority": "ADAPTER_ONLY",
+  "content_extraction_authority": "EXCLUDED",
+  "communications_authority": "SO8_EXCLUDED",
+  "reporting_automation_authority": "SO9_EXCLUDED",
+  "scheduling_authority": "SO10_EXCLUDED",
+  "finance": "UNCHANGED",
+  "production_dependency_changes": "NONE"
+}

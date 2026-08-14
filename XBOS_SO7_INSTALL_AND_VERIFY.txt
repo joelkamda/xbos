@@ -1,0 +1,13 @@
+XBOS SO7 — Documents, Files, Evidence and Search
+
+Source checkpoint: 7fb3be466787144f1f0e09e930ef7bb6707418f0
+Previous head: so6_workflows_tasks_operational_approvals_031
+Accepted head: so7_documents_files_evidence_search_032
+
+Install the cumulative ZIP at repository root with Expand-Archive -Force. Do not run Alembic manually. Use the existing xbos-track-b-b1 virtual environment and run:
+
+XBOS_SO7_RUN_ACCEPTANCE.cmd
+
+The gate performs static predecessor verification, focused contracts, disposable PostgreSQL replay/upgrade/downgrade/re-upgrade, development adoption, full regression, compilation/JSON and whitespace checks. It refuses an unexpected development head and does not touch production or tenant-clone databases.
+
+No commit/tag is authorized until SO7_SINGLE_GATE=PASS and control-room scope review.

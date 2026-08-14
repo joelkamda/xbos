@@ -65,6 +65,11 @@
     "procurement": [
       "inventory"
     ],
+    "resources": [],
+    "workflows": [
+      "resources"
+    ],
+    "documents": [],
     "orders": [
       "identity",
       "shared"
@@ -91,11 +96,7 @@
     "xafpay": [
       "finance"
     ],
-    "shared": [],
-    "resources": [],
-    "workflows": [
-      "resources"
-    ]
+    "shared": []
   },
   "law": [
     "composition may assemble modules but domain modules may not depend on composition",

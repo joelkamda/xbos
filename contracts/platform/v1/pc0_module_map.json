@@ -170,6 +170,14 @@
       ]
     },
     {
+      "code": "documents",
+      "owner": "SO7",
+      "kind": "shared_operations_authority",
+      "source_roots": [
+        "shared_operations/so7"
+      ]
+    },
+    {
       "code": "orders",
       "owner": "Restaurant Pack",
       "kind": "legacy_industry",

@@ -139,11 +139,11 @@
     },
     {
       "reference": "document_file",
-      "current_authority": "receipt artifacts and Finance evidence references/hashes",
-      "target_authority": "SO7 document/file authority",
-      "compatibility_path": "Finance keeps hashes and references; SO7 later owns file and issued-record lifecycle",
-      "retirement_owner": "SO7",
-      "retirement_milestone": "SO7 exit"
+      "current_authority": "receipt artifacts, SO4/SO6 free-text references, Finance evidence hashes/references and other legacy file locators",
+      "target_authority": "SO7 logical document, immutable file-version metadata, evidence-link and derived-search authority",
+      "compatibility_path": "preserve legacy/Finance/PC5 evidence bytes and semantics; map prospectively by explicit source reference into SO7 without bulk reinterpretation; storage bytes remain behind adapters",
+      "retirement_owner": "SO7 with source owners and R6",
+      "retirement_milestone": "SO7 source-specific writer convergence and R6 production cutover"
     },
     {
       "reference": "app_entrypoint",

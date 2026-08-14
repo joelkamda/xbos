@@ -269,6 +269,27 @@
       "sha256": "fe0ec96767f34425ae07ff9c45b5bdbd188c6ce67560274e8858cce827f2b69d",
       "owner": "SO6",
       "reason": "SO6 authorized non-Finance canonical descendant"
+    },
+    {
+      "root": "alembic_neutral",
+      "path": "versions/so7_documents_files_evidence_search_032.py",
+      "sha256": "1de573011b3969069393d7baca88132da090f1b2c517e1050651b85ef8bc9404",
+      "owner": "SO7",
+      "reason": "SO7 authorized non-Finance canonical descendant"
+    },
+    {
+      "root": "alembic_neutral",
+      "path": "sql/so7_documents_files_evidence_search_up.sql",
+      "sha256": "5deca3abe2d4f60970d4e2cd11b2b0a0c4ba6926198c95fdee3c89484897b0bb",
+      "owner": "SO7",
+      "reason": "SO7 authorized non-Finance canonical descendant"
+    },
+    {
+      "root": "alembic_neutral",
+      "path": "sql/so7_documents_files_evidence_search_down.sql",
+      "sha256": "f9ced48f5983dd6909fba246e4c17bd6c9990afce98f46b0adbfb7f6929bc5e5",
+      "owner": "SO7",
+      "reason": "SO7 authorized non-Finance canonical descendant"
     }
   ],
   "trees": [

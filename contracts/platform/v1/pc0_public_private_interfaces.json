@@ -252,6 +252,27 @@
       ]
     },
     {
+      "module": "documents",
+      "public": [
+        "shared_operations.so7.SO7Authority",
+        "shared_operations.so7.SO7AuthorityError",
+        "shared_operations.so7.Document",
+        "shared_operations.so7.DocumentVersion",
+        "shared_operations.so7.EvidenceLink",
+        "shared_operations.so7.SearchHit",
+        "shared_operations.so7.CreateDocument",
+        "shared_operations.so7.RegisterFileVersion",
+        "shared_operations.so7.LinkEvidence",
+        "shared_operations.so7.EndEvidenceLink",
+        "shared_operations.so7.ChangeDocumentStatus"
+      ],
+      "private": [
+        "shared_operations.so7.sql_repository",
+        "SO7 document, file-version, evidence-link and command tables",
+        "SO7 storage-provider adapter implementation"
+      ]
+    },
+    {
       "module": "orders",
       "public": [
         "/kernel/orders API compatibility surface"

@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "release": "SO7",
+  "decisions": [
+    {
+      "authority": "PC3 semantic document classifications",
+      "classification": "ADOPT",
+      "decision": "Reuse PC3 semantic concepts for document classification; SO7 stores only the resolved neutral classification code snapshot."
+    },
+    {
+      "authority": "SO4 document_reference and SO6 evidence_reference compatibility strings",
+      "classification": "MAP",
+      "decision": "Map prospectively to SO7 logical documents and evidence links only with explicit source evidence; do not bulk reinterpret historical strings."
+    },
+    {
+      "authority": "legacy receipt artifacts and external file locators",
+      "classification": "BRIDGE",
+      "decision": "Bridge through storage-neutral provider/key/hash metadata without adopting a cloud vendor or changing source-domain truth."
+    },
+    {
+      "authority": "Neutral Finance evidence hashes/references and PC5 audit evidence",
+      "classification": "PRESERVE",
+      "decision": "Preserve those authorities byte-for-byte and semantically; SO7 may reference external evidence but never replaces Finance or PC5 audit truth."
+    },
+    {
+      "authority": "free-text attachment/document writers",
+      "classification": "RETIRE_LATER",
+      "decision": "Retire only after controlled source-by-source mappings and writer convergence; R6 remains production cutover owner."
+    }
+  ]
+}

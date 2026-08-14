@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "profile": "field_service_evidence",
+  "terminology": {
+    "document": "service evidence",
+    "version": "captured revision",
+    "evidence_link": "case attachment"
+  },
+  "classifications": [
+    "inspection_report",
+    "completion_photo",
+    "equipment_certificate"
+  ],
+  "subject_authorities": [
+    "workflow",
+    "service_asset"
+  ],
+  "storage": "adapter_selected",
+  "text_extraction": "DOWNSTREAM_OPTIONAL"
+}

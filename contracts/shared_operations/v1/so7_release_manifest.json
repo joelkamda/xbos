@@ -1,0 +1,158 @@
+{
+  "schema_version": 1,
+  "release": "SO7",
+  "source_checkpoint": "7fb3be4",
+  "source_checkpoint_full": "7fb3be466787144f1f0e09e930ef7bb6707418f0",
+  "previous_head": "so6_workflows_tasks_operational_approvals_031",
+  "accepted_head": "so7_documents_files_evidence_search_032",
+  "migration_count": 1,
+  "fingerprint_mode": "sha256_git_canonical_lf",
+  "commit": "NONE",
+  "tag": "NONE",
+  "artifacts": [
+    {
+      "path": "SO7_INSTALL_MANIFEST.txt",
+      "sha256": "b7baf6dc29fa8b62f8b6a0ea3212cd61f8e99d63606b58f539730d4c1c1435a0"
+    },
+    {
+      "path": "XBOS_SO7_INSTALL_AND_VERIFY.txt",
+      "sha256": "8d5105dc99515b52a3cf713f66a91afc9dd42e7c73879518e25d3defd193cc79"
+    },
+    {
+      "path": "XBOS_SO7_RUN_ACCEPTANCE.cmd",
+      "sha256": "e987066a65b212841c159c792094933195980bda67468bcbd207968b8f003007"
+    },
+    {
+      "path": "alembic_neutral/sql/so7_documents_files_evidence_search_down.sql",
+      "sha256": "f9ced48f5983dd6909fba246e4c17bd6c9990afce98f46b0adbfb7f6929bc5e5"
+    },
+    {
+      "path": "alembic_neutral/sql/so7_documents_files_evidence_search_up.sql",
+      "sha256": "5deca3abe2d4f60970d4e2cd11b2b0a0c4ba6926198c95fdee3c89484897b0bb"
+    },
+    {
+      "path": "alembic_neutral/versions/so7_documents_files_evidence_search_032.py",
+      "sha256": "1de573011b3969069393d7baca88132da090f1b2c517e1050651b85ef8bc9404"
+    },
+    {
+      "path": "contracts/platform/v1/pc0_data_authority_register.json",
+      "sha256": "e7272315fcb76ec6cf13c16d6162615a8fe6a19e6738ac537d6538bbb78cfe69"
+    },
+    {
+      "path": "contracts/platform/v1/pc0_dependency_policy.json",
+      "sha256": "fd0da054ba7e1ccc9469edb58993a30524e4bf4e60b2669e1cabf8f8b05077ea"
+    },
+    {
+      "path": "contracts/platform/v1/pc0_frozen_finance_inventory.json",
+      "sha256": "23c81211c8afb0955dd02067324f04bd0c9dc0626bea394674d678ef1aedc583"
+    },
+    {
+      "path": "contracts/platform/v1/pc0_module_map.json",
+      "sha256": "19ee00794165b8128bda416506017b76bdcb6b30d3afa4c59f07b4bb9e42d801"
+    },
+    {
+      "path": "contracts/platform/v1/pc0_public_private_interfaces.json",
+      "sha256": "5572ae544498c5be3c5c7ce27214cd4ce3b080b13469e89b4e685b0a9a95ec76"
+    },
+    {
+      "path": "contracts/platform/v1/pc0_reference_authority_migration_register.json",
+      "sha256": "b39fc163446d07c3c3e56f548ec2929522925c220ab96e0d09878b5357796f5e"
+    },
+    {
+      "path": "contracts/platform/v1/pc0_release_manifest.json",
+      "sha256": "f92d97d762f674e7659df8118585a51f3fe1569bc2878a7ddb59af9e348e84f4"
+    },
+    {
+      "path": "contracts/platform/v1/pc6_release_manifest.json",
+      "sha256": "788b14defbaf3c94e58df0b1b0b00649d3612658fae19ccef752102fe5d3c74c"
+    },
+    {
+      "path": "contracts/shared_operations/v1/examples/clinical_document_profile.json",
+      "sha256": "7f2add0992eff2fdef9ffcf0533f33eb6c655d3c1fe062b0e7e233f31fe323a0"
+    },
+    {
+      "path": "contracts/shared_operations/v1/examples/field_service_evidence_profile.json",
+      "sha256": "2a348cbc38c147d465cb17ad7632c48dfe08451f5489214983762241d87a527f"
+    },
+    {
+      "path": "contracts/shared_operations/v1/so1_release_manifest.json",
+      "sha256": "ef77a040cf908a2630a1b5b7cddeb1cb189ae3185698015ba37aeff4ab43e94a"
+    },
+    {
+      "path": "contracts/shared_operations/v1/so2_release_manifest.json",
+      "sha256": "a8ea776dc68562b75071a1cc6ead42c9024b847df15a7253d5a353774bb36660"
+    },
+    {
+      "path": "contracts/shared_operations/v1/so3_release_manifest.json",
+      "sha256": "2dde72d76591ae846fe4b0ebeac33bb2b5f0f6468522c7e9b95fc62300bd593a"
+    },
+    {
+      "path": "contracts/shared_operations/v1/so4_release_manifest.json",
+      "sha256": "f55d656e56a888c13d5c3b703ad36bfe22043479a6b0c08195f51d4aaeb31fad"
+    },
+    {
+      "path": "contracts/shared_operations/v1/so5_release_manifest.json",
+      "sha256": "6da097249e7f53cf7fd5f4f71017c2845a38b79ac062ad42d9a33b00fc9c681a"
+    },
+    {
+      "path": "contracts/shared_operations/v1/so6_release_manifest.json",
+      "sha256": "7b69323a30f00c81451b2e9ca6991b783ea4a7e3439b4478c14e7370accf4668"
+    },
+    {
+      "path": "contracts/shared_operations/v1/so7_authority.json",
+      "sha256": "63abd2cb1e77529b3b79df378317384ec50951bc0c0b81dd7a67bf0a9f9b0d87"
+    },
+    {
+      "path": "contracts/shared_operations/v1/so7_legacy_adoption_manifest.json",
+      "sha256": "cbb527f3117b0afb502abd96f68460d74369ca6ddf56ebc97aa37d4ba99f55e6"
+    },
+    {
+      "path": "contracts/shared_operations/v1/so7_public_interfaces.json",
+      "sha256": "08ac872675794adb685d2d436653485a20bc482537cbdfdb0f6324065288504a"
+    },
+    {
+      "path": "contracts/shared_operations/v1/so7_xa_metadata.json",
+      "sha256": "21e8380a795672510571bebfa6e83e150ce23cd5f99e51053ff7fb055dc248f3"
+    },
+    {
+      "path": "core/platform/architecture_contract.py",
+      "sha256": "aba43109d8f2eae7585dd84c73a8eb6d73f43f1e6d6c261541bd7f8d41c5249c"
+    },
+    {
+      "path": "docs/shared_operations/SO7_DOCUMENTS_FILES_EVIDENCE_SEARCH.md",
+      "sha256": "7bd84332d86adb40d45ec972e82cdbfb249e2edbba921a0bacdbcb23912ee30f"
+    },
+    {
+      "path": "docs/shared_operations/adr/0018_SO7_DOCUMENT_VERSION_AND_EVIDENCE_AUTHORITY.md",
+      "sha256": "0ad1606893ac0e04f4830bd6634187ea1df3c4566db2c2f365fc88059b6168b2"
+    },
+    {
+      "path": "scripts/verify_so7_documents_files_evidence_search.py",
+      "sha256": "568bd069213f2084a357834986e503a2a033aa16cc91d72a294937481322e15e"
+    },
+    {
+      "path": "shared_operations/so7/__init__.py",
+      "sha256": "ea95149af942671f7821879151a8b29d0a2143c8a4d01a74c6d84a524b94a1c5"
+    },
+    {
+      "path": "shared_operations/so7/contracts.py",
+      "sha256": "d8c7e362cbd610aa34af4a3450700d5cd875a3abae731ba1d42a6b78b694ce45"
+    },
+    {
+      "path": "shared_operations/so7/service.py",
+      "sha256": "ce9177e6bc949a591c4502459d9cc4895191df83aaa5c22a3b4dfdd8596655ca"
+    },
+    {
+      "path": "shared_operations/so7/sql_repository.py",
+      "sha256": "b2f0a1592228b7e40250e6cb99f4f1dd5ea777a5fa7d3624e4228c069a4e670e"
+    },
+    {
+      "path": "tests/contracts/test_pc0_kernel_boundaries.py",
+      "sha256": "205a1122b3c94d9af99ed0c1e592ed75966683bec3b1434c1b1858286fdd661c"
+    },
+    {
+      "path": "tests/contracts/test_so7_documents_files_evidence_search.py",
+      "sha256": "6c5d80e4a5c5825fbcec8f1e9e36b0da43a1951c48947f62eeaebdb00b7a3a89"
+    }
+  ]
+}
