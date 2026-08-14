@@ -20,6 +20,7 @@ from core.platform.architecture_contract import (
     _source_sha256,
     _validate_composition,
     _validate_finance,
+    _validate_migration_lineage,
     evaluate_source_text,
     validate_pc0,
 )
@@ -40,7 +41,8 @@ class PC0KernelBoundaryTests(unittest.TestCase):
         pc3 = json.loads((directory / "pc3_semantic_authority.json").read_text(encoding="utf-8"))
         pc4 = json.loads((directory / "pc4_operating_context_authority.json").read_text(encoding="utf-8"))
         pc5 = json.loads((directory / "pc5_identity_policy_audit_authority.json").read_text(encoding="utf-8"))
-        return baseline, inventory, (pc1["accepted_head"], pc2["accepted_head"], pc3["accepted_head"], pc4["accepted_head"], pc5["accepted_head"])
+        so1 = json.loads((ROOT / "contracts/shared_operations/v1/so1_authority.json").read_text(encoding="utf-8"))
+        return baseline, inventory, (pc1["accepted_head"], pc2["accepted_head"], pc3["accepted_head"], pc4["accepted_head"], pc5["accepted_head"], so1["accepted_head"])
 
     @classmethod
     def _copy_frozen_finance(cls, destination: Path) -> tuple[dict, dict, tuple[str, ...]]:
@@ -112,6 +114,52 @@ class PC0KernelBoundaryTests(unittest.TestCase):
             source.write_bytes(source.read_bytes() + b"\n# mutation\n")
             with self.assertRaisesRegex(PC0ArchitectureError, "PC0-FROZEN-FINANCE-CHANGED"):
                 _validate_finance(candidate_root, baseline, inventory, accepted_head)
+
+    def test_changed_frozen_finance_migration_fails(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            candidate_root = Path(directory)
+            baseline, inventory, accepted_head = self._copy_frozen_finance(candidate_root)
+            migration = next(
+                candidate_root / "alembic_neutral" / relative
+                for relative in next(tree for tree in inventory["trees"] if tree["root"] == "alembic_neutral")["files"]
+                if relative.startswith("versions/") and "m64_reconciliation_controls_020" in relative
+            )
+            migration.write_bytes(migration.read_bytes() + b"\n# unauthorized mutation\n")
+            with self.assertRaisesRegex(PC0ArchitectureError, "PC0-FROZEN-FINANCE"):
+                _validate_finance(candidate_root, baseline, inventory, accepted_head)
+
+    def test_frozen_finance_prefix_and_known_descendants_pass(self) -> None:
+        baseline, _, accepted = self._finance_contracts()
+        lineage = [*baseline["lineage"], *accepted]
+        _validate_migration_lineage([lineage[-1]], lineage, baseline, accepted)
+
+    def test_future_linear_descendant_after_so1_is_structurally_permitted(self) -> None:
+        baseline, _, accepted = self._finance_contracts()
+        lineage = [*baseline["lineage"], *accepted, "so2_future_descendant_027"]
+        _validate_migration_lineage([lineage[-1]], lineage, baseline, accepted)
+
+    def test_frozen_finance_revision_removal_or_reorder_fails(self) -> None:
+        baseline, _, accepted = self._finance_contracts()
+        removed = [*baseline["lineage"][:-2], *accepted]
+        with self.assertRaisesRegex(PC0ArchitectureError, "PC0-MIGRATION-HEAD"):
+            _validate_migration_lineage([removed[-1]], removed, baseline, accepted)
+        reordered = [*baseline["lineage"]]
+        reordered[2], reordered[3] = reordered[3], reordered[2]
+        reordered.extend(accepted)
+        with self.assertRaisesRegex(PC0ArchitectureError, "PC0-MIGRATION-HEAD"):
+            _validate_migration_lineage([reordered[-1]], reordered, baseline, accepted)
+
+    def test_unauthorized_revision_inside_frozen_finance_prefix_fails(self) -> None:
+        baseline, _, accepted = self._finance_contracts()
+        lineage = [*baseline["lineage"][:5], "unauthorized_inside_finance", *baseline["lineage"][5:], *accepted]
+        with self.assertRaisesRegex(PC0ArchitectureError, "PC0-MIGRATION-HEAD"):
+            _validate_migration_lineage([lineage[-1]], lineage, baseline, accepted)
+
+    def test_parallel_migration_head_fails(self) -> None:
+        baseline, _, accepted = self._finance_contracts()
+        lineage = [*baseline["lineage"], *accepted]
+        with self.assertRaisesRegex(PC0ArchitectureError, "PC0-MIGRATION-HEAD"):
+            _validate_migration_lineage([lineage[-1], "parallel_head"], [], baseline, accepted)
 
     def test_added_protected_finance_source_fails(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

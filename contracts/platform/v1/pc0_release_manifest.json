@@ -47,7 +47,7 @@
     },
     {
       "path": "contracts/platform/v1/pc0_frozen_finance_inventory.json",
-      "sha256": "b58527481b5979df4478faebded3ca474f7bd77940a236c3988955dd0ce56622"
+      "sha256": "3b85c3a99e8fae177a252d7e666e1d49e0874cf494794bf6a46d4de42cd03d66"
     },
     {
       "path": "contracts/platform/v1/pc0_kernel_boundaries.json",
@@ -59,7 +59,7 @@
     },
     {
       "path": "core/platform/architecture_contract.py",
-      "sha256": "52c466c0abae6b29107b866628fef7f8ef93219399d376ccfb081a9a683d474c"
+      "sha256": "be4dc91fb27db29c9fb210c12c9f2b92289e00278520681e668a82d69d97828a"
     },
     {
       "path": "core/platform/release_integrity.py",
@@ -71,7 +71,7 @@
     },
     {
       "path": "tests/contracts/test_pc0_kernel_boundaries.py",
-      "sha256": "c98caeeb6dfe73bfbf8f1ae2da8c0fbabaa4407999bb3e33cb321f631029a675"
+      "sha256": "601f424a1348068c97086d4bcf536882c8796f98ec4b18afad07307910ef2f95"
     },
     {
       "path": "docs/platform_core/PC0_KERNEL_BOUNDARIES.md",

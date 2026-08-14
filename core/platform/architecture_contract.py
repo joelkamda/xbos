@@ -348,6 +348,8 @@ def _migration_revisions(root: Path) -> tuple[list[str], list[str]]:
                         except (ValueError, TypeError):
                             pass
         if "revision" in values:
+            if values["revision"] in revisions:
+                _fail("PC0-MIGRATION-LINEAGE", f"duplicate revision {values['revision']}")
             revisions[values["revision"]] = values.get("down_revision")
     parents = {parent for parent in revisions.values() if isinstance(parent, str)}
     heads = sorted(set(revisions) - parents)
@@ -363,6 +365,28 @@ def _migration_revisions(root: Path) -> tuple[list[str], list[str]]:
     return heads, list(reversed(lineage))
 
 
+def _validate_migration_lineage(
+    heads: list[str], lineage: list[str], finance: dict[str, Any], accepted_heads: Iterable[str] = ()
+) -> None:
+    """Protect the immutable Finance prefix while permitting one linear descendant tail."""
+    if isinstance(accepted_heads, str):
+        accepted_heads = (accepted_heads,)
+    frozen = finance.get("lineage", [])
+    canonical = finance.get("canonical_head")
+    if not frozen or frozen[-1] != canonical:
+        _fail("PC0-MIGRATION-LINEAGE", "frozen Finance lineage or canonical head declaration is invalid")
+    if len(heads) != 1:
+        _fail("PC0-MIGRATION-HEAD", f"heads={heads}, lineage={lineage}")
+    if len(lineage) < len(frozen) or lineage[:len(frozen)] != frozen:
+        _fail("PC0-MIGRATION-HEAD", f"frozen_prefix={frozen}, heads={heads}, lineage={lineage}")
+    declared = [head for head in accepted_heads if head]
+    declared_end = len(frozen) + len(declared)
+    if len(lineage) < declared_end or lineage[len(frozen):declared_end] != declared:
+        _fail("PC0-MIGRATION-HEAD", f"declared_descendants={declared}, heads={heads}, lineage={lineage}")
+    if heads != [lineage[-1]]:
+        _fail("PC0-MIGRATION-HEAD", f"heads={heads}, lineage={lineage}")
+
+
 def _validate_finance(root: Path, finance: dict[str, Any], inventory: dict[str, Any], accepted_heads: Iterable[str] = ()) -> None:
     if isinstance(accepted_heads, str):
         accepted_heads = (accepted_heads,)
@@ -375,7 +399,7 @@ def _validate_finance(root: Path, finance: dict[str, Any], inventory: dict[str, 
         _fail("PC0-FROZEN-FINANCE-INVENTORY", "protected tree coverage does not match baseline")
     extensions_by_root: dict[str, dict[str, str]] = {}
     for item in inventory.get("authorized_non_finance_extensions", []):
-        if item.get("owner") != "PC1" or not all(isinstance(item.get(key), str) and item[key] for key in ("root","path","sha256")):
+        if item.get("owner") not in {"PC1", "SO1"} or not all(isinstance(item.get(key), str) and item[key] for key in ("root","path","sha256")):
             _fail("PC0-NON-FINANCE-EXTENSION", str(item))
         extensions_by_root.setdefault(item["root"], {})[item["path"]] = item["sha256"]
     for tree in finance.get("trees", []):
@@ -388,12 +412,7 @@ def _validate_finance(root: Path, finance: dict[str, Any], inventory: dict[str, 
         if count != tree["file_count"] or actual != tree["sha256"]:
             _fail("PC0-FROZEN-FINANCE-CHANGED", f"{tree['root']}: count={count}, sha256={actual}")
     heads, lineage = _migration_revisions(root)
-    expected_lineage = finance.get("lineage", [])
-    descendants = [head for head in accepted_heads if head]
-    expected_lineage = [*expected_lineage, *descendants]
-    expected_head = descendants[-1] if descendants else finance.get("canonical_head")
-    if heads != [expected_head] or lineage != expected_lineage:
-        _fail("PC0-MIGRATION-HEAD", f"heads={heads}, lineage={lineage}")
+    _validate_migration_lineage(heads, lineage, finance, accepted_heads)
     boundaries = finance.get("boundaries", {})
     if boundaries.get("migration") != "NONE" or boundaries.get("schema_neutral") is not True:
         _fail("PC0-SCHEMA-NEUTRAL", "PC0 may not carry a migration")
@@ -420,17 +439,19 @@ def validate_pc0(root: str | Path, validate_release: bool = True) -> dict[str, A
     _validate_authorities(contracts["authorities"])
     _validate_reference_migrations(contracts["reference_migrations"])
     _validate_composition(root_path, contracts["composition"])
+    descendant_heads = [
+        contracts["pc1"].get("accepted_head"), contracts["pc2"].get("accepted_head"),
+        contracts["pc3"].get("accepted_head"), contracts["pc4"].get("accepted_head"),
+        contracts["pc5"].get("accepted_head"),
+    ]
+    so1_contract = root_path / "contracts/shared_operations/v1/so1_authority.json"
+    if so1_contract.is_file():
+        descendant_heads.append(json.loads(so1_contract.read_text(encoding="utf-8")).get("accepted_head"))
     _validate_finance(
         root_path,
         contracts["finance"],
         contracts["finance_inventory"],
-        (
-            contracts["pc1"].get("accepted_head"),
-            contracts["pc2"].get("accepted_head"),
-            contracts["pc3"].get("accepted_head"),
-            contracts["pc4"].get("accepted_head"),
-            contracts["pc5"].get("accepted_head"),
-        ),
+        descendant_heads,
     )
     _validate_kernel(contracts["kernel"])
 

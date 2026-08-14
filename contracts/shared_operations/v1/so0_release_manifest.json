@@ -21,7 +21,7 @@
     {"path": "docs/shared_operations/adr/0011_SO0_AUTHORITY_MODULE_AND_FINANCE_BOUNDARIES.md", "sha256": "fb455d8f7ffc4a68e4c95c3a288259640bb553038d0eb036a9b11421fe645cc6"},
     {"path": "shared_operations_contracts/__init__.py", "sha256": "2e83830abda01681449dfe49fd804ba09cb568d1ba59de7d5f129e4a50c2a9f6"},
     {"path": "shared_operations_contracts/constitution.py", "sha256": "639089e9c422dde3f8bf7e9b40b0157a7882b923c438635adff46f28c12240f0"},
-    {"path": "scripts/verify_so0_shared_operations.py", "sha256": "eab77ae9ccf551cd52bdb793dcdbd549fc90b61910ef60816b7900ef44e3dd58"},
+    {"path": "scripts/verify_so0_shared_operations.py", "sha256": "9d6f13c5fdfba1fa84f78b94828b0d17c02a841ddfc677a59f67d7f9fce6a4bd"},
     {"path": "tests/contracts/test_so0_shared_operations_constitution.py", "sha256": "51ec45c8b9b3eb557b71f46c544809dc1df196215cf13d2967e4280735ca454a"}
   ]
 }

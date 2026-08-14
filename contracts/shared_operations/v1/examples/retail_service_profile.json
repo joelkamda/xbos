@@ -1,0 +1,8 @@
+{
+  "profile_id": "so1-retail-service-mix", "tenant_code": "CEDAR", "locale": "en-CA", "currency": "CAD",
+  "atomic_units": [{"code": "LAMP-LED", "kind": "physical_item"}, {"code": "INSTALL", "kind": "service_capability"}],
+  "catalog": {"code": "HOME-SERVICES", "scope": "tenant"},
+  "offer": {"code": "LAMP-INSTALL", "components": [{"code": "LAMP-LED", "quantity": "1"}, {"code": "INSTALL", "quantity": "1"}]},
+  "price": {"target": "LAMP-INSTALL", "amount": "89.00", "currency": "CAD"},
+  "source_changes": "NONE"
+}

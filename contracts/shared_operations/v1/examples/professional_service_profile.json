@@ -1,0 +1,8 @@
+{
+  "profile_id": "so1-professional-service", "tenant_code": "ORBIT", "locale": "en-GB", "currency": "GBP",
+  "atomic_units": [{"code": "CONSULT-HOUR", "kind": "labor_service_capability"}, {"code": "REPORT-DIGITAL", "kind": "digital_unit"}],
+  "catalog": {"code": "ADVISORY", "scope": "organization_unit"},
+  "offer": {"code": "ASSESSMENT", "components": [{"code": "CONSULT-HOUR", "quantity": "2"}, {"code": "REPORT-DIGITAL", "quantity": "1"}]},
+  "price": {"target": "ASSESSMENT", "amount": "240.00", "currency": "GBP"},
+  "source_changes": "NONE"
+}

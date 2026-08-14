@@ -51,6 +51,8 @@ def _verify_release() -> int:
         for base in (CONTRACTS, ROOT / "shared_operations_contracts", ROOT / "docs/shared_operations")
         for path in base.rglob("*")
         if path.is_file() and "__pycache__" not in path.parts and path.name != "so0_release_manifest.json"
+        and (not path.is_relative_to(CONTRACTS) or path.name.startswith("so0_"))
+        and (not path.is_relative_to(ROOT / "docs/shared_operations") or path.name.startswith(("SO0_", "0011_")))
     }
     expected |= {
         "SO0_INSTALL_MANIFEST.txt", "XBOS_SO0_INSTALL_AND_VERIFY.txt", "XBOS_SO0_RUN_ACCEPTANCE.cmd",

@@ -1,0 +1,15 @@
+DROP TABLE IF EXISTS public.so1_prices;
+DROP TABLE IF EXISTS public.so1_catalog_entries;
+DROP TABLE IF EXISTS public.so1_offer_components;
+DROP TABLE IF EXISTS public.so1_offers;
+DROP TABLE IF EXISTS public.so1_catalogs;
+COMMENT ON TABLE public.atomic_unit_taxonomy IS 'SO0 Atomic Unit to legacy PC3 taxonomy-node compatibility classification; Atomic Units remain SO0-owned.';
+COMMENT ON TABLE public.atomic_units IS NULL;
+ALTER TABLE public.atomic_units DROP CONSTRAINT IF EXISTS ck_so1_atomic_units_sku;
+ALTER TABLE public.atomic_units DROP CONSTRAINT IF EXISTS ck_so1_atomic_units_version;
+ALTER TABLE public.atomic_units DROP CONSTRAINT IF EXISTS uq_so1_atomic_units_tenant_id_id;
+ALTER TABLE public.atomic_units DROP CONSTRAINT IF EXISTS uq_so1_atomic_units_public_id;
+ALTER TABLE public.atomic_units DROP COLUMN IF EXISTS row_version;
+ALTER TABLE public.atomic_units DROP COLUMN IF EXISTS updated_at;
+ALTER TABLE public.atomic_units DROP COLUMN IF EXISTS created_at;
+ALTER TABLE public.atomic_units DROP COLUMN IF EXISTS public_id;

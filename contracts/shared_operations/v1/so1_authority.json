@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "authority": "SO1 Atomic Units, catalog, offers and operational pricing",
+  "source_checkpoint": "f72f4b5d8ad8e576212347615458fcd801e9f7bd",
+  "previous_head": "pc5_identity_policy_audit_025",
+  "accepted_head": "so1_atomic_catalog_offer_pricing_026",
+  "migration": "ADDITIVE_ADOPTION",
+  "distinctions": [
+    "atomic_unit_not_semantic_identity", "atomic_unit_not_taxonomy_placement", "atomic_unit_not_offer",
+    "atomic_unit_not_price", "atomic_unit_not_inventory_balance", "atomic_unit_not_financial_account",
+    "catalog_not_taxonomy", "catalog_not_inventory", "catalog_not_frontend_navigation",
+    "operational_price_not_revenue", "operational_fact_not_financial_event"
+  ],
+  "public_capabilities": ["so1.atomic_unit.read", "so1.atomic_unit.create", "so1.atomic_unit.update", "so1.atomic_unit.deactivate", "so1.atomic_unit.classify", "so1.catalog.read", "so1.catalog.manage", "so1.offer.read", "so1.offer.manage", "so1.price.read", "so1.price.manage"],
+  "required_authorities": ["PC1", "PC2", "PC3", "PC4", "PC5"],
+  "boundaries": {
+    "PC1": "tenant and optional structural scope validation",
+    "PC2": "future Party-specific references only",
+    "PC3": "semantic identity, taxonomy and classification",
+    "PC4": "business time, configuration, entitlements and features",
+    "PC5": "server authorization, approval, step-up and audit",
+    "SO3": "inventory balance, movement, reservation, count, costing and replenishment",
+    "Finance": "revenue, expense, obligations, settlement, journals and reconciliation",
+    "XA": "frontend architecture and presentation metadata",
+    "PK": "pack/template lifecycle and industry meaning"
+  },
+  "price_resolution": ["tenant_match", "exact_scope_over_tenant_scope", "higher_precedence", "later_effective_from", "ambiguous_equal_rank_precedence_start_fails"],
+  "financial_side_effects": "NONE",
+  "production_dependency_changes": "NONE"
+}

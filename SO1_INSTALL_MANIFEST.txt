@@ -1,0 +1,33 @@
+XBOS SO1 ATOMIC UNITS, CATALOG, OFFERS AND PRICING
+Source checkpoint: f72f4b5d8ad8e576212347615458fcd801e9f7bd
+Migration: pc5_identity_policy_audit_025 -> so1_atomic_catalog_offer_pricing_026
+Files: 28
+
+SO1_INSTALL_MANIFEST.txt
+XBOS_SO1_INSTALL_AND_VERIFY.txt
+XBOS_SO1_RUN_ACCEPTANCE.cmd
+alembic_neutral/sql/so1_atomic_catalog_offer_pricing_down.sql
+alembic_neutral/sql/so1_atomic_catalog_offer_pricing_up.sql
+alembic_neutral/versions/so1_atomic_catalog_offer_pricing_026.py
+contracts/platform/v1/pc0_frozen_finance_inventory.json
+contracts/platform/v1/pc0_release_manifest.json
+contracts/platform/v1/pc6_release_manifest.json
+contracts/shared_operations/v1/examples/professional_service_profile.json
+contracts/shared_operations/v1/examples/retail_service_profile.json
+contracts/shared_operations/v1/so0_release_manifest.json
+contracts/shared_operations/v1/so1_authority.json
+contracts/shared_operations/v1/so1_legacy_adoption_manifest.json
+contracts/shared_operations/v1/so1_public_interfaces.json
+contracts/shared_operations/v1/so1_release_manifest.json
+contracts/shared_operations/v1/so1_xa_metadata.json
+core/platform/architecture_contract.py
+docs/shared_operations/SO1_ATOMIC_UNITS_CATALOG_OFFERS_PRICING.md
+docs/shared_operations/adr/0012_SO1_ADOPT_ATOMIC_UNIT_AND_SEPARATE_CATALOG_OFFER_PRICE.md
+scripts/verify_so0_shared_operations.py
+scripts/verify_so1_atomic_catalog_pricing.py
+shared_operations/so1/__init__.py
+shared_operations/so1/contracts.py
+shared_operations/so1/service.py
+shared_operations/so1/sql_repository.py
+tests/contracts/test_pc0_kernel_boundaries.py
+tests/contracts/test_so1_atomic_catalog_pricing.py

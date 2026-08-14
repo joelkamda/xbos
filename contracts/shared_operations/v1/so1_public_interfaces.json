@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "module_code": "SO1",
+  "capability_codes": ["so1.atomic_unit", "so1.catalog", "so1.offer", "so1.pricing"],
+  "public_commands": ["CreateAtomicUnit", "UpdateAtomicUnit", "deactivate_atomic_unit", "classify_atomic_unit", "CreateCatalog", "PublishCatalogEntry", "CreateOffer", "UpdateOffer", "deactivate_offer", "DefinePrice", "deactivate_price"],
+  "public_queries": ["atomic_unit", "catalog", "offer", "price", "ResolvePrice"],
+  "operational_facts": ["atomic_unit_defined", "catalog_entry_published", "offer_composed", "operational_price_defined"],
+  "required_platform_authorities": ["PC1", "PC2", "PC3", "PC4", "PC5"],
+  "finance_integration_points": [],
+  "required_permissions": ["so1.atomic_unit.read", "so1.atomic_unit.create", "so1.atomic_unit.update", "so1.atomic_unit.deactivate", "so1.atomic_unit.classify", "so1.catalog.read", "so1.catalog.manage", "so1.offer.read", "so1.offer.manage", "so1.price.read", "so1.price.manage"],
+  "configuration_dependencies": ["PC4 locale/currency presentation", "PC4 business time"],
+  "semantic_dependencies": ["PC3 semantic assignment", "PC3 taxonomy compatibility bridge"],
+  "xa_hooks": ["navigation", "actions", "configuration", "documents", "search", "offline"],
+  "lifecycle": {"contract_version": 1, "status": "candidate"},
+  "pack_declaration_hooks": ["required_atomic_unit_semantics", "default_unit_offer_catalog_composition", "suggested_prices_configuration", "terminology"],
+  "ownership_classification": "shared_operations",
+  "public_package": "shared_operations.so1",
+  "private_package": "shared_operations.so1.sql_repository",
+  "cross_module_private_access": "FORBIDDEN"
+}

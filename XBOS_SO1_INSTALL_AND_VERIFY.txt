@@ -1,0 +1,14 @@
+XBOS SO1 ATOMIC UNITS, CATALOG, OFFERS AND PRICING
+Source checkpoint: f72f4b5d8ad8e576212347615458fcd801e9f7bd
+Previous head: pc5_identity_policy_audit_025
+Accepted head: so1_atomic_catalog_offer_pricing_026
+
+1. Start from the exact checkpoint with a clean working tree and approved local PostgreSQL.
+2. Expand XBOS_SO1_ATOMIC_UNITS_CATALOG_OFFERS_PRICING_REVISION_4.zip at the repository root with -Force.
+3. Activate the approved Python 3.13.3 environment. Do not install dependencies.
+4. Confirm xbos_track_b_dev is at pc5_identity_policy_audit_025.
+5. Run XBOS_SO1_RUN_ACCEPTANCE.cmd.
+6. Accept only SO1_SINGLE_GATE=PASS.
+
+The gate rehearses on a template0 disposable database before controlled development adoption.
+It must not target parity or production databases.

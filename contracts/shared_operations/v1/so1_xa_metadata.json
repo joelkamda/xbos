@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "xa_contract": "xa.frontend-experience.v1",
+  "module_code": "SO1",
+  "navigation": [{"route_id": "so1.catalog", "capability": "so1.catalog", "required_permission": "so1.catalog.read", "visibility_is_authorization": false}],
+  "actions": [
+    {"action_id": "so1.atomic_unit.create", "required_permission": "so1.atomic_unit.create", "server_decision_required": true},
+    {"action_id": "so1.offer.manage", "required_permission": "so1.offer.manage", "server_decision_required": true},
+    {"action_id": "so1.price.manage", "required_permission": "so1.price.manage", "server_decision_required": true}
+  ],
+  "search_categories": ["atomic_unit", "catalog", "offer"],
+  "price_display": {"authoritative_amount_source": "SO1 ResolvePrice", "frontend_calculation": "FORBIDDEN", "currency_presentation_source": "PC4"},
+  "denial_contract": "XA permission_explanation",
+  "frontend_implementation": "NONE"
+}

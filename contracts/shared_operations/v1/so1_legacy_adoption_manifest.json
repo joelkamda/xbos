@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "source_checkpoint": "f72f4b5d8ad8e576212347615458fcd801e9f7bd",
+  "decisions": [
+    {"artifact": "atomic_units.id", "classification": "ADOPT", "treatment": "canonical SO1 internal identity preserved in place; stable public_id added deterministically", "retirement": "NONE"},
+    {"artifact": "atomic_units tenant/name/sku/unit_type/is_active/meta/parent_unit_id/is_sellable", "classification": "ADOPT", "treatment": "preserve values and legacy behavior; sku is the stable tenant code when populated; open unit_type remains a compatibility hint", "retirement": "later governed compatibility review"},
+    {"artifact": "atomic_units.unit_price", "classification": "PRESERVE", "treatment": "legacy compatibility value only; canonical SO1 pricing resolves from so1_prices", "retirement": "SO1 cutover milestone after downstream adoption"},
+    {"artifact": "atomic_unit_taxonomy", "classification": "BRIDGE", "treatment": "preserve many-to-many rows and enforce same-tenant links; PC3 remains semantic/taxonomy authority", "retirement": "NONE while compatibility is required"},
+    {"artifact": "taxonomy_nodes", "classification": "PRESERVE", "treatment": "no SO1 schema or semantic ownership change", "retirement": "NONE"},
+    {"artifact": "billable_unit_taxonomy", "classification": "RETIRE_LATER", "treatment": "no SO1 writes; preserve historical table pending governed cutover", "retirement": "legacy operational cutover"},
+    {"artifact": "inventory_items/inventory_movements Atomic Unit foreign keys", "classification": "PRESERVE", "treatment": "unchanged for future SO3 adoption; no stock behavior in SO1", "retirement": "SO3 decision"},
+    {"artifact": "sale_items/orders/catalog legacy Atomic Unit references", "classification": "MAP", "treatment": "existing IDs remain valid; future callers adopt SO1 public contracts", "retirement": "pack and operational cutover"},
+    {"artifact": "Finance references to legacy operational evidence", "classification": "PRESERVE", "treatment": "no Finance byte, writer, event or semantic change", "retirement": "NONE"},
+    {"artifact": "legacy POS catalog_summary", "classification": "RETIRE_LATER", "treatment": "unchanged compatibility path; canonical catalog authority is so1_catalogs", "retirement": "frontend/pack cutover"}
+  ]
+}

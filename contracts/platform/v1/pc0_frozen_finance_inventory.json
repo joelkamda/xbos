@@ -27,6 +27,9 @@
     ,{"root":"alembic_neutral","path":"versions/pc5_identity_policy_audit_025_canonical_security_authority.py","sha256":"55242e039b9de43ea2cbfecc0eb8c3e122576ae22c44fa4b65687afd9d6b69f6","owner":"PC1","reason":"PC5 canonical lineage descendant"}
     ,{"root":"alembic_neutral","path":"sql/pc5_identity_policy_audit_up.sql","sha256":"8e63fa97749ab66b577d93f28df3db744c802348260ea4f80e5ab27f7033c831","owner":"PC1","reason":"PC5 canonical lineage descendant"}
     ,{"root":"alembic_neutral","path":"sql/pc5_identity_policy_audit_down.sql","sha256":"b76df91f9d0f63106e4acb3ec02dabacb08cd819e254b5a19de12d5a4cb7ca08","owner":"PC1","reason":"PC5 canonical lineage descendant"}
+    ,{"root":"alembic_neutral","path":"versions/so1_atomic_catalog_offer_pricing_026.py","sha256":"ea1b72b027f0ca4bd22462f614b8a63192135f24313a32c5434d9769564f3768","owner":"SO1","reason":"SO1 authorized non-Finance canonical descendant"}
+    ,{"root":"alembic_neutral","path":"sql/so1_atomic_catalog_offer_pricing_up.sql","sha256":"0db43a255d884fa0ada5fcea30b659557c06e1b6a7eaa4bf2956bf584246cd5f","owner":"SO1","reason":"SO1 authorized non-Finance canonical descendant"}
+    ,{"root":"alembic_neutral","path":"sql/so1_atomic_catalog_offer_pricing_down.sql","sha256":"6144be7149bc737acea42b55dc34f807fc86fda1aa73c27a45a48ad9d1dea1f6","owner":"SO1","reason":"SO1 authorized non-Finance canonical descendant"}
   ],
   "trees": [
     {
