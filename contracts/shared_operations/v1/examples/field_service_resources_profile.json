@@ -1,0 +1,8 @@
+{
+  "profile":"field_service",
+  "terminology":{"person_resource":"technician","non_person_resource":"equipment","assignment":"deployment"},
+  "classifications":["technician","diagnostic_equipment"],
+  "capabilities":["field_service","equipment_operation"],
+  "exclusive_default":false,
+  "calendar_scheduling":"SO10"
+}

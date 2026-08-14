@@ -11,27 +11,88 @@
     "party": [],
     "semantics": [],
     "operating_context": [],
-    "security_authority": ["structure", "party", "operating_context"],
-    "neutral_proof": ["structure", "party", "semantics", "operating_context", "security_authority"],
-    "application": ["composition", "identity", "persistence", "tenancy"],
-    "composition": ["catalog", "identity", "inventory", "legacy_accounting", "legacy_payments", "orders", "reports", "sales", "taxonomy", "tenancy"],
+    "security_authority": [
+      "structure",
+      "party",
+      "operating_context"
+    ],
+    "neutral_proof": [
+      "structure",
+      "party",
+      "semantics",
+      "operating_context",
+      "security_authority"
+    ],
+    "application": [
+      "composition",
+      "identity",
+      "persistence",
+      "tenancy"
+    ],
+    "composition": [
+      "catalog",
+      "identity",
+      "inventory",
+      "legacy_accounting",
+      "legacy_payments",
+      "orders",
+      "reports",
+      "sales",
+      "taxonomy",
+      "tenancy"
+    ],
     "persistence": [],
-    "tenancy": ["shared"],
-    "identity": ["security_authority", "shared", "tenancy"],
-    "taxonomy": ["identity", "shared"],
-    "catalog": ["identity", "shared"],
-    "inventory": ["identity", "shared"],
-    "procurement": ["inventory"],
-    "orders": ["identity", "shared"],
-    "sales": ["identity", "shared"],
-    "legacy_accounting": ["identity", "shared"],
-    "legacy_payments": ["identity", "shared"],
-    "reports": ["identity", "shared"],
+    "tenancy": [
+      "shared"
+    ],
+    "identity": [
+      "security_authority",
+      "shared",
+      "tenancy"
+    ],
+    "taxonomy": [
+      "identity",
+      "shared"
+    ],
+    "catalog": [
+      "identity",
+      "shared"
+    ],
+    "inventory": [
+      "identity",
+      "shared"
+    ],
+    "procurement": [
+      "inventory"
+    ],
+    "orders": [
+      "identity",
+      "shared"
+    ],
+    "sales": [
+      "identity",
+      "shared"
+    ],
+    "legacy_accounting": [
+      "identity",
+      "shared"
+    ],
+    "legacy_payments": [
+      "identity",
+      "shared"
+    ],
+    "reports": [
+      "identity",
+      "shared"
+    ],
     "commerce": [],
     "crm_relationships": [],
     "finance": [],
-    "xafpay": ["finance"],
-    "shared": []
+    "xafpay": [
+      "finance"
+    ],
+    "shared": [],
+    "resources": []
   },
   "law": [
     "composition may assemble modules but domain modules may not depend on composition",

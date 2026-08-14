@@ -1,0 +1,12 @@
+{
+  "schema_version":1,
+  "release":"SO5",
+  "decisions":[
+    {"authority":"PC2 Party","classification":"ADOPT","decision":"Person-backed resources reference PC2 Party; no duplicate person identity."},
+    {"authority":"PC5 Identity/membership","classification":"ADOPT","decision":"Optional authenticated association remains separate from Resource and grants no operational meaning by itself."},
+    {"authority":"legacy users + branches","classification":"MAP","decision":"Legacy user/branch references map through PC5 membership and PC1 structural mappings only when explicitly adopted."},
+    {"authority":"staff/role strings and actor snapshots","classification":"BRIDGE","decision":"Operational labels and historical display evidence may bridge to SO5 classifications without becoming security roles."},
+    {"authority":"historical staff commissions/payroll/accounting evidence","classification":"PRESERVE","decision":"Preserve unchanged; SO5 creates no wages, commissions, payroll or financial truth."},
+    {"authority":"legacy staff/resource writers","classification":"RETIRE_LATER","decision":"R6/source-specific convergence retires free-form writers after explicit mapping acceptance."}
+  ]
+}

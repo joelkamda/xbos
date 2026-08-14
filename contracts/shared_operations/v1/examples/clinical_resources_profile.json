@@ -1,0 +1,8 @@
+{
+  "profile":"clinical",
+  "terminology":{"person_resource":"clinician","non_person_resource":"room","assignment":"coverage"},
+  "classifications":["clinician","consultation_room"],
+  "capabilities":["clinical_care","room_use"],
+  "exclusive_default":true,
+  "calendar_scheduling":"SO10"
+}

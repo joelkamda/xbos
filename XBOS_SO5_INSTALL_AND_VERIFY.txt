@@ -1,0 +1,10 @@
+XBOS SO5 RESOURCES AND OPERATIONAL ASSIGNMENT
+
+Prerequisites: accepted source checkpoint 087a6d9, active approved Python 3.13.3 environment, local PostgreSQL development database at SO4 or SO5 head.
+
+Install: Expand-Archive this ZIP into the repository root with -Force.
+Run: XBOS_SO5_RUN_ACCEPTANCE.cmd
+
+The gate proves frozen predecessors and SO5 static/focused contracts, reconstructs a disposable template0 database through SO4, rehearses SO5 upgrade/downgrade/re-upgrade and resource/assignment behavior, safely adopts or verifies the local development database, then runs full regression, compilation/JSON checks and git diff --check.
+
+No dependency installation, commit or tag is performed. The development database may start only at so4_procurement_supplier_operations_029 or so5_resources_operational_assignment_030.

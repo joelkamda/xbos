@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "release": "SO5",
+  "source_checkpoint": "087a6d9c5f8c555788cbbd2718b24c5dea73074a",
+  "previous_head": "so4_procurement_supplier_operations_029",
+  "accepted_head": "so5_resources_operational_assignment_030",
+  "party_authority": "PC2_REUSED",
+  "identity_authority": "PC5_SEPARATE",
+  "structure_authority": "PC1_REUSED",
+  "resource_identity": "SO5_OPERATIONAL_ONLY",
+  "assignment_authority": "SO5_OPERATIONAL_ONLY",
+  "security_roles": "PC5_ONLY",
+  "workflow_authority": "SO6_EXCLUDED",
+  "scheduling_authority": "SO10_EXCLUDED",
+  "finance": "UNCHANGED",
+  "production_dependency_changes": "NONE"
+}

@@ -2,40 +2,267 @@
   "schema_version": 1,
   "checkpoint": "fa9b17e473105c7c70b8faa3a0a946ee9117d37e",
   "canonical_entrypoint": "main:app",
-  "compatibility_entrypoints": ["app:app"],
+  "compatibility_entrypoints": [
+    "app:app"
+  ],
   "modules": [
-    {"code":"architecture","owner":"PC0","kind":"platform_governance","source_roots":["core/platform"]},
-    {"code":"structure","owner":"PC1","kind":"platform_authority","source_roots":["core/platform/structure"]},
-    {"code":"party","owner":"PC2","kind":"platform_authority","source_roots":["core/platform/party"]},
-    {"code":"semantics","owner":"PC3","kind":"platform_authority","source_roots":["core/platform/semantics"]},
-    {"code":"operating_context","owner":"PC4","kind":"platform_authority","source_roots":["core/platform/operating_context"]},
-    {"code":"security_authority","owner":"PC5","kind":"platform_authority","source_roots":["core/platform/security_authority"]},
-    {"code":"neutral_proof","owner":"PC6","kind":"platform_proof","source_roots":["core/platform/neutral_proof"]},
-    {"code":"application","owner":"PC0","kind":"platform_composition","source_roots":["app.py","container.py","database.py","logging_config.py","main.py","settings.py","startup.py"]},
-    {"code":"composition","owner":"PC0","kind":"platform_composition","source_roots":["core/api/kernel_router.py","core/models_import.py"]},
-    {"code":"persistence","owner":"Neutral Finance / canonical persistence","kind":"frozen_foundation","source_roots":["core/persistence"]},
-    {"code":"tenancy","owner":"PC1","kind":"legacy_compatibility","source_roots":["core/api/tenant_controller.py","core/middleware/branch_middleware.py","core/middleware/tenant_middleware.py","core/tenants"]},
-    {"code":"identity","owner":"PC5","kind":"legacy_compatibility","source_roots":["core/auth","core/middleware/auth_middleware.py","core/middleware/permission_middleware.py","core/rbac","core/security","core/users"]},
-    {"code":"taxonomy","owner":"PC3","kind":"adopted_compatibility","source_roots":["core/api/taxonomy","core/domain/taxonomy"]},
-    {"code":"catalog","owner":"SO0/SO1","kind":"legacy_operational","source_roots":["core/api/catalog","core/domain/catalog"]},
-    {"code":"inventory","owner":"SO3","kind":"shared_operations_authority","source_roots":["core/api/inventory","core/domain/inventory","shared_operations/so3"]},
-    {"code":"procurement","owner":"SO4","kind":"shared_operations_authority","source_roots":["shared_operations/so4"]},
-    {"code":"orders","owner":"Restaurant Pack","kind":"legacy_industry","source_roots":["core/api/orders","core/domain/orders"]},
-    {"code":"sales","owner":"Restaurant Pack / SO1","kind":"legacy_industry","source_roots":["core/api/sales","core/domain/sales"]},
-    {"code":"legacy_accounting","owner":"R6 retirement / Neutral Finance target","kind":"legacy_financial","source_roots":["core/api/accounting","core/domain/accounting"]},
-    {"code":"legacy_payments","owner":"R6 retirement / Neutral Finance target","kind":"legacy_financial","source_roots":["core/api/payments","core/api/xafpay_webhook.py","core/domain/payments"]},
-    {"code":"reports","owner":"SO9 / Neutral Finance by report authority","kind":"legacy_operational","source_roots":["core/api/reports","core/domain/reports"]},
-    {"code":"commerce","owner":"SO1","kind":"legacy_operational","source_roots":["core/domain/commerce"]},
-    {"code":"crm_relationships","owner":"SO2","kind":"shared_operations_authority","source_roots":["shared_operations/so2"]},
-    {"code":"finance","owner":"Neutral Finance","kind":"frozen_authority","source_roots":["core/domain/finance"]},
-    {"code":"xafpay","owner":"Provider adapter / Neutral Finance interface","kind":"adapter","source_roots":["core/integrations/xafpay"]},
-    {"code":"shared","owner":"PC0 boundary pending named downstream owners","kind":"legacy_shared","source_roots":["core/__init__.py","core/errors","core/events","core/shared"]}
+    {
+      "code": "architecture",
+      "owner": "PC0",
+      "kind": "platform_governance",
+      "source_roots": [
+        "core/platform"
+      ]
+    },
+    {
+      "code": "structure",
+      "owner": "PC1",
+      "kind": "platform_authority",
+      "source_roots": [
+        "core/platform/structure"
+      ]
+    },
+    {
+      "code": "party",
+      "owner": "PC2",
+      "kind": "platform_authority",
+      "source_roots": [
+        "core/platform/party"
+      ]
+    },
+    {
+      "code": "semantics",
+      "owner": "PC3",
+      "kind": "platform_authority",
+      "source_roots": [
+        "core/platform/semantics"
+      ]
+    },
+    {
+      "code": "operating_context",
+      "owner": "PC4",
+      "kind": "platform_authority",
+      "source_roots": [
+        "core/platform/operating_context"
+      ]
+    },
+    {
+      "code": "security_authority",
+      "owner": "PC5",
+      "kind": "platform_authority",
+      "source_roots": [
+        "core/platform/security_authority"
+      ]
+    },
+    {
+      "code": "neutral_proof",
+      "owner": "PC6",
+      "kind": "platform_proof",
+      "source_roots": [
+        "core/platform/neutral_proof"
+      ]
+    },
+    {
+      "code": "application",
+      "owner": "PC0",
+      "kind": "platform_composition",
+      "source_roots": [
+        "app.py",
+        "container.py",
+        "database.py",
+        "logging_config.py",
+        "main.py",
+        "settings.py",
+        "startup.py"
+      ]
+    },
+    {
+      "code": "composition",
+      "owner": "PC0",
+      "kind": "platform_composition",
+      "source_roots": [
+        "core/api/kernel_router.py",
+        "core/models_import.py"
+      ]
+    },
+    {
+      "code": "persistence",
+      "owner": "Neutral Finance / canonical persistence",
+      "kind": "frozen_foundation",
+      "source_roots": [
+        "core/persistence"
+      ]
+    },
+    {
+      "code": "tenancy",
+      "owner": "PC1",
+      "kind": "legacy_compatibility",
+      "source_roots": [
+        "core/api/tenant_controller.py",
+        "core/middleware/branch_middleware.py",
+        "core/middleware/tenant_middleware.py",
+        "core/tenants"
+      ]
+    },
+    {
+      "code": "identity",
+      "owner": "PC5",
+      "kind": "legacy_compatibility",
+      "source_roots": [
+        "core/auth",
+        "core/middleware/auth_middleware.py",
+        "core/middleware/permission_middleware.py",
+        "core/rbac",
+        "core/security",
+        "core/users"
+      ]
+    },
+    {
+      "code": "taxonomy",
+      "owner": "PC3",
+      "kind": "adopted_compatibility",
+      "source_roots": [
+        "core/api/taxonomy",
+        "core/domain/taxonomy"
+      ]
+    },
+    {
+      "code": "catalog",
+      "owner": "SO0/SO1",
+      "kind": "legacy_operational",
+      "source_roots": [
+        "core/api/catalog",
+        "core/domain/catalog"
+      ]
+    },
+    {
+      "code": "inventory",
+      "owner": "SO3",
+      "kind": "shared_operations_authority",
+      "source_roots": [
+        "core/api/inventory",
+        "core/domain/inventory",
+        "shared_operations/so3"
+      ]
+    },
+    {
+      "code": "procurement",
+      "owner": "SO4",
+      "kind": "shared_operations_authority",
+      "source_roots": [
+        "shared_operations/so4"
+      ]
+    },
+    {
+      "code": "resources",
+      "owner": "SO5",
+      "kind": "shared_operations_authority",
+      "source_roots": [
+        "shared_operations/so5"
+      ]
+    },
+    {
+      "code": "orders",
+      "owner": "Restaurant Pack",
+      "kind": "legacy_industry",
+      "source_roots": [
+        "core/api/orders",
+        "core/domain/orders"
+      ]
+    },
+    {
+      "code": "sales",
+      "owner": "Restaurant Pack / SO1",
+      "kind": "legacy_industry",
+      "source_roots": [
+        "core/api/sales",
+        "core/domain/sales"
+      ]
+    },
+    {
+      "code": "legacy_accounting",
+      "owner": "R6 retirement / Neutral Finance target",
+      "kind": "legacy_financial",
+      "source_roots": [
+        "core/api/accounting",
+        "core/domain/accounting"
+      ]
+    },
+    {
+      "code": "legacy_payments",
+      "owner": "R6 retirement / Neutral Finance target",
+      "kind": "legacy_financial",
+      "source_roots": [
+        "core/api/payments",
+        "core/api/xafpay_webhook.py",
+        "core/domain/payments"
+      ]
+    },
+    {
+      "code": "reports",
+      "owner": "SO9 / Neutral Finance by report authority",
+      "kind": "legacy_operational",
+      "source_roots": [
+        "core/api/reports",
+        "core/domain/reports"
+      ]
+    },
+    {
+      "code": "commerce",
+      "owner": "SO1",
+      "kind": "legacy_operational",
+      "source_roots": [
+        "core/domain/commerce"
+      ]
+    },
+    {
+      "code": "crm_relationships",
+      "owner": "SO2",
+      "kind": "shared_operations_authority",
+      "source_roots": [
+        "shared_operations/so2"
+      ]
+    },
+    {
+      "code": "finance",
+      "owner": "Neutral Finance",
+      "kind": "frozen_authority",
+      "source_roots": [
+        "core/domain/finance"
+      ]
+    },
+    {
+      "code": "xafpay",
+      "owner": "Provider adapter / Neutral Finance interface",
+      "kind": "adapter",
+      "source_roots": [
+        "core/integrations/xafpay"
+      ]
+    },
+    {
+      "code": "shared",
+      "owner": "PC0 boundary pending named downstream owners",
+      "kind": "legacy_shared",
+      "source_roots": [
+        "core/__init__.py",
+        "core/errors",
+        "core/events",
+        "core/shared"
+      ]
+    }
   ],
   "composition_files": [
-    "main.py", "app.py", "startup.py", "database.py", "settings.py",
-    "core/api/kernel_router.py", "core/models_import.py",
-    "core/middleware/auth_middleware.py", "core/middleware/tenant_middleware.py",
-    "core/middleware/branch_middleware.py", "core/middleware/permission_middleware.py",
+    "main.py",
+    "app.py",
+    "startup.py",
+    "database.py",
+    "settings.py",
+    "core/api/kernel_router.py",
+    "core/models_import.py",
+    "core/middleware/auth_middleware.py",
+    "core/middleware/tenant_middleware.py",
+    "core/middleware/branch_middleware.py",
+    "core/middleware/permission_middleware.py",
     "core/rbac/middleware/rbac_middleware.py"
   ]
 }

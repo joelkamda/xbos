@@ -1,35 +1,238 @@
 {
   "schema_version": 1,
   "entries": [
-    {"reference":"tenant","current_authority":"tenants","target_authority":"PC1 tenant","compatibility_path":"adopt identifiers and lifecycle behind PC1 public contract","retirement_owner":"PC1","retirement_milestone":"PC1.10"},
-    {"reference":"organization","current_authority":"organization_units","target_authority":"PC1 organization unit","compatibility_path":"promote in place and preserve all frozen Finance foreign keys","retirement_owner":"PC1","retirement_milestone":"PC1.10"},
-    {"reference":"branch","current_authority":"branches","target_authority":"PC1 organization unit plus location mapping","compatibility_path":"retain branch identifiers as compatibility references; no universal branch authority","retirement_owner":"PC1","retirement_milestone":"PC1.10"},
-    {"reference":"legal_entity","current_authority":"organization unit type and finance context","target_authority":"PC1 legal entity","compatibility_path":"explicit mapping preserving historical Finance legal_entity_unit_id references","retirement_owner":"PC1","retirement_milestone":"PC1.10"},
-    {"reference":"location","current_authority":"branches city/address fields","target_authority":"PC1 location","compatibility_path":"map branch operating-place data without equating location and organization","retirement_owner":"PC1","retirement_milestone":"PC1.10"},
-    {"reference":"user_person","current_authority":"users profile fields","target_authority":"PC2 explicit Person mapping plus PC5 global Identity and membership","compatibility_path":"identity_compatibility_mappings preserves exact users.id; Party links remain explicit and membership-scoped; no automatic person conversion","retirement_owner":"PC5","retirement_milestone":"post-PC5 controlled authentication cutover"},
-    {"reference":"role_permission","current_authority":"user.role, roles JSON, permission levels and role packs","target_authority":"PC5 namespaced permission registry, authorization roles and typed scoped assignments","compatibility_path":"freeze legacy effective access; require explicit permission mapping and assignment before retiring fallback; never promote wildcard authority","retirement_owner":"PC5","retirement_milestone":"fallback-free authorization acceptance"},
-    {"reference":"authentication_session","current_authority":"stateless access/refresh JWT validity","target_authority":"PC5 authentication_sessions and step_up_grants","compatibility_path":"preserve JWT mechanism while requiring canonical server session, membership and revocation checks before authority","retirement_owner":"PC5 Security","retirement_milestone":"session-aware runtime cutover"},
-    {"reference":"service_device_identity","current_authority":"implicit workers, integrations and POS clients","target_authority":"PC5 first-class service_identities and device_identities","compatibility_path":"explicitly enroll non-human principals with credential references, typed assignments and revocation; never impersonate users","retirement_owner":"PC5 Security","retirement_milestone":"PC5.14"},
-    {"reference":"generic_audit","current_authority":"scattered logs and domain-specific evidence","target_authority":"PC5 append-only audit_evidence","compatibility_path":"append prospective safe envelopes only; do not import secrets or duplicate/rewrite frozen Finance truth","retirement_owner":"PC5","retirement_milestone":"PC5.14"},
-    {"reference":"taxonomy_node","current_authority":"taxonomy_nodes with semantic_level and taxonomy_type hints","target_authority":"PC3 adopted taxonomy tree linked explicitly to stable semantic concepts","compatibility_path":"preserve node and Atomic Unit IDs; nullable explicit concept/system links; unmapped tenant nodes remain valid legacy classifications","retirement_owner":"PC3","retirement_milestone":"PC3.11 compatibility acceptance"},
-    {"reference":"tenant_configuration","current_authority":"tenant columns, JSON settings, country defaults and environment flags","target_authority":"PC4 typed configuration","compatibility_path":"definitions declare type, legal scopes and resolution order; legacy JSON/readers remain bridge-only pending explicit per-key cutover","retirement_owner":"PC4","retirement_milestone":"PC4.14"},
-    {"reference":"module_registration","current_authority":"startup.py, kernel_router.py and models_import.py static imports","target_authority":"PC4 core-module registry","compatibility_path":"registry records metadata and dependencies while static registration remains unchanged; dynamic imports are not authorized","retirement_owner":"PC4","retirement_milestone":"PC4.14"},
-    {"reference":"business_calendar","current_authority":"business_cycle_policies and reconciliation_calendar_policies","target_authority":"PC4 prospective business-time authority","compatibility_path":"generic calendars and shifts resolve only prospective time; Finance retains immutable historical references, dates and windows","retirement_owner":"PC4","retirement_milestone":"PC4.14"},
-    {"reference":"financial_counterparty_party","current_authority":"financial_counterparties snapshot and nullable party_id","target_authority":"PC2 Party reference consumed by Neutral Finance","compatibility_path":"preserve Finance snapshots and semantics; nullable party_id remains an explicit mapping candidate and is never name/email/phone backfilled","retirement_owner":"Neutral Finance and PC2","retirement_milestone":"explicit counterparty mapping acceptance"},
-    {"reference":"generic_idempotency","current_authority":"core.shared.idempotency and idempotency_keys","target_authority":"SO9 integration/offline command authority","compatibility_path":"retain legacy helper until SO9 public contract and migration exist; do not touch financial idempotency_records","retirement_owner":"SO9","retirement_milestone":"SO9 exit"},
-    {"reference":"generic_event_dispatch","current_authority":"core.events.event_dispatcher stub","target_authority":"SO9 delivery/jobs/retry authority","compatibility_path":"no new use; future callers adopt SO9 contract","retirement_owner":"SO9","retirement_milestone":"SO9 exit"},
-    {"reference":"document_file","current_authority":"receipt artifacts and Finance evidence references/hashes","target_authority":"SO7 document/file authority","compatibility_path":"Finance keeps hashes and references; SO7 later owns file and issued-record lifecycle","retirement_owner":"SO7","retirement_milestone":"SO7 exit"},
-    {"reference":"app_entrypoint","current_authority":"main:app and app:app","target_authority":"main:app","compatibility_path":"app:app remains unchanged compatibility-only entrypoint","retirement_owner":"PC4","retirement_milestone":"PC4.14"},
-    {"reference":"production_dependencies","current_authority":"requirements-prod.txt exact pins established at PC6 from accepted Python 3.13.3 environment","target_authority":"requirements-prod.txt canonical production runtime manifest","compatibility_path":"requirements-test.txt remains test-only; clean-environment acceptance installs production pins first and rejects undeclared imports or unpinned entries","retirement_owner":"Platform Operations","retirement_milestone":"E5 maintenance and approved upgrades"},
-    {"reference":"legacy_customer_supplier","current_authority":"receipt customer snapshots, inventory supplier metadata, accounting vendor strings and PC2 compatibility mappings","target_authority":"PC2 Party plus SO2 operational relationship","compatibility_path":"preserve source values; resolve Party with explicit evidence and add SO2 relationship mapping without bulk rewrite","retirement_owner":"SO2 with R6/SO3 source owners","retirement_milestone":"source-specific controlled cutover acceptance"},
-    {"reference":"legacy_inventory_location_unit","module_code":"inventory","previous_module_owner":"SO3","previous_module_kind":"legacy_operational","target_module_owner":"SO3","target_module_kind":"shared_operations_authority","target_data_authority":"inventory_stock","current_authority":"inventory_items and inventory_movements keyed by branch and Atomic Unit","target_authority":"SO3 quantity authority referencing PC1 Location and SO1 Atomic Unit","compatibility_path":"adopt tables and identifiers in place; map branch through legacy_branch_structural_mappings; retain compatibility writers pending convergence","retirement_owner":"SO3","retirement_milestone":"SO3 writer convergence"},
-    {"reference":"legacy_procurement_supplier_evidence","current_authority":"inventory supplier metadata, receipt references, accounting vendor strings and invoice-like evidence","target_authority":"SO4 procurement workflow referencing PC2 Party and SO2 supplier relationship","compatibility_path":"preserve legacy bytes; map only with explicit source evidence; do not reinterpret legacy Finance records as purchase orders, receipts or liabilities","retirement_owner":"SO4 with source owners","retirement_milestone":"source-specific writer convergence"},
-    {"reference":"legacy_financial_writers","current_authority":"legacy accounting/payment writers","target_authority":"Neutral Finance public commands","compatibility_path":"M7 readiness remains frozen; live routing and retirement stay unchanged","retirement_owner":"R6","retirement_milestone":"R6 cutover"}
+    {
+      "reference": "tenant",
+      "current_authority": "tenants",
+      "target_authority": "PC1 tenant",
+      "compatibility_path": "adopt identifiers and lifecycle behind PC1 public contract",
+      "retirement_owner": "PC1",
+      "retirement_milestone": "PC1.10"
+    },
+    {
+      "reference": "organization",
+      "current_authority": "organization_units",
+      "target_authority": "PC1 organization unit",
+      "compatibility_path": "promote in place and preserve all frozen Finance foreign keys",
+      "retirement_owner": "PC1",
+      "retirement_milestone": "PC1.10"
+    },
+    {
+      "reference": "branch",
+      "current_authority": "branches",
+      "target_authority": "PC1 organization unit plus location mapping",
+      "compatibility_path": "retain branch identifiers as compatibility references; no universal branch authority",
+      "retirement_owner": "PC1",
+      "retirement_milestone": "PC1.10"
+    },
+    {
+      "reference": "legal_entity",
+      "current_authority": "organization unit type and finance context",
+      "target_authority": "PC1 legal entity",
+      "compatibility_path": "explicit mapping preserving historical Finance legal_entity_unit_id references",
+      "retirement_owner": "PC1",
+      "retirement_milestone": "PC1.10"
+    },
+    {
+      "reference": "location",
+      "current_authority": "branches city/address fields",
+      "target_authority": "PC1 location",
+      "compatibility_path": "map branch operating-place data without equating location and organization",
+      "retirement_owner": "PC1",
+      "retirement_milestone": "PC1.10"
+    },
+    {
+      "reference": "user_person",
+      "current_authority": "users profile fields",
+      "target_authority": "PC2 explicit Person mapping plus PC5 global Identity and membership",
+      "compatibility_path": "identity_compatibility_mappings preserves exact users.id; Party links remain explicit and membership-scoped; no automatic person conversion",
+      "retirement_owner": "PC5",
+      "retirement_milestone": "post-PC5 controlled authentication cutover"
+    },
+    {
+      "reference": "role_permission",
+      "current_authority": "user.role, roles JSON, permission levels and role packs",
+      "target_authority": "PC5 namespaced permission registry, authorization roles and typed scoped assignments",
+      "compatibility_path": "freeze legacy effective access; require explicit permission mapping and assignment before retiring fallback; never promote wildcard authority",
+      "retirement_owner": "PC5",
+      "retirement_milestone": "fallback-free authorization acceptance"
+    },
+    {
+      "reference": "authentication_session",
+      "current_authority": "stateless access/refresh JWT validity",
+      "target_authority": "PC5 authentication_sessions and step_up_grants",
+      "compatibility_path": "preserve JWT mechanism while requiring canonical server session, membership and revocation checks before authority",
+      "retirement_owner": "PC5 Security",
+      "retirement_milestone": "session-aware runtime cutover"
+    },
+    {
+      "reference": "service_device_identity",
+      "current_authority": "implicit workers, integrations and POS clients",
+      "target_authority": "PC5 first-class service_identities and device_identities",
+      "compatibility_path": "explicitly enroll non-human principals with credential references, typed assignments and revocation; never impersonate users",
+      "retirement_owner": "PC5 Security",
+      "retirement_milestone": "PC5.14"
+    },
+    {
+      "reference": "generic_audit",
+      "current_authority": "scattered logs and domain-specific evidence",
+      "target_authority": "PC5 append-only audit_evidence",
+      "compatibility_path": "append prospective safe envelopes only; do not import secrets or duplicate/rewrite frozen Finance truth",
+      "retirement_owner": "PC5",
+      "retirement_milestone": "PC5.14"
+    },
+    {
+      "reference": "taxonomy_node",
+      "current_authority": "taxonomy_nodes with semantic_level and taxonomy_type hints",
+      "target_authority": "PC3 adopted taxonomy tree linked explicitly to stable semantic concepts",
+      "compatibility_path": "preserve node and Atomic Unit IDs; nullable explicit concept/system links; unmapped tenant nodes remain valid legacy classifications",
+      "retirement_owner": "PC3",
+      "retirement_milestone": "PC3.11 compatibility acceptance"
+    },
+    {
+      "reference": "tenant_configuration",
+      "current_authority": "tenant columns, JSON settings, country defaults and environment flags",
+      "target_authority": "PC4 typed configuration",
+      "compatibility_path": "definitions declare type, legal scopes and resolution order; legacy JSON/readers remain bridge-only pending explicit per-key cutover",
+      "retirement_owner": "PC4",
+      "retirement_milestone": "PC4.14"
+    },
+    {
+      "reference": "module_registration",
+      "current_authority": "startup.py, kernel_router.py and models_import.py static imports",
+      "target_authority": "PC4 core-module registry",
+      "compatibility_path": "registry records metadata and dependencies while static registration remains unchanged; dynamic imports are not authorized",
+      "retirement_owner": "PC4",
+      "retirement_milestone": "PC4.14"
+    },
+    {
+      "reference": "business_calendar",
+      "current_authority": "business_cycle_policies and reconciliation_calendar_policies",
+      "target_authority": "PC4 prospective business-time authority",
+      "compatibility_path": "generic calendars and shifts resolve only prospective time; Finance retains immutable historical references, dates and windows",
+      "retirement_owner": "PC4",
+      "retirement_milestone": "PC4.14"
+    },
+    {
+      "reference": "financial_counterparty_party",
+      "current_authority": "financial_counterparties snapshot and nullable party_id",
+      "target_authority": "PC2 Party reference consumed by Neutral Finance",
+      "compatibility_path": "preserve Finance snapshots and semantics; nullable party_id remains an explicit mapping candidate and is never name/email/phone backfilled",
+      "retirement_owner": "Neutral Finance and PC2",
+      "retirement_milestone": "explicit counterparty mapping acceptance"
+    },
+    {
+      "reference": "generic_idempotency",
+      "current_authority": "core.shared.idempotency and idempotency_keys",
+      "target_authority": "SO9 integration/offline command authority",
+      "compatibility_path": "retain legacy helper until SO9 public contract and migration exist; do not touch financial idempotency_records",
+      "retirement_owner": "SO9",
+      "retirement_milestone": "SO9 exit"
+    },
+    {
+      "reference": "generic_event_dispatch",
+      "current_authority": "core.events.event_dispatcher stub",
+      "target_authority": "SO9 delivery/jobs/retry authority",
+      "compatibility_path": "no new use; future callers adopt SO9 contract",
+      "retirement_owner": "SO9",
+      "retirement_milestone": "SO9 exit"
+    },
+    {
+      "reference": "document_file",
+      "current_authority": "receipt artifacts and Finance evidence references/hashes",
+      "target_authority": "SO7 document/file authority",
+      "compatibility_path": "Finance keeps hashes and references; SO7 later owns file and issued-record lifecycle",
+      "retirement_owner": "SO7",
+      "retirement_milestone": "SO7 exit"
+    },
+    {
+      "reference": "app_entrypoint",
+      "current_authority": "main:app and app:app",
+      "target_authority": "main:app",
+      "compatibility_path": "app:app remains unchanged compatibility-only entrypoint",
+      "retirement_owner": "PC4",
+      "retirement_milestone": "PC4.14"
+    },
+    {
+      "reference": "production_dependencies",
+      "current_authority": "requirements-prod.txt exact pins established at PC6 from accepted Python 3.13.3 environment",
+      "target_authority": "requirements-prod.txt canonical production runtime manifest",
+      "compatibility_path": "requirements-test.txt remains test-only; clean-environment acceptance installs production pins first and rejects undeclared imports or unpinned entries",
+      "retirement_owner": "Platform Operations",
+      "retirement_milestone": "E5 maintenance and approved upgrades"
+    },
+    {
+      "reference": "legacy_customer_supplier",
+      "current_authority": "receipt customer snapshots, inventory supplier metadata, accounting vendor strings and PC2 compatibility mappings",
+      "target_authority": "PC2 Party plus SO2 operational relationship",
+      "compatibility_path": "preserve source values; resolve Party with explicit evidence and add SO2 relationship mapping without bulk rewrite",
+      "retirement_owner": "SO2 with R6/SO3 source owners",
+      "retirement_milestone": "source-specific controlled cutover acceptance"
+    },
+    {
+      "reference": "legacy_inventory_location_unit",
+      "module_code": "inventory",
+      "previous_module_owner": "SO3",
+      "previous_module_kind": "legacy_operational",
+      "target_module_owner": "SO3",
+      "target_module_kind": "shared_operations_authority",
+      "target_data_authority": "inventory_stock",
+      "current_authority": "inventory_items and inventory_movements keyed by branch and Atomic Unit",
+      "target_authority": "SO3 quantity authority referencing PC1 Location and SO1 Atomic Unit",
+      "compatibility_path": "adopt tables and identifiers in place; map branch through legacy_branch_structural_mappings; retain compatibility writers pending convergence",
+      "retirement_owner": "SO3",
+      "retirement_milestone": "SO3 writer convergence"
+    },
+    {
+      "reference": "legacy_procurement_supplier_evidence",
+      "current_authority": "inventory supplier metadata, receipt references, accounting vendor strings and invoice-like evidence",
+      "target_authority": "SO4 procurement workflow referencing PC2 Party and SO2 supplier relationship",
+      "compatibility_path": "preserve legacy bytes; map only with explicit source evidence; do not reinterpret legacy Finance records as purchase orders, receipts or liabilities",
+      "retirement_owner": "SO4 with source owners",
+      "retirement_milestone": "source-specific writer convergence"
+    },
+    {
+      "reference": "legacy_staff_resource_assignment",
+      "current_authority": "users/branches, staff role strings and operational actor snapshots",
+      "target_authority": "SO5 resource and operational assignment referencing PC2 Party, PC5 Identity membership and PC1 structure",
+      "compatibility_path": "preserve legacy user/staff identifiers and snapshots; create explicit SO5 resources only through controlled mapping; operational assignment never grants PC5 permission",
+      "retirement_owner": "SO5 with R6/source owners",
+      "retirement_milestone": "source-specific resource writer convergence"
+    },
+    {
+      "reference": "legacy_financial_writers",
+      "current_authority": "legacy accounting/payment writers",
+      "target_authority": "Neutral Finance public commands",
+      "compatibility_path": "M7 readiness remains frozen; live routing and retirement stay unchanged",
+      "retirement_owner": "R6",
+      "retirement_milestone": "R6 cutover"
+    }
   ],
   "required_references": [
-    "tenant","organization","branch","legal_entity","location","user_person","role_permission","authentication_session","service_device_identity","generic_audit",
-    "taxonomy_node","tenant_configuration","module_registration","business_calendar",
-    "financial_counterparty_party","generic_idempotency","generic_event_dispatch","document_file",
-    "app_entrypoint","production_dependencies","legacy_customer_supplier","legacy_inventory_location_unit","legacy_procurement_supplier_evidence","legacy_financial_writers"
+    "tenant",
+    "organization",
+    "branch",
+    "legal_entity",
+    "location",
+    "user_person",
+    "role_permission",
+    "authentication_session",
+    "service_device_identity",
+    "generic_audit",
+    "taxonomy_node",
+    "tenant_configuration",
+    "module_registration",
+    "business_calendar",
+    "financial_counterparty_party",
+    "generic_idempotency",
+    "generic_event_dispatch",
+    "document_file",
+    "app_entrypoint",
+    "production_dependencies",
+    "legacy_customer_supplier",
+    "legacy_inventory_location_unit",
+    "legacy_procurement_supplier_evidence",
+    "legacy_staff_resource_assignment",
+    "legacy_financial_writers"
   ]
 }

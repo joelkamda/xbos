@@ -1,32 +1,334 @@
 {
   "schema_version": 1,
   "interfaces": [
-    {"module":"architecture","public":["core.platform.architecture_contract.validate_pc0","core.platform.architecture_contract.evaluate_source_text"],"private":["contract loading and scan helpers"]},
-    {"module":"structure","public":["core.platform.structure.StructuralAuthority","core.platform.structure.StructuralContext","core.platform.structure.ProvisionTenant","core.platform.structure.LocationKind","core.platform.structure.SQLStructuralRepository"],"private":["PC1 SQL statements and compatibility implementation"]},
-    {"module":"party","public":["core.platform.party.PartyAuthority","core.platform.party.Party","core.platform.party.Person","core.platform.party.OrganizationParty","core.platform.party.PartyIdentifier","core.platform.party.PartyContact","core.platform.party.PartyRole","core.platform.party.PartyRelationship","core.platform.party.SQLPartyRepository"],"private":["PC2 SQL statements, command ledger and compatibility mappings"]},
-    {"module":"semantics","public":["core.platform.semantics.SemanticAuthority","core.platform.semantics.SemanticNamespace","core.platform.semantics.SemanticConcept","core.platform.semantics.SemanticVersion","core.platform.semantics.SemanticMapping","core.platform.semantics.ClassificationSnapshot","core.platform.semantics.SQLSemanticRepository"],"private":["PC3 SQL statements, semantic command ledger and legacy taxonomy bridge"]},
-    {"module":"operating_context","public":["core.platform.operating_context.OperatingContextAuthority","core.platform.operating_context.BusinessTimeResolver","core.platform.operating_context.ConfigurationResult","core.platform.operating_context.CapabilityContext","core.platform.operating_context.BusinessCalendarVersion","core.platform.operating_context.LocalizationProfile","core.platform.operating_context.SQLOperatingContextRepository"],"private":["PC4 SQL statements, command ledger and legacy configuration bridges"]},
-    {"module":"security_authority","public":["core.platform.security_authority.SecurityAuthority","core.platform.security_authority.SecurityAuthorityError","core.platform.security_authority.SQLSecurityRepository","core.platform.security_authority.AuthorizationRequest","core.platform.security_authority.AuthorizationDecision","core.platform.security_authority.AuditEnvelope","core.platform.security_authority.AuditQuery","core.platform.security_authority.PermissionDefinition","core.platform.security_authority.StructuralScope"],"private":["PC5 SQL statements, security command ledger, legacy identity and RBAC mappings, credential and token material"]},
-    {"module":"neutral_proof","public":["core.platform.neutral_proof.TenantProfile","core.platform.neutral_proof.load_profile","core.platform.neutral_proof.bootstrap_profile","core.platform.neutral_proof.deterministic_export","core.platform.neutral_proof.restore_export"],"private":["PC6 proof fixture validation and export-envelope implementation"]},
-    {"module":"application","public":["startup.create_app","database.get_db"],"private":["startup.init_database","startup.seed_rbac","database.engine","database.SessionLocal"]},
-    {"module":"composition","public":["core.api.kernel_router.kernel_router","core.models_import.MODEL_MODULES"],"private":[]},
-    {"module":"persistence","public":["core.persistence.database_config.resolve_database_url","core.persistence.metadata.metadata"],"private":["core.persistence.* implementation helpers"]},
-    {"module":"tenancy","public":["request.state.tenant_id compatibility context","request.state.branch_id compatibility context"],"private":["core.tenants.* repositories models and services"]},
-    {"module":"identity","public":["request.state.user compatibility context","request.state.permissions compatibility context","core.rbac.utils.permission_decorator.require_permissions compatibility guard"],"private":["core.auth.*","core.users.*","core.rbac.roles.* repositories and seeders","legacy password hashes and token material"]},
-    {"module":"taxonomy","public":["/kernel/taxonomy API compatibility surface"],"private":["core.domain.taxonomy.models","core.domain.taxonomy.repository","core.domain.taxonomy.service"]},
-    {"module":"catalog","public":["/kernel/catalog API compatibility surface"],"private":["core.domain.catalog.*"]},
-    {"module":"inventory","public":["/kernel/inventory API compatibility surface","shared_operations.so3.SO3Authority","shared_operations.so3.SO3AuthorityError","shared_operations.so3.RegisterStockLocation","shared_operations.so3.MoveStock","shared_operations.so3.TransferStock","shared_operations.so3.ReserveStock","shared_operations.so3.InitiateStockCount","shared_operations.so3.CorrectMovement"],"private":["core.domain.inventory.*","shared_operations.so3.sql_repository"]},
-    {"module":"procurement","public":["shared_operations.so4.SO4Authority","shared_operations.so4.SO4AuthorityError","shared_operations.so4.PurchaseRequest","shared_operations.so4.PurchaseOrder","shared_operations.so4.ProcurementReceipt","shared_operations.so4.CreatePurchaseRequest","shared_operations.so4.CreatePurchaseOrder","shared_operations.so4.TransitionProcurement","shared_operations.so4.ReceivePurchaseOrder"],"private":["shared_operations.so4.sql_repository","SO4 persistence tables and command ledger"]},
-    {"module":"orders","public":["/kernel/orders API compatibility surface"],"private":["core.domain.orders.*"]},
-    {"module":"sales","public":["/kernel/sales API compatibility surface"],"private":["core.domain.sales.*"]},
-    {"module":"legacy_accounting","public":["/kernel/accounting API compatibility surface"],"private":["core.domain.accounting.*"]},
-    {"module":"legacy_payments","public":["/kernel/payments API compatibility surface"],"private":["core.domain.payments.*"]},
-    {"module":"reports","public":["/kernel/reports API compatibility surface"],"private":["core.domain.reports.*"]},
-    {"module":"commerce","public":[],"private":["core.domain.commerce.*"]},
-    {"module":"crm_relationships","public":["shared_operations.so2.SO2Authority","shared_operations.so2.SO2AuthorityError","shared_operations.so2.OperationalRelationship","shared_operations.so2.EstablishRelationship","shared_operations.so2.ChangeRelationshipStatus","shared_operations.so2.UpdateRelationshipPreferences","shared_operations.so2.ClassifyRelationship"],"private":["shared_operations.so2.sql_repository"]},
-    {"module":"finance","public":["typed command contracts","transactional authority engines","deterministic read services","accepted release contracts"],"private":["finance-owned SQL tables","repository implementation details","migration SQL"]},
-    {"module":"xafpay","public":["provider-neutral adapter contract"],"private":["adapter repository and orchestration implementation"]},
-    {"module":"shared","public":["core.errors.api_error.APIError"],"private":["core.shared.idempotency","core.events.event_dispatcher"]}
+    {
+      "module": "architecture",
+      "public": [
+        "core.platform.architecture_contract.validate_pc0",
+        "core.platform.architecture_contract.evaluate_source_text"
+      ],
+      "private": [
+        "contract loading and scan helpers"
+      ]
+    },
+    {
+      "module": "structure",
+      "public": [
+        "core.platform.structure.StructuralAuthority",
+        "core.platform.structure.StructuralContext",
+        "core.platform.structure.ProvisionTenant",
+        "core.platform.structure.LocationKind",
+        "core.platform.structure.SQLStructuralRepository"
+      ],
+      "private": [
+        "PC1 SQL statements and compatibility implementation"
+      ]
+    },
+    {
+      "module": "party",
+      "public": [
+        "core.platform.party.PartyAuthority",
+        "core.platform.party.Party",
+        "core.platform.party.Person",
+        "core.platform.party.OrganizationParty",
+        "core.platform.party.PartyIdentifier",
+        "core.platform.party.PartyContact",
+        "core.platform.party.PartyRole",
+        "core.platform.party.PartyRelationship",
+        "core.platform.party.SQLPartyRepository"
+      ],
+      "private": [
+        "PC2 SQL statements, command ledger and compatibility mappings"
+      ]
+    },
+    {
+      "module": "semantics",
+      "public": [
+        "core.platform.semantics.SemanticAuthority",
+        "core.platform.semantics.SemanticNamespace",
+        "core.platform.semantics.SemanticConcept",
+        "core.platform.semantics.SemanticVersion",
+        "core.platform.semantics.SemanticMapping",
+        "core.platform.semantics.ClassificationSnapshot",
+        "core.platform.semantics.SQLSemanticRepository"
+      ],
+      "private": [
+        "PC3 SQL statements, semantic command ledger and legacy taxonomy bridge"
+      ]
+    },
+    {
+      "module": "operating_context",
+      "public": [
+        "core.platform.operating_context.OperatingContextAuthority",
+        "core.platform.operating_context.BusinessTimeResolver",
+        "core.platform.operating_context.ConfigurationResult",
+        "core.platform.operating_context.CapabilityContext",
+        "core.platform.operating_context.BusinessCalendarVersion",
+        "core.platform.operating_context.LocalizationProfile",
+        "core.platform.operating_context.SQLOperatingContextRepository"
+      ],
+      "private": [
+        "PC4 SQL statements, command ledger and legacy configuration bridges"
+      ]
+    },
+    {
+      "module": "security_authority",
+      "public": [
+        "core.platform.security_authority.SecurityAuthority",
+        "core.platform.security_authority.SecurityAuthorityError",
+        "core.platform.security_authority.SQLSecurityRepository",
+        "core.platform.security_authority.AuthorizationRequest",
+        "core.platform.security_authority.AuthorizationDecision",
+        "core.platform.security_authority.AuditEnvelope",
+        "core.platform.security_authority.AuditQuery",
+        "core.platform.security_authority.PermissionDefinition",
+        "core.platform.security_authority.StructuralScope"
+      ],
+      "private": [
+        "PC5 SQL statements, security command ledger, legacy identity and RBAC mappings, credential and token material"
+      ]
+    },
+    {
+      "module": "neutral_proof",
+      "public": [
+        "core.platform.neutral_proof.TenantProfile",
+        "core.platform.neutral_proof.load_profile",
+        "core.platform.neutral_proof.bootstrap_profile",
+        "core.platform.neutral_proof.deterministic_export",
+        "core.platform.neutral_proof.restore_export"
+      ],
+      "private": [
+        "PC6 proof fixture validation and export-envelope implementation"
+      ]
+    },
+    {
+      "module": "application",
+      "public": [
+        "startup.create_app",
+        "database.get_db"
+      ],
+      "private": [
+        "startup.init_database",
+        "startup.seed_rbac",
+        "database.engine",
+        "database.SessionLocal"
+      ]
+    },
+    {
+      "module": "composition",
+      "public": [
+        "core.api.kernel_router.kernel_router",
+        "core.models_import.MODEL_MODULES"
+      ],
+      "private": []
+    },
+    {
+      "module": "persistence",
+      "public": [
+        "core.persistence.database_config.resolve_database_url",
+        "core.persistence.metadata.metadata"
+      ],
+      "private": [
+        "core.persistence.* implementation helpers"
+      ]
+    },
+    {
+      "module": "tenancy",
+      "public": [
+        "request.state.tenant_id compatibility context",
+        "request.state.branch_id compatibility context"
+      ],
+      "private": [
+        "core.tenants.* repositories models and services"
+      ]
+    },
+    {
+      "module": "identity",
+      "public": [
+        "request.state.user compatibility context",
+        "request.state.permissions compatibility context",
+        "core.rbac.utils.permission_decorator.require_permissions compatibility guard"
+      ],
+      "private": [
+        "core.auth.*",
+        "core.users.*",
+        "core.rbac.roles.* repositories and seeders",
+        "legacy password hashes and token material"
+      ]
+    },
+    {
+      "module": "taxonomy",
+      "public": [
+        "/kernel/taxonomy API compatibility surface"
+      ],
+      "private": [
+        "core.domain.taxonomy.models",
+        "core.domain.taxonomy.repository",
+        "core.domain.taxonomy.service"
+      ]
+    },
+    {
+      "module": "catalog",
+      "public": [
+        "/kernel/catalog API compatibility surface"
+      ],
+      "private": [
+        "core.domain.catalog.*"
+      ]
+    },
+    {
+      "module": "inventory",
+      "public": [
+        "/kernel/inventory API compatibility surface",
+        "shared_operations.so3.SO3Authority",
+        "shared_operations.so3.SO3AuthorityError",
+        "shared_operations.so3.RegisterStockLocation",
+        "shared_operations.so3.MoveStock",
+        "shared_operations.so3.TransferStock",
+        "shared_operations.so3.ReserveStock",
+        "shared_operations.so3.InitiateStockCount",
+        "shared_operations.so3.CorrectMovement"
+      ],
+      "private": [
+        "core.domain.inventory.*",
+        "shared_operations.so3.sql_repository"
+      ]
+    },
+    {
+      "module": "procurement",
+      "public": [
+        "shared_operations.so4.SO4Authority",
+        "shared_operations.so4.SO4AuthorityError",
+        "shared_operations.so4.PurchaseRequest",
+        "shared_operations.so4.PurchaseOrder",
+        "shared_operations.so4.ProcurementReceipt",
+        "shared_operations.so4.CreatePurchaseRequest",
+        "shared_operations.so4.CreatePurchaseOrder",
+        "shared_operations.so4.TransitionProcurement",
+        "shared_operations.so4.ReceivePurchaseOrder"
+      ],
+      "private": [
+        "shared_operations.so4.sql_repository",
+        "SO4 persistence tables and command ledger"
+      ]
+    },
+    {
+      "module": "resources",
+      "public": [
+        "shared_operations.so5.SO5Authority",
+        "shared_operations.so5.SO5AuthorityError",
+        "shared_operations.so5.Resource",
+        "shared_operations.so5.OperationalAssignment",
+        "shared_operations.so5.CreateResource",
+        "shared_operations.so5.ChangeResourceStatus",
+        "shared_operations.so5.AssignResource",
+        "shared_operations.so5.EndAssignment"
+      ],
+      "private": [
+        "shared_operations.so5.sql_repository",
+        "SO5 resource, assignment, history and command tables"
+      ]
+    },
+    {
+      "module": "orders",
+      "public": [
+        "/kernel/orders API compatibility surface"
+      ],
+      "private": [
+        "core.domain.orders.*"
+      ]
+    },
+    {
+      "module": "sales",
+      "public": [
+        "/kernel/sales API compatibility surface"
+      ],
+      "private": [
+        "core.domain.sales.*"
+      ]
+    },
+    {
+      "module": "legacy_accounting",
+      "public": [
+        "/kernel/accounting API compatibility surface"
+      ],
+      "private": [
+        "core.domain.accounting.*"
+      ]
+    },
+    {
+      "module": "legacy_payments",
+      "public": [
+        "/kernel/payments API compatibility surface"
+      ],
+      "private": [
+        "core.domain.payments.*"
+      ]
+    },
+    {
+      "module": "reports",
+      "public": [
+        "/kernel/reports API compatibility surface"
+      ],
+      "private": [
+        "core.domain.reports.*"
+      ]
+    },
+    {
+      "module": "commerce",
+      "public": [],
+      "private": [
+        "core.domain.commerce.*"
+      ]
+    },
+    {
+      "module": "crm_relationships",
+      "public": [
+        "shared_operations.so2.SO2Authority",
+        "shared_operations.so2.SO2AuthorityError",
+        "shared_operations.so2.OperationalRelationship",
+        "shared_operations.so2.EstablishRelationship",
+        "shared_operations.so2.ChangeRelationshipStatus",
+        "shared_operations.so2.UpdateRelationshipPreferences",
+        "shared_operations.so2.ClassifyRelationship"
+      ],
+      "private": [
+        "shared_operations.so2.sql_repository"
+      ]
+    },
+    {
+      "module": "finance",
+      "public": [
+        "typed command contracts",
+        "transactional authority engines",
+        "deterministic read services",
+        "accepted release contracts"
+      ],
+      "private": [
+        "finance-owned SQL tables",
+        "repository implementation details",
+        "migration SQL"
+      ]
+    },
+    {
+      "module": "xafpay",
+      "public": [
+        "provider-neutral adapter contract"
+      ],
+      "private": [
+        "adapter repository and orchestration implementation"
+      ]
+    },
+    {
+      "module": "shared",
+      "public": [
+        "core.errors.api_error.APIError"
+      ],
+      "private": [
+        "core.shared.idempotency",
+        "core.events.event_dispatcher"
+      ]
+    }
   ],
   "rules": [
     "every module appears exactly once",

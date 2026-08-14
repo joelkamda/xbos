@@ -1,0 +1,150 @@
+{
+  "schema_version": 1,
+  "release": "SO5",
+  "source_checkpoint": "087a6d9",
+  "source_checkpoint_full": "087a6d9c5f8c555788cbbd2718b24c5dea73074a",
+  "previous_head": "so4_procurement_supplier_operations_029",
+  "accepted_head": "so5_resources_operational_assignment_030",
+  "migration_count": 1,
+  "fingerprint_mode": "sha256_git_canonical_lf",
+  "commit": "NONE",
+  "tag": "NONE",
+  "artifacts": [
+    {
+      "path": "SO5_INSTALL_MANIFEST.txt",
+      "sha256": "88a581a3b297b7a50f275e9d68b23c555b26b79bff55e74dfa838fb9caa8788f"
+    },
+    {
+      "path": "XBOS_SO5_INSTALL_AND_VERIFY.txt",
+      "sha256": "fac8d1d6c93a2ce57300c53d00db0a5a5eb0d583114da1a79b85744bfd0f2451"
+    },
+    {
+      "path": "XBOS_SO5_RUN_ACCEPTANCE.cmd",
+      "sha256": "63c98a3921022efa5e19cd59ecd4542899205e2c5b77a05e494e22dfc0932242"
+    },
+    {
+      "path": "alembic_neutral/sql/so5_resources_operational_assignment_down.sql",
+      "sha256": "b4d84269a50e5dc2b1a3da2bfd886db92367d2fc135dd39a0b5afbfc936edfd6"
+    },
+    {
+      "path": "alembic_neutral/sql/so5_resources_operational_assignment_up.sql",
+      "sha256": "5b3ff5ef8a746537f2c1067a4e902faff82a1f40f879a04edb2c4e966c0c04fb"
+    },
+    {
+      "path": "alembic_neutral/versions/so5_resources_operational_assignment_030.py",
+      "sha256": "5b8ca7609095b5d864130eadf4d166227016d2e27b196e91d653847895affdac"
+    },
+    {
+      "path": "contracts/platform/v1/pc0_data_authority_register.json",
+      "sha256": "1d6c92d6c9118b06a5b34fda063f0f096dc2299eb6812683213516514887de5a"
+    },
+    {
+      "path": "contracts/platform/v1/pc0_dependency_policy.json",
+      "sha256": "9dd2b4cbd66a2096c6a3fc3d1f5a6c2ff2a77d8cfdd903aba003d4d3c95f3e55"
+    },
+    {
+      "path": "contracts/platform/v1/pc0_frozen_finance_inventory.json",
+      "sha256": "3eb1d98f7f6c8fc0a737d4c3690e42ba00ab2c376272566268074a3ba5974d2e"
+    },
+    {
+      "path": "contracts/platform/v1/pc0_module_map.json",
+      "sha256": "91270b3fbae46a14ae5202f7338d78b3043463cb42b22fc5e48430b297ceabc7"
+    },
+    {
+      "path": "contracts/platform/v1/pc0_public_private_interfaces.json",
+      "sha256": "b5d13309256da26c4e200be9ec497cb8a43503d8eb621ebe82bce507a072c7f5"
+    },
+    {
+      "path": "contracts/platform/v1/pc0_reference_authority_migration_register.json",
+      "sha256": "8f8ac5ec611e8310385d9dfbc81f01e999aec675c01382e7a6c98eedf4b4968d"
+    },
+    {
+      "path": "contracts/platform/v1/pc0_release_manifest.json",
+      "sha256": "dfef6bd119cd30961297656e4709ff998ab96b5a2e76e620eb6feb1d2ff2ed8c"
+    },
+    {
+      "path": "contracts/platform/v1/pc6_release_manifest.json",
+      "sha256": "148b1a27f07e1a33b6f0dab749ba242c3470f87d6d27485da3c04e2dd1fd2d6b"
+    },
+    {
+      "path": "contracts/shared_operations/v1/examples/clinical_resources_profile.json",
+      "sha256": "53edafb2501b08ad5b501a0c2350aed4364160e3738695d2e7a364c3fbd2b97d"
+    },
+    {
+      "path": "contracts/shared_operations/v1/examples/field_service_resources_profile.json",
+      "sha256": "b88933b67191b877db0dbe51fc5bb80076556f04574f1d859624ed312d9b67b7"
+    },
+    {
+      "path": "contracts/shared_operations/v1/so1_release_manifest.json",
+      "sha256": "1554f2f0c963110d5a8d1332efcb1dd5e9c80b4d51b7c377119fa57a6d825d21"
+    },
+    {
+      "path": "contracts/shared_operations/v1/so2_release_manifest.json",
+      "sha256": "a6f2fb327c35dda63ef46428c88c3415cc1b21ba0353d755c5658564ad412107"
+    },
+    {
+      "path": "contracts/shared_operations/v1/so3_release_manifest.json",
+      "sha256": "d170959b0fd246fea93d58954aa8afda13ca4c1782594d267c3c47f6cd7e3f34"
+    },
+    {
+      "path": "contracts/shared_operations/v1/so4_release_manifest.json",
+      "sha256": "d502384f5a7285212a30b0b00017356aeef513fa1952fb7efe4e76f99684bd6b"
+    },
+    {
+      "path": "contracts/shared_operations/v1/so5_authority.json",
+      "sha256": "a279e462ede54c79437474762f01092e8a3a5c95e5766f968c20e731242a3781"
+    },
+    {
+      "path": "contracts/shared_operations/v1/so5_legacy_adoption_manifest.json",
+      "sha256": "3ad177ac120d1ebddc0cc74082ba9849f11ab921e1d0716e32b04bb1edf09b17"
+    },
+    {
+      "path": "contracts/shared_operations/v1/so5_public_interfaces.json",
+      "sha256": "171253483a67b4c08f9c5731001c2bae729dcfa76c03fcf1fceb7db10dc65dcc"
+    },
+    {
+      "path": "contracts/shared_operations/v1/so5_xa_metadata.json",
+      "sha256": "195664567b1196611651867c2e16246145120d6bbbab0397b80b503600b93d05"
+    },
+    {
+      "path": "core/platform/architecture_contract.py",
+      "sha256": "26543bc5cfb351208f3f5840d3a6e1156dabf1020f10f6c45fed879a262d59ec"
+    },
+    {
+      "path": "docs/shared_operations/SO5_RESOURCES_OPERATIONAL_ASSIGNMENT.md",
+      "sha256": "6dfd47f8a65f6a8311cd45467b533612274fc0c6975f7eb925e4677cd15773eb"
+    },
+    {
+      "path": "docs/shared_operations/adr/0016_SO5_RESOURCE_IDENTITY_AND_ASSIGNMENT_SEPARATE_FROM_PARTY_AND_AUTH.md",
+      "sha256": "470ff53b18a330bd8e21325529a37ebc6a033245d856bab3756ec7ed3c2f46e9"
+    },
+    {
+      "path": "scripts/verify_so5_resources_operational_assignment.py",
+      "sha256": "382ae28b402fbf67f7b19f70f5801727b27be3f90db3931368b181d6fdff8a4a"
+    },
+    {
+      "path": "shared_operations/so5/__init__.py",
+      "sha256": "7a10aa821cb13681ec20448b586a050715dca93071e419d2b3bf59404bfe810b"
+    },
+    {
+      "path": "shared_operations/so5/contracts.py",
+      "sha256": "d37e5df0d0a574931e02db2f45fcc34501313880c3e126953a16b8d8ed5d68ff"
+    },
+    {
+      "path": "shared_operations/so5/service.py",
+      "sha256": "bcf9326a9fa15539cb5b5c1bc724fa835e8ca4f67d20a21e592cde08c45acb58"
+    },
+    {
+      "path": "shared_operations/so5/sql_repository.py",
+      "sha256": "5f6ba6d175d3a6d4c1b5fbd0b777a0ae4bcf0adb6de57c123c217882fa825157"
+    },
+    {
+      "path": "tests/contracts/test_pc0_kernel_boundaries.py",
+      "sha256": "2b3c445cf481673c497ce7f88b4fd20115cfc76892c5c78d3aca2969c932ea77"
+    },
+    {
+      "path": "tests/contracts/test_so5_resources_operational_assignment.py",
+      "sha256": "a38d237e9528130ab1fa87ec1c366394c12371307981bd738a868e38e56f6723"
+    }
+  ]
+}

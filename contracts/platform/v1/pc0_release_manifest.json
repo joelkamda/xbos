@@ -15,23 +15,23 @@
     },
     {
       "path": "contracts/platform/v1/pc0_module_map.json",
-      "sha256": "638592c16c05ae82349ee680433fd05cb9990a95d99545e4213db7e4db09b8d2"
+      "sha256": "91270b3fbae46a14ae5202f7338d78b3043463cb42b22fc5e48430b297ceabc7"
     },
     {
       "path": "contracts/platform/v1/pc0_data_authority_register.json",
-      "sha256": "605e76eca3a0087e6692e989f94cc3254076b20f3263d8546cc9fa68ffaa60a6"
+      "sha256": "1d6c92d6c9118b06a5b34fda063f0f096dc2299eb6812683213516514887de5a"
     },
     {
       "path": "contracts/platform/v1/pc0_reference_authority_migration_register.json",
-      "sha256": "7b169205967cc16423fa0ff57afad32a9367f32700c0d193c56303fe690c1098"
+      "sha256": "8f8ac5ec611e8310385d9dfbc81f01e999aec675c01382e7a6c98eedf4b4968d"
     },
     {
       "path": "contracts/platform/v1/pc0_dependency_policy.json",
-      "sha256": "9a91e1cc85668931e1dba7e45f864f4b1830381d3f6c4ed9273e414e17418107"
+      "sha256": "9dd2b4cbd66a2096c6a3fc3d1f5a6c2ff2a77d8cfdd903aba003d4d3c95f3e55"
     },
     {
       "path": "contracts/platform/v1/pc0_public_private_interfaces.json",
-      "sha256": "f27335762974723850b3f6274987b405d482c704e42c0e0b30ea615744724c6a"
+      "sha256": "b5d13309256da26c4e200be9ec497cb8a43503d8eb621ebe82bce507a072c7f5"
     },
     {
       "path": "contracts/platform/v1/pc0_legacy_exception_baseline.json",
@@ -47,7 +47,7 @@
     },
     {
       "path": "contracts/platform/v1/pc0_frozen_finance_inventory.json",
-      "sha256": "d00720912e49da411d53408e4b95edc433e27b6cc60a4273d86765880d1f7504"
+      "sha256": "3eb1d98f7f6c8fc0a737d4c3690e42ba00ab2c376272566268074a3ba5974d2e"
     },
     {
       "path": "contracts/platform/v1/pc0_kernel_boundaries.json",
@@ -59,7 +59,7 @@
     },
     {
       "path": "core/platform/architecture_contract.py",
-      "sha256": "47c1f0cb3d474656b45d9e238fa0520dde467437d991fef6446360cf6a555556"
+      "sha256": "26543bc5cfb351208f3f5840d3a6e1156dabf1020f10f6c45fed879a262d59ec"
     },
     {
       "path": "core/platform/release_integrity.py",
@@ -71,7 +71,7 @@
     },
     {
       "path": "tests/contracts/test_pc0_kernel_boundaries.py",
-      "sha256": "805ed0f4d8c5fb1a993619fc81094832bcdb80c3585e11bc4fb1704297a57b1f"
+      "sha256": "2b3c445cf481673c497ce7f88b4fd20115cfc76892c5c78d3aca2969c932ea77"
     },
     {
       "path": "docs/platform_core/PC0_KERNEL_BOUNDARIES.md",

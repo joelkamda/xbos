@@ -1,0 +1,11 @@
+{
+  "schema_version":1,
+  "release":"SO5",
+  "frontend_implementation":"NONE",
+  "views":["resource.list","resource.detail","resource.assignment.current","resource.assignment.history"],
+  "actions":["resource.create","resource.status.change","resource.assign","resource.unassign"],
+  "fields":["resource_kind","classification_code","display_label","party_reference","identity_reference","structure_context","capacity","exclusive_assignment","assignment_status","capability_code"],
+  "denial_source":"PC5",
+  "conflict_states":["stale_version","assignment_conflict","idempotency_conflict"],
+  "scheduling":"SO10_LATER"
+}

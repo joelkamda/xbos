@@ -1,0 +1,12 @@
+{
+  "schema_version":1,
+  "release":"SO5",
+  "module":"resources",
+  "commands":["CreateResource","ChangeResourceStatus","AssignResource","EndAssignment"],
+  "queries":["resource","list_resources","assignment","assignments","history"],
+  "stable_errors":["SO5_PERMISSION_DENIED","SO5_RESOURCE_NOT_FOUND","SO5_PARTY_NOT_FOUND","SO5_IDENTITY_NOT_FOUND","SO5_IDENTITY_PARTY_MISMATCH","SO5_RESOURCE_NOT_ACTIVE","SO5_ASSIGNMENT_CONFLICT","SO5_COMMAND_CONFLICT","SO5_STALE_VERSION","SO5_STALE_ASSIGNMENT"],
+  "finance_writer":"NONE",
+  "security_role_writer":"NONE",
+  "workflow_engine":"NONE",
+  "scheduling_engine":"NONE"
+}

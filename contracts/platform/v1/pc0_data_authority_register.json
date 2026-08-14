@@ -1,40 +1,219 @@
 {
   "schema_version": 1,
   "authorities": [
-    {"code":"tenant","owner":"PC1","current_store":"tenants","boundary":"isolation and customer boundary"},
-    {"code":"organization_unit","owner":"PC1","current_store":"organization_units","boundary":"operational and management hierarchy; adopt in place"},
-    {"code":"legal_entity","owner":"PC1","current_store":"organization_units compatibility semantics","boundary":"juridical and accounting owner; distinct future authority"},
-    {"code":"location","owner":"PC1","current_store":"branches compatibility fields","boundary":"physical or virtual place; distinct future authority"},
-    {"code":"party","owner":"PC2","current_store":"parties with exclusive persons and organization_parties subtypes","boundary":"tenant-scoped business party roles relationships contacts and references; not login identity"},
-    {"code":"semantic_identity","owner":"PC3","current_store":"semantic_namespaces, semantic_concepts and semantic_versions","boundary":"stable namespaced effective-dated meaning independent of label or tree position"},
-    {"code":"taxonomy_tree","owner":"PC3","current_store":"taxonomy_nodes adopted in place plus taxonomy_systems","boundary":"tenant-safe hierarchy and classification placement distinct from semantic identity"},
-    {"code":"configuration","owner":"PC4","current_store":"configuration_definitions and configuration_values; legacy tenant JSON remains bridge-only","boundary":"typed scoped effective-dated business configuration"},
-    {"code":"core_module_registry","owner":"PC4","current_store":"core_modules and core_module_dependencies; static startup remains runtime compatibility","boundary":"installed core-module metadata only; not pack lifecycle or dynamic import"},
-    {"code":"entitlement_context","owner":"PC4","current_store":"tenant_entitlements","boundary":"commercially permitted capability; distinct from feature flags"},
-    {"code":"feature_flags","owner":"PC4","current_store":"feature_flags with legacy environment/code bridge","boundary":"deployment/release control; distinct from configuration and entitlements"},
-    {"code":"secrets","owner":"PC4","current_store":"secret_references plus operator environment bindings","boundary":"secret references only; secret material is never configuration data"},
-    {"code":"business_time","owner":"PC4","current_store":"business_calendars, business_calendar_exceptions and shift_definitions; Finance policies preserved","boundary":"prospective generic calendars and shifts; never historical Finance resolution"},
-    {"code":"authentication_identity","owner":"PC5","current_store":"identities with users compatibility mapping","boundary":"global authentication principal; never Party, tenant, staff or authorization role"},
-    {"code":"authentication_credentials","owner":"PC5","current_store":"identity_credential_references with legacy users.password_hash bridge","boundary":"mechanism and secret-reference authority; material excluded from profiles, audit and export"},
-    {"code":"tenant_membership","owner":"PC5","current_store":"identity_memberships with users.tenant_id compatibility mapping","boundary":"effective-dated identity participation in a tenant; grants no permission"},
-    {"code":"security_session","owner":"PC5","current_store":"authentication_sessions and step_up_grants","boundary":"revocable session, actor/device context and expiring assurance"},
-    {"code":"permission_registry","owner":"PC5","current_store":"permission_definitions","boundary":"stable namespaced permission identity; unknown codes deny"},
-    {"code":"authorization","owner":"PC5","current_store":"authorization_roles, authorization_role_permissions and scoped_role_assignments; legacy roles bridge","boundary":"typed platform/tenant/PC1 structural scope and deterministic deny-by-default decisions"},
-    {"code":"approval_policy","owner":"PC5","current_store":"authorization_policies, protected_action_approvals and approval_decisions","boundary":"generic security approval, maker/checker, segregation and step-up; not SO6 workflow"},
-    {"code":"service_device_identity","owner":"PC5","current_store":"service_identities and device_identities","boundary":"non-human principals with explicit scope, revocation, credential references and attribution"},
-    {"code":"generic_audit","owner":"PC5","current_store":"audit_evidence","boundary":"append-only actor/action evidence and authorized query; not economic truth or delivery"},
-    {"code":"financial_truth","owner":"Neutral Finance","current_store":"financial events, journals, obligations, allocations, settlements, treasury and reconciliation tables","boundary":"frozen economic and accounting authority"},
-    {"code":"financial_source_identity","owner":"Neutral Finance","current_store":"kernel_source_records","boundary":"frozen transactional source authority"},
-    {"code":"financial_idempotency","owner":"Neutral Finance","current_store":"idempotency_records","boundary":"frozen transactional command identity"},
-    {"code":"financial_outbox","owner":"Neutral Finance","current_store":"outbox_messages","boundary":"frozen atomic financial publication intent"},
-    {"code":"generic_delivery_jobs_offline","owner":"SO9","current_store":"legacy idempotency_keys helper and event dispatcher stub","boundary":"generic delivery, jobs, retry and offline operations"},
-    {"code":"document_file","owner":"SO7","current_store":"financial evidence references and legacy receipt artifacts","boundary":"generic document, file and issued-record authority"},
-    {"code":"atomic_unit","owner":"SO0","current_store":"atomic_units","boundary":"neutral operational unit identity and capability"},
-    {"code":"operational_party_relationship","owner":"SO2","current_store":"so2_operational_relationships and append-only so2_relationship_history","boundary":"tenant-scoped operational participation around PC2 Party; never Party identity, auth role, semantic identity, audit or Finance truth"},
-    {"code":"inventory_stock","module":"inventory","owner":"SO3","current_store":"adopted inventory_items position cache, append-only inventory_movements, so3_stock_locations, reservations, counts and transfers","boundary":"tenant/location/Atomic Unit quantity truth; excludes financial valuation, procurement and frontend truth"},
-    {"code":"procurement_operations","module":"procurement","owner":"SO4","current_store":"so4 purchase requests, purchase orders, operational receipts, command ledger and append-only history","boundary":"operational procurement workflow; supplier identity PC2/SO2, item identity SO1, stock consequence SO3, approval PC5, Finance truth excluded"},
-    {"code":"pack_manifest_lifecycle","owner":"PK","current_store":"absent","boundary":"pack identity, dependency graph, installation and lifecycle"},
-    {"code":"wnd_cutover","owner":"R6","current_store":"legacy production routing","boundary":"live WND migration, cutover and writer retirement"}
+    {
+      "code": "tenant",
+      "owner": "PC1",
+      "current_store": "tenants",
+      "boundary": "isolation and customer boundary"
+    },
+    {
+      "code": "organization_unit",
+      "owner": "PC1",
+      "current_store": "organization_units",
+      "boundary": "operational and management hierarchy; adopt in place"
+    },
+    {
+      "code": "legal_entity",
+      "owner": "PC1",
+      "current_store": "organization_units compatibility semantics",
+      "boundary": "juridical and accounting owner; distinct future authority"
+    },
+    {
+      "code": "location",
+      "owner": "PC1",
+      "current_store": "branches compatibility fields",
+      "boundary": "physical or virtual place; distinct future authority"
+    },
+    {
+      "code": "party",
+      "owner": "PC2",
+      "current_store": "parties with exclusive persons and organization_parties subtypes",
+      "boundary": "tenant-scoped business party roles relationships contacts and references; not login identity"
+    },
+    {
+      "code": "semantic_identity",
+      "owner": "PC3",
+      "current_store": "semantic_namespaces, semantic_concepts and semantic_versions",
+      "boundary": "stable namespaced effective-dated meaning independent of label or tree position"
+    },
+    {
+      "code": "taxonomy_tree",
+      "owner": "PC3",
+      "current_store": "taxonomy_nodes adopted in place plus taxonomy_systems",
+      "boundary": "tenant-safe hierarchy and classification placement distinct from semantic identity"
+    },
+    {
+      "code": "configuration",
+      "owner": "PC4",
+      "current_store": "configuration_definitions and configuration_values; legacy tenant JSON remains bridge-only",
+      "boundary": "typed scoped effective-dated business configuration"
+    },
+    {
+      "code": "core_module_registry",
+      "owner": "PC4",
+      "current_store": "core_modules and core_module_dependencies; static startup remains runtime compatibility",
+      "boundary": "installed core-module metadata only; not pack lifecycle or dynamic import"
+    },
+    {
+      "code": "entitlement_context",
+      "owner": "PC4",
+      "current_store": "tenant_entitlements",
+      "boundary": "commercially permitted capability; distinct from feature flags"
+    },
+    {
+      "code": "feature_flags",
+      "owner": "PC4",
+      "current_store": "feature_flags with legacy environment/code bridge",
+      "boundary": "deployment/release control; distinct from configuration and entitlements"
+    },
+    {
+      "code": "secrets",
+      "owner": "PC4",
+      "current_store": "secret_references plus operator environment bindings",
+      "boundary": "secret references only; secret material is never configuration data"
+    },
+    {
+      "code": "business_time",
+      "owner": "PC4",
+      "current_store": "business_calendars, business_calendar_exceptions and shift_definitions; Finance policies preserved",
+      "boundary": "prospective generic calendars and shifts; never historical Finance resolution"
+    },
+    {
+      "code": "authentication_identity",
+      "owner": "PC5",
+      "current_store": "identities with users compatibility mapping",
+      "boundary": "global authentication principal; never Party, tenant, staff or authorization role"
+    },
+    {
+      "code": "authentication_credentials",
+      "owner": "PC5",
+      "current_store": "identity_credential_references with legacy users.password_hash bridge",
+      "boundary": "mechanism and secret-reference authority; material excluded from profiles, audit and export"
+    },
+    {
+      "code": "tenant_membership",
+      "owner": "PC5",
+      "current_store": "identity_memberships with users.tenant_id compatibility mapping",
+      "boundary": "effective-dated identity participation in a tenant; grants no permission"
+    },
+    {
+      "code": "security_session",
+      "owner": "PC5",
+      "current_store": "authentication_sessions and step_up_grants",
+      "boundary": "revocable session, actor/device context and expiring assurance"
+    },
+    {
+      "code": "permission_registry",
+      "owner": "PC5",
+      "current_store": "permission_definitions",
+      "boundary": "stable namespaced permission identity; unknown codes deny"
+    },
+    {
+      "code": "authorization",
+      "owner": "PC5",
+      "current_store": "authorization_roles, authorization_role_permissions and scoped_role_assignments; legacy roles bridge",
+      "boundary": "typed platform/tenant/PC1 structural scope and deterministic deny-by-default decisions"
+    },
+    {
+      "code": "approval_policy",
+      "owner": "PC5",
+      "current_store": "authorization_policies, protected_action_approvals and approval_decisions",
+      "boundary": "generic security approval, maker/checker, segregation and step-up; not SO6 workflow"
+    },
+    {
+      "code": "service_device_identity",
+      "owner": "PC5",
+      "current_store": "service_identities and device_identities",
+      "boundary": "non-human principals with explicit scope, revocation, credential references and attribution"
+    },
+    {
+      "code": "generic_audit",
+      "owner": "PC5",
+      "current_store": "audit_evidence",
+      "boundary": "append-only actor/action evidence and authorized query; not economic truth or delivery"
+    },
+    {
+      "code": "financial_truth",
+      "owner": "Neutral Finance",
+      "current_store": "financial events, journals, obligations, allocations, settlements, treasury and reconciliation tables",
+      "boundary": "frozen economic and accounting authority"
+    },
+    {
+      "code": "financial_source_identity",
+      "owner": "Neutral Finance",
+      "current_store": "kernel_source_records",
+      "boundary": "frozen transactional source authority"
+    },
+    {
+      "code": "financial_idempotency",
+      "owner": "Neutral Finance",
+      "current_store": "idempotency_records",
+      "boundary": "frozen transactional command identity"
+    },
+    {
+      "code": "financial_outbox",
+      "owner": "Neutral Finance",
+      "current_store": "outbox_messages",
+      "boundary": "frozen atomic financial publication intent"
+    },
+    {
+      "code": "generic_delivery_jobs_offline",
+      "owner": "SO9",
+      "current_store": "legacy idempotency_keys helper and event dispatcher stub",
+      "boundary": "generic delivery, jobs, retry and offline operations"
+    },
+    {
+      "code": "document_file",
+      "owner": "SO7",
+      "current_store": "financial evidence references and legacy receipt artifacts",
+      "boundary": "generic document, file and issued-record authority"
+    },
+    {
+      "code": "atomic_unit",
+      "owner": "SO0",
+      "current_store": "atomic_units",
+      "boundary": "neutral operational unit identity and capability"
+    },
+    {
+      "code": "operational_party_relationship",
+      "owner": "SO2",
+      "current_store": "so2_operational_relationships and append-only so2_relationship_history",
+      "boundary": "tenant-scoped operational participation around PC2 Party; never Party identity, auth role, semantic identity, audit or Finance truth"
+    },
+    {
+      "code": "inventory_stock",
+      "module": "inventory",
+      "owner": "SO3",
+      "current_store": "adopted inventory_items position cache, append-only inventory_movements, so3_stock_locations, reservations, counts and transfers",
+      "boundary": "tenant/location/Atomic Unit quantity truth; excludes financial valuation, procurement and frontend truth"
+    },
+    {
+      "code": "procurement_operations",
+      "module": "procurement",
+      "owner": "SO4",
+      "current_store": "so4 purchase requests, purchase orders, operational receipts, command ledger and append-only history",
+      "boundary": "operational procurement workflow; supplier identity PC2/SO2, item identity SO1, stock consequence SO3, approval PC5, Finance truth excluded"
+    },
+    {
+      "code": "operational_resource_assignment",
+      "module": "resources",
+      "owner": "SO5",
+      "current_store": "so5_resources, so5_operational_assignments and append-only histories",
+      "boundary": "operational resource/capacity and assignment truth; Party PC2, auth PC5, structure PC1, workflow SO6, scheduling SO10 and Finance remain external authorities"
+    },
+    {
+      "code": "pack_manifest_lifecycle",
+      "owner": "PK",
+      "current_store": "absent",
+      "boundary": "pack identity, dependency graph, installation and lifecycle"
+    },
+    {
+      "code": "wnd_cutover",
+      "owner": "R6",
+      "current_store": "legacy production routing",
+      "boundary": "live WND migration, cutover and writer retirement"
+    }
   ],
   "rules": [
     "authority codes are unique",

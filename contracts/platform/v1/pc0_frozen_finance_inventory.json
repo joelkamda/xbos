@@ -227,6 +227,27 @@
       "sha256": "d49dab24a6797def6ad5c56cd31c355952758e176df56ce4c2e8b6af870257af",
       "owner": "SO4",
       "reason": "SO4 authorized non-Finance canonical descendant"
+    },
+    {
+      "root": "alembic_neutral",
+      "path": "versions/so5_resources_operational_assignment_030.py",
+      "sha256": "5b8ca7609095b5d864130eadf4d166227016d2e27b196e91d653847895affdac",
+      "owner": "SO5",
+      "reason": "SO5 authorized non-Finance canonical descendant"
+    },
+    {
+      "root": "alembic_neutral",
+      "path": "sql/so5_resources_operational_assignment_up.sql",
+      "sha256": "5b3ff5ef8a746537f2c1067a4e902faff82a1f40f879a04edb2c4e966c0c04fb",
+      "owner": "SO5",
+      "reason": "SO5 authorized non-Finance canonical descendant"
+    },
+    {
+      "root": "alembic_neutral",
+      "path": "sql/so5_resources_operational_assignment_down.sql",
+      "sha256": "b4d84269a50e5dc2b1a3da2bfd886db92367d2fc135dd39a0b5afbfc936edfd6",
+      "owner": "SO5",
+      "reason": "SO5 authorized non-Finance canonical descendant"
     }
   ],
   "trees": [

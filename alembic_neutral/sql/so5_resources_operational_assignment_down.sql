@@ -1,0 +1,11 @@
+DROP TRIGGER IF EXISTS trg_so5_assignment_history_immutable ON public.so5_assignment_history;
+DROP TRIGGER IF EXISTS trg_so5_resource_history_immutable ON public.so5_resource_history;
+DROP FUNCTION IF EXISTS public.so5_history_immutable();
+DROP TABLE IF EXISTS public.so5_resource_compatibility_mappings;
+DROP TABLE IF EXISTS public.so5_assignment_history;
+DROP TABLE IF EXISTS public.so5_resource_history;
+DROP TABLE IF EXISTS public.so5_operational_assignments;
+DROP TRIGGER IF EXISTS trg_so5_resource_identity_tenant ON public.so5_resources;
+DROP FUNCTION IF EXISTS public.so5_validate_identity_membership();
+DROP TABLE IF EXISTS public.so5_resources;
+DROP TABLE IF EXISTS public.so5_resource_commands;

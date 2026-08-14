@@ -1,0 +1,40 @@
+SO5 cumulative overlay inventory
+Source checkpoint: 087a6d9c5f8c555788cbbd2718b24c5dea73074a
+Previous head: so4_procurement_supplier_operations_029
+Accepted head: so5_resources_operational_assignment_030
+
+SO5_INSTALL_MANIFEST.txt
+XBOS_SO5_INSTALL_AND_VERIFY.txt
+XBOS_SO5_RUN_ACCEPTANCE.cmd
+alembic_neutral/sql/so5_resources_operational_assignment_down.sql
+alembic_neutral/sql/so5_resources_operational_assignment_up.sql
+alembic_neutral/versions/so5_resources_operational_assignment_030.py
+contracts/platform/v1/pc0_data_authority_register.json
+contracts/platform/v1/pc0_dependency_policy.json
+contracts/platform/v1/pc0_frozen_finance_inventory.json
+contracts/platform/v1/pc0_module_map.json
+contracts/platform/v1/pc0_public_private_interfaces.json
+contracts/platform/v1/pc0_reference_authority_migration_register.json
+contracts/platform/v1/pc0_release_manifest.json
+contracts/platform/v1/pc6_release_manifest.json
+contracts/shared_operations/v1/examples/clinical_resources_profile.json
+contracts/shared_operations/v1/examples/field_service_resources_profile.json
+contracts/shared_operations/v1/so1_release_manifest.json
+contracts/shared_operations/v1/so2_release_manifest.json
+contracts/shared_operations/v1/so3_release_manifest.json
+contracts/shared_operations/v1/so4_release_manifest.json
+contracts/shared_operations/v1/so5_authority.json
+contracts/shared_operations/v1/so5_legacy_adoption_manifest.json
+contracts/shared_operations/v1/so5_public_interfaces.json
+contracts/shared_operations/v1/so5_release_manifest.json
+contracts/shared_operations/v1/so5_xa_metadata.json
+core/platform/architecture_contract.py
+docs/shared_operations/SO5_RESOURCES_OPERATIONAL_ASSIGNMENT.md
+docs/shared_operations/adr/0016_SO5_RESOURCE_IDENTITY_AND_ASSIGNMENT_SEPARATE_FROM_PARTY_AND_AUTH.md
+scripts/verify_so5_resources_operational_assignment.py
+shared_operations/so5/__init__.py
+shared_operations/so5/contracts.py
+shared_operations/so5/service.py
+shared_operations/so5/sql_repository.py
+tests/contracts/test_pc0_kernel_boundaries.py
+tests/contracts/test_so5_resources_operational_assignment.py

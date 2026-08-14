@@ -45,7 +45,8 @@ class PC0KernelBoundaryTests(unittest.TestCase):
         so2 = json.loads((ROOT / "contracts/shared_operations/v1/so2_authority.json").read_text(encoding="utf-8"))
         so3 = json.loads((ROOT / "contracts/shared_operations/v1/so3_authority.json").read_text(encoding="utf-8"))
         so4 = json.loads((ROOT / "contracts/shared_operations/v1/so4_authority.json").read_text(encoding="utf-8"))
-        return baseline, inventory, (pc1["accepted_head"], pc2["accepted_head"], pc3["accepted_head"], pc4["accepted_head"], pc5["accepted_head"], so1["accepted_head"], so2["accepted_head"], so3["accepted_head"], so4["accepted_head"])
+        so5 = json.loads((ROOT / "contracts/shared_operations/v1/so5_authority.json").read_text(encoding="utf-8"))
+        return baseline, inventory, (pc1["accepted_head"], pc2["accepted_head"], pc3["accepted_head"], pc4["accepted_head"], pc5["accepted_head"], so1["accepted_head"], so2["accepted_head"], so3["accepted_head"], so4["accepted_head"], so5["accepted_head"])
 
     @classmethod
     def _copy_frozen_finance(cls, destination: Path) -> tuple[dict, dict, tuple[str, ...]]:
