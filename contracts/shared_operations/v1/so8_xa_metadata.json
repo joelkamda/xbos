@@ -1,0 +1,44 @@
+{
+  "schema_version": 1,
+  "release": "SO8",
+  "frontend_implementation": "NONE",
+  "views": [
+    "delivery.queue",
+    "delivery.detail",
+    "delivery.attempt.history",
+    "integration.inbound",
+    "offline.queue",
+    "offline.conflicts"
+  ],
+  "actions": [
+    "delivery.create",
+    "delivery.dispatch",
+    "delivery.cancel",
+    "integration.receive",
+    "offline.queue",
+    "offline.resolve"
+  ],
+  "fields": [
+    "delivery_kind",
+    "channel_code",
+    "status",
+    "available_at",
+    "attempt_count",
+    "max_attempts",
+    "provider_code",
+    "retry_at",
+    "source_code",
+    "external_event_key",
+    "operation_code",
+    "client_sequence",
+    "resolution_code"
+  ],
+  "authorization_source": "PC5",
+  "document_source": "SO7",
+  "offline_server_truth": true,
+  "offline_idempotency_required": true,
+  "offline_conflict_surface": true,
+  "provider_ui_authority": "NONE",
+  "automation": "SO9_LATER",
+  "scheduling": "SO10_LATER"
+}

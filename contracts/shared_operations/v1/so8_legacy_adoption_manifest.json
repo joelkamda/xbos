@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "release": "SO8",
+  "decisions": [
+    {
+      "authority": "SO0 delivery/offline constitution and PC5 authorization",
+      "classification": "ADOPT",
+      "decision": "Adopt the frozen SO0 constitutional assignment of operational idempotency, delivery, retry, notifications, integration delivery and offline synchronization to SO8 while reusing PC5 authorization."
+    },
+    {
+      "authority": "core.shared.idempotency and legacy idempotency_keys",
+      "classification": "MAP",
+      "decision": "Map the legacy helper as compatibility-only operational dedupe evidence; new SO8 commands use tenant-scoped exact request fingerprints without changing financial idempotency_records."
+    },
+    {
+      "authority": "core.events.event_dispatcher and source-specific integration hooks",
+      "classification": "BRIDGE",
+      "decision": "Bridge prospectively through SO8 public delivery contracts and provider adapters; do not bulk reinterpret legacy events or callbacks."
+    },
+    {
+      "authority": "Neutral Finance transactional outbox, provider callbacks and financial idempotency",
+      "classification": "PRESERVE",
+      "decision": "Preserve all financial delivery/idempotency/provider semantics and bytes. SO8 never claims financial settlement or outbox authority."
+    },
+    {
+      "authority": "legacy generic idempotency/event-dispatch writers",
+      "classification": "RETIRE_LATER",
+      "decision": "Retire only after source-specific callers converge on SO8 public contracts under controlled later milestones."
+    }
+  ]
+}

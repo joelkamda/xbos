@@ -1,0 +1,162 @@
+{
+  "schema_version": 1,
+  "release": "SO8",
+  "source_checkpoint": "418759a",
+  "source_checkpoint_full": "418759a50fd2cfae4d9cc084d0fd21cd057162fb",
+  "previous_head": "so7_documents_files_evidence_search_032",
+  "accepted_head": "so8_communications_delivery_offline_033",
+  "migration_count": 1,
+  "fingerprint_mode": "sha256_git_canonical_lf",
+  "commit": "NONE",
+  "tag": "NONE",
+  "artifacts": [
+    {
+      "path": "SO8_INSTALL_MANIFEST.txt",
+      "sha256": "240845c8c9dd365363bf1a961a884999417f57ec8ca1b9daeda93e36c03ba00b"
+    },
+    {
+      "path": "XBOS_SO8_INSTALL_AND_VERIFY.txt",
+      "sha256": "ca8d89cf0e28a4f7631eb1de750c4e70f4700e1f1827d7adc2a82bfe17a46c64"
+    },
+    {
+      "path": "XBOS_SO8_RUN_ACCEPTANCE.cmd",
+      "sha256": "f24eaaed7639e1d1a919595a31e3ff59c2bc0bd4a6fa8faad23a2bf65b6060ee"
+    },
+    {
+      "path": "alembic_neutral/sql/so8_communications_delivery_offline_down.sql",
+      "sha256": "f5ca8858b076054684639d73bb4542a5ef83d1d3382c48cec1d943b4629e9cd5"
+    },
+    {
+      "path": "alembic_neutral/sql/so8_communications_delivery_offline_up.sql",
+      "sha256": "2274d92a2acb2badc054f9305c6c54af2d3ea8e52bcee9bb44c1e5896cf58bbf"
+    },
+    {
+      "path": "alembic_neutral/versions/so8_communications_delivery_offline_033.py",
+      "sha256": "f2b87de1c923cf3db4f1de13d8003a456517cab07e7b26ba2a2cb47d770ae084"
+    },
+    {
+      "path": "contracts/platform/v1/pc0_data_authority_register.json",
+      "sha256": "6003dc820d4d43c2e0c521954af3c87123077686afd0fdd80104731a9d1eb0d3"
+    },
+    {
+      "path": "contracts/platform/v1/pc0_dependency_policy.json",
+      "sha256": "98ba385ca359b14452dd9b6f9376ebe9c5652deb817a61f64524c1084610ff51"
+    },
+    {
+      "path": "contracts/platform/v1/pc0_frozen_finance_inventory.json",
+      "sha256": "9a1665fe7f8c3ac7e2950825d9dfc55c47dde4ee79e963b41196f89bb41744a5"
+    },
+    {
+      "path": "contracts/platform/v1/pc0_module_map.json",
+      "sha256": "119c83d52b7544cfb841526f547ab2870ee55816d7feff700cd02f14c8eb067c"
+    },
+    {
+      "path": "contracts/platform/v1/pc0_public_private_interfaces.json",
+      "sha256": "3cb69e229747690da84d593b5fb4cc917fcb95f98c496b4a0dbfe2ba8408f106"
+    },
+    {
+      "path": "contracts/platform/v1/pc0_reference_authority_migration_register.json",
+      "sha256": "1f7d139866031df86dcd969ac55126d80de6f16a9e7a2e4558266b7b85903ae4"
+    },
+    {
+      "path": "contracts/platform/v1/pc0_release_manifest.json",
+      "sha256": "21ca6e6cfc440b4ead47449a1ed382402946f33dc5888fa387afd5aa1d56da88"
+    },
+    {
+      "path": "contracts/platform/v1/pc6_release_manifest.json",
+      "sha256": "ce7dac2db34104b74c0487852b24888d6c528f265579ee1a934d1cbf33ec0946"
+    },
+    {
+      "path": "contracts/shared_operations/v1/examples/clinical_communications_profile.json",
+      "sha256": "82ddb6ab7d10d43026dee2952979051e01982e5fd81f48c3c10a7c6d962779c1"
+    },
+    {
+      "path": "contracts/shared_operations/v1/examples/field_service_delivery_profile.json",
+      "sha256": "1f238088304f87b61c48b6967b5653e2ac0227fd08534eda13b5cd4f2239b3a2"
+    },
+    {
+      "path": "contracts/shared_operations/v1/so1_release_manifest.json",
+      "sha256": "5419aec877a7cf38180a1a93727bf95f1c15ee7f94fcfea1032c469801f49801"
+    },
+    {
+      "path": "contracts/shared_operations/v1/so2_release_manifest.json",
+      "sha256": "74e0ebf32a2c40578ed149e84b3cb777a728fa5a5fe031a66845fc85904739c9"
+    },
+    {
+      "path": "contracts/shared_operations/v1/so3_release_manifest.json",
+      "sha256": "010cd9d8b34715ca25c1a60e16264c19fc2e474b69cba988fd7fa49112705798"
+    },
+    {
+      "path": "contracts/shared_operations/v1/so4_release_manifest.json",
+      "sha256": "c6b7f696f34409b8c5652f135fc68ad4d631a70932f62ba2359abd83ff2bfdc8"
+    },
+    {
+      "path": "contracts/shared_operations/v1/so5_release_manifest.json",
+      "sha256": "24f4f1c61b7a2484d003a91a4652da8b8284b141d81f33fe0adc3e7095792309"
+    },
+    {
+      "path": "contracts/shared_operations/v1/so6_release_manifest.json",
+      "sha256": "e70a811b3fd533f9f1a5fba1743d997a1d63c1f752ed37e2a4ec95e26c6ed624"
+    },
+    {
+      "path": "contracts/shared_operations/v1/so7_release_manifest.json",
+      "sha256": "dfe712a3e50d0f8afd80a819759af7d1c78c22c58b0003feae4f10fd658e3743"
+    },
+    {
+      "path": "contracts/shared_operations/v1/so8_authority.json",
+      "sha256": "4c048a480d5fdb58d9c280c26c16aa3874cdf6f1150ae81dd9c7822da79dee8f"
+    },
+    {
+      "path": "contracts/shared_operations/v1/so8_legacy_adoption_manifest.json",
+      "sha256": "9b55aa86773b85093e45e59c35c3d25c75716e06f67d1c9a9fac85e45a7635cf"
+    },
+    {
+      "path": "contracts/shared_operations/v1/so8_public_interfaces.json",
+      "sha256": "e15f8617564b4e2b9ee1a2eed10145967abab6ce392cf8439d4fb1449688ea56"
+    },
+    {
+      "path": "contracts/shared_operations/v1/so8_xa_metadata.json",
+      "sha256": "062162d3d2994c23607309a0ae72924a36cb306f76ce6400250bb4e1e9f451e6"
+    },
+    {
+      "path": "core/platform/architecture_contract.py",
+      "sha256": "60cfbdad78737e7ea6e6112dae44b1cf44d0a6a6bb986a16d76a458ce253f073"
+    },
+    {
+      "path": "docs/shared_operations/SO8_COMMUNICATIONS_DELIVERY_OFFLINE.md",
+      "sha256": "95c884fa2bc8b3f95a3cfd9604379b9808dd565c37c5792cc760913dc9e30d70"
+    },
+    {
+      "path": "docs/shared_operations/adr/0019_SO8_OPERATIONAL_DELIVERY_SEPARATE_FROM_FINANCIAL_OUTBOX.md",
+      "sha256": "00a20203c2f0f609c6bed7081e389088017eeafff153e52bdcc4e9f3fdac4fae"
+    },
+    {
+      "path": "scripts/verify_so8_communications_delivery_offline.py",
+      "sha256": "603b6351f7469c3989b08926256a4499bdb5294744458f1cd360b6312bff2c2b"
+    },
+    {
+      "path": "shared_operations/so8/__init__.py",
+      "sha256": "80dfb469853ae34303bf4f946abf7215e16fb5a562a61fc0e2a61c7ee1a3d36d"
+    },
+    {
+      "path": "shared_operations/so8/contracts.py",
+      "sha256": "17c67ad44adc527d0c7662c2c27a4748138bf490ed6b11ee9604a9b2a4bb0917"
+    },
+    {
+      "path": "shared_operations/so8/service.py",
+      "sha256": "acba25f82b73aaea53d723694305b9a139dc3fe3db1eb1a1be10df4a32ec04ab"
+    },
+    {
+      "path": "shared_operations/so8/sql_repository.py",
+      "sha256": "8ad7994df362055307560dccaa9d98bc06ae991fcfb8211ce8b05693f43571e5"
+    },
+    {
+      "path": "tests/contracts/test_pc0_kernel_boundaries.py",
+      "sha256": "ece19ea243bc1725ebf0e7446af69c28ff83411cd2ff0f2cf717a9de842d06f9"
+    },
+    {
+      "path": "tests/contracts/test_so8_communications_delivery_offline.py",
+      "sha256": "a67c95ca6e2f5536fe229fd7a4bca9144649f4122acbdaa65c406f90b3e018a9"
+    }
+  ]
+}

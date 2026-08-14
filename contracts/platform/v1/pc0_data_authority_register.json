@@ -159,9 +159,10 @@
     },
     {
       "code": "generic_delivery_jobs_offline",
-      "owner": "SO9",
-      "current_store": "legacy idempotency_keys helper and event dispatcher stub",
-      "boundary": "generic delivery, jobs, retry and offline operations"
+      "owner": "SO8",
+      "current_store": "so8_delivery_jobs, append-only so8_delivery_attempts, immutable so8_inbound_deliveries, so8_offline_commands and append-only so8_offline_history",
+      "boundary": "provider-neutral operational delivery, retry, notification/integration envelopes and offline synchronization; source-domain truth, PC5 authorization, SO7 document truth and Neutral Finance outbox remain external",
+      "module": "communications"
     },
     {
       "code": "document_file",

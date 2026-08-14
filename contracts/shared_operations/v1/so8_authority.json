@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "release": "SO8",
+  "source_checkpoint": "418759a50fd2cfae4d9cc084d0fd21cd057162fb",
+  "previous_head": "so7_documents_files_evidence_search_032",
+  "accepted_head": "so8_communications_delivery_offline_033",
+  "security_authority": "PC5_REUSED",
+  "document_authority": "SO7_REUSED",
+  "delivery_authority": "SO8_PROVIDER_NEUTRAL",
+  "notification_authority": "SO8_DELIVERY_ENVELOPE",
+  "integration_delivery_authority": "SO8_INBOUND_OUTBOUND_EVIDENCE",
+  "retry_authority": "SO8_OPERATIONAL_ONLY",
+  "offline_authority": "SO8_QUEUE_REPLAY_SERVER_REVALIDATION",
+  "provider_authority": "ADAPTER_ONLY",
+  "financial_outbox_authority": "NEUTRAL_FINANCE_PRESERVED",
+  "workflow_authority": "SO6_EXTERNAL",
+  "reporting_automation_authority": "SO9_EXCLUDED",
+  "scheduling_authority": "SO10_EXCLUDED",
+  "finance": "UNCHANGED",
+  "production_dependency_changes": "NONE"
+}

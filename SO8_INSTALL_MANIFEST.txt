@@ -1,0 +1,43 @@
+SO8 cumulative overlay inventory
+Source checkpoint: 418759a50fd2cfae4d9cc084d0fd21cd057162fb
+Previous head: so7_documents_files_evidence_search_032
+Accepted head: so8_communications_delivery_offline_033
+
+SO8_INSTALL_MANIFEST.txt
+XBOS_SO8_INSTALL_AND_VERIFY.txt
+XBOS_SO8_RUN_ACCEPTANCE.cmd
+alembic_neutral/sql/so8_communications_delivery_offline_down.sql
+alembic_neutral/sql/so8_communications_delivery_offline_up.sql
+alembic_neutral/versions/so8_communications_delivery_offline_033.py
+contracts/platform/v1/pc0_data_authority_register.json
+contracts/platform/v1/pc0_dependency_policy.json
+contracts/platform/v1/pc0_frozen_finance_inventory.json
+contracts/platform/v1/pc0_module_map.json
+contracts/platform/v1/pc0_public_private_interfaces.json
+contracts/platform/v1/pc0_reference_authority_migration_register.json
+contracts/platform/v1/pc0_release_manifest.json
+contracts/platform/v1/pc6_release_manifest.json
+contracts/shared_operations/v1/examples/clinical_communications_profile.json
+contracts/shared_operations/v1/examples/field_service_delivery_profile.json
+contracts/shared_operations/v1/so1_release_manifest.json
+contracts/shared_operations/v1/so2_release_manifest.json
+contracts/shared_operations/v1/so3_release_manifest.json
+contracts/shared_operations/v1/so4_release_manifest.json
+contracts/shared_operations/v1/so5_release_manifest.json
+contracts/shared_operations/v1/so6_release_manifest.json
+contracts/shared_operations/v1/so7_release_manifest.json
+contracts/shared_operations/v1/so8_authority.json
+contracts/shared_operations/v1/so8_legacy_adoption_manifest.json
+contracts/shared_operations/v1/so8_public_interfaces.json
+contracts/shared_operations/v1/so8_release_manifest.json
+contracts/shared_operations/v1/so8_xa_metadata.json
+core/platform/architecture_contract.py
+docs/shared_operations/SO8_COMMUNICATIONS_DELIVERY_OFFLINE.md
+docs/shared_operations/adr/0019_SO8_OPERATIONAL_DELIVERY_SEPARATE_FROM_FINANCIAL_OUTBOX.md
+scripts/verify_so8_communications_delivery_offline.py
+shared_operations/so8/__init__.py
+shared_operations/so8/contracts.py
+shared_operations/so8/service.py
+shared_operations/so8/sql_repository.py
+tests/contracts/test_pc0_kernel_boundaries.py
+tests/contracts/test_so8_communications_delivery_offline.py

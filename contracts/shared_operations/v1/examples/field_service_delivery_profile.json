@@ -1,0 +1,10 @@
+{
+  "schema_version": 1,
+  "profile_id": "field_service_delivery",
+  "terminology": {"delivery_job": "dispatch message", "offline_command": "field capture"},
+  "channels": ["technician_push", "customer_sms", "partner_webhook"],
+  "delivery_kinds": ["notification", "integration"],
+  "offline_operations": ["inspection.capture", "parts_usage.capture"],
+  "provider_binding": "adapter_configuration_only",
+  "server_truth": true
+}

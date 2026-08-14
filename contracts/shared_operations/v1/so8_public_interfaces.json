@@ -1,0 +1,48 @@
+{
+  "schema_version": 1,
+  "release": "SO8",
+  "module": "communications",
+  "commands": [
+    "CreateDeliveryJob",
+    "ClaimDeliveryJob",
+    "RecordDeliveryAttempt",
+    "CancelDeliveryJob",
+    "ReceiveInboundDelivery",
+    "QueueOfflineCommand",
+    "ResolveOfflineCommand"
+  ],
+  "queries": [
+    "delivery",
+    "list_deliveries",
+    "due_deliveries",
+    "attempts",
+    "inbound",
+    "list_inbound",
+    "offline",
+    "list_offline",
+    "offline_history"
+  ],
+  "stable_errors": [
+    "SO8_PERMISSION_DENIED",
+    "SO8_DELIVERY_NOT_FOUND",
+    "SO8_INBOUND_NOT_FOUND",
+    "SO8_OFFLINE_NOT_FOUND",
+    "SO8_DOCUMENT_VERSION_NOT_FOUND",
+    "SO8_DEVICE_NOT_FOUND",
+    "SO8_SUBJECT_NOT_FOUND",
+    "SO8_DELIVERY_CLAIM_CONFLICT",
+    "SO8_DELIVERY_ATTEMPT_CONFLICT",
+    "SO8_DELIVERY_CANCEL_CONFLICT",
+    "SO8_EXTERNAL_EVENT_CONFLICT",
+    "SO8_OFFLINE_SEQUENCE_CONFLICT",
+    "SO8_OFFLINE_RESOLUTION_CONFLICT",
+    "SO8_COMMAND_CONFLICT"
+  ],
+  "finance_writer": "NONE",
+  "financial_outbox_writer": "NONE",
+  "security_role_writer": "NONE",
+  "workflow_writer": "NONE",
+  "document_writer": "NONE",
+  "provider_adapter_writer": "EXTERNAL_ADAPTER_ONLY",
+  "offline_target_writer": "NONE"
+}

@@ -1,0 +1,10 @@
+{
+  "schema_version": 1,
+  "profile_id": "clinical_communications",
+  "terminology": {"delivery_job": "care communication", "offline_command": "clinical field note"},
+  "channels": ["patient_notice", "referral_webhook", "staff_in_app"],
+  "delivery_kinds": ["notification", "integration"],
+  "offline_operations": ["triage_note.capture", "specimen_handoff.capture"],
+  "provider_binding": "adapter_configuration_only",
+  "server_truth": true
+}

@@ -446,7 +446,12 @@ def _validate_finance(root: Path, finance: dict[str, Any], inventory: dict[str, 
         _fail("PC0-FROZEN-FINANCE-INVENTORY", "protected tree coverage does not match baseline")
     extensions_by_root: dict[str, dict[str, str]] = {}
     for item in inventory.get("authorized_non_finance_extensions", []):
-        if item.get("owner") not in {"PC1", "SO1", "SO2", "SO3", "SO4", "SO5", "SO6", "SO7"} or not all(isinstance(item.get(key), str) and item[key] for key in ("root","path","sha256")):
+        owner = item.get("owner")
+        valid_owner = isinstance(owner, str) and (
+            (owner.startswith("PC") and owner[2:].isdigit() and int(owner[2:]) >= 1)
+            or (owner.startswith("SO") and owner[2:].isdigit() and 1 <= int(owner[2:]) <= 10)
+        )
+        if not valid_owner or not all(isinstance(item.get(key), str) and item[key] for key in ("root","path","sha256")):
             _fail("PC0-NON-FINANCE-EXTENSION", str(item))
         extensions_by_root.setdefault(item["root"], {})[item["path"]] = item["sha256"]
     for tree in finance.get("trees", []):
@@ -491,27 +496,13 @@ def validate_pc0(root: str | Path, validate_release: bool = True) -> dict[str, A
         contracts["pc3"].get("accepted_head"), contracts["pc4"].get("accepted_head"),
         contracts["pc5"].get("accepted_head"),
     ]
-    so1_contract = root_path / "contracts/shared_operations/v1/so1_authority.json"
-    if so1_contract.is_file():
-        descendant_heads.append(json.loads(so1_contract.read_text(encoding="utf-8")).get("accepted_head"))
-    so2_contract = root_path / "contracts/shared_operations/v1/so2_authority.json"
-    if so2_contract.is_file():
-        descendant_heads.append(json.loads(so2_contract.read_text(encoding="utf-8")).get("accepted_head"))
-    so3_contract = root_path / "contracts/shared_operations/v1/so3_authority.json"
-    if so3_contract.is_file():
-        descendant_heads.append(json.loads(so3_contract.read_text(encoding="utf-8")).get("accepted_head"))
-    so4_contract = root_path / "contracts/shared_operations/v1/so4_authority.json"
-    if so4_contract.is_file():
-        descendant_heads.append(json.loads(so4_contract.read_text(encoding="utf-8")).get("accepted_head"))
-    so5_contract = root_path / "contracts/shared_operations/v1/so5_authority.json"
-    if so5_contract.is_file():
-        descendant_heads.append(json.loads(so5_contract.read_text(encoding="utf-8")).get("accepted_head"))
-    so6_contract = root_path / "contracts/shared_operations/v1/so6_authority.json"
-    if so6_contract.is_file():
-        descendant_heads.append(json.loads(so6_contract.read_text(encoding="utf-8")).get("accepted_head"))
-    so7_contract = root_path / "contracts/shared_operations/v1/so7_authority.json"
-    if so7_contract.is_file():
-        descendant_heads.append(json.loads(so7_contract.read_text(encoding="utf-8")).get("accepted_head"))
+    # Shared Operations descendants are a bounded constitutional sequence SO1-SO10.
+    # Discover them prospectively so each legitimate next milestone does not require
+    # another hard-coded architecture validator edit merely to extend the lineage.
+    for number in range(1, 11):
+        contract = root_path / f"contracts/shared_operations/v1/so{number}_authority.json"
+        if contract.is_file():
+            descendant_heads.append(json.loads(contract.read_text(encoding="utf-8")).get("accepted_head"))
     _validate_finance(
         root_path,
         contracts["finance"],

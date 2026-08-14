@@ -124,18 +124,18 @@
     {
       "reference": "generic_idempotency",
       "current_authority": "core.shared.idempotency and idempotency_keys",
-      "target_authority": "SO9 integration/offline command authority",
-      "compatibility_path": "retain legacy helper until SO9 public contract and migration exist; do not touch financial idempotency_records",
-      "retirement_owner": "SO9",
-      "retirement_milestone": "SO9 exit"
+      "target_authority": "SO8 operational command/offline synchronization authority",
+      "compatibility_path": "retain legacy core.shared.idempotency helper for existing callers; new operational delivery/offline commands use SO8 exact command fingerprinting; do not touch financial idempotency_records",
+      "retirement_owner": "SO8 with source owners",
+      "retirement_milestone": "SO8 writer convergence"
     },
     {
       "reference": "generic_event_dispatch",
       "current_authority": "core.events.event_dispatcher stub",
-      "target_authority": "SO9 delivery/jobs/retry authority",
-      "compatibility_path": "no new use; future callers adopt SO9 contract",
-      "retirement_owner": "SO9",
-      "retirement_milestone": "SO9 exit"
+      "target_authority": "SO8 provider-neutral delivery and retry authority",
+      "compatibility_path": "retain event dispatcher stub for legacy callers only; new integrations use SO8 public delivery contracts and adapter boundary",
+      "retirement_owner": "SO8 with source owners",
+      "retirement_milestone": "SO8 writer convergence"
     },
     {
       "reference": "document_file",

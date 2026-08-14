@@ -290,6 +290,27 @@
       "sha256": "f9ced48f5983dd6909fba246e4c17bd6c9990afce98f46b0adbfb7f6929bc5e5",
       "owner": "SO7",
       "reason": "SO7 authorized non-Finance canonical descendant"
+    },
+    {
+      "root": "alembic_neutral",
+      "path": "versions/so8_communications_delivery_offline_033.py",
+      "sha256": "f2b87de1c923cf3db4f1de13d8003a456517cab07e7b26ba2a2cb47d770ae084",
+      "owner": "SO8",
+      "reason": "SO8 authorized non-Finance canonical descendant"
+    },
+    {
+      "root": "alembic_neutral",
+      "path": "sql/so8_communications_delivery_offline_up.sql",
+      "sha256": "2274d92a2acb2badc054f9305c6c54af2d3ea8e52bcee9bb44c1e5896cf58bbf",
+      "owner": "SO8",
+      "reason": "SO8 authorized non-Finance canonical descendant"
+    },
+    {
+      "root": "alembic_neutral",
+      "path": "sql/so8_communications_delivery_offline_down.sql",
+      "sha256": "f5ca8858b076054684639d73bb4542a5ef83d1d3382c48cec1d943b4629e9cd5",
+      "owner": "SO8",
+      "reason": "SO8 authorized non-Finance canonical descendant"
     }
   ],
   "trees": [

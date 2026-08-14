@@ -1,0 +1,10 @@
+DROP TRIGGER IF EXISTS trg_so8_offline_history_immutable ON public.so8_offline_history;
+DROP TRIGGER IF EXISTS trg_so8_inbound_immutable ON public.so8_inbound_deliveries;
+DROP TRIGGER IF EXISTS trg_so8_delivery_attempt_immutable ON public.so8_delivery_attempts;
+DROP FUNCTION IF EXISTS public.so8_append_only_history();
+DROP TABLE IF EXISTS public.so8_offline_history;
+DROP TABLE IF EXISTS public.so8_offline_commands;
+DROP TABLE IF EXISTS public.so8_inbound_deliveries;
+DROP TABLE IF EXISTS public.so8_delivery_attempts;
+DROP TABLE IF EXISTS public.so8_delivery_jobs;
+DROP TABLE IF EXISTS public.so8_commands;

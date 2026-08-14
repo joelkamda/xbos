@@ -273,6 +273,29 @@
       ]
     },
     {
+      "module": "communications",
+      "public": [
+        "shared_operations.so8.SO8Authority",
+        "shared_operations.so8.SO8AuthorityError",
+        "shared_operations.so8.DeliveryJob",
+        "shared_operations.so8.DeliveryAttempt",
+        "shared_operations.so8.InboundDelivery",
+        "shared_operations.so8.OfflineCommand",
+        "shared_operations.so8.CreateDeliveryJob",
+        "shared_operations.so8.ClaimDeliveryJob",
+        "shared_operations.so8.RecordDeliveryAttempt",
+        "shared_operations.so8.CancelDeliveryJob",
+        "shared_operations.so8.ReceiveInboundDelivery",
+        "shared_operations.so8.QueueOfflineCommand",
+        "shared_operations.so8.ResolveOfflineCommand"
+      ],
+      "private": [
+        "shared_operations.so8.sql_repository",
+        "SO8 delivery, attempt, inbound, offline queue/history and command tables",
+        "SO8 provider/channel adapter implementations"
+      ]
+    },
+    {
       "module": "orders",
       "public": [
         "/kernel/orders API compatibility surface"

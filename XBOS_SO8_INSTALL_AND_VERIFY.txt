@@ -1,0 +1,13 @@
+XBOS SO8 — Communications, Notifications, Integration Delivery and Offline Support
+
+Source checkpoint: 418759a50fd2cfae4d9cc084d0fd21cd057162fb
+Previous head: so7_documents_files_evidence_search_032
+Accepted head: so8_communications_delivery_offline_033
+
+Install the cumulative ZIP at repository root with Expand-Archive -Force. Do not run Alembic manually. Use the existing xbos-track-b-b1 virtual environment and run:
+
+XBOS_SO8_RUN_ACCEPTANCE.cmd
+
+The gate performs static predecessor verification, focused contracts, disposable PostgreSQL replay/upgrade/downgrade/re-upgrade, development adoption, full regression, compilation/JSON and whitespace checks. It refuses an unexpected development head and does not touch production or tenant-clone databases.
+
+No commit/tag is authorized until SO8_SINGLE_GATE=PASS and control-room scope review.

@@ -41,14 +41,12 @@ class PC0KernelBoundaryTests(unittest.TestCase):
         pc3 = json.loads((directory / "pc3_semantic_authority.json").read_text(encoding="utf-8"))
         pc4 = json.loads((directory / "pc4_operating_context_authority.json").read_text(encoding="utf-8"))
         pc5 = json.loads((directory / "pc5_identity_policy_audit_authority.json").read_text(encoding="utf-8"))
-        so1 = json.loads((ROOT / "contracts/shared_operations/v1/so1_authority.json").read_text(encoding="utf-8"))
-        so2 = json.loads((ROOT / "contracts/shared_operations/v1/so2_authority.json").read_text(encoding="utf-8"))
-        so3 = json.loads((ROOT / "contracts/shared_operations/v1/so3_authority.json").read_text(encoding="utf-8"))
-        so4 = json.loads((ROOT / "contracts/shared_operations/v1/so4_authority.json").read_text(encoding="utf-8"))
-        so5 = json.loads((ROOT / "contracts/shared_operations/v1/so5_authority.json").read_text(encoding="utf-8"))
-        so6 = json.loads((ROOT / "contracts/shared_operations/v1/so6_authority.json").read_text(encoding="utf-8"))
-        so7 = json.loads((ROOT / "contracts/shared_operations/v1/so7_authority.json").read_text(encoding="utf-8"))
-        return baseline, inventory, (pc1["accepted_head"], pc2["accepted_head"], pc3["accepted_head"], pc4["accepted_head"], pc5["accepted_head"], so1["accepted_head"], so2["accepted_head"], so3["accepted_head"], so4["accepted_head"], so5["accepted_head"], so6["accepted_head"], so7["accepted_head"])
+        shared_heads = []
+        for number in range(1, 11):
+            path = ROOT / f"contracts/shared_operations/v1/so{number}_authority.json"
+            if path.is_file():
+                shared_heads.append(json.loads(path.read_text(encoding="utf-8"))["accepted_head"])
+        return baseline, inventory, (pc1["accepted_head"], pc2["accepted_head"], pc3["accepted_head"], pc4["accepted_head"], pc5["accepted_head"], *shared_heads)
 
     @classmethod
     def _copy_frozen_finance(cls, destination: Path) -> tuple[dict, dict, tuple[str, ...]]:
