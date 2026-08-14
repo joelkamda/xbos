@@ -1,9 +1,10 @@
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime, timezone
 from calendar import monthrange
 from decimal import Decimal
 from typing import Any, Dict, List, Optional, Tuple
+from zoneinfo import ZoneInfo
 
 from sqlalchemy.orm import Session
 
@@ -32,12 +33,22 @@ def _f(value: Any) -> float:
         return 0.0
 
 
+BUSINESS_TIMEZONE_NAME = "Africa/Douala"
+BUSINESS_TZ = ZoneInfo(BUSINESS_TIMEZONE_NAME)
+UTC_TZ = timezone.utc
+
+
 def _month_bounds(yyyymm: str) -> Tuple[datetime, datetime]:
     """
-    Convert YYYY-MM into inclusive/exclusive datetime range.
+    Convert YYYY-MM into an inclusive/exclusive WND calendar-month range.
 
-    Example:
-      2026-05 -> 2026-05-01 00:00:00 to 2026-06-01 00:00:00
+    Financial events are stored as timezone-aware instants. Month boundaries
+    must therefore also be timezone-aware; otherwise PostgreSQL interprets a
+    naive midnight using the database/session timezone and WND can misclassify
+    events around midnight at the start/end of a month.
+
+    WND Track A month semantics remain calendar-month based in Africa/Douala.
+    Returned values are UTC instants for unambiguous DB comparison.
     """
 
     try:
@@ -53,17 +64,17 @@ def _month_bounds(yyyymm: str) -> Tuple[datetime, datetime]:
 
     last_day = monthrange(year, month)[1]
 
-    start = datetime(year, month, 1, 0, 0, 0)
+    start_local = datetime(year, month, 1, 0, 0, 0, tzinfo=BUSINESS_TZ)
 
     if month == 12:
-        end = datetime(year + 1, 1, 1, 0, 0, 0)
+        end_local = datetime(year + 1, 1, 1, 0, 0, 0, tzinfo=BUSINESS_TZ)
     else:
-        end = datetime(year, month + 1, 1, 0, 0, 0)
+        end_local = datetime(year, month + 1, 1, 0, 0, 0, tzinfo=BUSINESS_TZ)
 
     # last_day is intentionally kept available for future printable labels.
     _ = last_day
 
-    return start, end
+    return start_local.astimezone(UTC_TZ), end_local.astimezone(UTC_TZ)
 
 
 def _year_month_keys(year: int) -> List[str]:
