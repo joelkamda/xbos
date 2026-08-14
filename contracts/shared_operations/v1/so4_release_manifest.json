@@ -1,0 +1,146 @@
+{
+  "schema_version": 1,
+  "release": "XBOS_SO4_PROCUREMENT_SUPPLIER_OPERATIONS",
+  "source_checkpoint": "903e0e9",
+  "source_checkpoint_full": "903e0e945b3659cffb03b1cdeaded38de2e7ce1d",
+  "previous_head": "so3_inventory_stock_movement_028",
+  "accepted_head": "so4_procurement_supplier_operations_029",
+  "migration_count": 1,
+  "fingerprint_mode": "sha256_crlf_to_lf_only",
+  "commit": "NOT_CREATED",
+  "tag": "NOT_CREATED",
+  "artifacts": [
+    {
+      "path": "SO4_INSTALL_MANIFEST.txt",
+      "sha256": "ff088e43ab6e08019074e0aa608f65868aae06234a16197f9ff70e8fd91c8094"
+    },
+    {
+      "path": "XBOS_SO4_INSTALL_AND_VERIFY.txt",
+      "sha256": "5d17c8169dca76c50b1a52e8641a3e3173835dacb37a39dea93743de72e64f17"
+    },
+    {
+      "path": "XBOS_SO4_RUN_ACCEPTANCE.cmd",
+      "sha256": "8450edbc3d26d0152947d3e933b4acde9e67c18083dfed9afcc94a0d15f986f4"
+    },
+    {
+      "path": "alembic_neutral/sql/so4_procurement_supplier_operations_down.sql",
+      "sha256": "d49dab24a6797def6ad5c56cd31c355952758e176df56ce4c2e8b6af870257af"
+    },
+    {
+      "path": "alembic_neutral/sql/so4_procurement_supplier_operations_up.sql",
+      "sha256": "a5ee264104ce5284bb5cba00ae37b005e904a4ec89bca8b3848476baae9e085e"
+    },
+    {
+      "path": "alembic_neutral/versions/so4_procurement_supplier_operations_029.py",
+      "sha256": "0e08d52c186c076e12aac696f04aa64ad69eaf0870e17f6fba528f163beae2d2"
+    },
+    {
+      "path": "contracts/platform/v1/pc0_data_authority_register.json",
+      "sha256": "605e76eca3a0087e6692e989f94cc3254076b20f3263d8546cc9fa68ffaa60a6"
+    },
+    {
+      "path": "contracts/platform/v1/pc0_dependency_policy.json",
+      "sha256": "9a91e1cc85668931e1dba7e45f864f4b1830381d3f6c4ed9273e414e17418107"
+    },
+    {
+      "path": "contracts/platform/v1/pc0_frozen_finance_inventory.json",
+      "sha256": "d00720912e49da411d53408e4b95edc433e27b6cc60a4273d86765880d1f7504"
+    },
+    {
+      "path": "contracts/platform/v1/pc0_module_map.json",
+      "sha256": "638592c16c05ae82349ee680433fd05cb9990a95d99545e4213db7e4db09b8d2"
+    },
+    {
+      "path": "contracts/platform/v1/pc0_public_private_interfaces.json",
+      "sha256": "f27335762974723850b3f6274987b405d482c704e42c0e0b30ea615744724c6a"
+    },
+    {
+      "path": "contracts/platform/v1/pc0_reference_authority_migration_register.json",
+      "sha256": "7b169205967cc16423fa0ff57afad32a9367f32700c0d193c56303fe690c1098"
+    },
+    {
+      "path": "contracts/platform/v1/pc0_release_manifest.json",
+      "sha256": "f42f265aff7897f88e60928ca9e2604a5f78a1265208befb11fd2e3087fd3299"
+    },
+    {
+      "path": "contracts/platform/v1/pc6_release_manifest.json",
+      "sha256": "a6becbc54ae691e1219deb7a2269e9bceff8413cb20071d3c59aeb443cddb5d2"
+    },
+    {
+      "path": "contracts/shared_operations/v1/examples/clinical_service_supply_procurement_profile.json",
+      "sha256": "6c539a3549db850c6d3f3253e4a7e8ce58eb207231c2a2b1c4cfefa53426bac0"
+    },
+    {
+      "path": "contracts/shared_operations/v1/examples/retail_merchandise_procurement_profile.json",
+      "sha256": "42ca0453f6d5b642d6f6d98eaef5113b914fbd731f50cdc994dce78ebb7e36b0"
+    },
+    {
+      "path": "contracts/shared_operations/v1/so1_release_manifest.json",
+      "sha256": "405827b9b4c8a7450226c6e3c25da90a43723e2dbc54ee33ae490722c19730d4"
+    },
+    {
+      "path": "contracts/shared_operations/v1/so2_release_manifest.json",
+      "sha256": "6bf4eae3274baa9404e861e217984587136b66ad534e41091d5a02362d70ab4f"
+    },
+    {
+      "path": "contracts/shared_operations/v1/so3_release_manifest.json",
+      "sha256": "99d27a25b5504a7859d1ad1bd06e9177deee11053b505aa5ff75a5e3f5fabb74"
+    },
+    {
+      "path": "contracts/shared_operations/v1/so4_authority.json",
+      "sha256": "79669113d03809172e1016cb5631382a817084a043bcc4b2af03ab7a592a84dc"
+    },
+    {
+      "path": "contracts/shared_operations/v1/so4_legacy_adoption_manifest.json",
+      "sha256": "babcbb054bbe72286fe77c5ee0a676bb731184648956b2ecdda93d41b855340e"
+    },
+    {
+      "path": "contracts/shared_operations/v1/so4_public_interfaces.json",
+      "sha256": "c5e97c9c788c9aa822cff32dbf7529b496db02522b16142decbef35a4517d3cc"
+    },
+    {
+      "path": "contracts/shared_operations/v1/so4_xa_metadata.json",
+      "sha256": "b60bc0d8db008131104ce62f6766e82879301cf0cfcabbda91618b7c14cf3e9b"
+    },
+    {
+      "path": "core/platform/architecture_contract.py",
+      "sha256": "47c1f0cb3d474656b45d9e238fa0520dde467437d991fef6446360cf6a555556"
+    },
+    {
+      "path": "docs/shared_operations/SO4_PROCUREMENT_SUPPLIER_OPERATIONS.md",
+      "sha256": "0b53074ec762f3642b5f132fd9f9b50fc707aa6fcb82b5f57c550e45aaab02ce"
+    },
+    {
+      "path": "docs/shared_operations/adr/0015_SO4_PROCUREMENT_REUSES_PARTY_ATOMIC_UNIT_AND_STOCK_AUTHORITIES.md",
+      "sha256": "65b71fb0f7a9f156483ef6533e91f5b5a7b3536d466a0815b4bd0dfeaa0487c3"
+    },
+    {
+      "path": "scripts/verify_so4_procurement_supplier_operations.py",
+      "sha256": "a2b74559ac5372070771d2dddcedef53b410498c436e974fd763085b243a784f"
+    },
+    {
+      "path": "shared_operations/so4/__init__.py",
+      "sha256": "e4d7ef44d2e28864313f6e169be583ba9423b399ad50185686dd417279c95d41"
+    },
+    {
+      "path": "shared_operations/so4/contracts.py",
+      "sha256": "35bffff0adebd68e7d4b671057b4c7325a5062c6cffa92abc4b49cdea05d72b6"
+    },
+    {
+      "path": "shared_operations/so4/service.py",
+      "sha256": "7f7e7eba2d16db149fb73dc59f9a47982152cff25740feda721da69dfcd74c14"
+    },
+    {
+      "path": "shared_operations/so4/sql_repository.py",
+      "sha256": "aaaf613cbeaa72e051dfdc04259b2df135e471eaf42d91e9ecc7f82c83d934bb"
+    },
+    {
+      "path": "tests/contracts/test_pc0_kernel_boundaries.py",
+      "sha256": "805ed0f4d8c5fb1a993619fc81094832bcdb80c3585e11bc4fb1704297a57b1f"
+    },
+    {
+      "path": "tests/contracts/test_so4_procurement_supplier_operations.py",
+      "sha256": "f89c59f28016678d5a4324fcd57b3e725935b465a6db6716c0135b98648f4040"
+    }
+  ]
+}

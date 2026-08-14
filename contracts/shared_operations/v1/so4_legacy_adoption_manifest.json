@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "decisions": [
+    {"artifact":"core.domain.inventory supplier string and last_supplier metadata","classification":"MAP","path":"retain as source evidence; explicitly resolve to PC2 Party plus active SO2 supplier relationship"},
+    {"artifact":"core.domain.inventory receipt_ref","classification":"BRIDGE","path":"retain as SO4 source/document reference; stock consequence remains SO3"},
+    {"artifact":"core.domain.accounting vendor strings","classification":"PRESERVE","path":"frozen legacy/Finance evidence; no SO4 rewrite or authority claim"},
+    {"artifact":"legacy expense and invoice-like records","classification":"PRESERVE","path":"not procurement orders and never backfilled as SO4 or AP truth"},
+    {"artifact":"PC2 Party supplier role","classification":"ADOPT","path":"canonical supplier identity"},
+    {"artifact":"SO2 supplier/vendor relationship","classification":"ADOPT","path":"canonical operational supplier participation"},
+    {"artifact":"SO1 Atomic Unit","classification":"ADOPT","path":"canonical procured stock/item identity"},
+    {"artifact":"SO3 stock receipt","classification":"ADOPT","path":"invoke through SO3 public contract exactly once"},
+    {"artifact":"legacy free-text supplier writers","classification":"RETIRE_LATER","path":"retire only after source-specific controlled mappings and writer convergence"}
+  ],
+  "destructive_reinterpretation": "NONE"
+}

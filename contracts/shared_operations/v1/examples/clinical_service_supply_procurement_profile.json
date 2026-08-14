@@ -1,0 +1,1 @@
+{"profile":"clinical_service_supply","terminology":{"request":"supply requisition","order":"supply commitment","supplier":"provider","receipt":"acceptance evidence"},"approval_required":true,"over_receipt_policy":"allow_with_authorization","document_requirements":["quality_evidence"],"stock_procurement":true,"service_procurement":true}

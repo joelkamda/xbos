@@ -1,0 +1,1 @@
+{"profile":"retail_merchandise","terminology":{"request":"replenishment request","order":"purchase order","supplier":"vendor","receipt":"goods receipt"},"approval_required":true,"over_receipt_policy":"forbid","document_requirements":["supplier_order_reference"],"stock_procurement":true,"service_procurement":false}

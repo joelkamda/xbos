@@ -1,0 +1,8 @@
+{
+  "schema_version": 1,
+  "public_module": "shared_operations.so4",
+  "contracts": ["PurchaseRequest","PurchaseOrder","PurchaseOrderLine","ProcurementReceipt","CreatePurchaseRequest","CreatePurchaseOrder","TransitionProcurement","ReceivePurchaseOrder","SO4Authority","SO4AuthorityError"],
+  "private": ["shared_operations.so4.sql_repository","SO4 SQL tables and command ledger"],
+  "consumes": ["PC2 Party public identity","SO2 operational relationship public contract","SO1 Atomic Unit public identity","SO3 receive public contract","PC5 authorization and approval decision"],
+  "finance_writer": "NONE"
+}

@@ -1,0 +1,39 @@
+SO4 cumulative overlay inventory
+Source checkpoint: 903e0e945b3659cffb03b1cdeaded38de2e7ce1d
+Previous head: so3_inventory_stock_movement_028
+Accepted head: so4_procurement_supplier_operations_029
+
+SO4_INSTALL_MANIFEST.txt
+XBOS_SO4_INSTALL_AND_VERIFY.txt
+XBOS_SO4_RUN_ACCEPTANCE.cmd
+alembic_neutral/sql/so4_procurement_supplier_operations_down.sql
+alembic_neutral/sql/so4_procurement_supplier_operations_up.sql
+alembic_neutral/versions/so4_procurement_supplier_operations_029.py
+contracts/platform/v1/pc0_data_authority_register.json
+contracts/platform/v1/pc0_dependency_policy.json
+contracts/platform/v1/pc0_frozen_finance_inventory.json
+contracts/platform/v1/pc0_module_map.json
+contracts/platform/v1/pc0_public_private_interfaces.json
+contracts/platform/v1/pc0_reference_authority_migration_register.json
+contracts/platform/v1/pc0_release_manifest.json
+contracts/platform/v1/pc6_release_manifest.json
+contracts/shared_operations/v1/examples/clinical_service_supply_procurement_profile.json
+contracts/shared_operations/v1/examples/retail_merchandise_procurement_profile.json
+contracts/shared_operations/v1/so1_release_manifest.json
+contracts/shared_operations/v1/so2_release_manifest.json
+contracts/shared_operations/v1/so3_release_manifest.json
+contracts/shared_operations/v1/so4_authority.json
+contracts/shared_operations/v1/so4_legacy_adoption_manifest.json
+contracts/shared_operations/v1/so4_public_interfaces.json
+contracts/shared_operations/v1/so4_release_manifest.json
+contracts/shared_operations/v1/so4_xa_metadata.json
+core/platform/architecture_contract.py
+docs/shared_operations/SO4_PROCUREMENT_SUPPLIER_OPERATIONS.md
+docs/shared_operations/adr/0015_SO4_PROCUREMENT_REUSES_PARTY_ATOMIC_UNIT_AND_STOCK_AUTHORITIES.md
+scripts/verify_so4_procurement_supplier_operations.py
+shared_operations/so4/__init__.py
+shared_operations/so4/contracts.py
+shared_operations/so4/service.py
+shared_operations/so4/sql_repository.py
+tests/contracts/test_pc0_kernel_boundaries.py
+tests/contracts/test_so4_procurement_supplier_operations.py

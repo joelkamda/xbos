@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "resource": "procurement_order",
+  "list_fields": ["order_code","supplier_context","status","expected_by","ordered_quantity","received_quantity","outstanding_quantity"],
+  "actions": [
+    {"code":"submit","permission":"procurement.order.lifecycle","server_authority":"SO4"},
+    {"code":"approve","permission":"procurement.order.lifecycle","approval":"PC5","server_authority":"SO4"},
+    {"code":"receive","permission":"procurement.receipt.accept","conflicts":["stale_version","over_receipt","closed_order"],"server_authority":"SO4"},
+    {"code":"cancel","permission":"procurement.order.lifecycle","server_authority":"SO4"},
+    {"code":"close","permission":"procurement.order.lifecycle","server_authority":"SO4"}
+  ],
+  "denial_explanation": ["reason_code","missing_permission","approval_required","scope_mismatch","conflict"],
+  "history": "append_only_trace",
+  "frontend_authorization": "NEVER",
+  "frontend_implementation": "NONE"
+}

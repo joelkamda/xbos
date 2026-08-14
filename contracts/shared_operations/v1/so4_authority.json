@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "source_checkpoint": "903e0e945b3659cffb03b1cdeaded38de2e7ce1d",
+  "previous_head": "so3_inventory_stock_movement_028",
+  "accepted_head": "so4_procurement_supplier_operations_029",
+  "supplier_authority": "PC2_PARTY_PLUS_SO2_RELATIONSHIP",
+  "atomic_unit_authority": "SO1_REUSED",
+  "inventory_authority": "SO3_PUBLIC_CONTRACT_REUSED",
+  "approval_authority": "PC5_REUSED",
+  "procurement_authority": ["purchase_request","purchase_order","operational_receipt","procurement_history"],
+  "excluded": ["ap_obligation","journal_entry","expense_recognition","settlement","payment","tax_accounting","inventory_valuation","document_storage","communications","general_scheduling"],
+  "production_dependency_changes": "NONE",
+  "frontend_implementation": "NONE"
+}

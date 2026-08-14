@@ -19,6 +19,7 @@
     {"code":"taxonomy","owner":"PC3","kind":"adopted_compatibility","source_roots":["core/api/taxonomy","core/domain/taxonomy"]},
     {"code":"catalog","owner":"SO0/SO1","kind":"legacy_operational","source_roots":["core/api/catalog","core/domain/catalog"]},
     {"code":"inventory","owner":"SO3","kind":"shared_operations_authority","source_roots":["core/api/inventory","core/domain/inventory","shared_operations/so3"]},
+    {"code":"procurement","owner":"SO4","kind":"shared_operations_authority","source_roots":["shared_operations/so4"]},
     {"code":"orders","owner":"Restaurant Pack","kind":"legacy_industry","source_roots":["core/api/orders","core/domain/orders"]},
     {"code":"sales","owner":"Restaurant Pack / SO1","kind":"legacy_industry","source_roots":["core/api/sales","core/domain/sales"]},
     {"code":"legacy_accounting","owner":"R6 retirement / Neutral Finance target","kind":"legacy_financial","source_roots":["core/api/accounting","core/domain/accounting"]},

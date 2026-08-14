@@ -206,6 +206,27 @@
       "sha256": "c4a8c6de1fbb03a72f8b2196cd4083d6391af29ca11a381c05758c94972c71fc",
       "owner": "SO3",
       "reason": "SO3 authorized non-Finance canonical descendant"
+    },
+    {
+      "root": "alembic_neutral",
+      "path": "versions/so4_procurement_supplier_operations_029.py",
+      "sha256": "0e08d52c186c076e12aac696f04aa64ad69eaf0870e17f6fba528f163beae2d2",
+      "owner": "SO4",
+      "reason": "SO4 authorized non-Finance canonical descendant"
+    },
+    {
+      "root": "alembic_neutral",
+      "path": "sql/so4_procurement_supplier_operations_up.sql",
+      "sha256": "a5ee264104ce5284bb5cba00ae37b005e904a4ec89bca8b3848476baae9e085e",
+      "owner": "SO4",
+      "reason": "SO4 authorized non-Finance canonical descendant"
+    },
+    {
+      "root": "alembic_neutral",
+      "path": "sql/so4_procurement_supplier_operations_down.sql",
+      "sha256": "d49dab24a6797def6ad5c56cd31c355952758e176df56ce4c2e8b6af870257af",
+      "owner": "SO4",
+      "reason": "SO4 authorized non-Finance canonical descendant"
     }
   ],
   "trees": [

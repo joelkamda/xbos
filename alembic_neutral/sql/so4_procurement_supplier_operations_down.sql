@@ -1,0 +1,10 @@
+DROP TRIGGER IF EXISTS trg_so4_procurement_history_immutable ON public.so4_procurement_history;
+DROP FUNCTION IF EXISTS public.so4_procurement_history_immutable();
+DROP TABLE IF EXISTS public.so4_procurement_history;
+DROP TABLE IF EXISTS public.so4_operational_receipt_lines;
+DROP TABLE IF EXISTS public.so4_operational_receipts;
+DROP TABLE IF EXISTS public.so4_purchase_order_lines;
+DROP TABLE IF EXISTS public.so4_purchase_orders;
+DROP TABLE IF EXISTS public.so4_purchase_request_lines;
+DROP TABLE IF EXISTS public.so4_purchase_requests;
+DROP TABLE IF EXISTS public.so4_procurement_commands;

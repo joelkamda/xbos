@@ -1,0 +1,10 @@
+XBOS SO4 PROCUREMENT AND SUPPLIER OPERATIONS
+
+Prerequisites: accepted source checkpoint 903e0e9, active approved Python 3.13.3 environment, local PostgreSQL development database at SO3 or SO4 head.
+
+Install: Expand-Archive this ZIP into the repository root with -Force.
+Run: XBOS_SO4_RUN_ACCEPTANCE.cmd
+
+The gate first proves all frozen predecessors and SO4 static/focused contracts, then reconstructs a disposable template0 database through SO3, rehearses SO4 upgrade/downgrade/re-upgrade and procurement receipts, safely adopts or verifies the local development database, runs the full regression, compilation/JSON checks and git diff --check.
+
+No dependency installation, commit or tag is performed. The development database may start only at so3_inventory_stock_movement_028 or so4_procurement_supplier_operations_029.

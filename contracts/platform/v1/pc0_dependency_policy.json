@@ -21,6 +21,7 @@
     "taxonomy": ["identity", "shared"],
     "catalog": ["identity", "shared"],
     "inventory": ["identity", "shared"],
+    "procurement": ["inventory"],
     "orders": ["identity", "shared"],
     "sales": ["identity", "shared"],
     "legacy_accounting": ["identity", "shared"],

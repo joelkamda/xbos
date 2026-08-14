@@ -36,31 +36,31 @@
     },
     {
       "path": "contracts/platform/v1/pc0_data_authority_register.json",
-      "sha256": "3783da335723536076c0c6e17a974a60f08828ca4a4c0566948c4cd9d75d2cbb"
+      "sha256": "605e76eca3a0087e6692e989f94cc3254076b20f3263d8546cc9fa68ffaa60a6"
     },
     {
       "path": "contracts/platform/v1/pc0_frozen_finance_inventory.json",
-      "sha256": "5102be18321b6204d47a904b8d3315348566d24f5883459198412cc79b426aa1"
+      "sha256": "d00720912e49da411d53408e4b95edc433e27b6cc60a4273d86765880d1f7504"
     },
     {
       "path": "contracts/platform/v1/pc0_module_map.json",
-      "sha256": "f6240ac12176dd86844ee8e9b1261a7ab5201b3eb188793fc46b1486e02d6e69"
+      "sha256": "638592c16c05ae82349ee680433fd05cb9990a95d99545e4213db7e4db09b8d2"
     },
     {
       "path": "contracts/platform/v1/pc0_public_private_interfaces.json",
-      "sha256": "10b7854c335a82cc49f3e7084ff9d190d15708c11fd96e2ee2d98946a5e21997"
+      "sha256": "f27335762974723850b3f6274987b405d482c704e42c0e0b30ea615744724c6a"
     },
     {
       "path": "contracts/platform/v1/pc0_reference_authority_migration_register.json",
-      "sha256": "f1135ab93186c0ade500884a63722d6f461d8355c63f212e84dc364c488cd598"
+      "sha256": "7b169205967cc16423fa0ff57afad32a9367f32700c0d193c56303fe690c1098"
     },
     {
       "path": "contracts/platform/v1/pc0_release_manifest.json",
-      "sha256": "a238ad2b26016d45a51d2bb5aa325519125a631bc1b0e0ac3e4ab8b7620c8ace"
+      "sha256": "f42f265aff7897f88e60928ca9e2604a5f78a1265208befb11fd2e3087fd3299"
     },
     {
       "path": "contracts/platform/v1/pc6_release_manifest.json",
-      "sha256": "1019af68cf9a2e372f6418e1822007b60ca8569d0e1582721c7f47e1942d495e"
+      "sha256": "a6becbc54ae691e1219deb7a2269e9bceff8413cb20071d3c59aeb443cddb5d2"
     },
     {
       "path": "contracts/shared_operations/v1/examples/clinical_supplies_profile.json",
@@ -72,11 +72,11 @@
     },
     {
       "path": "contracts/shared_operations/v1/so1_release_manifest.json",
-      "sha256": "3a882b299b6f7a1e4568bb1ab44a8390e044b6b608cc9943edebc76692db8691"
+      "sha256": "405827b9b4c8a7450226c6e3c25da90a43723e2dbc54ee33ae490722c19730d4"
     },
     {
       "path": "contracts/shared_operations/v1/so2_release_manifest.json",
-      "sha256": "d050dc37f2e63089488d63e8be4c6b749801a09e8d174070a77b771a00ad5512"
+      "sha256": "6bf4eae3274baa9404e861e217984587136b66ad534e41091d5a02362d70ab4f"
     },
     {
       "path": "contracts/shared_operations/v1/so3_authority.json",
@@ -96,7 +96,7 @@
     },
     {
       "path": "core/platform/architecture_contract.py",
-      "sha256": "592bae2e6501c578e8974ddc1a98dc245b325cd48c84330ee0e316416d1e8f1d"
+      "sha256": "47c1f0cb3d474656b45d9e238fa0520dde467437d991fef6446360cf6a555556"
     },
     {
       "path": "docs/shared_operations/SO3_INVENTORY_STOCK_MOVEMENT_PRIMITIVES.md",
@@ -128,7 +128,7 @@
     },
     {
       "path": "tests/contracts/test_pc0_kernel_boundaries.py",
-      "sha256": "805d61fcbc63432c5ed1f10f16de4f15a4705437fefe0f773e5117d8a495e8e0"
+      "sha256": "805ed0f4d8c5fb1a993619fc81094832bcdb80c3585e11bc4fb1704297a57b1f"
     },
     {
       "path": "tests/contracts/test_pc6_neutral_platform_proof.py",
