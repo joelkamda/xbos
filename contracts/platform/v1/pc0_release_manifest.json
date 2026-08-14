@@ -47,7 +47,7 @@
     },
     {
       "path": "contracts/platform/v1/pc0_frozen_finance_inventory.json",
-      "sha256": "9a709d40c16717d37927bddc6f080fdd359ea9a6d0e547b8e775a6539d892720"
+      "sha256": "d364508bea0c9c33b2c28f4ecfdc93c28eed2857d462b3bc09ef2a5fda50f1d7"
     },
     {
       "path": "contracts/platform/v1/pc0_kernel_boundaries.json",

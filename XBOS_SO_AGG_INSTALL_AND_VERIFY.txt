@@ -1,0 +1,33 @@
+XBOS Shared Operations Aggregate Conformance and Freeze
+
+Source checkpoint
+  0f2fa1b5f7226ad117425f37a808aab9b0c23b32
+  tag: so10-scheduling-reservations-service-execution-20260814
+
+Purpose
+  Freeze SO0-SO10 as one coherent neutral Shared Operations capability layer.
+  No new business capability is introduced.
+
+Aggregate hardening
+  The audit found that the original SO2 command ledger used a globally unique
+  command_key. The aggregate hardening migration scopes SO2 idempotency by
+  (tenant_id, command_key), tenant-qualifies result integrity, and fails closed
+  if historical command rows cannot be assigned to a tenant.
+
+Migration
+  so10_scheduling_reservations_service_execution_035
+  ->
+  so_aggregate_conformance_hardening_036
+
+Operator
+  Use the existing activated Python 3.13.3 environment and local PostgreSQL.
+  Do not run manual Alembic steps.
+
+Run
+  XBOS_SO_AGG_RUN_ACCEPTANCE.cmd
+
+Success marker
+  SO_AGG_SINGLE_GATE=PASS
+
+No commit or tag is included in this package. Control-room review owns final
+staging, commit, push, aggregate freeze tag and PK handoff.

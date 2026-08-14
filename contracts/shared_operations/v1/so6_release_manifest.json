@@ -44,7 +44,7 @@
     },
     {
       "path": "contracts/platform/v1/pc0_frozen_finance_inventory.json",
-      "sha256": "9a709d40c16717d37927bddc6f080fdd359ea9a6d0e547b8e775a6539d892720"
+      "sha256": "d364508bea0c9c33b2c28f4ecfdc93c28eed2857d462b3bc09ef2a5fda50f1d7"
     },
     {
       "path": "contracts/platform/v1/pc0_module_map.json",
@@ -60,11 +60,11 @@
     },
     {
       "path": "contracts/platform/v1/pc0_release_manifest.json",
-      "sha256": "3a4e4436f039f9396103b54f430b73618e568b73b9d0d1b4efea4b743539c70e"
+      "sha256": "194759d0aa9f212431141d31c0686525f69ac6e9cd20b2664bd630fba9ead94b"
     },
     {
       "path": "contracts/platform/v1/pc6_release_manifest.json",
-      "sha256": "ec397899f135497490f36df4e0a7d313355a571182c9a3ddc1972385c2509bd1"
+      "sha256": "538abd1c8293ae731681a0593c9878d523f33ae2be975cc0536e1dfc26cd3d7d"
     },
     {
       "path": "contracts/shared_operations/v1/examples/clinical_review_workflow_profile.json",
@@ -76,23 +76,23 @@
     },
     {
       "path": "contracts/shared_operations/v1/so1_release_manifest.json",
-      "sha256": "2b435a3cb3bebbcbe6f4c14476419e4216c2582f154b1e6773cc4559550e4ef0"
+      "sha256": "857a343d63cf65aa4c4554d3ef2f5c3669739c09e0426a1046b2ae025d0e7022"
     },
     {
       "path": "contracts/shared_operations/v1/so2_release_manifest.json",
-      "sha256": "fd2f409092d6836a42125ed8bfdd4cb74bad3dfbda76990e5603a491f07c2741"
+      "sha256": "c87026e9a7f8ddaae6e3f1ef8c26e82cefa86961827deebab488215c14a226d8"
     },
     {
       "path": "contracts/shared_operations/v1/so3_release_manifest.json",
-      "sha256": "0b1c605ccee0b07ad8b8dcd79912488c5f062d0a60454c62435c560d1899119b"
+      "sha256": "b6e1fc69ff4381344b622203966854c01c3f17ffeab19564943788cf296bbcff"
     },
     {
       "path": "contracts/shared_operations/v1/so4_release_manifest.json",
-      "sha256": "02d2b73fe2250656166e0e1ace1fb7bff03104af0de7731c7d10e7ac28415fa8"
+      "sha256": "385b11b7b155d32f2a2856f3e7fc3bc89de7d31b2ae0d3d57049f2c7ceb16e9f"
     },
     {
       "path": "contracts/shared_operations/v1/so5_release_manifest.json",
-      "sha256": "255e05c1c9848c5253a6f5b006cea4199cddc06aa5cc739c11c7a577906f1c3a"
+      "sha256": "d5a05776c84cb0c17decf3373ff650d12f961e6b35d2cebb669769973dcf76ef"
     },
     {
       "path": "contracts/shared_operations/v1/so6_authority.json",

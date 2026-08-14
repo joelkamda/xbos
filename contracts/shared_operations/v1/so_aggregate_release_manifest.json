@@ -1,0 +1,127 @@
+{
+  "schema_version": 1,
+  "release": "SO_AGGREGATE_CONFORMANCE_FREEZE",
+  "source_checkpoint": "0f2fa1b",
+  "source_checkpoint_full": "0f2fa1b5f7226ad117425f37a808aab9b0c23b32",
+  "source_archive_sha256": "067ad533484863906bcf58337bed6ee70f9a8d9b1970420166352a6ef7db7835",
+  "source_archive_size": 5757199,
+  "previous_head": "so10_scheduling_reservations_service_execution_035",
+  "accepted_head": "so_aggregate_conformance_hardening_036",
+  "migration_count": 1,
+  "business_capability_change": "NONE",
+  "fingerprint_mode": "sha256_git_canonical_lf",
+  "commit": "NONE",
+  "tag": "NONE",
+  "operator_gate": "XBOS_SO_AGG_RUN_ACCEPTANCE.cmd",
+  "success_marker": "SO_AGG_SINGLE_GATE=PASS",
+  "artifacts": [
+    {
+      "path": "SO_AGG_INSTALL_MANIFEST.txt",
+      "sha256": "d1d14123767b1af03af578cf7fcae8d09db5ccc92fda81330d071d36b9210b99"
+    },
+    {
+      "path": "XBOS_SO_AGG_INSTALL_AND_VERIFY.txt",
+      "sha256": "1efea1c7700e73bd512fbe61514fd407adf1dae9ce88748a57ea65cabf8723aa"
+    },
+    {
+      "path": "XBOS_SO_AGG_RUN_ACCEPTANCE.cmd",
+      "sha256": "0b0b3dc73562b799efb5adab84f2ae641b9f6cd3e76285812689115eb210ff68"
+    },
+    {
+      "path": "alembic_neutral/sql/so_aggregate_conformance_hardening_down.sql",
+      "sha256": "fad91b1f5fc815a47c210842bf80b7b291746d9911c1b65a6dcebea4ad98dd66"
+    },
+    {
+      "path": "alembic_neutral/sql/so_aggregate_conformance_hardening_up.sql",
+      "sha256": "5f23d3341626c373eba5c811684bda3d07e6fe21fa67daf652d4ebb8e12e52d9"
+    },
+    {
+      "path": "alembic_neutral/versions/so_aggregate_conformance_hardening_036.py",
+      "sha256": "9d8f505e0827b4db0687ab4de43871602a2260b4f2dfd7a4341627cff37dc37a"
+    },
+    {
+      "path": "contracts/platform/v1/pc0_frozen_finance_inventory.json",
+      "sha256": "d364508bea0c9c33b2c28f4ecfdc93c28eed2857d462b3bc09ef2a5fda50f1d7"
+    },
+    {
+      "path": "contracts/platform/v1/pc0_release_manifest.json",
+      "sha256": "194759d0aa9f212431141d31c0686525f69ac6e9cd20b2664bd630fba9ead94b"
+    },
+    {
+      "path": "contracts/platform/v1/pc6_release_manifest.json",
+      "sha256": "538abd1c8293ae731681a0593c9878d523f33ae2be975cc0536e1dfc26cd3d7d"
+    },
+    {
+      "path": "contracts/shared_operations/v1/so10_release_manifest.json",
+      "sha256": "1d4788f7cecb7ac217f41b51838b04b909345a6b929b4204aec1b579200337a4"
+    },
+    {
+      "path": "contracts/shared_operations/v1/so1_release_manifest.json",
+      "sha256": "857a343d63cf65aa4c4554d3ef2f5c3669739c09e0426a1046b2ae025d0e7022"
+    },
+    {
+      "path": "contracts/shared_operations/v1/so2_release_manifest.json",
+      "sha256": "c87026e9a7f8ddaae6e3f1ef8c26e82cefa86961827deebab488215c14a226d8"
+    },
+    {
+      "path": "contracts/shared_operations/v1/so3_release_manifest.json",
+      "sha256": "b6e1fc69ff4381344b622203966854c01c3f17ffeab19564943788cf296bbcff"
+    },
+    {
+      "path": "contracts/shared_operations/v1/so4_release_manifest.json",
+      "sha256": "385b11b7b155d32f2a2856f3e7fc3bc89de7d31b2ae0d3d57049f2c7ceb16e9f"
+    },
+    {
+      "path": "contracts/shared_operations/v1/so5_release_manifest.json",
+      "sha256": "d5a05776c84cb0c17decf3373ff650d12f961e6b35d2cebb669769973dcf76ef"
+    },
+    {
+      "path": "contracts/shared_operations/v1/so6_release_manifest.json",
+      "sha256": "1fe4361af5f88c2612f9c2dee31ed9fab7a59268c90d5c3b403b2f5f776023b6"
+    },
+    {
+      "path": "contracts/shared_operations/v1/so7_release_manifest.json",
+      "sha256": "4563ce570c2041b5dd8f45ed84e68d19e474d0dab3b7132de41a4cea410c3f27"
+    },
+    {
+      "path": "contracts/shared_operations/v1/so8_release_manifest.json",
+      "sha256": "43f91f80dbab23afafe6338f8e41ef98c944cfaca829a597d9fa47b77b72e27e"
+    },
+    {
+      "path": "contracts/shared_operations/v1/so9_release_manifest.json",
+      "sha256": "153c0fa895b5aa034430123badeb7ccaa6ebc56507acd7afe5f951091d7cbc55"
+    },
+    {
+      "path": "contracts/shared_operations/v1/so_aggregate_conformance_freeze.json",
+      "sha256": "7d54b458a8ef371ab384d172afe0dfc2955e0e2a773f6f0f6637ac388e26f430"
+    },
+    {
+      "path": "docs/shared_operations/SO_AGGREGATE_CONFORMANCE_AND_FREEZE.md",
+      "sha256": "f3aa663b058e79c981af6317bae470e4e1ba5494cb19a3143a600d22bb0d5abe"
+    },
+    {
+      "path": "docs/shared_operations/adr/0022_SO_AGGREGATE_FREEZE_AND_TENANT_IDEMPOTENCY_HARDENING.md",
+      "sha256": "acbb7914492fd4f50ab57e125e7cd0d0b0d4f64b88beb90d667dd8ab7871d8ce"
+    },
+    {
+      "path": "scripts/verify_so2_operational_party_relationships.py",
+      "sha256": "d3e7870140f68a1deabb1bc8810100ea2c29b32d4d4cd3dd75957afbfc968656"
+    },
+    {
+      "path": "scripts/verify_so_aggregate_conformance_freeze.py",
+      "sha256": "995593a5777a31a65618bcbccbbdd8e4bf45dfec89efe2fb1cef4b969004aebd"
+    },
+    {
+      "path": "shared_operations/so2/sql_repository.py",
+      "sha256": "a304e824732133d68f47e5840693d266f6eb10cc138a72dd9fe72c47d270fb5f"
+    },
+    {
+      "path": "tests/contracts/test_so2_operational_party_relationships.py",
+      "sha256": "64443b1ee9416395843bfc5cd9293b5f7f4a0d36c54b7dd79a9a8c9f16548943"
+    },
+    {
+      "path": "tests/contracts/test_so_aggregate_conformance_freeze.py",
+      "sha256": "fcef0e382f47127c937ca37d7da8534ef4c634a6cbfdb2a011c012464f228b96"
+    }
+  ]
+}

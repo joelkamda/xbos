@@ -1,0 +1,136 @@
+{
+  "schema_version": 1,
+  "release": "SO_AGGREGATE_CONFORMANCE_FREEZE",
+  "source_checkpoint": "0f2fa1b5f7226ad117425f37a808aab9b0c23b32",
+  "previous_head": "so10_scheduling_reservations_service_execution_035",
+  "accepted_head": "so_aggregate_conformance_hardening_036",
+  "business_capability_change": "NONE",
+  "migration": "CONFORMANCE_HARDENING_ONLY",
+  "components": [
+    {
+      "milestone": "SO0",
+      "source_checkpoint": "56cbbb8",
+      "previous_head": "pc5_identity_policy_audit_025",
+      "accepted_head": "pc5_identity_policy_audit_025"
+    },
+    {
+      "milestone": "SO1",
+      "source_checkpoint": "f72f4b5",
+      "previous_head": "pc5_identity_policy_audit_025",
+      "accepted_head": "so1_atomic_catalog_offer_pricing_026"
+    },
+    {
+      "milestone": "SO2",
+      "source_checkpoint": "733e226",
+      "previous_head": "so1_atomic_catalog_offer_pricing_026",
+      "accepted_head": "so2_operational_party_relationships_027"
+    },
+    {
+      "milestone": "SO3",
+      "source_checkpoint": "fdb2cc8",
+      "previous_head": "so2_operational_party_relationships_027",
+      "accepted_head": "so3_inventory_stock_movement_028"
+    },
+    {
+      "milestone": "SO4",
+      "source_checkpoint": "903e0e9",
+      "previous_head": "so3_inventory_stock_movement_028",
+      "accepted_head": "so4_procurement_supplier_operations_029"
+    },
+    {
+      "milestone": "SO5",
+      "source_checkpoint": "087a6d9",
+      "previous_head": "so4_procurement_supplier_operations_029",
+      "accepted_head": "so5_resources_operational_assignment_030"
+    },
+    {
+      "milestone": "SO6",
+      "source_checkpoint": "a6292ca",
+      "previous_head": "so5_resources_operational_assignment_030",
+      "accepted_head": "so6_workflows_tasks_operational_approvals_031"
+    },
+    {
+      "milestone": "SO7",
+      "source_checkpoint": "7fb3be4",
+      "previous_head": "so6_workflows_tasks_operational_approvals_031",
+      "accepted_head": "so7_documents_files_evidence_search_032"
+    },
+    {
+      "milestone": "SO8",
+      "source_checkpoint": "418759a",
+      "previous_head": "so7_documents_files_evidence_search_032",
+      "accepted_head": "so8_communications_delivery_offline_033"
+    },
+    {
+      "milestone": "SO9",
+      "source_checkpoint": "bdca5e6",
+      "previous_head": "so8_communications_delivery_offline_033",
+      "accepted_head": "so9_reporting_read_models_automation_034"
+    },
+    {
+      "milestone": "SO10",
+      "source_checkpoint": "1ed3c4e",
+      "previous_head": "so9_reporting_read_models_automation_034",
+      "accepted_head": "so10_scheduling_reservations_service_execution_035"
+    }
+  ],
+  "freeze_scope": [
+    "SO0 constitution",
+    "SO1 atomic catalog offers pricing",
+    "SO2 operational Party relationships",
+    "SO3 inventory stock movement",
+    "SO4 procurement supplier operations",
+    "SO5 resources operational assignment",
+    "SO6 workflows tasks operational approvals",
+    "SO7 documents files evidence search",
+    "SO8 communications delivery offline",
+    "SO9 reporting read models automation",
+    "SO10 scheduling reservations service execution"
+  ],
+  "aggregate_invariants": {
+    "authority_graph": "one_owner_per_canonical_truth",
+    "cross_module_application_boundary": "public_contracts_only",
+    "cross_module_source_domain_writes": "FORBIDDEN",
+    "tenant_isolation": "FAIL_CLOSED",
+    "command_idempotency": "TENANT_SCOPED_EXACT_REPLAY",
+    "migration_lineage": "ONE_LINEAR_HEAD",
+    "finance": "UNCHANGED",
+    "dependencies": "UNCHANGED",
+    "xa": "FROZEN_CONSUMED",
+    "neutrality": "NO_ACTIVE_INDUSTRY_DEFAULTS",
+    "pk_readiness": "DECLARATIONS_AND_PUBLIC_CAPABILITIES_COMPLETE"
+  },
+  "aggregate_hardening": {
+    "finding": "SO2 command idempotency ledger was globally keyed while SO3-SO10 were tenant-keyed",
+    "risk": "same command key used independently by two tenants could cause a false cross-tenant command conflict",
+    "repair": "add tenant_id to SO2 command ledger, tenant-qualify result integrity, and scope repository replay by tenant",
+    "economic_semantics_changed": false,
+    "party_semantics_changed": false,
+    "finance_changed": false,
+    "dependency_changed": false,
+    "production_cutover": "NOT_AUTHORIZED"
+  },
+  "public_boundary_interpretation": {
+    "application_imports": "other SO modules may import only their public package",
+    "external_source_writes": "no SO repository may insert/update/delete another SO or Finance authority",
+    "foreign_key_reference_reads": "persistence may resolve declared tenant-qualified foreign-key references without acquiring source-domain write authority"
+  },
+  "pk_handoff": {
+    "status": "READY_AFTER_OPERATOR_GATE",
+    "consumes": [
+      "public capabilities",
+      "XA metadata",
+      "PC3 semantics",
+      "PC4 configuration",
+      "PC5 authorization",
+      "neutral profiles"
+    ],
+    "must_not_do": [
+      "duplicate SO persistence",
+      "invent Finance truth",
+      "hard-code industry semantics into Shared Operations"
+    ]
+  },
+  "cutover": "NOT_AUTHORIZED",
+  "writer_retirement": "NOT_EXECUTED"
+}

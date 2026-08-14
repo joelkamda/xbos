@@ -24,18 +24,35 @@ class SQLSO2Repository:
             row.organization_unit_id, row.location_id, row.effective_from, row.effective_to, row.row_version,
         )
 
-    def _command(self, key: str, fingerprint: str, command_type: str):
-        self.db_session.execute(text("""INSERT INTO so2_relationship_commands(command_key,request_fingerprint,command_type)
-            VALUES(:key,:fingerprint,:type) ON CONFLICT(command_key) DO NOTHING"""), {"key": key, "fingerprint": fingerprint, "type": command_type})
-        row = self.db_session.execute(text("""SELECT command_key,request_fingerprint,command_type,result_id
-            FROM so2_relationship_commands WHERE command_key=:key FOR UPDATE"""), {"key": key}).one()
+    def _tenant_scoped_commands(self) -> bool:
+        return bool(self.db_session.execute(text("""SELECT EXISTS(
+            SELECT 1 FROM information_schema.columns
+            WHERE table_schema='public' AND table_name='so2_relationship_commands' AND column_name='tenant_id'
+        )""")).scalar_one())
+
+    def _command(self, tenant_id: int, key: str, fingerprint: str, command_type: str):
+        if self._tenant_scoped_commands():
+            self.db_session.execute(text("""INSERT INTO so2_relationship_commands(tenant_id,command_key,request_fingerprint,command_type)
+                VALUES(:tenant,:key,:fingerprint,:type) ON CONFLICT(tenant_id,command_key) DO NOTHING"""), {"tenant": tenant_id, "key": key, "fingerprint": fingerprint, "type": command_type})
+            row = self.db_session.execute(text("""SELECT command_key,request_fingerprint,command_type,result_id
+                FROM so2_relationship_commands WHERE tenant_id=:tenant AND command_key=:key FOR UPDATE"""), {"tenant": tenant_id, "key": key}).one()
+        else:
+            # Historical SO2 replay compatibility before aggregate hardening _036.
+            self.db_session.execute(text("""INSERT INTO so2_relationship_commands(command_key,request_fingerprint,command_type)
+                VALUES(:key,:fingerprint,:type) ON CONFLICT(command_key) DO NOTHING"""), {"key": key, "fingerprint": fingerprint, "type": command_type})
+            row = self.db_session.execute(text("""SELECT command_key,request_fingerprint,command_type,result_id
+                FROM so2_relationship_commands WHERE command_key=:key FOR UPDATE"""), {"key": key}).one()
         if row.request_fingerprint != fingerprint or row.command_type != command_type:
             raise SO2AuthorityError("SO2_COMMAND_CONFLICT", "conflict", "The command key was already used with different content")
         return row
 
-    def _complete(self, key: str, result_id: int) -> None:
-        self.db_session.execute(text("""UPDATE so2_relationship_commands SET result_id=:id,completed_at=now()
-            WHERE command_key=:key"""), {"key": key, "id": result_id})
+    def _complete(self, tenant_id: int, key: str, result_id: int) -> None:
+        if self._tenant_scoped_commands():
+            self.db_session.execute(text("""UPDATE so2_relationship_commands SET result_id=:id,completed_at=now()
+                WHERE tenant_id=:tenant AND command_key=:key"""), {"tenant": tenant_id, "key": key, "id": result_id})
+        else:
+            self.db_session.execute(text("""UPDATE so2_relationship_commands SET result_id=:id,completed_at=now()
+                WHERE command_key=:key"""), {"key": key, "id": result_id})
 
     def _by_id(self, tenant_id: int, relationship_id: int):
         return self.db_session.execute(text("""SELECT r.*,p.public_id AS party_public_id FROM so2_operational_relationships r
@@ -43,7 +60,7 @@ class SQLSO2Repository:
             WHERE r.tenant_id=:tenant AND r.id=:id"""), {"tenant": tenant_id, "id": relationship_id}).one()
 
     def establish(self, command: EstablishRelationship, party_id: int, public_id: UUID, fingerprint: str) -> OperationalRelationship:
-        replay = self._command(command.command_key, fingerprint, "establish")
+        replay = self._command(command.tenant_id, command.command_key, fingerprint, "establish")
         if replay.result_id is not None:
             return self._relationship(self._by_id(command.tenant_id, replay.result_id))
         try:
@@ -65,7 +82,7 @@ class SQLSO2Repository:
             VALUES(:tenant,:relationship,1,NULL,:status,'established',:at)"""), {
                 "tenant": command.tenant_id, "relationship": row.id, "status": command.initial_status.value, "at": command.effective_from,
             })
-        self._complete(command.command_key, row.id)
+        self._complete(command.tenant_id, command.command_key, row.id)
         return self._relationship(self._by_id(command.tenant_id, row.id))
 
     def relationship(self, tenant_id: int, public_id: UUID) -> OperationalRelationship | None:
@@ -85,7 +102,7 @@ class SQLSO2Repository:
         return tuple(self._relationship(row) for row in rows)
 
     def change_status(self, command, fingerprint: str) -> OperationalRelationship | None:
-        replay = self._command(command.command_key, fingerprint, "change_status")
+        replay = self._command(command.tenant_id, command.command_key, fingerprint, "change_status")
         if replay.result_id is not None:
             return self._relationship(self._by_id(command.tenant_id, replay.result_id))
         current = self.db_session.execute(text("""SELECT id,lifecycle_status,row_version FROM so2_operational_relationships
@@ -109,11 +126,11 @@ class SQLSO2Repository:
                 "from_status": current.lifecycle_status, "to_status": command.to_status.value,
                 "reason": command.reason_code, "at": command.occurred_at,
             })
-        self._complete(command.command_key, current.id)
+        self._complete(command.tenant_id, command.command_key, current.id)
         return self._relationship(self._by_id(command.tenant_id, current.id))
 
     def update_preferences(self, command, fingerprint: str) -> OperationalRelationship | None:
-        replay = self._command(command.command_key, fingerprint, "update_preferences")
+        replay = self._command(command.tenant_id, command.command_key, fingerprint, "update_preferences")
         if replay.result_id is not None:
             return self._relationship(self._by_id(command.tenant_id, replay.result_id))
         row = self.db_session.execute(text("""UPDATE so2_operational_relationships
@@ -124,7 +141,7 @@ class SQLSO2Repository:
             }).first()
         if row is None:
             return None
-        self._complete(command.command_key, row.id)
+        self._complete(command.tenant_id, command.command_key, row.id)
         return self._relationship(self._by_id(command.tenant_id, row.id))
 
     def history(self, tenant_id: int, public_id: UUID) -> tuple[RelationshipHistory, ...]:

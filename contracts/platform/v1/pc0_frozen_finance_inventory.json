@@ -353,6 +353,27 @@
       "sha256": "61b6a1ae4756379cbd713788ffc304443521cc398ccdc5897900d0bee1564be6",
       "owner": "SO10",
       "reason": "SO10 authorized non-Finance canonical descendant"
+    },
+    {
+      "root": "alembic_neutral",
+      "path": "versions/so_aggregate_conformance_hardening_036.py",
+      "sha256": "9d8f505e0827b4db0687ab4de43871602a2260b4f2dfd7a4341627cff37dc37a",
+      "owner": "SO2",
+      "reason": "Shared Operations aggregate conformance hardening of SO2 tenant-scoped idempotency; no Finance semantics"
+    },
+    {
+      "root": "alembic_neutral",
+      "path": "sql/so_aggregate_conformance_hardening_up.sql",
+      "sha256": "5f23d3341626c373eba5c811684bda3d07e6fe21fa67daf652d4ebb8e12e52d9",
+      "owner": "SO2",
+      "reason": "Shared Operations aggregate conformance hardening of SO2 tenant-scoped idempotency; no Finance semantics"
+    },
+    {
+      "root": "alembic_neutral",
+      "path": "sql/so_aggregate_conformance_hardening_down.sql",
+      "sha256": "fad91b1f5fc815a47c210842bf80b7b291746d9911c1b65a6dcebea4ad98dd66",
+      "owner": "SO2",
+      "reason": "Shared Operations aggregate conformance hardening of SO2 tenant-scoped idempotency; no Finance semantics"
     }
   ],
   "trees": [

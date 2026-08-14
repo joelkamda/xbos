@@ -36,15 +36,15 @@
     },
     {
       "path": "contracts/platform/v1/pc0_frozen_finance_inventory.json",
-      "sha256": "9a709d40c16717d37927bddc6f080fdd359ea9a6d0e547b8e775a6539d892720"
+      "sha256": "d364508bea0c9c33b2c28f4ecfdc93c28eed2857d462b3bc09ef2a5fda50f1d7"
     },
     {
       "path": "contracts/platform/v1/pc0_release_manifest.json",
-      "sha256": "3a4e4436f039f9396103b54f430b73618e568b73b9d0d1b4efea4b743539c70e"
+      "sha256": "194759d0aa9f212431141d31c0686525f69ac6e9cd20b2664bd630fba9ead94b"
     },
     {
       "path": "contracts/platform/v1/pc6_release_manifest.json",
-      "sha256": "ec397899f135497490f36df4e0a7d313355a571182c9a3ddc1972385c2509bd1"
+      "sha256": "538abd1c8293ae731681a0593c9878d523f33ae2be975cc0536e1dfc26cd3d7d"
     },
     {
       "path": "contracts/shared_operations/v1/examples/professional_service_profile.json",

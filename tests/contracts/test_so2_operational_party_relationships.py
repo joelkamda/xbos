@@ -242,3 +242,15 @@ def test_no_wnd_or_industry_default_in_active_so2_contracts():
         for path in base.rglob("*"):
             if path.is_file():
                 assert not any(token.lower() in path.read_bytes().lower() for token in forbidden)
+
+
+def test_aggregate_descendant_scopes_so2_command_idempotency_by_tenant_when_present():
+    hardening = ROOT / "alembic_neutral/sql/so_aggregate_conformance_hardening_up.sql"
+    if not hardening.is_file():
+        pytest.skip("aggregate descendant hardening not present in historical SO2 source")
+    sql = hardening.read_text(encoding="utf-8")
+    repository = (ROOT / "shared_operations/so2/sql_repository.py").read_text(encoding="utf-8")
+    assert "UNIQUE(tenant_id,command_key)" in sql
+    assert "FOREIGN KEY(tenant_id,result_id)" in sql
+    assert "ON CONFLICT(tenant_id,command_key)" in repository
+    assert "WHERE tenant_id=:tenant AND command_key=:key" in repository

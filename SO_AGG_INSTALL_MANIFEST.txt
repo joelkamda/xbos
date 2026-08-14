@@ -1,0 +1,34 @@
+Shared Operations aggregate conformance/freeze cumulative overlay inventory
+Source checkpoint: 0f2fa1b5f7226ad117425f37a808aab9b0c23b32
+Previous head: so10_scheduling_reservations_service_execution_035
+Accepted head: so_aggregate_conformance_hardening_036
+Business capability change: NONE
+
+SO_AGG_INSTALL_MANIFEST.txt
+XBOS_SO_AGG_INSTALL_AND_VERIFY.txt
+XBOS_SO_AGG_RUN_ACCEPTANCE.cmd
+alembic_neutral/sql/so_aggregate_conformance_hardening_down.sql
+alembic_neutral/sql/so_aggregate_conformance_hardening_up.sql
+alembic_neutral/versions/so_aggregate_conformance_hardening_036.py
+contracts/platform/v1/pc0_frozen_finance_inventory.json
+contracts/platform/v1/pc0_release_manifest.json
+contracts/platform/v1/pc6_release_manifest.json
+contracts/shared_operations/v1/so10_release_manifest.json
+contracts/shared_operations/v1/so1_release_manifest.json
+contracts/shared_operations/v1/so2_release_manifest.json
+contracts/shared_operations/v1/so3_release_manifest.json
+contracts/shared_operations/v1/so4_release_manifest.json
+contracts/shared_operations/v1/so5_release_manifest.json
+contracts/shared_operations/v1/so6_release_manifest.json
+contracts/shared_operations/v1/so7_release_manifest.json
+contracts/shared_operations/v1/so8_release_manifest.json
+contracts/shared_operations/v1/so9_release_manifest.json
+contracts/shared_operations/v1/so_aggregate_conformance_freeze.json
+contracts/shared_operations/v1/so_aggregate_release_manifest.json
+docs/shared_operations/SO_AGGREGATE_CONFORMANCE_AND_FREEZE.md
+docs/shared_operations/adr/0022_SO_AGGREGATE_FREEZE_AND_TENANT_IDEMPOTENCY_HARDENING.md
+scripts/verify_so2_operational_party_relationships.py
+scripts/verify_so_aggregate_conformance_freeze.py
+shared_operations/so2/sql_repository.py
+tests/contracts/test_so2_operational_party_relationships.py
+tests/contracts/test_so_aggregate_conformance_freeze.py

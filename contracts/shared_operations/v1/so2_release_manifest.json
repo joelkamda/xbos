@@ -45,7 +45,7 @@
     },
     {
       "path": "contracts/platform/v1/pc0_frozen_finance_inventory.json",
-      "sha256": "9a709d40c16717d37927bddc6f080fdd359ea9a6d0e547b8e775a6539d892720"
+      "sha256": "d364508bea0c9c33b2c28f4ecfdc93c28eed2857d462b3bc09ef2a5fda50f1d7"
     },
     {
       "path": "contracts/platform/v1/pc0_module_map.json",
@@ -61,11 +61,11 @@
     },
     {
       "path": "contracts/platform/v1/pc0_release_manifest.json",
-      "sha256": "3a4e4436f039f9396103b54f430b73618e568b73b9d0d1b4efea4b743539c70e"
+      "sha256": "194759d0aa9f212431141d31c0686525f69ac6e9cd20b2664bd630fba9ead94b"
     },
     {
       "path": "contracts/platform/v1/pc6_release_manifest.json",
-      "sha256": "ec397899f135497490f36df4e0a7d313355a571182c9a3ddc1972385c2509bd1"
+      "sha256": "538abd1c8293ae731681a0593c9878d523f33ae2be975cc0536e1dfc26cd3d7d"
     },
     {
       "path": "contracts/shared_operations/v1/examples/professional_service_crm_profile.json",
@@ -77,7 +77,7 @@
     },
     {
       "path": "contracts/shared_operations/v1/so1_release_manifest.json",
-      "sha256": "2b435a3cb3bebbcbe6f4c14476419e4216c2582f154b1e6773cc4559550e4ef0"
+      "sha256": "857a343d63cf65aa4c4554d3ef2f5c3669739c09e0426a1046b2ae025d0e7022"
     },
     {
       "path": "contracts/shared_operations/v1/so2_authority.json",
@@ -109,7 +109,7 @@
     },
     {
       "path": "scripts/verify_so2_operational_party_relationships.py",
-      "sha256": "2251c19ec035af939e183cbaacaf1186d461d227b7b3e3002265ab0e2847d22f"
+      "sha256": "d3e7870140f68a1deabb1bc8810100ea2c29b32d4d4cd3dd75957afbfc968656"
     },
     {
       "path": "shared_operations/so2/__init__.py",
@@ -125,7 +125,7 @@
     },
     {
       "path": "shared_operations/so2/sql_repository.py",
-      "sha256": "97f06573f569972292501786a9edfbe6d5128c394de985e25e90c61086dc20e5"
+      "sha256": "a304e824732133d68f47e5840693d266f6eb10cc138a72dd9fe72c47d270fb5f"
     },
     {
       "path": "tests/contracts/test_pc6_neutral_platform_proof.py",
@@ -133,7 +133,7 @@
     },
     {
       "path": "tests/contracts/test_so2_operational_party_relationships.py",
-      "sha256": "eab41875ba26dcc14e53b2a1ba99bf2fff4c2b9e0809ce62b2cff73a91457511"
+      "sha256": "64443b1ee9416395843bfc5cd9293b5f7f4a0d36c54b7dd79a9a8c9f16548943"
     }
   ]
 }

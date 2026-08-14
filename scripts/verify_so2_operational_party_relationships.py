@@ -137,6 +137,21 @@ def static_verify() -> dict[str, object]:
     forbidden = ("CREATE TABLE public.customers", "CREATE TABLE public.suppliers", "INSERT INTO public.financial_", "UPDATE public.financial_", "DROP TABLE public.parties", "TRUNCATE")
     if any(marker in up for marker in forbidden):
         raise RuntimeError("SO2_DUPLICATE_IDENTITY_OR_FINANCE_SQL")
+    aggregate_hardening = ROOT / "alembic_neutral/sql/so_aggregate_conformance_hardening_up.sql"
+    if aggregate_hardening.is_file():
+        hardening = aggregate_hardening.read_text(encoding="utf-8")
+        repository_source = (ROOT / "shared_operations/so2/sql_repository.py").read_text(encoding="utf-8")
+        for marker in (
+            "ADD COLUMN tenant_id INTEGER NULL",
+            "UNIQUE(tenant_id,command_key)",
+            "FOREIGN KEY(tenant_id,result_id)",
+            "SO_AGG_SO2_COMMAND_TENANT_BACKFILL_REQUIRED",
+        ):
+            if marker not in hardening:
+                raise RuntimeError("SO2_AGGREGATE_TENANT_IDEMPOTENCY_HARDENING="+marker)
+        for marker in ("ON CONFLICT(tenant_id,command_key)", "WHERE tenant_id=:tenant AND command_key=:key"):
+            if marker not in repository_source:
+                raise RuntimeError("SO2_AGGREGATE_REPOSITORY_SCOPE="+marker)
     profiles = [_json("examples/retail_service_crm_profile.json"), _json("examples/professional_service_crm_profile.json")]
     if profiles[0]["terminology"] == profiles[1]["terminology"] or profiles[0]["relationship_types"] == profiles[1]["relationship_types"]:
         raise RuntimeError("SO2_NEUTRALITY_PROFILES")
