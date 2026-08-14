@@ -15,15 +15,15 @@
     },
     {
       "path": "contracts/platform/v1/pc0_module_map.json",
-      "sha256": "22a68db655fe4dbcf6dcf72fd8cd56af5ab229d4c72979f2b425e5719a831339"
+      "sha256": "f6240ac12176dd86844ee8e9b1261a7ab5201b3eb188793fc46b1486e02d6e69"
     },
     {
       "path": "contracts/platform/v1/pc0_data_authority_register.json",
-      "sha256": "a83c13faa4fdaaa48703d504e042442b0860aadf25b968670bb0d47f184ea7d8"
+      "sha256": "3783da335723536076c0c6e17a974a60f08828ca4a4c0566948c4cd9d75d2cbb"
     },
     {
       "path": "contracts/platform/v1/pc0_reference_authority_migration_register.json",
-      "sha256": "5169311cb47ff501e6e720345d32930af198d02084ed7e11374e206083770597"
+      "sha256": "f1135ab93186c0ade500884a63722d6f461d8355c63f212e84dc364c488cd598"
     },
     {
       "path": "contracts/platform/v1/pc0_dependency_policy.json",
@@ -31,7 +31,7 @@
     },
     {
       "path": "contracts/platform/v1/pc0_public_private_interfaces.json",
-      "sha256": "1ab855eba92b085704516b36af624e3b7e4f7025f67b2fcb8e4efa3dc9436954"
+      "sha256": "10b7854c335a82cc49f3e7084ff9d190d15708c11fd96e2ee2d98946a5e21997"
     },
     {
       "path": "contracts/platform/v1/pc0_legacy_exception_baseline.json",
@@ -47,7 +47,7 @@
     },
     {
       "path": "contracts/platform/v1/pc0_frozen_finance_inventory.json",
-      "sha256": "8f5927c56552a16ac32d46d342022004ee3e95454012dce7ce55fe081e29a21a"
+      "sha256": "5102be18321b6204d47a904b8d3315348566d24f5883459198412cc79b426aa1"
     },
     {
       "path": "contracts/platform/v1/pc0_kernel_boundaries.json",
@@ -59,7 +59,7 @@
     },
     {
       "path": "core/platform/architecture_contract.py",
-      "sha256": "1fdb4b175fb0f3df88a7d6979a33f04be7a65a3ec339d045b717168e63914484"
+      "sha256": "592bae2e6501c578e8974ddc1a98dc245b325cd48c84330ee0e316416d1e8f1d"
     },
     {
       "path": "core/platform/release_integrity.py",
@@ -71,7 +71,7 @@
     },
     {
       "path": "tests/contracts/test_pc0_kernel_boundaries.py",
-      "sha256": "601f424a1348068c97086d4bcf536882c8796f98ec4b18afad07307910ef2f95"
+      "sha256": "805d61fcbc63432c5ed1f10f16de4f15a4705437fefe0f773e5117d8a495e8e0"
     },
     {
       "path": "docs/platform_core/PC0_KERNEL_BOUNDARIES.md",

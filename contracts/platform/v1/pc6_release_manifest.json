@@ -37,22 +37,22 @@
     {
       "path": "contracts/platform/v1/pc0_frozen_finance_inventory.json",
       "historical_sha256": "cc09f761922396baf3d3827b817554c04797fb3d0e6f006631b8619c766b961d",
-      "descendant_sha256": "8f5927c56552a16ac32d46d342022004ee3e95454012dce7ce55fe081e29a21a"
+      "descendant_sha256": "5102be18321b6204d47a904b8d3315348566d24f5883459198412cc79b426aa1"
     },
     {
       "path": "contracts/platform/v1/pc0_module_map.json",
       "historical_sha256": "b7aa3da6c481d3957773b0943adbb41b3ae6e9da0c5c5a2f942de2a0a357f98e",
-      "descendant_sha256": "22a68db655fe4dbcf6dcf72fd8cd56af5ab229d4c72979f2b425e5719a831339"
+      "descendant_sha256": "f6240ac12176dd86844ee8e9b1261a7ab5201b3eb188793fc46b1486e02d6e69"
     },
     {
       "path": "contracts/platform/v1/pc0_public_private_interfaces.json",
       "historical_sha256": "e89f7d8fc0a2e2ee5c40dbc0172a4e04c47095c8a5b1f7f862af3ef40df2f5bd",
-      "descendant_sha256": "1ab855eba92b085704516b36af624e3b7e4f7025f67b2fcb8e4efa3dc9436954"
+      "descendant_sha256": "10b7854c335a82cc49f3e7084ff9d190d15708c11fd96e2ee2d98946a5e21997"
     },
     {
       "path": "contracts/platform/v1/pc0_release_manifest.json",
       "historical_sha256": "489eb41292bf57c44396498e12fcfcd5260faeff0f6acc791d6945d0daa0eda8",
-      "descendant_sha256": "2d13ddeb1fc6b055a7bf19fc92fe783d325fdeaafafb4501c2a7756e6c95b7a7"
+      "descendant_sha256": "a238ad2b26016d45a51d2bb5aa325519125a631bc1b0e0ac3e4ab8b7620c8ace"
     },
     {
       "path": "contracts/platform/v1/pc1_public_interfaces.json",
@@ -87,7 +87,7 @@
     {
       "path": "core/platform/architecture_contract.py",
       "historical_sha256": "b649c1971e1d6ffa3614dda021520130461aeb7a2da8d14208b760820bc86385",
-      "descendant_sha256": "1fdb4b175fb0f3df88a7d6979a33f04be7a65a3ec339d045b717168e63914484"
+      "descendant_sha256": "592bae2e6501c578e8974ddc1a98dc245b325cd48c84330ee0e316416d1e8f1d"
     },
     {
       "path": "core/platform/structure/__init__.py",
@@ -102,24 +102,24 @@
     {
       "path": "tests/contracts/test_pc0_kernel_boundaries.py",
       "historical_sha256": "bdfdaa5715b446d6248bd5df66b551ce6a3a9637e7ee840445a9b4ae39539879",
-      "descendant_sha256": "601f424a1348068c97086d4bcf536882c8796f98ec4b18afad07307910ef2f95"
+      "descendant_sha256": "805d61fcbc63432c5ed1f10f16de4f15a4705437fefe0f773e5117d8a495e8e0"
     }
   ],
   "historical_pc2_replacements": [
     {
       "path": "contracts/platform/v1/pc0_module_map.json",
       "historical_sha256": "8e4985a2aea3410da13caaec05f4b2399e07b0662a9b2eb6602030275fc15ae2",
-      "descendant_sha256": "22a68db655fe4dbcf6dcf72fd8cd56af5ab229d4c72979f2b425e5719a831339"
+      "descendant_sha256": "f6240ac12176dd86844ee8e9b1261a7ab5201b3eb188793fc46b1486e02d6e69"
     },
     {
       "path": "contracts/platform/v1/pc0_data_authority_register.json",
       "historical_sha256": "d34e39fed2ab86c673f30e5c8079ccdbe6393f59afd93ea7b5588fbf49013b26",
-      "descendant_sha256": "a83c13faa4fdaaa48703d504e042442b0860aadf25b968670bb0d47f184ea7d8"
+      "descendant_sha256": "3783da335723536076c0c6e17a974a60f08828ca4a4c0566948c4cd9d75d2cbb"
     },
     {
       "path": "contracts/platform/v1/pc0_reference_authority_migration_register.json",
       "historical_sha256": "12e7888d415f028ec65bdd7d3f83eb27e800981e4e5abeae311a3c2d5c3b398a",
-      "descendant_sha256": "5169311cb47ff501e6e720345d32930af198d02084ed7e11374e206083770597"
+      "descendant_sha256": "f1135ab93186c0ade500884a63722d6f461d8355c63f212e84dc364c488cd598"
     },
     {
       "path": "contracts/platform/v1/pc0_dependency_policy.json",
@@ -129,27 +129,27 @@
     {
       "path": "contracts/platform/v1/pc0_public_private_interfaces.json",
       "historical_sha256": "76549ec0a6ccf4f90a082f9d0974daaa410cc4ebc337a09952a4c21cc5068e39",
-      "descendant_sha256": "1ab855eba92b085704516b36af624e3b7e4f7025f67b2fcb8e4efa3dc9436954"
+      "descendant_sha256": "10b7854c335a82cc49f3e7084ff9d190d15708c11fd96e2ee2d98946a5e21997"
     },
     {
       "path": "contracts/platform/v1/pc0_frozen_finance_inventory.json",
       "historical_sha256": "3a300ffabb3fb60a4be1e31481498b5b37cfee676b157e1fd24d654e2628941e",
-      "descendant_sha256": "8f5927c56552a16ac32d46d342022004ee3e95454012dce7ce55fe081e29a21a"
+      "descendant_sha256": "5102be18321b6204d47a904b8d3315348566d24f5883459198412cc79b426aa1"
     },
     {
       "path": "contracts/platform/v1/pc0_release_manifest.json",
       "historical_sha256": "c5c7203390403b8e849f69810bbbc30f1b864ca6e22ea750cdcf4b247ca04eb4",
-      "descendant_sha256": "2d13ddeb1fc6b055a7bf19fc92fe783d325fdeaafafb4501c2a7756e6c95b7a7"
+      "descendant_sha256": "a238ad2b26016d45a51d2bb5aa325519125a631bc1b0e0ac3e4ab8b7620c8ace"
     },
     {
       "path": "core/platform/architecture_contract.py",
       "historical_sha256": "ee8f6427a2d8d0ee2958ab6371d3d0d36c11211fad122f77b3d85b4d8301ec5f",
-      "descendant_sha256": "1fdb4b175fb0f3df88a7d6979a33f04be7a65a3ec339d045b717168e63914484"
+      "descendant_sha256": "592bae2e6501c578e8974ddc1a98dc245b325cd48c84330ee0e316416d1e8f1d"
     },
     {
       "path": "tests/contracts/test_pc0_kernel_boundaries.py",
       "historical_sha256": "6f74e765f9630035570e4f3b1e6fba1ade64cfa036b26d3c04fecd04fa640466",
-      "descendant_sha256": "601f424a1348068c97086d4bcf536882c8796f98ec4b18afad07307910ef2f95"
+      "descendant_sha256": "805d61fcbc63432c5ed1f10f16de4f15a4705437fefe0f773e5117d8a495e8e0"
     },
     {
       "path": "scripts/verify_pc1_structural_authority.py",
@@ -166,17 +166,17 @@
     {
       "path": "contracts/platform/v1/pc0_module_map.json",
       "historical_sha256": "cf0fe04716499dc766a7f03d378f5a08d1d17cdefa4b4318552b3075807638d4",
-      "descendant_sha256": "22a68db655fe4dbcf6dcf72fd8cd56af5ab229d4c72979f2b425e5719a831339"
+      "descendant_sha256": "f6240ac12176dd86844ee8e9b1261a7ab5201b3eb188793fc46b1486e02d6e69"
     },
     {
       "path": "contracts/platform/v1/pc0_data_authority_register.json",
       "historical_sha256": "5764f6ef453a77ad3031e87f91af4eb43089f1071da955f95148c82c1d2b4a39",
-      "descendant_sha256": "a83c13faa4fdaaa48703d504e042442b0860aadf25b968670bb0d47f184ea7d8"
+      "descendant_sha256": "3783da335723536076c0c6e17a974a60f08828ca4a4c0566948c4cd9d75d2cbb"
     },
     {
       "path": "contracts/platform/v1/pc0_reference_authority_migration_register.json",
       "historical_sha256": "99e7d7c4a16ffa68c866556b3f3f381c4b832acddd7537f04a0da2c3e742d5d4",
-      "descendant_sha256": "5169311cb47ff501e6e720345d32930af198d02084ed7e11374e206083770597"
+      "descendant_sha256": "f1135ab93186c0ade500884a63722d6f461d8355c63f212e84dc364c488cd598"
     },
     {
       "path": "contracts/platform/v1/pc0_dependency_policy.json",
@@ -186,27 +186,27 @@
     {
       "path": "contracts/platform/v1/pc0_public_private_interfaces.json",
       "historical_sha256": "dd5202a03e5edae1e931594fe70c187768f7b974a5bbb4a52c088358ef36681b",
-      "descendant_sha256": "1ab855eba92b085704516b36af624e3b7e4f7025f67b2fcb8e4efa3dc9436954"
+      "descendant_sha256": "10b7854c335a82cc49f3e7084ff9d190d15708c11fd96e2ee2d98946a5e21997"
     },
     {
       "path": "contracts/platform/v1/pc0_frozen_finance_inventory.json",
       "historical_sha256": "eef26e8f1f368e35564844895bd253f816acc291b4129cb95a2718e808b3b064",
-      "descendant_sha256": "8f5927c56552a16ac32d46d342022004ee3e95454012dce7ce55fe081e29a21a"
+      "descendant_sha256": "5102be18321b6204d47a904b8d3315348566d24f5883459198412cc79b426aa1"
     },
     {
       "path": "contracts/platform/v1/pc0_release_manifest.json",
       "historical_sha256": "05ff891997e798f2b5fca45dca4f835fe2c37b78d7256438a5212c0e0b7d4271",
-      "descendant_sha256": "2d13ddeb1fc6b055a7bf19fc92fe783d325fdeaafafb4501c2a7756e6c95b7a7"
+      "descendant_sha256": "a238ad2b26016d45a51d2bb5aa325519125a631bc1b0e0ac3e4ab8b7620c8ace"
     },
     {
       "path": "core/platform/architecture_contract.py",
       "historical_sha256": "82b2cd329bf79cd1972c11b6ac329a5236e5f992e0929c333a19db8f1394c029",
-      "descendant_sha256": "1fdb4b175fb0f3df88a7d6979a33f04be7a65a3ec339d045b717168e63914484"
+      "descendant_sha256": "592bae2e6501c578e8974ddc1a98dc245b325cd48c84330ee0e316416d1e8f1d"
     },
     {
       "path": "tests/contracts/test_pc0_kernel_boundaries.py",
       "historical_sha256": "7b9a8975cea651b85f0d636d4d7a02a57e007d7004819828a4900ccac0973273",
-      "descendant_sha256": "601f424a1348068c97086d4bcf536882c8796f98ec4b18afad07307910ef2f95"
+      "descendant_sha256": "805d61fcbc63432c5ed1f10f16de4f15a4705437fefe0f773e5117d8a495e8e0"
     },
     {
       "path": "scripts/verify_pc1_structural_authority.py",
@@ -228,17 +228,17 @@
     {
       "path": "contracts/platform/v1/pc0_module_map.json",
       "historical_sha256": "84e13a6903be265fbe1c3a51691a6df50115bb49e678a7e292896fecb97703b7",
-      "descendant_sha256": "22a68db655fe4dbcf6dcf72fd8cd56af5ab229d4c72979f2b425e5719a831339"
+      "descendant_sha256": "f6240ac12176dd86844ee8e9b1261a7ab5201b3eb188793fc46b1486e02d6e69"
     },
     {
       "path": "contracts/platform/v1/pc0_data_authority_register.json",
       "historical_sha256": "c1a0b7fc9bfd8fccb215bcc4d8c85b9d0592ac31eeb1c4b3ffd553c28e63f9bd",
-      "descendant_sha256": "a83c13faa4fdaaa48703d504e042442b0860aadf25b968670bb0d47f184ea7d8"
+      "descendant_sha256": "3783da335723536076c0c6e17a974a60f08828ca4a4c0566948c4cd9d75d2cbb"
     },
     {
       "path": "contracts/platform/v1/pc0_reference_authority_migration_register.json",
       "historical_sha256": "ff041b05b790990f78a0cc553244305793ecea63aaf5ec413ec441ec2641f241",
-      "descendant_sha256": "5169311cb47ff501e6e720345d32930af198d02084ed7e11374e206083770597"
+      "descendant_sha256": "f1135ab93186c0ade500884a63722d6f461d8355c63f212e84dc364c488cd598"
     },
     {
       "path": "contracts/platform/v1/pc0_dependency_policy.json",
@@ -248,27 +248,27 @@
     {
       "path": "contracts/platform/v1/pc0_public_private_interfaces.json",
       "historical_sha256": "9e4562c17235e8adc7b0beab03f9bcb9cc6a589eadb9017f825682b35e767d70",
-      "descendant_sha256": "1ab855eba92b085704516b36af624e3b7e4f7025f67b2fcb8e4efa3dc9436954"
+      "descendant_sha256": "10b7854c335a82cc49f3e7084ff9d190d15708c11fd96e2ee2d98946a5e21997"
     },
     {
       "path": "contracts/platform/v1/pc0_frozen_finance_inventory.json",
       "historical_sha256": "8b466e2a78efe2967fbb1c8a4a8521791b1f7656c0e91e458cb9532dec85f420",
-      "descendant_sha256": "8f5927c56552a16ac32d46d342022004ee3e95454012dce7ce55fe081e29a21a"
+      "descendant_sha256": "5102be18321b6204d47a904b8d3315348566d24f5883459198412cc79b426aa1"
     },
     {
       "path": "contracts/platform/v1/pc0_release_manifest.json",
       "historical_sha256": "d5b83cb554d8ae36d2c7a8d31e31978770e9921ff6c1834fcbb3bafa0e4823b2",
-      "descendant_sha256": "2d13ddeb1fc6b055a7bf19fc92fe783d325fdeaafafb4501c2a7756e6c95b7a7"
+      "descendant_sha256": "a238ad2b26016d45a51d2bb5aa325519125a631bc1b0e0ac3e4ab8b7620c8ace"
     },
     {
       "path": "core/platform/architecture_contract.py",
       "historical_sha256": "3627ac0ff53f9aed487e4dfb412fd03c1f156aadb34a253ad5ea81a64051edc5",
-      "descendant_sha256": "1fdb4b175fb0f3df88a7d6979a33f04be7a65a3ec339d045b717168e63914484"
+      "descendant_sha256": "592bae2e6501c578e8974ddc1a98dc245b325cd48c84330ee0e316416d1e8f1d"
     },
     {
       "path": "tests/contracts/test_pc0_kernel_boundaries.py",
       "historical_sha256": "789617715628e9545e19679df21081ffe0b4ada0026a484c86030a2fc4adca2b",
-      "descendant_sha256": "601f424a1348068c97086d4bcf536882c8796f98ec4b18afad07307910ef2f95"
+      "descendant_sha256": "805d61fcbc63432c5ed1f10f16de4f15a4705437fefe0f773e5117d8a495e8e0"
     },
     {
       "path": "scripts/verify_pc1_structural_authority.py",
@@ -305,17 +305,17 @@
     {
       "path": "contracts/platform/v1/pc0_module_map.json",
       "historical_sha256": "7f73a85016c667c67342167729be2e51ddc3bca7d02547f33b7b467b090345f5",
-      "descendant_sha256": "22a68db655fe4dbcf6dcf72fd8cd56af5ab229d4c72979f2b425e5719a831339"
+      "descendant_sha256": "f6240ac12176dd86844ee8e9b1261a7ab5201b3eb188793fc46b1486e02d6e69"
     },
     {
       "path": "contracts/platform/v1/pc0_data_authority_register.json",
       "historical_sha256": "77b8ad503514a0e659f24211c956618c432522e25460eb04863915b851dc4207",
-      "descendant_sha256": "a83c13faa4fdaaa48703d504e042442b0860aadf25b968670bb0d47f184ea7d8"
+      "descendant_sha256": "3783da335723536076c0c6e17a974a60f08828ca4a4c0566948c4cd9d75d2cbb"
     },
     {
       "path": "contracts/platform/v1/pc0_reference_authority_migration_register.json",
       "historical_sha256": "a76f072f1cd963cbdfc55076a22237af5f1a55e4a13adb6d0efc59ab8d86916f",
-      "descendant_sha256": "5169311cb47ff501e6e720345d32930af198d02084ed7e11374e206083770597"
+      "descendant_sha256": "f1135ab93186c0ade500884a63722d6f461d8355c63f212e84dc364c488cd598"
     },
     {
       "path": "contracts/platform/v1/pc0_dependency_policy.json",
@@ -325,27 +325,27 @@
     {
       "path": "contracts/platform/v1/pc0_public_private_interfaces.json",
       "historical_sha256": "537f758eaf42f24c898d31730085e2d8eb67c405930d06c349fba2a427a48423",
-      "descendant_sha256": "1ab855eba92b085704516b36af624e3b7e4f7025f67b2fcb8e4efa3dc9436954"
+      "descendant_sha256": "10b7854c335a82cc49f3e7084ff9d190d15708c11fd96e2ee2d98946a5e21997"
     },
     {
       "path": "contracts/platform/v1/pc0_frozen_finance_inventory.json",
       "historical_sha256": "b58527481b5979df4478faebded3ca474f7bd77940a236c3988955dd0ce56622",
-      "descendant_sha256": "8f5927c56552a16ac32d46d342022004ee3e95454012dce7ce55fe081e29a21a"
+      "descendant_sha256": "5102be18321b6204d47a904b8d3315348566d24f5883459198412cc79b426aa1"
     },
     {
       "path": "contracts/platform/v1/pc0_release_manifest.json",
       "historical_sha256": "7fa650cf646c478e55059273384a5f6a4d7f50f480a49b731a2fdbf09ba75115",
-      "descendant_sha256": "2d13ddeb1fc6b055a7bf19fc92fe783d325fdeaafafb4501c2a7756e6c95b7a7"
+      "descendant_sha256": "a238ad2b26016d45a51d2bb5aa325519125a631bc1b0e0ac3e4ab8b7620c8ace"
     },
     {
       "path": "core/platform/architecture_contract.py",
       "historical_sha256": "d6126f44340dc53436fc80313248ee7844c64abf421166e148ab49bb763f5f84",
-      "descendant_sha256": "1fdb4b175fb0f3df88a7d6979a33f04be7a65a3ec339d045b717168e63914484"
+      "descendant_sha256": "592bae2e6501c578e8974ddc1a98dc245b325cd48c84330ee0e316416d1e8f1d"
     },
     {
       "path": "tests/contracts/test_pc0_kernel_boundaries.py",
       "historical_sha256": "c98caeeb6dfe73bfbf8f1ae2da8c0fbabaa4407999bb3e33cb321f631029a675",
-      "descendant_sha256": "601f424a1348068c97086d4bcf536882c8796f98ec4b18afad07307910ef2f95"
+      "descendant_sha256": "805d61fcbc63432c5ed1f10f16de4f15a4705437fefe0f773e5117d8a495e8e0"
     },
     {
       "path": "tests/contracts/test_pc4_cumulative_release_manifest_chain.py",
@@ -385,19 +385,19 @@
     },
     {
       "path": "contracts/platform/v1/pc0_module_map.json",
-      "sha256": "22a68db655fe4dbcf6dcf72fd8cd56af5ab229d4c72979f2b425e5719a831339"
+      "sha256": "f6240ac12176dd86844ee8e9b1261a7ab5201b3eb188793fc46b1486e02d6e69"
     },
     {
       "path": "contracts/platform/v1/pc0_public_private_interfaces.json",
-      "sha256": "1ab855eba92b085704516b36af624e3b7e4f7025f67b2fcb8e4efa3dc9436954"
+      "sha256": "10b7854c335a82cc49f3e7084ff9d190d15708c11fd96e2ee2d98946a5e21997"
     },
     {
       "path": "contracts/platform/v1/pc0_reference_authority_migration_register.json",
-      "sha256": "5169311cb47ff501e6e720345d32930af198d02084ed7e11374e206083770597"
+      "sha256": "f1135ab93186c0ade500884a63722d6f461d8355c63f212e84dc364c488cd598"
     },
     {
       "path": "contracts/platform/v1/pc0_release_manifest.json",
-      "sha256": "2d13ddeb1fc6b055a7bf19fc92fe783d325fdeaafafb4501c2a7756e6c95b7a7"
+      "sha256": "a238ad2b26016d45a51d2bb5aa325519125a631bc1b0e0ac3e4ab8b7620c8ace"
     },
     {
       "path": "contracts/platform/v1/pc1_public_interfaces.json",
@@ -421,7 +421,7 @@
     },
     {
       "path": "core/platform/architecture_contract.py",
-      "sha256": "1fdb4b175fb0f3df88a7d6979a33f04be7a65a3ec339d045b717168e63914484"
+      "sha256": "592bae2e6501c578e8974ddc1a98dc245b325cd48c84330ee0e316416d1e8f1d"
     },
     {
       "path": "core/platform/neutral_proof/__init__.py",
@@ -497,7 +497,7 @@
     },
     {
       "path": "tests/contracts/test_pc6_neutral_platform_proof.py",
-      "sha256": "bdda468123158ce830c251f9129d55bf2cfff916805ddf2a291c4e8d59710097"
+      "sha256": "e1c2e1ac440b5bffbcf4181d69a9ad2fa971c80ffea177954c84189b6b3dc12b"
     }
   ],
   "neutral_proof": {

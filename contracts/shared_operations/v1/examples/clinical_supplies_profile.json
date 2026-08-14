@@ -1,0 +1,1 @@
+{"profile":"clinical_supplies","terminology":{"atomic_unit":"Supply item","stock_location":"Supply room","reservation":"Case hold"},"features":["controlled_issue","counts","expiry_reference"],"financial_valuation":"NONE"}

@@ -1,0 +1,1 @@
+{"profile":"retail_inventory","terminology":{"atomic_unit":"SKU","stock_location":"Store","reservation":"Allocation"},"features":["transfers","cycle_counts","reorder_projection"],"financial_valuation":"NONE"}

@@ -1,0 +1,8 @@
+XBOS SO3 Inventory and Stock Movement Primitives
+
+1. Confirm the clean accepted source checkpoint is fdb2cc853705b6a6905048741bb78b3bdc81428c.
+2. Activate the approved Python 3.13.3 environment.
+3. Expand XBOS_SO3_INVENTORY_STOCK_MOVEMENT_PRIMITIVES.zip into the repository root with -Force.
+4. Run XBOS_SO3_RUN_ACCEPTANCE.cmd.
+
+The gate first verifies PC0-PC6, XA, SO0-SO2 and SO3 contracts. PostgreSQL work uses a disposable template0 database, proves predecessor replay and downgrade/re-upgrade, then permits only predecessor-to-SO3 development adoption or verification in place. No commit or tag is created.

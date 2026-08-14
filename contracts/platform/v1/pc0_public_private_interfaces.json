@@ -15,7 +15,7 @@
     {"module":"identity","public":["request.state.user compatibility context","request.state.permissions compatibility context","core.rbac.utils.permission_decorator.require_permissions compatibility guard"],"private":["core.auth.*","core.users.*","core.rbac.roles.* repositories and seeders","legacy password hashes and token material"]},
     {"module":"taxonomy","public":["/kernel/taxonomy API compatibility surface"],"private":["core.domain.taxonomy.models","core.domain.taxonomy.repository","core.domain.taxonomy.service"]},
     {"module":"catalog","public":["/kernel/catalog API compatibility surface"],"private":["core.domain.catalog.*"]},
-    {"module":"inventory","public":["/kernel/inventory API compatibility surface"],"private":["core.domain.inventory.*"]},
+    {"module":"inventory","public":["/kernel/inventory API compatibility surface","shared_operations.so3.SO3Authority","shared_operations.so3.SO3AuthorityError","shared_operations.so3.RegisterStockLocation","shared_operations.so3.MoveStock","shared_operations.so3.TransferStock","shared_operations.so3.ReserveStock","shared_operations.so3.InitiateStockCount","shared_operations.so3.CorrectMovement"],"private":["core.domain.inventory.*","shared_operations.so3.sql_repository"]},
     {"module":"orders","public":["/kernel/orders API compatibility surface"],"private":["core.domain.orders.*"]},
     {"module":"sales","public":["/kernel/sales API compatibility surface"],"private":["core.domain.sales.*"]},
     {"module":"legacy_accounting","public":["/kernel/accounting API compatibility surface"],"private":["core.domain.accounting.*"]},

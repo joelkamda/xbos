@@ -1,0 +1,142 @@
+{
+  "schema_version": 1,
+  "release": "XBOS_SO3_INVENTORY_STOCK_MOVEMENT_PRIMITIVES",
+  "source_checkpoint": "fdb2cc8",
+  "source_checkpoint_full": "fdb2cc853705b6a6905048741bb78b3bdc81428c",
+  "previous_head": "so2_operational_party_relationships_027",
+  "accepted_head": "so3_inventory_stock_movement_028",
+  "migration_count": 1,
+  "fingerprint_mode": "sha256_crlf_to_lf_only",
+  "commit": "NOT_CREATED",
+  "tag": "NOT_CREATED",
+  "artifacts": [
+    {
+      "path": "SO3_INSTALL_MANIFEST.txt",
+      "sha256": "9b62e7bf78d4b8a5b57ff6f8966df2e1e4c7f44aeb6a7897b6dfe57185c85154"
+    },
+    {
+      "path": "XBOS_SO3_INSTALL_AND_VERIFY.txt",
+      "sha256": "a816fc790fb7bcfed187931f96587a725831ebf508df0f4d2f9c230d9d17b07c"
+    },
+    {
+      "path": "XBOS_SO3_RUN_ACCEPTANCE.cmd",
+      "sha256": "ad60594eba6ffb32acd0b3b20cf39f75bc304da1f246556ef994680ea43d55ee"
+    },
+    {
+      "path": "alembic_neutral/sql/so3_inventory_stock_movement_down.sql",
+      "sha256": "c4a8c6de1fbb03a72f8b2196cd4083d6391af29ca11a381c05758c94972c71fc"
+    },
+    {
+      "path": "alembic_neutral/sql/so3_inventory_stock_movement_up.sql",
+      "sha256": "7a424feae3f6bb0baddd537fafdf81a8d8f6ef08877862ae83b058dd488d6aab"
+    },
+    {
+      "path": "alembic_neutral/versions/so3_inventory_stock_movement_028.py",
+      "sha256": "52180629c0fa39e492e21b71a5cce4bbbcc9b7f8abbc45a100fd5da6d538191a"
+    },
+    {
+      "path": "contracts/platform/v1/pc0_data_authority_register.json",
+      "sha256": "3783da335723536076c0c6e17a974a60f08828ca4a4c0566948c4cd9d75d2cbb"
+    },
+    {
+      "path": "contracts/platform/v1/pc0_frozen_finance_inventory.json",
+      "sha256": "5102be18321b6204d47a904b8d3315348566d24f5883459198412cc79b426aa1"
+    },
+    {
+      "path": "contracts/platform/v1/pc0_module_map.json",
+      "sha256": "f6240ac12176dd86844ee8e9b1261a7ab5201b3eb188793fc46b1486e02d6e69"
+    },
+    {
+      "path": "contracts/platform/v1/pc0_public_private_interfaces.json",
+      "sha256": "10b7854c335a82cc49f3e7084ff9d190d15708c11fd96e2ee2d98946a5e21997"
+    },
+    {
+      "path": "contracts/platform/v1/pc0_reference_authority_migration_register.json",
+      "sha256": "f1135ab93186c0ade500884a63722d6f461d8355c63f212e84dc364c488cd598"
+    },
+    {
+      "path": "contracts/platform/v1/pc0_release_manifest.json",
+      "sha256": "a238ad2b26016d45a51d2bb5aa325519125a631bc1b0e0ac3e4ab8b7620c8ace"
+    },
+    {
+      "path": "contracts/platform/v1/pc6_release_manifest.json",
+      "sha256": "1019af68cf9a2e372f6418e1822007b60ca8569d0e1582721c7f47e1942d495e"
+    },
+    {
+      "path": "contracts/shared_operations/v1/examples/clinical_supplies_profile.json",
+      "sha256": "95398763b54a9de20f76167203ecda30a2a065e87b7c6318b6d78fafef9dff51"
+    },
+    {
+      "path": "contracts/shared_operations/v1/examples/retail_inventory_profile.json",
+      "sha256": "5fdd623c2202cb71cfad1cec9fbba9fae025081ef8411585744103162f186bf9"
+    },
+    {
+      "path": "contracts/shared_operations/v1/so1_release_manifest.json",
+      "sha256": "3a882b299b6f7a1e4568bb1ab44a8390e044b6b608cc9943edebc76692db8691"
+    },
+    {
+      "path": "contracts/shared_operations/v1/so2_release_manifest.json",
+      "sha256": "d050dc37f2e63089488d63e8be4c6b749801a09e8d174070a77b771a00ad5512"
+    },
+    {
+      "path": "contracts/shared_operations/v1/so3_authority.json",
+      "sha256": "24d0ec7cd3bbcc33b7c1fd4a61a4a35ec0213b32b0848366d1c2d57534a6db4e"
+    },
+    {
+      "path": "contracts/shared_operations/v1/so3_legacy_adoption_manifest.json",
+      "sha256": "ff15267fdd62a823406f1525afc97d917c0d38540a91ea52599fd30f0225cb59"
+    },
+    {
+      "path": "contracts/shared_operations/v1/so3_public_interfaces.json",
+      "sha256": "52ad859fc2f76dda139d7893573597cd0169000a293537912e50e7b8bf066cfc"
+    },
+    {
+      "path": "contracts/shared_operations/v1/so3_xa_metadata.json",
+      "sha256": "bb49832fcd5fbc180f8c351425c6bd7c6ec05acd22d80fa16f874e02d460b726"
+    },
+    {
+      "path": "core/platform/architecture_contract.py",
+      "sha256": "592bae2e6501c578e8974ddc1a98dc245b325cd48c84330ee0e316416d1e8f1d"
+    },
+    {
+      "path": "docs/shared_operations/SO3_INVENTORY_STOCK_MOVEMENT_PRIMITIVES.md",
+      "sha256": "a11cc94593a2be8849f5664d2809902b9c4b329d797a047473556191b158e303"
+    },
+    {
+      "path": "docs/shared_operations/adr/0014_SO3_ADOPT_LEGACY_INVENTORY_AS_NEUTRAL_QUANTITY_AUTHORITY.md",
+      "sha256": "dc01ffe935767897a295db34a7b49acb15d71e775fcd9bf5271224114f32e90f"
+    },
+    {
+      "path": "scripts/verify_so3_inventory_stock_movement.py",
+      "sha256": "aad3493ace27d26bedf7368016c66660d288234f41498ad84e00e55c7dfacbfd"
+    },
+    {
+      "path": "shared_operations/so3/__init__.py",
+      "sha256": "1a227ce909554a97ee41446f93bfe9b64aaa62c39349cdea7c4d90ddfc618226"
+    },
+    {
+      "path": "shared_operations/so3/contracts.py",
+      "sha256": "05c8255decbfdd99738af8997441061ff882afce7a6cae36ef6b30ee5d73875b"
+    },
+    {
+      "path": "shared_operations/so3/service.py",
+      "sha256": "179a7634235863bf9221d07590b99587120803ea84a9bb88392ea40261d2a116"
+    },
+    {
+      "path": "shared_operations/so3/sql_repository.py",
+      "sha256": "020b4b91130417db31b8dbe54bf82da01a45d6df4095f64181418ce9bfd01807"
+    },
+    {
+      "path": "tests/contracts/test_pc0_kernel_boundaries.py",
+      "sha256": "805d61fcbc63432c5ed1f10f16de4f15a4705437fefe0f773e5117d8a495e8e0"
+    },
+    {
+      "path": "tests/contracts/test_pc6_neutral_platform_proof.py",
+      "sha256": "e1c2e1ac440b5bffbcf4181d69a9ad2fa971c80ffea177954c84189b6b3dc12b"
+    },
+    {
+      "path": "tests/contracts/test_so3_inventory_stock_movement.py",
+      "sha256": "290f5e85a65e4f6e698983bf7bd1655db6dcb63316623eed3a2232bc2f76fe51"
+    }
+  ]
+}

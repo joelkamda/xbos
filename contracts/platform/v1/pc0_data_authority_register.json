@@ -31,7 +31,7 @@
     {"code":"document_file","owner":"SO7","current_store":"financial evidence references and legacy receipt artifacts","boundary":"generic document, file and issued-record authority"},
     {"code":"atomic_unit","owner":"SO0","current_store":"atomic_units","boundary":"neutral operational unit identity and capability"},
     {"code":"operational_party_relationship","owner":"SO2","current_store":"so2_operational_relationships and append-only so2_relationship_history","boundary":"tenant-scoped operational participation around PC2 Party; never Party identity, auth role, semantic identity, audit or Finance truth"},
-    {"code":"inventory_stock","owner":"SO3","current_store":"inventory_items and inventory_movements","boundary":"stock and quantity truth"},
+    {"code":"inventory_stock","module":"inventory","owner":"SO3","current_store":"adopted inventory_items position cache, append-only inventory_movements, so3_stock_locations, reservations, counts and transfers","boundary":"tenant/location/Atomic Unit quantity truth; excludes financial valuation, procurement and frontend truth"},
     {"code":"pack_manifest_lifecycle","owner":"PK","current_store":"absent","boundary":"pack identity, dependency graph, installation and lifecycle"},
     {"code":"wnd_cutover","owner":"R6","current_store":"legacy production routing","boundary":"live WND migration, cutover and writer retirement"}
   ],

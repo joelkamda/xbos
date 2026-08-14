@@ -10,32 +10,113 @@
   "commit": "NOT_CREATED",
   "tag": "NOT_CREATED",
   "artifacts": [
-    {"path":"SO1_INSTALL_MANIFEST.txt","sha256":"2e7438810f0bc49e18189c4fa51e6cc1e87f3015027feb78a694bcbcf7937036"},
-    {"path":"XBOS_SO1_INSTALL_AND_VERIFY.txt","sha256":"2b1d4530f2a2bd591d014168447264824db2eb7c56ca089bc9cb0f8adf99328b"},
-    {"path":"XBOS_SO1_RUN_ACCEPTANCE.cmd","sha256":"84d3d52402e933cb213c2d67f3b24cd329a4aa38e3ef440a4a1053288e2fcccd"},
-    {"path":"alembic_neutral/sql/so1_atomic_catalog_offer_pricing_down.sql","sha256":"6144be7149bc737acea42b55dc34f807fc86fda1aa73c27a45a48ad9d1dea1f6"},
-    {"path":"alembic_neutral/sql/so1_atomic_catalog_offer_pricing_up.sql","sha256":"0db43a255d884fa0ada5fcea30b659557c06e1b6a7eaa4bf2956bf584246cd5f"},
-    {"path":"alembic_neutral/versions/so1_atomic_catalog_offer_pricing_026.py","sha256":"ea1b72b027f0ca4bd22462f614b8a63192135f24313a32c5434d9769564f3768"},
-    {"path":"contracts/platform/v1/pc0_frozen_finance_inventory.json","sha256":"8f5927c56552a16ac32d46d342022004ee3e95454012dce7ce55fe081e29a21a"},
-    {"path":"contracts/platform/v1/pc0_release_manifest.json","sha256":"2d13ddeb1fc6b055a7bf19fc92fe783d325fdeaafafb4501c2a7756e6c95b7a7"},
-    {"path":"contracts/platform/v1/pc6_release_manifest.json","sha256":"692143a324c12cc9cace875d1e1e99fddb3496fd6866b810997b4631c4e204c8"},
-    {"path":"contracts/shared_operations/v1/examples/professional_service_profile.json","sha256":"e2da163ae110d9e42ed268fd7fc97772c6f8b6061b495ac40dc9be23db3a7670"},
-    {"path":"contracts/shared_operations/v1/examples/retail_service_profile.json","sha256":"32e21c13aa4885d220b1dc28ffcc703e01694e3d87ea5a9b8d2f658832cb97bb"},
-    {"path":"contracts/shared_operations/v1/so0_release_manifest.json","sha256":"69e5af59af71a666d029ec536c80316a9d007f451ad1e677cdf30212520527cd"},
-    {"path":"contracts/shared_operations/v1/so1_authority.json","sha256":"da260de1d106f4f740473d57613b5dea6174740761433d335a41351f32644a3d"},
-    {"path":"contracts/shared_operations/v1/so1_legacy_adoption_manifest.json","sha256":"62e6fae950d736a4f61b5571a87de193f6e80bcb09a0ca4ea99ca2dea56a37dc"},
-    {"path":"contracts/shared_operations/v1/so1_public_interfaces.json","sha256":"01e4833455258962230c5e7145e30de33043ae953e95167ffd3acc82781d5ff7"},
-    {"path":"contracts/shared_operations/v1/so1_xa_metadata.json","sha256":"e50a1357540d0bbcba0bff07bc9f04ee956ada21d1d7c6ecbf1f6f0770c326b1"},
-    {"path":"core/platform/architecture_contract.py","sha256":"1fdb4b175fb0f3df88a7d6979a33f04be7a65a3ec339d045b717168e63914484"},
-    {"path":"docs/shared_operations/SO1_ATOMIC_UNITS_CATALOG_OFFERS_PRICING.md","sha256":"e720e47c54c9ff4f77a39c7a66ec881d76d733eccc14d5cc1680c2548ce36f84"},
-    {"path":"docs/shared_operations/adr/0012_SO1_ADOPT_ATOMIC_UNIT_AND_SEPARATE_CATALOG_OFFER_PRICE.md","sha256":"4418d5d990ac92467f18aa314dd05c9399365fdc4b0b32a57325be52580538f3"},
-    {"path":"scripts/verify_so0_shared_operations.py","sha256":"9d6f13c5fdfba1fa84f78b94828b0d17c02a841ddfc677a59f67d7f9fce6a4bd"},
-    {"path":"scripts/verify_so1_atomic_catalog_pricing.py","sha256":"72adade18b1be25292d1bba520c9759bb64f942a68b2a794e4ba756ac3f2f498"},
-    {"path":"shared_operations/so1/__init__.py","sha256":"36e4c790271c921686a537236900b3212c4dc5b95cfb4ffa301c7f624a2cf3f5"},
-    {"path":"shared_operations/so1/contracts.py","sha256":"84d827ba6bfc52945cd45c91fd67d10024f6cf6065573df1260125a2acb937b1"},
-    {"path":"shared_operations/so1/service.py","sha256":"5ede283f303f0e05f107de699e351fe5ef875b472ba81c407e873a4508fd19da"},
-    {"path":"shared_operations/so1/sql_repository.py","sha256":"2c9f816d0a4b898e1ecc40c6d9a3ac57c576db478bc97905e0a40aaf4abd5e8a"},
-    {"path":"tests/contracts/test_pc0_kernel_boundaries.py","sha256":"601f424a1348068c97086d4bcf536882c8796f98ec4b18afad07307910ef2f95"},
-    {"path":"tests/contracts/test_so1_atomic_catalog_pricing.py","sha256":"ab7072608093fd4361e9a56d145b7c76598c2b24f2f283bd66f1db1bf1055032"}
+    {
+      "path": "SO1_INSTALL_MANIFEST.txt",
+      "sha256": "2e7438810f0bc49e18189c4fa51e6cc1e87f3015027feb78a694bcbcf7937036"
+    },
+    {
+      "path": "XBOS_SO1_INSTALL_AND_VERIFY.txt",
+      "sha256": "2b1d4530f2a2bd591d014168447264824db2eb7c56ca089bc9cb0f8adf99328b"
+    },
+    {
+      "path": "XBOS_SO1_RUN_ACCEPTANCE.cmd",
+      "sha256": "84d3d52402e933cb213c2d67f3b24cd329a4aa38e3ef440a4a1053288e2fcccd"
+    },
+    {
+      "path": "alembic_neutral/sql/so1_atomic_catalog_offer_pricing_down.sql",
+      "sha256": "6144be7149bc737acea42b55dc34f807fc86fda1aa73c27a45a48ad9d1dea1f6"
+    },
+    {
+      "path": "alembic_neutral/sql/so1_atomic_catalog_offer_pricing_up.sql",
+      "sha256": "0db43a255d884fa0ada5fcea30b659557c06e1b6a7eaa4bf2956bf584246cd5f"
+    },
+    {
+      "path": "alembic_neutral/versions/so1_atomic_catalog_offer_pricing_026.py",
+      "sha256": "ea1b72b027f0ca4bd22462f614b8a63192135f24313a32c5434d9769564f3768"
+    },
+    {
+      "path": "contracts/platform/v1/pc0_frozen_finance_inventory.json",
+      "sha256": "5102be18321b6204d47a904b8d3315348566d24f5883459198412cc79b426aa1"
+    },
+    {
+      "path": "contracts/platform/v1/pc0_release_manifest.json",
+      "sha256": "a238ad2b26016d45a51d2bb5aa325519125a631bc1b0e0ac3e4ab8b7620c8ace"
+    },
+    {
+      "path": "contracts/platform/v1/pc6_release_manifest.json",
+      "sha256": "1019af68cf9a2e372f6418e1822007b60ca8569d0e1582721c7f47e1942d495e"
+    },
+    {
+      "path": "contracts/shared_operations/v1/examples/professional_service_profile.json",
+      "sha256": "e2da163ae110d9e42ed268fd7fc97772c6f8b6061b495ac40dc9be23db3a7670"
+    },
+    {
+      "path": "contracts/shared_operations/v1/examples/retail_service_profile.json",
+      "sha256": "32e21c13aa4885d220b1dc28ffcc703e01694e3d87ea5a9b8d2f658832cb97bb"
+    },
+    {
+      "path": "contracts/shared_operations/v1/so0_release_manifest.json",
+      "sha256": "69e5af59af71a666d029ec536c80316a9d007f451ad1e677cdf30212520527cd"
+    },
+    {
+      "path": "contracts/shared_operations/v1/so1_authority.json",
+      "sha256": "da260de1d106f4f740473d57613b5dea6174740761433d335a41351f32644a3d"
+    },
+    {
+      "path": "contracts/shared_operations/v1/so1_legacy_adoption_manifest.json",
+      "sha256": "62e6fae950d736a4f61b5571a87de193f6e80bcb09a0ca4ea99ca2dea56a37dc"
+    },
+    {
+      "path": "contracts/shared_operations/v1/so1_public_interfaces.json",
+      "sha256": "01e4833455258962230c5e7145e30de33043ae953e95167ffd3acc82781d5ff7"
+    },
+    {
+      "path": "contracts/shared_operations/v1/so1_xa_metadata.json",
+      "sha256": "e50a1357540d0bbcba0bff07bc9f04ee956ada21d1d7c6ecbf1f6f0770c326b1"
+    },
+    {
+      "path": "core/platform/architecture_contract.py",
+      "sha256": "592bae2e6501c578e8974ddc1a98dc245b325cd48c84330ee0e316416d1e8f1d"
+    },
+    {
+      "path": "docs/shared_operations/SO1_ATOMIC_UNITS_CATALOG_OFFERS_PRICING.md",
+      "sha256": "e720e47c54c9ff4f77a39c7a66ec881d76d733eccc14d5cc1680c2548ce36f84"
+    },
+    {
+      "path": "docs/shared_operations/adr/0012_SO1_ADOPT_ATOMIC_UNIT_AND_SEPARATE_CATALOG_OFFER_PRICE.md",
+      "sha256": "4418d5d990ac92467f18aa314dd05c9399365fdc4b0b32a57325be52580538f3"
+    },
+    {
+      "path": "scripts/verify_so0_shared_operations.py",
+      "sha256": "9d6f13c5fdfba1fa84f78b94828b0d17c02a841ddfc677a59f67d7f9fce6a4bd"
+    },
+    {
+      "path": "scripts/verify_so1_atomic_catalog_pricing.py",
+      "sha256": "72adade18b1be25292d1bba520c9759bb64f942a68b2a794e4ba756ac3f2f498"
+    },
+    {
+      "path": "shared_operations/so1/__init__.py",
+      "sha256": "36e4c790271c921686a537236900b3212c4dc5b95cfb4ffa301c7f624a2cf3f5"
+    },
+    {
+      "path": "shared_operations/so1/contracts.py",
+      "sha256": "84d827ba6bfc52945cd45c91fd67d10024f6cf6065573df1260125a2acb937b1"
+    },
+    {
+      "path": "shared_operations/so1/service.py",
+      "sha256": "5ede283f303f0e05f107de699e351fe5ef875b472ba81c407e873a4508fd19da"
+    },
+    {
+      "path": "shared_operations/so1/sql_repository.py",
+      "sha256": "2c9f816d0a4b898e1ecc40c6d9a3ac57c576db478bc97905e0a40aaf4abd5e8a"
+    },
+    {
+      "path": "tests/contracts/test_pc0_kernel_boundaries.py",
+      "sha256": "805d61fcbc63432c5ed1f10f16de4f15a4705437fefe0f773e5117d8a495e8e0"
+    },
+    {
+      "path": "tests/contracts/test_so1_atomic_catalog_pricing.py",
+      "sha256": "ab7072608093fd4361e9a56d145b7c76598c2b24f2f283bd66f1db1bf1055032"
+    }
   ]
 }

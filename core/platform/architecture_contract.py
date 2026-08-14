@@ -140,6 +140,53 @@ def _module_for_path(path: str, roots: Iterable[tuple[str, str]]) -> str | None:
     return None
 
 
+def validate_frozen_module_descendants(
+    frozen_modules: dict[str, tuple[str, str]],
+    module_map: dict[str, Any],
+    authorities: dict[str, Any],
+    reference_migrations: dict[str, Any],
+) -> None:
+    """Protect frozen capabilities while allowing exactly registered promotions."""
+    modules = module_map.get("modules", [])
+    codes = [item.get("code") for item in modules]
+    if None in codes or len(codes) != len(set(codes)):
+        _fail("PC0-MODULE-MAP", "duplicate/conflicting module ownership")
+    actual = {item["code"]: (item.get("owner"), item.get("kind")) for item in modules}
+    missing = sorted(set(frozen_modules) - set(actual))
+    if missing:
+        _fail("PC0-FROZEN-MODULE-MISSING", str(missing))
+
+    governed = [item for item in reference_migrations.get("entries", []) if item.get("module_code")]
+    by_module = {item["module_code"]: item for item in governed}
+    if len(by_module) != len(governed):
+        _fail("PC0-MODULE-PROMOTION", "duplicate governed module migration")
+    authority_rows = [item for item in authorities.get("authorities", []) if item.get("module")]
+    authority_by_module = {item["module"]: item for item in authority_rows}
+    if len(authority_by_module) != len(authority_rows):
+        _fail("PC0-MODULE-PROMOTION", "duplicate module data authority")
+
+    required = (
+        "current_authority", "target_authority", "compatibility_path",
+        "retirement_owner", "retirement_milestone", "previous_module_owner",
+        "previous_module_kind", "target_module_owner", "target_module_kind",
+        "target_data_authority",
+    )
+    for code, frozen_identity in frozen_modules.items():
+        current_identity = actual[code]
+        if current_identity == frozen_identity:
+            continue
+        migration = by_module.get(code)
+        authority = authority_by_module.get(code)
+        if not migration or not authority or not all(isinstance(migration.get(key), str) and migration[key] for key in required):
+            _fail("PC0-MODULE-PROMOTION", f"unregistered promotion={code}")
+        previous = (migration["previous_module_owner"], migration["previous_module_kind"])
+        target = (migration["target_module_owner"], migration["target_module_kind"])
+        if previous != frozen_identity or target != current_identity:
+            _fail("PC0-MODULE-PROMOTION", f"authority transition mismatch={code}")
+        if authority.get("code") != migration["target_data_authority"] or authority.get("owner") != current_identity[0]:
+            _fail("PC0-MODULE-PROMOTION", f"target data authority mismatch={code}")
+
+
 def _path_for_import(root: Path, source_path: str, import_name: str, level: int = 0) -> str | None:
     if level:
         source_parts = Path(source_path).with_suffix("").parts[:-1]
@@ -399,7 +446,7 @@ def _validate_finance(root: Path, finance: dict[str, Any], inventory: dict[str, 
         _fail("PC0-FROZEN-FINANCE-INVENTORY", "protected tree coverage does not match baseline")
     extensions_by_root: dict[str, dict[str, str]] = {}
     for item in inventory.get("authorized_non_finance_extensions", []):
-        if item.get("owner") not in {"PC1", "SO1", "SO2"} or not all(isinstance(item.get(key), str) and item[key] for key in ("root","path","sha256")):
+        if item.get("owner") not in {"PC1", "SO1", "SO2", "SO3"} or not all(isinstance(item.get(key), str) and item[key] for key in ("root","path","sha256")):
             _fail("PC0-NON-FINANCE-EXTENSION", str(item))
         extensions_by_root.setdefault(item["root"], {})[item["path"]] = item["sha256"]
     for tree in finance.get("trees", []):
@@ -450,6 +497,9 @@ def validate_pc0(root: str | Path, validate_release: bool = True) -> dict[str, A
     so2_contract = root_path / "contracts/shared_operations/v1/so2_authority.json"
     if so2_contract.is_file():
         descendant_heads.append(json.loads(so2_contract.read_text(encoding="utf-8")).get("accepted_head"))
+    so3_contract = root_path / "contracts/shared_operations/v1/so3_authority.json"
+    if so3_contract.is_file():
+        descendant_heads.append(json.loads(so3_contract.read_text(encoding="utf-8")).get("accepted_head"))
     _validate_finance(
         root_path,
         contracts["finance"],

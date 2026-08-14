@@ -10,7 +10,7 @@ from uuid import UUID
 
 import pytest
 
-from core.platform.architecture_contract import PC0ArchitectureError, _validate_modules, validate_pc0
+from core.platform.architecture_contract import PC0ArchitectureError, _validate_modules, validate_frozen_module_descendants, validate_pc0
 from core.platform.neutral_proof import (
     NeutralProofError, bootstrap_profile, deterministic_export, load_profile,
     restore_export, validate_export, validate_profile,
@@ -55,15 +55,13 @@ def _json(name):
     return json.loads((CONTRACTS / name).read_text(encoding="utf-8"))
 
 
-def _assert_frozen_pc6_module_coverage(module_map):
-    modules = module_map["modules"]
-    codes = [item["code"] for item in modules]
-    assert len(codes) == len(set(codes)), "duplicate/conflicting module ownership"
-    actual = {item["code"]: (item["owner"], item["kind"]) for item in modules}
-    missing = sorted(set(FROZEN_PC6_MODULES) - set(actual))
-    conflicts = sorted(code for code, identity in FROZEN_PC6_MODULES.items() if actual.get(code) not in {identity, None})
-    assert not missing, f"frozen PC6 modules missing={missing}"
-    assert not conflicts, f"frozen PC6 module ownership changed={conflicts}"
+def _assert_frozen_pc6_module_coverage(module_map, authorities=None, migrations=None):
+    validate_frozen_module_descendants(
+        FROZEN_PC6_MODULES,
+        module_map,
+        authorities or _json("pc0_data_authority_register.json"),
+        migrations or _json("pc0_reference_authority_migration_register.json"),
+    )
 
 
 class Facade:
@@ -210,7 +208,7 @@ def test_pc6_frozen_module_inventory_allows_future_descendants_without_count_edi
 def test_pc6_frozen_module_removal_or_conflicting_ownership_fails():
     module_map=deepcopy(_json("pc0_module_map.json"))
     module_map["modules"]=[item for item in module_map["modules"] if item["code"]!="neutral_proof"]
-    with pytest.raises(AssertionError,match="frozen PC6 modules missing"):
+    with pytest.raises(PC0ArchitectureError,match="PC0-FROZEN-MODULE-MISSING"):
         _assert_frozen_pc6_module_coverage(module_map)
 
     module_map=deepcopy(_json("pc0_module_map.json"))
@@ -218,6 +216,29 @@ def test_pc6_frozen_module_removal_or_conflicting_ownership_fails():
     module_map["modules"].append(conflicting)
     with pytest.raises(PC0ArchitectureError,match="PC0-MODULE-MAP"):
         _validate_modules(module_map,_json("pc0_dependency_policy.json"),_json("pc0_public_private_interfaces.json"))
+
+
+def test_so3_inventory_promotion_requires_exact_governed_registration():
+    module_map=deepcopy(_json("pc0_module_map.json"))
+    migrations=deepcopy(_json("pc0_reference_authority_migration_register.json"))
+    _assert_frozen_pc6_module_coverage(module_map,migrations=migrations)
+    migrations["entries"]=[item for item in migrations["entries"] if item.get("module_code")!="inventory"]
+    with pytest.raises(PC0ArchitectureError,match="unregistered promotion=inventory"):
+        _assert_frozen_pc6_module_coverage(module_map,migrations=migrations)
+
+
+def test_unrelated_reassignment_fails_but_future_registered_promotion_passes():
+    module_map=deepcopy(_json("pc0_module_map.json")); authorities=deepcopy(_json("pc0_data_authority_register.json")); migrations=deepcopy(_json("pc0_reference_authority_migration_register.json"))
+    inventory=next(item for item in module_map["modules"] if item["code"]=="inventory")
+    inventory["owner"]="UNRELATED"
+    with pytest.raises(PC0ArchitectureError,match="authority transition mismatch=inventory"):
+        _assert_frozen_pc6_module_coverage(module_map,authorities,migrations)
+
+    module_map=deepcopy(_json("pc0_module_map.json")); catalog=next(item for item in module_map["modules"] if item["code"]=="catalog")
+    catalog.update(owner="SO4",kind="shared_operations_authority")
+    authorities["authorities"].append({"code":"catalog_fulfilment","module":"catalog","owner":"SO4","current_store":"future","boundary":"future governed authority"})
+    migrations["entries"].append({"reference":"future_catalog","module_code":"catalog","previous_module_owner":"SO0/SO1","previous_module_kind":"legacy_operational","target_module_owner":"SO4","target_module_kind":"shared_operations_authority","target_data_authority":"catalog_fulfilment","current_authority":"legacy catalog","target_authority":"SO4 catalog authority","compatibility_path":"explicit bridge","retirement_owner":"SO4","retirement_milestone":"SO4 exit"})
+    _assert_frozen_pc6_module_coverage(module_map,authorities,migrations)
 
 
 def test_canonical_entrypoint_and_finance_freeze_remain_unchanged():

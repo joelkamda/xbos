@@ -7,32 +7,206 @@
     "path_component in [.pytest_cache,.mypy_cache,.ruff_cache,.hypothesis]"
   ],
   "authorized_non_finance_extensions": [
-    {"root":"core/domain/finance","path":"m4_acceptance.py","sha256":"6d0ed40d9d8496fd0ddd5eec115796a4bbeae90ce6742a9f3a25cff0f59f2cde","owner":"PC1","reason":"historical-release descendant compatibility"},
-    {"root":"core/domain/finance","path":"m5_acceptance.py","sha256":"c2d06c6e0c0cafbf590072fa4a57adc38b5b69e17b4a825094b61d4dfb7d46cb","owner":"PC1","reason":"historical-release descendant compatibility"},
-    {"root":"core/domain/finance","path":"m6_acceptance.py","sha256":"ed5ddfa3bc6bf223ed5dd40e1c051ea8b987e0a8002c3a99113a09e4d05b7c3d","owner":"PC1","reason":"historical-release descendant compatibility"},
-    {"root":"core/domain/finance","path":"m7_acceptance.py","sha256":"5323d1c9780eda5f5bc6265c5ff493cc1b6b31da3f9ab80ac5ff4c65d57d68a3","owner":"PC1","reason":"historical-release descendant compatibility"},
-    {"root":"core/domain/finance","path":"track_b_acceptance.py","sha256":"e841139a56063d6d20d18535d166034b3bb66d680d67e9ad4a81f1eded457827","owner":"PC1","reason":"historical-release descendant compatibility"},
-    {"root":"alembic_neutral","path":"versions/pc1_structural_context_021_tenant_organization_legal_location.py","sha256":"686eca52c5e9d9d1ac282400c584c947fe267b0deead18fcc8876e01650fde11","owner":"PC1"},
-    {"root":"alembic_neutral","path":"sql/pc1_structural_context_up.sql","sha256":"727400217b5624c37f5f0a4de9ba7ae8f0e9c26cca1f1c3659ae9ac8a1ca3d66","owner":"PC1"},
-    {"root":"alembic_neutral","path":"sql/pc1_structural_context_down.sql","sha256":"c20ce1980591af505e03e71a09f665b558922721a529ed5c72db9211bbae77c8","owner":"PC1"}
-    ,{"root":"alembic_neutral","path":"versions/pc2_party_authority_022_party_person_organization_roles_relationships.py","sha256":"e5494c2b58361888f868cf666f7f43dedf260af541f8072568367a9e34d27834","owner":"PC1","reason":"PC2 canonical lineage descendant"}
-    ,{"root":"alembic_neutral","path":"sql/pc2_party_authority_up.sql","sha256":"610371d25b07cab18ba5cc9ed48490ba1852579661ed783f309ca828a5b7f58c","owner":"PC1","reason":"PC2 canonical lineage descendant"}
-    ,{"root":"alembic_neutral","path":"sql/pc2_party_authority_down.sql","sha256":"73e7ca0e3b688fcdf025820419ffbf978242e819b76f653d182796e8030ece80","owner":"PC1","reason":"PC2 canonical lineage descendant"}
-    ,{"root":"alembic_neutral","path":"versions/pc3_semantic_authority_023_namespaces_taxonomy_mapping_classification.py","sha256":"c3b4d975073a6c7aeaf4b0c57f157dff808bd147a5604bc60706e017d9fe24ab","owner":"PC1","reason":"PC3 canonical lineage descendant"}
-    ,{"root":"alembic_neutral","path":"sql/pc3_semantic_authority_up.sql","sha256":"2235f4edb3935df39707523373fb6c0b61a52a4ca1b3a205c658881d411a9719","owner":"PC1","reason":"PC3 canonical lineage descendant"}
-    ,{"root":"alembic_neutral","path":"sql/pc3_semantic_authority_down.sql","sha256":"590f0453d90305a6a3a76c09db6541d3f62084c876f7bae09813bd214bc9ac71","owner":"PC1","reason":"PC3 canonical lineage descendant"}
-    ,{"root":"alembic_neutral","path":"versions/pc4_operating_context_024_typed_configuration_modules_time.py","sha256":"a7317487bf800e2852cbb85c9d2cf1941c2b88876bb12e03ca353f82b8ce8348","owner":"PC1","reason":"PC4 canonical lineage descendant"}
-    ,{"root":"alembic_neutral","path":"sql/pc4_operating_context_up.sql","sha256":"8ed296e754ee471003f47e6300c08cecaeccb838cdcc0780878e5b72f0c4147f","owner":"PC1","reason":"PC4 canonical lineage descendant"}
-    ,{"root":"alembic_neutral","path":"sql/pc4_operating_context_down.sql","sha256":"09248770d7a0a8d03808ffe0c88270c3432c34a3939f9b5a5617e207df7e787b","owner":"PC1","reason":"PC4 canonical lineage descendant"}
-    ,{"root":"alembic_neutral","path":"versions/pc5_identity_policy_audit_025_canonical_security_authority.py","sha256":"55242e039b9de43ea2cbfecc0eb8c3e122576ae22c44fa4b65687afd9d6b69f6","owner":"PC1","reason":"PC5 canonical lineage descendant"}
-    ,{"root":"alembic_neutral","path":"sql/pc5_identity_policy_audit_up.sql","sha256":"8e63fa97749ab66b577d93f28df3db744c802348260ea4f80e5ab27f7033c831","owner":"PC1","reason":"PC5 canonical lineage descendant"}
-    ,{"root":"alembic_neutral","path":"sql/pc5_identity_policy_audit_down.sql","sha256":"b76df91f9d0f63106e4acb3ec02dabacb08cd819e254b5a19de12d5a4cb7ca08","owner":"PC1","reason":"PC5 canonical lineage descendant"}
-    ,{"root":"alembic_neutral","path":"versions/so1_atomic_catalog_offer_pricing_026.py","sha256":"ea1b72b027f0ca4bd22462f614b8a63192135f24313a32c5434d9769564f3768","owner":"SO1","reason":"SO1 authorized non-Finance canonical descendant"}
-    ,{"root":"alembic_neutral","path":"sql/so1_atomic_catalog_offer_pricing_up.sql","sha256":"0db43a255d884fa0ada5fcea30b659557c06e1b6a7eaa4bf2956bf584246cd5f","owner":"SO1","reason":"SO1 authorized non-Finance canonical descendant"}
-    ,{"root":"alembic_neutral","path":"sql/so1_atomic_catalog_offer_pricing_down.sql","sha256":"6144be7149bc737acea42b55dc34f807fc86fda1aa73c27a45a48ad9d1dea1f6","owner":"SO1","reason":"SO1 authorized non-Finance canonical descendant"}
-    ,{"root":"alembic_neutral","path":"versions/so2_operational_party_relationships_027.py","sha256":"8eb7fec3a65f0ebf071fb2ae860dc13b8164c74b4e53f6ca3ba254ae830420da","owner":"SO2","reason":"SO2 authorized non-Finance canonical descendant"}
-    ,{"root":"alembic_neutral","path":"sql/so2_operational_party_relationships_up.sql","sha256":"d8f8e51e3052b582c1dfb2b4ffd56093eb205d4b5811610fb333500a191476ea","owner":"SO2","reason":"SO2 authorized non-Finance canonical descendant"}
-    ,{"root":"alembic_neutral","path":"sql/so2_operational_party_relationships_down.sql","sha256":"06967091a1c45046afe510a2499bf1a753ae0de7c38e35e6c3bc4115e1ed8995","owner":"SO2","reason":"SO2 authorized non-Finance canonical descendant"}
+    {
+      "root": "core/domain/finance",
+      "path": "m4_acceptance.py",
+      "sha256": "6d0ed40d9d8496fd0ddd5eec115796a4bbeae90ce6742a9f3a25cff0f59f2cde",
+      "owner": "PC1",
+      "reason": "historical-release descendant compatibility"
+    },
+    {
+      "root": "core/domain/finance",
+      "path": "m5_acceptance.py",
+      "sha256": "c2d06c6e0c0cafbf590072fa4a57adc38b5b69e17b4a825094b61d4dfb7d46cb",
+      "owner": "PC1",
+      "reason": "historical-release descendant compatibility"
+    },
+    {
+      "root": "core/domain/finance",
+      "path": "m6_acceptance.py",
+      "sha256": "ed5ddfa3bc6bf223ed5dd40e1c051ea8b987e0a8002c3a99113a09e4d05b7c3d",
+      "owner": "PC1",
+      "reason": "historical-release descendant compatibility"
+    },
+    {
+      "root": "core/domain/finance",
+      "path": "m7_acceptance.py",
+      "sha256": "5323d1c9780eda5f5bc6265c5ff493cc1b6b31da3f9ab80ac5ff4c65d57d68a3",
+      "owner": "PC1",
+      "reason": "historical-release descendant compatibility"
+    },
+    {
+      "root": "core/domain/finance",
+      "path": "track_b_acceptance.py",
+      "sha256": "e841139a56063d6d20d18535d166034b3bb66d680d67e9ad4a81f1eded457827",
+      "owner": "PC1",
+      "reason": "historical-release descendant compatibility"
+    },
+    {
+      "root": "alembic_neutral",
+      "path": "versions/pc1_structural_context_021_tenant_organization_legal_location.py",
+      "sha256": "686eca52c5e9d9d1ac282400c584c947fe267b0deead18fcc8876e01650fde11",
+      "owner": "PC1"
+    },
+    {
+      "root": "alembic_neutral",
+      "path": "sql/pc1_structural_context_up.sql",
+      "sha256": "727400217b5624c37f5f0a4de9ba7ae8f0e9c26cca1f1c3659ae9ac8a1ca3d66",
+      "owner": "PC1"
+    },
+    {
+      "root": "alembic_neutral",
+      "path": "sql/pc1_structural_context_down.sql",
+      "sha256": "c20ce1980591af505e03e71a09f665b558922721a529ed5c72db9211bbae77c8",
+      "owner": "PC1"
+    },
+    {
+      "root": "alembic_neutral",
+      "path": "versions/pc2_party_authority_022_party_person_organization_roles_relationships.py",
+      "sha256": "e5494c2b58361888f868cf666f7f43dedf260af541f8072568367a9e34d27834",
+      "owner": "PC1",
+      "reason": "PC2 canonical lineage descendant"
+    },
+    {
+      "root": "alembic_neutral",
+      "path": "sql/pc2_party_authority_up.sql",
+      "sha256": "610371d25b07cab18ba5cc9ed48490ba1852579661ed783f309ca828a5b7f58c",
+      "owner": "PC1",
+      "reason": "PC2 canonical lineage descendant"
+    },
+    {
+      "root": "alembic_neutral",
+      "path": "sql/pc2_party_authority_down.sql",
+      "sha256": "73e7ca0e3b688fcdf025820419ffbf978242e819b76f653d182796e8030ece80",
+      "owner": "PC1",
+      "reason": "PC2 canonical lineage descendant"
+    },
+    {
+      "root": "alembic_neutral",
+      "path": "versions/pc3_semantic_authority_023_namespaces_taxonomy_mapping_classification.py",
+      "sha256": "c3b4d975073a6c7aeaf4b0c57f157dff808bd147a5604bc60706e017d9fe24ab",
+      "owner": "PC1",
+      "reason": "PC3 canonical lineage descendant"
+    },
+    {
+      "root": "alembic_neutral",
+      "path": "sql/pc3_semantic_authority_up.sql",
+      "sha256": "2235f4edb3935df39707523373fb6c0b61a52a4ca1b3a205c658881d411a9719",
+      "owner": "PC1",
+      "reason": "PC3 canonical lineage descendant"
+    },
+    {
+      "root": "alembic_neutral",
+      "path": "sql/pc3_semantic_authority_down.sql",
+      "sha256": "590f0453d90305a6a3a76c09db6541d3f62084c876f7bae09813bd214bc9ac71",
+      "owner": "PC1",
+      "reason": "PC3 canonical lineage descendant"
+    },
+    {
+      "root": "alembic_neutral",
+      "path": "versions/pc4_operating_context_024_typed_configuration_modules_time.py",
+      "sha256": "a7317487bf800e2852cbb85c9d2cf1941c2b88876bb12e03ca353f82b8ce8348",
+      "owner": "PC1",
+      "reason": "PC4 canonical lineage descendant"
+    },
+    {
+      "root": "alembic_neutral",
+      "path": "sql/pc4_operating_context_up.sql",
+      "sha256": "8ed296e754ee471003f47e6300c08cecaeccb838cdcc0780878e5b72f0c4147f",
+      "owner": "PC1",
+      "reason": "PC4 canonical lineage descendant"
+    },
+    {
+      "root": "alembic_neutral",
+      "path": "sql/pc4_operating_context_down.sql",
+      "sha256": "09248770d7a0a8d03808ffe0c88270c3432c34a3939f9b5a5617e207df7e787b",
+      "owner": "PC1",
+      "reason": "PC4 canonical lineage descendant"
+    },
+    {
+      "root": "alembic_neutral",
+      "path": "versions/pc5_identity_policy_audit_025_canonical_security_authority.py",
+      "sha256": "55242e039b9de43ea2cbfecc0eb8c3e122576ae22c44fa4b65687afd9d6b69f6",
+      "owner": "PC1",
+      "reason": "PC5 canonical lineage descendant"
+    },
+    {
+      "root": "alembic_neutral",
+      "path": "sql/pc5_identity_policy_audit_up.sql",
+      "sha256": "8e63fa97749ab66b577d93f28df3db744c802348260ea4f80e5ab27f7033c831",
+      "owner": "PC1",
+      "reason": "PC5 canonical lineage descendant"
+    },
+    {
+      "root": "alembic_neutral",
+      "path": "sql/pc5_identity_policy_audit_down.sql",
+      "sha256": "b76df91f9d0f63106e4acb3ec02dabacb08cd819e254b5a19de12d5a4cb7ca08",
+      "owner": "PC1",
+      "reason": "PC5 canonical lineage descendant"
+    },
+    {
+      "root": "alembic_neutral",
+      "path": "versions/so1_atomic_catalog_offer_pricing_026.py",
+      "sha256": "ea1b72b027f0ca4bd22462f614b8a63192135f24313a32c5434d9769564f3768",
+      "owner": "SO1",
+      "reason": "SO1 authorized non-Finance canonical descendant"
+    },
+    {
+      "root": "alembic_neutral",
+      "path": "sql/so1_atomic_catalog_offer_pricing_up.sql",
+      "sha256": "0db43a255d884fa0ada5fcea30b659557c06e1b6a7eaa4bf2956bf584246cd5f",
+      "owner": "SO1",
+      "reason": "SO1 authorized non-Finance canonical descendant"
+    },
+    {
+      "root": "alembic_neutral",
+      "path": "sql/so1_atomic_catalog_offer_pricing_down.sql",
+      "sha256": "6144be7149bc737acea42b55dc34f807fc86fda1aa73c27a45a48ad9d1dea1f6",
+      "owner": "SO1",
+      "reason": "SO1 authorized non-Finance canonical descendant"
+    },
+    {
+      "root": "alembic_neutral",
+      "path": "versions/so2_operational_party_relationships_027.py",
+      "sha256": "8eb7fec3a65f0ebf071fb2ae860dc13b8164c74b4e53f6ca3ba254ae830420da",
+      "owner": "SO2",
+      "reason": "SO2 authorized non-Finance canonical descendant"
+    },
+    {
+      "root": "alembic_neutral",
+      "path": "sql/so2_operational_party_relationships_up.sql",
+      "sha256": "d8f8e51e3052b582c1dfb2b4ffd56093eb205d4b5811610fb333500a191476ea",
+      "owner": "SO2",
+      "reason": "SO2 authorized non-Finance canonical descendant"
+    },
+    {
+      "root": "alembic_neutral",
+      "path": "sql/so2_operational_party_relationships_down.sql",
+      "sha256": "06967091a1c45046afe510a2499bf1a753ae0de7c38e35e6c3bc4115e1ed8995",
+      "owner": "SO2",
+      "reason": "SO2 authorized non-Finance canonical descendant"
+    },
+    {
+      "root": "alembic_neutral",
+      "path": "versions/so3_inventory_stock_movement_028.py",
+      "sha256": "52180629c0fa39e492e21b71a5cce4bbbcc9b7f8abbc45a100fd5da6d538191a",
+      "owner": "SO3",
+      "reason": "SO3 authorized non-Finance canonical descendant"
+    },
+    {
+      "root": "alembic_neutral",
+      "path": "sql/so3_inventory_stock_movement_up.sql",
+      "sha256": "7a424feae3f6bb0baddd537fafdf81a8d8f6ef08877862ae83b058dd488d6aab",
+      "owner": "SO3",
+      "reason": "SO3 authorized non-Finance canonical descendant"
+    },
+    {
+      "root": "alembic_neutral",
+      "path": "sql/so3_inventory_stock_movement_down.sql",
+      "sha256": "c4a8c6de1fbb03a72f8b2196cd4083d6391af29ca11a381c05758c94972c71fc",
+      "owner": "SO3",
+      "reason": "SO3 authorized non-Finance canonical descendant"
+    }
   ],
   "trees": [
     {

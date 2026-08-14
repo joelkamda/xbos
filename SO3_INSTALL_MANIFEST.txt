@@ -1,0 +1,38 @@
+SO3 cumulative overlay inventory
+Source checkpoint: fdb2cc853705b6a6905048741bb78b3bdc81428c
+Previous head: so2_operational_party_relationships_027
+Accepted head: so3_inventory_stock_movement_028
+
+SO3_INSTALL_MANIFEST.txt
+XBOS_SO3_INSTALL_AND_VERIFY.txt
+XBOS_SO3_RUN_ACCEPTANCE.cmd
+alembic_neutral/sql/so3_inventory_stock_movement_down.sql
+alembic_neutral/sql/so3_inventory_stock_movement_up.sql
+alembic_neutral/versions/so3_inventory_stock_movement_028.py
+contracts/platform/v1/pc0_data_authority_register.json
+contracts/platform/v1/pc0_frozen_finance_inventory.json
+contracts/platform/v1/pc0_module_map.json
+contracts/platform/v1/pc0_public_private_interfaces.json
+contracts/platform/v1/pc0_reference_authority_migration_register.json
+contracts/platform/v1/pc0_release_manifest.json
+contracts/platform/v1/pc6_release_manifest.json
+contracts/shared_operations/v1/examples/clinical_supplies_profile.json
+contracts/shared_operations/v1/examples/retail_inventory_profile.json
+contracts/shared_operations/v1/so1_release_manifest.json
+contracts/shared_operations/v1/so2_release_manifest.json
+contracts/shared_operations/v1/so3_authority.json
+contracts/shared_operations/v1/so3_legacy_adoption_manifest.json
+contracts/shared_operations/v1/so3_public_interfaces.json
+contracts/shared_operations/v1/so3_release_manifest.json
+contracts/shared_operations/v1/so3_xa_metadata.json
+core/platform/architecture_contract.py
+docs/shared_operations/SO3_INVENTORY_STOCK_MOVEMENT_PRIMITIVES.md
+docs/shared_operations/adr/0014_SO3_ADOPT_LEGACY_INVENTORY_AS_NEUTRAL_QUANTITY_AUTHORITY.md
+scripts/verify_so3_inventory_stock_movement.py
+shared_operations/so3/__init__.py
+shared_operations/so3/contracts.py
+shared_operations/so3/service.py
+shared_operations/so3/sql_repository.py
+tests/contracts/test_pc0_kernel_boundaries.py
+tests/contracts/test_pc6_neutral_platform_proof.py
+tests/contracts/test_so3_inventory_stock_movement.py
