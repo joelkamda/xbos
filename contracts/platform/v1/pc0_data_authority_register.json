@@ -212,6 +212,13 @@
       "boundary": "operational execution/work-item and business-operational approval truth; PC5 security approval/authorization, SO5 Resource, SO7 documents, SO8 delivery, SO9 automation, SO10 scheduling and Finance remain external authorities"
     },
     {
+      "code": "operational_reporting_read_models",
+      "module": "reports",
+      "owner": "SO9",
+      "current_store": "so9_read_models, append-only so9_projection_snapshots, so9_metric_definitions, so9_report_definitions, append-only so9_report_runs, so9_automation_rules and append-only so9_automation_runs",
+      "boundary": "derived/rebuildable operational reporting, metrics and report automation; source-domain truth, SO8 delivery, SO10 scheduling and Neutral Finance reporting truth remain external"
+    },
+    {
       "code": "pack_manifest_lifecycle",
       "owner": "PK",
       "current_store": "absent",
@@ -229,5 +236,44 @@
     "every authority has exactly one declared owner",
     "compatibility stores do not become permanent target authority by implication",
     "Neutral Finance ownership cannot be reassigned by Platform Core"
+  ],
+  "required_authorities": [
+    "tenant",
+    "organization_unit",
+    "legal_entity",
+    "location",
+    "party",
+    "semantic_identity",
+    "taxonomy_tree",
+    "configuration",
+    "core_module_registry",
+    "entitlement_context",
+    "feature_flags",
+    "secrets",
+    "business_time",
+    "authentication_identity",
+    "authentication_credentials",
+    "tenant_membership",
+    "security_session",
+    "permission_registry",
+    "authorization",
+    "approval_policy",
+    "service_device_identity",
+    "generic_audit",
+    "financial_truth",
+    "financial_source_identity",
+    "financial_idempotency",
+    "financial_outbox",
+    "generic_delivery_jobs_offline",
+    "document_file",
+    "atomic_unit",
+    "operational_party_relationship",
+    "inventory_stock",
+    "procurement_operations",
+    "operational_resource_assignment",
+    "operational_workflow_task",
+    "operational_reporting_read_models",
+    "pack_manifest_lifecycle",
+    "wnd_cutover"
   ]
 }

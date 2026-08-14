@@ -208,6 +208,20 @@
       "retirement_milestone": "source-specific operational workflow writer convergence"
     },
     {
+      "reference": "legacy_operational_reporting",
+      "module_code": "reports",
+      "previous_module_owner": "SO9 / Neutral Finance by report authority",
+      "previous_module_kind": "legacy_operational",
+      "target_module_owner": "SO9",
+      "target_module_kind": "shared_operations_authority",
+      "target_data_authority": "operational_reporting_read_models",
+      "current_authority": "core.domain.reports cross-domain compatibility service, /kernel/reports routes and source-specific dashboard/report readers",
+      "target_authority": "SO9 derived operational read-model, metric, report and report-automation authority; Neutral Finance retains financial report authority",
+      "compatibility_path": "preserve legacy report behavior and Finance-owned report semantics; add neutral SO9 projections prospectively through approved public/read adapters without bulk reinterpretation",
+      "retirement_owner": "SO9 with source owners and R6",
+      "retirement_milestone": "source-specific report reader convergence and R6 production cutover"
+    },
+    {
       "reference": "legacy_financial_writers",
       "current_authority": "legacy accounting/payment writers",
       "target_authority": "Neutral Finance public commands",
@@ -242,6 +256,7 @@
     "legacy_procurement_supplier_evidence",
     "legacy_staff_resource_assignment",
     "legacy_operational_workflow_task",
+    "legacy_operational_reporting",
     "legacy_financial_writers"
   ]
 }

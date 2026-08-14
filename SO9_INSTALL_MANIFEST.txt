@@ -1,0 +1,41 @@
+SO9 cumulative overlay inventory
+Source checkpoint: bdca5e66f8b62bb0bcbd45e7700dd3e7ca9e44af
+Previous head: so8_communications_delivery_offline_033
+Accepted head: so9_reporting_read_models_automation_034
+
+SO9_INSTALL_MANIFEST.txt
+XBOS_SO9_INSTALL_AND_VERIFY.txt
+XBOS_SO9_RUN_ACCEPTANCE.cmd
+alembic_neutral/sql/so9_reporting_read_models_automation_down.sql
+alembic_neutral/sql/so9_reporting_read_models_automation_up.sql
+alembic_neutral/versions/so9_reporting_read_models_automation_034.py
+contracts/platform/v1/pc0_data_authority_register.json
+contracts/platform/v1/pc0_frozen_finance_inventory.json
+contracts/platform/v1/pc0_module_map.json
+contracts/platform/v1/pc0_public_private_interfaces.json
+contracts/platform/v1/pc0_reference_authority_migration_register.json
+contracts/platform/v1/pc0_release_manifest.json
+contracts/platform/v1/pc6_release_manifest.json
+contracts/shared_operations/v1/examples/clinical_reporting_profile.json
+contracts/shared_operations/v1/examples/field_service_reporting_profile.json
+contracts/shared_operations/v1/so1_release_manifest.json
+contracts/shared_operations/v1/so2_release_manifest.json
+contracts/shared_operations/v1/so3_release_manifest.json
+contracts/shared_operations/v1/so4_release_manifest.json
+contracts/shared_operations/v1/so5_release_manifest.json
+contracts/shared_operations/v1/so6_release_manifest.json
+contracts/shared_operations/v1/so7_release_manifest.json
+contracts/shared_operations/v1/so8_release_manifest.json
+contracts/shared_operations/v1/so9_authority.json
+contracts/shared_operations/v1/so9_legacy_adoption_manifest.json
+contracts/shared_operations/v1/so9_public_interfaces.json
+contracts/shared_operations/v1/so9_release_manifest.json
+contracts/shared_operations/v1/so9_xa_metadata.json
+docs/shared_operations/SO9_REPORTING_READ_MODELS_AUTOMATION.md
+docs/shared_operations/adr/0020_SO9_DERIVED_REPORTS_NEVER_BECOME_SOURCE_TRUTH.md
+scripts/verify_so9_reporting_read_models_automation.py
+shared_operations/so9/__init__.py
+shared_operations/so9/contracts.py
+shared_operations/so9/service.py
+shared_operations/so9/sql_repository.py
+tests/contracts/test_so9_reporting_read_models_automation.py

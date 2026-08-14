@@ -1,0 +1,16 @@
+{
+  "profile": "field_service_reporting",
+  "terminology": {
+    "read_model": "Operations Board",
+    "report": "Service Performance Report",
+    "metric": "Field KPI"
+  },
+  "source_authorities": ["so6.workflow", "so5.resources"],
+  "metrics": ["jobs_completed", "average_resolution_minutes", "first_visit_completion_rate"],
+  "automation": {
+    "trigger_code": "daily_window_resolved",
+    "delivery_via": "SO8"
+  },
+  "financial_truth": "NONE",
+  "server_truth": true
+}

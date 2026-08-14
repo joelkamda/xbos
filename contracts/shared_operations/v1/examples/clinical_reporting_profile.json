@@ -1,0 +1,16 @@
+{
+  "profile": "clinical_reporting",
+  "terminology": {
+    "read_model": "Care Quality View",
+    "report": "Clinical Operations Review",
+    "metric": "Quality Indicator"
+  },
+  "source_authorities": ["so6.workflow", "so7.documents"],
+  "metrics": ["reviews_completed", "evidence_completion_rate", "open_review_count"],
+  "automation": {
+    "trigger_code": "review_period_closed",
+    "delivery_via": "SO8"
+  },
+  "financial_truth": "NONE",
+  "server_truth": true
+}

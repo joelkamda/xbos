@@ -1,0 +1,12 @@
+DROP TRIGGER IF EXISTS trg_so9_automation_run_immutable ON public.so9_automation_runs;
+DROP TRIGGER IF EXISTS trg_so9_report_run_immutable ON public.so9_report_runs;
+DROP TRIGGER IF EXISTS trg_so9_snapshot_immutable ON public.so9_projection_snapshots;
+DROP FUNCTION IF EXISTS public.so9_derived_history_immutable();
+DROP TABLE IF EXISTS public.so9_automation_runs;
+DROP TABLE IF EXISTS public.so9_automation_rules;
+DROP TABLE IF EXISTS public.so9_report_runs;
+DROP TABLE IF EXISTS public.so9_report_definitions;
+DROP TABLE IF EXISTS public.so9_metric_definitions;
+DROP TABLE IF EXISTS public.so9_projection_snapshots;
+DROP TABLE IF EXISTS public.so9_read_models;
+DROP TABLE IF EXISTS public.so9_commands;

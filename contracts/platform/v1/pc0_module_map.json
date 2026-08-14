@@ -224,11 +224,12 @@
     },
     {
       "code": "reports",
-      "owner": "SO9 / Neutral Finance by report authority",
-      "kind": "legacy_operational",
+      "owner": "SO9",
+      "kind": "shared_operations_authority",
       "source_roots": [
         "core/api/reports",
-        "core/domain/reports"
+        "core/domain/reports",
+        "shared_operations/so9"
       ]
     },
     {

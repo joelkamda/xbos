@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "release": "SO9",
+  "frontend_implementation": "NONE",
+  "views": [
+    "reporting.read_models",
+    "reporting.saved_reports",
+    "reporting.report_run_history",
+    "reporting.metrics",
+    "reporting.automation"
+  ],
+  "actions": [
+    "read_model.define",
+    "read_model.refresh",
+    "metric.define",
+    "report.define",
+    "report.run",
+    "automation.configure",
+    "automation.pause",
+    "automation.execute"
+  ],
+  "fields": [
+    "source_authority",
+    "projection_code",
+    "revision_number",
+    "as_of_at",
+    "metric_code",
+    "aggregation",
+    "report_code",
+    "generated_at",
+    "automation_code",
+    "trigger_code",
+    "delivery_enabled"
+  ],
+  "authorization_source": "PC5",
+  "delivery_source": "SO8",
+  "canonical_truth_source": "SOURCE_DOMAIN_PUBLIC_CONTRACTS",
+  "read_model_is_derived": true,
+  "report_is_derived": true,
+  "dashboard_never_grants_authorization": true,
+  "scheduling": "SO10_LATER"
+}

@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "release": "SO9",
+  "decisions": [
+    {
+      "authority": "SO0 reporting/read-model/report-automation constitution and XA reporting surfaces",
+      "classification": "ADOPT",
+      "decision": "Adopt the frozen SO0 assignment of operational reporting, read models and report automation to SO9 while reusing PC5 authorization and XA presentation boundaries."
+    },
+    {
+      "authority": "core.domain.reports.ReportsService and /kernel/reports compatibility surface",
+      "classification": "MAP",
+      "decision": "Map the tenant-specific cross-domain reporting service as compatibility-only legacy reporting. Do not promote branch, TreasuryLog or legacy financial calculation assumptions into SO9 neutral authority."
+    },
+    {
+      "authority": "legacy report/dashboard readers and source-domain projections",
+      "classification": "BRIDGE",
+      "decision": "Bridge prospectively through explicit source-authority/read-model definitions and rebuildable snapshots. Source domains remain canonical and SO9 never writes their private state."
+    },
+    {
+      "authority": "Neutral Finance statements, traces, reconciliation reports and other frozen financial read models",
+      "classification": "PRESERVE",
+      "decision": "Preserve Finance-owned report semantics and bytes. SO9 may consume approved financial read contracts but never recalculates or replaces canonical financial reporting truth."
+    },
+    {
+      "authority": "legacy core reports writers/readers and direct cross-domain report SQL",
+      "classification": "RETIRE_LATER",
+      "decision": "Retire only after source-specific neutral adapters, packs and R6 production cutover prove equivalent behavior. No bulk rewrite is performed in SO9."
+    }
+  ]
+}

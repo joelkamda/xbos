@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "release": "SO9",
+  "source_checkpoint": "bdca5e66f8b62bb0bcbd45e7700dd3e7ca9e44af",
+  "previous_head": "so8_communications_delivery_offline_033",
+  "accepted_head": "so9_reporting_read_models_automation_034",
+  "security_authority": "PC5_REUSED",
+  "source_domain_authority": "EXTERNAL_PUBLIC_READ_CONTRACTS",
+  "read_model_authority": "SO9_DERIVED_REBUILDABLE",
+  "reporting_authority": "SO9_OPERATIONAL_ONLY",
+  "metric_authority": "SO9_DERIVED_ONLY",
+  "automation_authority": "SO9_REPORT_AUTOMATION_ONLY",
+  "delivery_authority": "SO8_REUSED",
+  "financial_reporting_authority": "NEUTRAL_FINANCE_PRESERVED",
+  "workflow_authority": "SO6_EXTERNAL",
+  "scheduling_authority": "SO10_EXCLUDED",
+  "source_writer_authority": "NONE",
+  "finance": "UNCHANGED",
+  "production_dependency_changes": "NONE"
+}

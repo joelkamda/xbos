@@ -1,0 +1,13 @@
+XBOS SO9 — Reporting, Read Models and Report Automation
+
+Source checkpoint: bdca5e66f8b62bb0bcbd45e7700dd3e7ca9e44af
+Previous head: so8_communications_delivery_offline_033
+Accepted head: so9_reporting_read_models_automation_034
+
+Install the cumulative ZIP at repository root with Expand-Archive -Force. Do not run Alembic manually. Use the existing xbos-track-b-b1 virtual environment and run:
+
+XBOS_SO9_RUN_ACCEPTANCE.cmd
+
+The gate performs static predecessor verification, focused contracts, disposable PostgreSQL replay/upgrade/downgrade/re-upgrade, development adoption, full regression, compilation/JSON and whitespace checks. It refuses an unexpected development head and does not touch production or tenant-clone databases.
+
+No commit/tag is authorized until SO9_SINGLE_GATE=PASS and control-room scope review.

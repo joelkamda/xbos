@@ -311,6 +311,27 @@
       "sha256": "f5ca8858b076054684639d73bb4542a5ef83d1d3382c48cec1d943b4629e9cd5",
       "owner": "SO8",
       "reason": "SO8 authorized non-Finance canonical descendant"
+    },
+    {
+      "root": "alembic_neutral",
+      "path": "versions/so9_reporting_read_models_automation_034.py",
+      "sha256": "86c845d4b957b0eca82df01a12a116debef2ec05d8b61b8b10ad3141f6b87fd0",
+      "owner": "SO9",
+      "reason": "SO9 authorized non-Finance canonical descendant"
+    },
+    {
+      "root": "alembic_neutral",
+      "path": "sql/so9_reporting_read_models_automation_up.sql",
+      "sha256": "64e793e9c20f35ab37003d84ce6479de768a919119b6a293b1055029803832bd",
+      "owner": "SO9",
+      "reason": "SO9 authorized non-Finance canonical descendant"
+    },
+    {
+      "root": "alembic_neutral",
+      "path": "sql/so9_reporting_read_models_automation_down.sql",
+      "sha256": "f311a11fea1edf596e7e37943865c865ba452ca86d30210362f5972cb4e9415b",
+      "owner": "SO9",
+      "reason": "SO9 authorized non-Finance canonical descendant"
     }
   ],
   "trees": [

@@ -334,10 +334,29 @@
     {
       "module": "reports",
       "public": [
-        "/kernel/reports API compatibility surface"
+        "/kernel/reports API compatibility surface",
+        "shared_operations.so9.SO9Authority",
+        "shared_operations.so9.SO9AuthorityError",
+        "shared_operations.so9.ReadModelDefinition",
+        "shared_operations.so9.ProjectionSnapshot",
+        "shared_operations.so9.MetricDefinition",
+        "shared_operations.so9.ReportDefinition",
+        "shared_operations.so9.ReportRun",
+        "shared_operations.so9.AutomationRule",
+        "shared_operations.so9.AutomationRun",
+        "shared_operations.so9.DefineReadModel",
+        "shared_operations.so9.RefreshReadModel",
+        "shared_operations.so9.DefineMetric",
+        "shared_operations.so9.DefineReport",
+        "shared_operations.so9.RunReport",
+        "shared_operations.so9.ConfigureAutomation",
+        "shared_operations.so9.ChangeAutomationStatus",
+        "shared_operations.so9.ExecuteAutomation"
       ],
       "private": [
-        "core.domain.reports.*"
+        "core.domain.reports.* compatibility implementation",
+        "shared_operations.so9.sql_repository",
+        "SO9 read-model, projection, metric, report, automation and command tables"
       ]
     },
     {
