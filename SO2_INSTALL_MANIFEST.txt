@@ -1,0 +1,41 @@
+SO2 source checkpoint: 733e226b7468cc1b8a5629a3944ac67a7ab88035
+Revision: 2 (PC6 frozen-module descendant compatibility repair)
+Previous head: so1_atomic_catalog_offer_pricing_026
+Accepted head: so2_operational_party_relationships_027
+Migration count: 1
+Dependency changes: NONE
+Finance effects: UNCHANGED
+Commit/tag: none
+
+SO2_INSTALL_MANIFEST.txt
+XBOS_SO2_INSTALL_AND_VERIFY.txt
+XBOS_SO2_RUN_ACCEPTANCE.cmd
+alembic_neutral/sql/so2_operational_party_relationships_down.sql
+alembic_neutral/sql/so2_operational_party_relationships_up.sql
+alembic_neutral/versions/so2_operational_party_relationships_027.py
+contracts/platform/v1/pc0_data_authority_register.json
+contracts/platform/v1/pc0_dependency_policy.json
+contracts/platform/v1/pc0_frozen_finance_inventory.json
+contracts/platform/v1/pc0_module_map.json
+contracts/platform/v1/pc0_public_private_interfaces.json
+contracts/platform/v1/pc0_reference_authority_migration_register.json
+contracts/platform/v1/pc0_release_manifest.json
+contracts/platform/v1/pc6_release_manifest.json
+contracts/shared_operations/v1/examples/professional_service_crm_profile.json
+contracts/shared_operations/v1/examples/retail_service_crm_profile.json
+contracts/shared_operations/v1/so1_release_manifest.json
+contracts/shared_operations/v1/so2_authority.json
+contracts/shared_operations/v1/so2_legacy_adoption_manifest.json
+contracts/shared_operations/v1/so2_public_interfaces.json
+contracts/shared_operations/v1/so2_release_manifest.json
+contracts/shared_operations/v1/so2_xa_metadata.json
+core/platform/architecture_contract.py
+docs/shared_operations/SO2_CRM_OPERATIONAL_PARTY_RELATIONSHIPS.md
+docs/shared_operations/adr/0013_SO2_OPERATIONAL_RELATIONSHIP_AROUND_PC2_PARTY.md
+scripts/verify_so2_operational_party_relationships.py
+shared_operations/so2/__init__.py
+shared_operations/so2/contracts.py
+shared_operations/so2/service.py
+shared_operations/so2/sql_repository.py
+tests/contracts/test_pc6_neutral_platform_proof.py
+tests/contracts/test_so2_operational_party_relationships.py

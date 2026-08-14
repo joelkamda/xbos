@@ -1,0 +1,8 @@
+{
+  "profile_code":"retail-service-neutral",
+  "terminology":{"customer":"customer","supplier":"supplier"},
+  "relationship_types":["customer","supplier","prospect"],
+  "semantic_segments":["tenant.retail:recurring","tenant.retail:wholesale"],
+  "default_status":"prospect",
+  "source_changes":"NONE"
+}

@@ -15,23 +15,23 @@
     },
     {
       "path": "contracts/platform/v1/pc0_module_map.json",
-      "sha256": "4445c561a8248b17ead5195816a6e3df382f9df9027429c1171bd4daab8d8eb5"
+      "sha256": "22a68db655fe4dbcf6dcf72fd8cd56af5ab229d4c72979f2b425e5719a831339"
     },
     {
       "path": "contracts/platform/v1/pc0_data_authority_register.json",
-      "sha256": "77b8ad503514a0e659f24211c956618c432522e25460eb04863915b851dc4207"
+      "sha256": "a83c13faa4fdaaa48703d504e042442b0860aadf25b968670bb0d47f184ea7d8"
     },
     {
       "path": "contracts/platform/v1/pc0_reference_authority_migration_register.json",
-      "sha256": "f44298b9e100c3b439d3b0ab40dba92fbc83a90b2f7c304f0e6a6c959e396b37"
+      "sha256": "5169311cb47ff501e6e720345d32930af198d02084ed7e11374e206083770597"
     },
     {
       "path": "contracts/platform/v1/pc0_dependency_policy.json",
-      "sha256": "8371f72f471a6fd7f767e9e446eb20f65be85fb56a77db91709a58ad15215910"
+      "sha256": "c8c0711611611ada44f82f5667332397c24278c2663261891ae62b093b5984c1"
     },
     {
       "path": "contracts/platform/v1/pc0_public_private_interfaces.json",
-      "sha256": "8849fba868b2fb7806a10d2e2a7454903c1e6ff718f87cd6e2b6992847e383b3"
+      "sha256": "1ab855eba92b085704516b36af624e3b7e4f7025f67b2fcb8e4efa3dc9436954"
     },
     {
       "path": "contracts/platform/v1/pc0_legacy_exception_baseline.json",
@@ -47,7 +47,7 @@
     },
     {
       "path": "contracts/platform/v1/pc0_frozen_finance_inventory.json",
-      "sha256": "3b85c3a99e8fae177a252d7e666e1d49e0874cf494794bf6a46d4de42cd03d66"
+      "sha256": "8f5927c56552a16ac32d46d342022004ee3e95454012dce7ce55fe081e29a21a"
     },
     {
       "path": "contracts/platform/v1/pc0_kernel_boundaries.json",
@@ -59,7 +59,7 @@
     },
     {
       "path": "core/platform/architecture_contract.py",
-      "sha256": "be4dc91fb27db29c9fb210c12c9f2b92289e00278520681e668a82d69d97828a"
+      "sha256": "1fdb4b175fb0f3df88a7d6979a33f04be7a65a3ec339d045b717168e63914484"
     },
     {
       "path": "core/platform/release_integrity.py",

@@ -27,6 +27,7 @@
     "legacy_payments": ["identity", "shared"],
     "reports": ["identity", "shared"],
     "commerce": [],
+    "crm_relationships": [],
     "finance": [],
     "xafpay": ["finance"],
     "shared": []

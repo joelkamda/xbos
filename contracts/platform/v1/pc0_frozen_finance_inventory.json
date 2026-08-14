@@ -30,6 +30,9 @@
     ,{"root":"alembic_neutral","path":"versions/so1_atomic_catalog_offer_pricing_026.py","sha256":"ea1b72b027f0ca4bd22462f614b8a63192135f24313a32c5434d9769564f3768","owner":"SO1","reason":"SO1 authorized non-Finance canonical descendant"}
     ,{"root":"alembic_neutral","path":"sql/so1_atomic_catalog_offer_pricing_up.sql","sha256":"0db43a255d884fa0ada5fcea30b659557c06e1b6a7eaa4bf2956bf584246cd5f","owner":"SO1","reason":"SO1 authorized non-Finance canonical descendant"}
     ,{"root":"alembic_neutral","path":"sql/so1_atomic_catalog_offer_pricing_down.sql","sha256":"6144be7149bc737acea42b55dc34f807fc86fda1aa73c27a45a48ad9d1dea1f6","owner":"SO1","reason":"SO1 authorized non-Finance canonical descendant"}
+    ,{"root":"alembic_neutral","path":"versions/so2_operational_party_relationships_027.py","sha256":"8eb7fec3a65f0ebf071fb2ae860dc13b8164c74b4e53f6ca3ba254ae830420da","owner":"SO2","reason":"SO2 authorized non-Finance canonical descendant"}
+    ,{"root":"alembic_neutral","path":"sql/so2_operational_party_relationships_up.sql","sha256":"d8f8e51e3052b582c1dfb2b4ffd56093eb205d4b5811610fb333500a191476ea","owner":"SO2","reason":"SO2 authorized non-Finance canonical descendant"}
+    ,{"root":"alembic_neutral","path":"sql/so2_operational_party_relationships_down.sql","sha256":"06967091a1c45046afe510a2499bf1a753ae0de7c38e35e6c3bc4115e1ed8995","owner":"SO2","reason":"SO2 authorized non-Finance canonical descendant"}
   ],
   "trees": [
     {

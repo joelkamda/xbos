@@ -1,0 +1,8 @@
+{
+  "profile_code":"professional-service-neutral",
+  "terminology":{"customer":"client","supplier":"external specialist"},
+  "relationship_types":["client","partner","contractor"],
+  "semantic_segments":["tenant.advisory:high-touch","tenant.advisory:recurring"],
+  "default_status":"active",
+  "source_changes":"NONE"
+}

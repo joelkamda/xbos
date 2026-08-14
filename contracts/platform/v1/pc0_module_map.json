@@ -25,6 +25,7 @@
     {"code":"legacy_payments","owner":"R6 retirement / Neutral Finance target","kind":"legacy_financial","source_roots":["core/api/payments","core/api/xafpay_webhook.py","core/domain/payments"]},
     {"code":"reports","owner":"SO9 / Neutral Finance by report authority","kind":"legacy_operational","source_roots":["core/api/reports","core/domain/reports"]},
     {"code":"commerce","owner":"SO1","kind":"legacy_operational","source_roots":["core/domain/commerce"]},
+    {"code":"crm_relationships","owner":"SO2","kind":"shared_operations_authority","source_roots":["shared_operations/so2"]},
     {"code":"finance","owner":"Neutral Finance","kind":"frozen_authority","source_roots":["core/domain/finance"]},
     {"code":"xafpay","owner":"Provider adapter / Neutral Finance interface","kind":"adapter","source_roots":["core/integrations/xafpay"]},
     {"code":"shared","owner":"PC0 boundary pending named downstream owners","kind":"legacy_shared","source_roots":["core/__init__.py","core/errors","core/events","core/shared"]}

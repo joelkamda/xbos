@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from copy import deepcopy
 from dataclasses import replace
 from pathlib import Path
 from types import SimpleNamespace
@@ -9,7 +10,7 @@ from uuid import UUID
 
 import pytest
 
-from core.platform.architecture_contract import validate_pc0
+from core.platform.architecture_contract import PC0ArchitectureError, _validate_modules, validate_pc0
 from core.platform.neutral_proof import (
     NeutralProofError, bootstrap_profile, deterministic_export, load_profile,
     restore_export, validate_export, validate_profile,
@@ -22,9 +23,47 @@ ROOT = Path(__file__).resolve().parents[2]
 PROFILE_PATH = ROOT / "profiles/platform_core/pc6_second_tenant.json"
 CONTRACTS = ROOT / "contracts/platform/v1"
 
+FROZEN_PC6_MODULES = {
+    "architecture": ("PC0", "platform_governance"),
+    "structure": ("PC1", "platform_authority"),
+    "party": ("PC2", "platform_authority"),
+    "semantics": ("PC3", "platform_authority"),
+    "operating_context": ("PC4", "platform_authority"),
+    "security_authority": ("PC5", "platform_authority"),
+    "neutral_proof": ("PC6", "platform_proof"),
+    "application": ("PC0", "platform_composition"),
+    "composition": ("PC0", "platform_composition"),
+    "persistence": ("Neutral Finance / canonical persistence", "frozen_foundation"),
+    "tenancy": ("PC1", "legacy_compatibility"),
+    "identity": ("PC5", "legacy_compatibility"),
+    "taxonomy": ("PC3", "adopted_compatibility"),
+    "catalog": ("SO0/SO1", "legacy_operational"),
+    "inventory": ("SO3", "legacy_operational"),
+    "orders": ("Restaurant Pack", "legacy_industry"),
+    "sales": ("Restaurant Pack / SO1", "legacy_industry"),
+    "legacy_accounting": ("R6 retirement / Neutral Finance target", "legacy_financial"),
+    "legacy_payments": ("R6 retirement / Neutral Finance target", "legacy_financial"),
+    "reports": ("SO9 / Neutral Finance by report authority", "legacy_operational"),
+    "commerce": ("SO1", "legacy_operational"),
+    "finance": ("Neutral Finance", "frozen_authority"),
+    "xafpay": ("Provider adapter / Neutral Finance interface", "adapter"),
+    "shared": ("PC0 boundary pending named downstream owners", "legacy_shared"),
+}
+
 
 def _json(name):
     return json.loads((CONTRACTS / name).read_text(encoding="utf-8"))
+
+
+def _assert_frozen_pc6_module_coverage(module_map):
+    modules = module_map["modules"]
+    codes = [item["code"] for item in modules]
+    assert len(codes) == len(set(codes)), "duplicate/conflicting module ownership"
+    actual = {item["code"]: (item["owner"], item["kind"]) for item in modules}
+    missing = sorted(set(FROZEN_PC6_MODULES) - set(actual))
+    conflicts = sorted(code for code, identity in FROZEN_PC6_MODULES.items() if actual.get(code) not in {identity, None})
+    assert not missing, f"frozen PC6 modules missing={missing}"
+    assert not conflicts, f"frozen PC6 module ownership changed={conflicts}"
 
 
 class Facade:
@@ -149,7 +188,36 @@ def test_public_contract_inventory_exposes_facades_not_private_sql():
 
 def test_pc0_architecture_covers_pc6_proof_module_and_stays_green():
     report=validate_pc0(ROOT)
-    assert report["status"]=="PASS" and report["module_count"]==24
+    module_map=_json("pc0_module_map.json")
+    _assert_frozen_pc6_module_coverage(module_map)
+    codes={item["code"] for item in module_map["modules"]}
+    assert report["status"]=="PASS"
+    assert report["module_count"]==len(codes)>=len(FROZEN_PC6_MODULES)
+    assert codes-set(FROZEN_PC6_MODULES)>={"crm_relationships"}
+
+
+def test_pc6_frozen_module_inventory_allows_future_descendants_without_count_edits():
+    module_map=deepcopy(_json("pc0_module_map.json"))
+    policy=deepcopy(_json("pc0_dependency_policy.json"))
+    interfaces=deepcopy(_json("pc0_public_private_interfaces.json"))
+    module_map["modules"].append({"code":"future_shared_operations","owner":"SO3","kind":"shared_operations_authority","source_roots":["shared_operations/future"]})
+    policy["allowed_directions"]["future_shared_operations"]=[]
+    interfaces["interfaces"].append({"module":"future_shared_operations","public":[],"private":[]})
+    _validate_modules(module_map,policy,interfaces)
+    _assert_frozen_pc6_module_coverage(module_map)
+
+
+def test_pc6_frozen_module_removal_or_conflicting_ownership_fails():
+    module_map=deepcopy(_json("pc0_module_map.json"))
+    module_map["modules"]=[item for item in module_map["modules"] if item["code"]!="neutral_proof"]
+    with pytest.raises(AssertionError,match="frozen PC6 modules missing"):
+        _assert_frozen_pc6_module_coverage(module_map)
+
+    module_map=deepcopy(_json("pc0_module_map.json"))
+    conflicting={**module_map["modules"][0],"owner":"UNAUTHORIZED"}
+    module_map["modules"].append(conflicting)
+    with pytest.raises(PC0ArchitectureError,match="PC0-MODULE-MAP"):
+        _validate_modules(module_map,_json("pc0_dependency_policy.json"),_json("pc0_public_private_interfaces.json"))
 
 
 def test_canonical_entrypoint_and_finance_freeze_remain_unchanged():

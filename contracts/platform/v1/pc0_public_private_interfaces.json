@@ -22,6 +22,7 @@
     {"module":"legacy_payments","public":["/kernel/payments API compatibility surface"],"private":["core.domain.payments.*"]},
     {"module":"reports","public":["/kernel/reports API compatibility surface"],"private":["core.domain.reports.*"]},
     {"module":"commerce","public":[],"private":["core.domain.commerce.*"]},
+    {"module":"crm_relationships","public":["shared_operations.so2.SO2Authority","shared_operations.so2.SO2AuthorityError","shared_operations.so2.OperationalRelationship","shared_operations.so2.EstablishRelationship","shared_operations.so2.ChangeRelationshipStatus","shared_operations.so2.UpdateRelationshipPreferences","shared_operations.so2.ClassifyRelationship"],"private":["shared_operations.so2.sql_repository"]},
     {"module":"finance","public":["typed command contracts","transactional authority engines","deterministic read services","accepted release contracts"],"private":["finance-owned SQL tables","repository implementation details","migration SQL"]},
     {"module":"xafpay","public":["provider-neutral adapter contract"],"private":["adapter repository and orchestration implementation"]},
     {"module":"shared","public":["core.errors.api_error.APIError"],"private":["core.shared.idempotency","core.events.event_dispatcher"]}

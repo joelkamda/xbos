@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "xa_contract": "xa.frontend-experience.v1",
+  "navigation": [{"capability":"crm.relationship.read", "route_key":"crm.relationships", "visibility_is_authorization":false}],
+  "list_projection": {"identity":"party_public_id", "relationship":"relationship_public_id", "fields":["relationship_type_code","status","semantic_labels","effective_from"], "canonical_truth":"SO2_PUBLIC_QUERY"},
+  "detail_projection": {"contact_values_source":"PC2_PUBLIC_PARTY", "preferences_source":"SO2", "authorization_source":"PC5", "available_actions_source":"SO2_PUBLIC_CONTRACT"},
+  "actions": [
+    {"code":"crm.relationship.activate", "command":"ChangeRelationshipStatus", "permission":"crm.relationship.lifecycle", "frontend_infers_transition":false},
+    {"code":"crm.relationship.classify", "command":"ClassifyRelationship", "permission":"crm.relationship.classify", "frontend_infers_semantics":false}
+  ],
+  "denial": {"explainable":true, "hidden_ui_is_authorization":false},
+  "work_queue": {"implementation":"NONE", "future_hook":"XA work-item reference only"},
+  "frontend_implementation": "NONE"
+}

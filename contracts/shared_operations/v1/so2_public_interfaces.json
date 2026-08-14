@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "public_package": "shared_operations.so2",
+  "private_package": "shared_operations.so2.sql_repository",
+  "cross_module_private_access": "FORBIDDEN",
+  "party_authority": {"owner":"PC2", "reference":"party_public_id", "private_table_access":"FORBIDDEN_OUTSIDE_SO2_REPOSITORY_FK"},
+  "semantic_authority": {"owner":"PC3", "subject_type":"so2_operational_relationship", "hard_coded_segments":"FORBIDDEN"},
+  "authorization": {"owner":"PC5", "server_side":true, "relationship_type_grants_permission":false},
+  "structural_scope": {"owner":"PC1", "types":["tenant","organization_unit","location"]},
+  "errors": {"fields":["code","category","safe_explanation","retryable","details"], "frontend_parsing":"STABLE_CODE_ONLY"},
+  "finance_integration_points": [],
+  "generalized_communications": "SO8",
+  "audit_truth": "PC5"
+}

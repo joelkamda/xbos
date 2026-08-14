@@ -21,12 +21,13 @@
     {"reference":"document_file","current_authority":"receipt artifacts and Finance evidence references/hashes","target_authority":"SO7 document/file authority","compatibility_path":"Finance keeps hashes and references; SO7 later owns file and issued-record lifecycle","retirement_owner":"SO7","retirement_milestone":"SO7 exit"},
     {"reference":"app_entrypoint","current_authority":"main:app and app:app","target_authority":"main:app","compatibility_path":"app:app remains unchanged compatibility-only entrypoint","retirement_owner":"PC4","retirement_milestone":"PC4.14"},
     {"reference":"production_dependencies","current_authority":"requirements-prod.txt exact pins established at PC6 from accepted Python 3.13.3 environment","target_authority":"requirements-prod.txt canonical production runtime manifest","compatibility_path":"requirements-test.txt remains test-only; clean-environment acceptance installs production pins first and rejects undeclared imports or unpinned entries","retirement_owner":"Platform Operations","retirement_milestone":"E5 maintenance and approved upgrades"},
+    {"reference":"legacy_customer_supplier","current_authority":"receipt customer snapshots, inventory supplier metadata, accounting vendor strings and PC2 compatibility mappings","target_authority":"PC2 Party plus SO2 operational relationship","compatibility_path":"preserve source values; resolve Party with explicit evidence and add SO2 relationship mapping without bulk rewrite","retirement_owner":"SO2 with R6/SO3 source owners","retirement_milestone":"source-specific controlled cutover acceptance"},
     {"reference":"legacy_financial_writers","current_authority":"legacy accounting/payment writers","target_authority":"Neutral Finance public commands","compatibility_path":"M7 readiness remains frozen; live routing and retirement stay unchanged","retirement_owner":"R6","retirement_milestone":"R6 cutover"}
   ],
   "required_references": [
     "tenant","organization","branch","legal_entity","location","user_person","role_permission","authentication_session","service_device_identity","generic_audit",
     "taxonomy_node","tenant_configuration","module_registration","business_calendar",
     "financial_counterparty_party","generic_idempotency","generic_event_dispatch","document_file",
-    "app_entrypoint","production_dependencies","legacy_financial_writers"
+    "app_entrypoint","production_dependencies","legacy_customer_supplier","legacy_financial_writers"
   ]
 }

@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "bulk_rewrite": "FORBIDDEN",
+  "legacy_production_cutover": "R6",
+  "decisions": [
+    {"artifact":"parties / persons / organization_parties","classification":"ADOPT","authority":"PC2","treatment":"reuse tenant-scoped PC2 public Party identity; SO2 stores only the composite foreign key"},
+    {"artifact":"party_contacts","classification":"ADOPT","authority":"PC2","treatment":"canonical email/phone/address values remain PC2-owned; SO2 preferences may name a method but never duplicate the value"},
+    {"artifact":"party_roles / party_relationships","classification":"PRESERVE","authority":"PC2","treatment":"identity graph and Party participation facts remain distinct from SO2 operational CRM lifecycle"},
+    {"artifact":"party_compatibility_mappings","classification":"BRIDGE","authority":"PC2","treatment":"resolve legacy person/customer/supplier evidence to Party before an explicit SO2 relationship is established"},
+    {"artifact":"financial_counterparties.party_id and debtor/creditor Party UUIDs","classification":"PRESERVE","authority":"Neutral Finance","treatment":"Finance snapshots, obligations, balances and semantics are unchanged; SO2 creates no financial facts"},
+    {"artifact":"orders/sales customer references","classification":"MAP","authority":"Restaurant Pack / future operational owner","treatment":"current order models contain no canonical customer identity; receipt customer metadata remains snapshot evidence pending explicit pack cutover"},
+    {"artifact":"inventory supplier and accounting vendor strings","classification":"MAP","authority":"SO3 / R6 compatibility","treatment":"preserve string metadata; future explicit PC2 Party plus SO2 supplier relationship mapping; no reinterpretation in SO2 migration"},
+    {"artifact":"users/staff references","classification":"PRESERVE","authority":"PC5 compatibility","treatment":"authentication Identity and staff authorization do not imply Party or CRM relationship"},
+    {"artifact":"legacy tenant customer names/phones and tenant assumptions","classification":"RETIRE_LATER","authority":"R6","treatment":"preserve live behavior; no legacy tenant literal or default enters SO2 and no writer cutover occurs"}
+  ]
+}

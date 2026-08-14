@@ -1,0 +1,16 @@
+XBOS SO2 CRM / Operational Party Relationships
+Source checkpoint: 733e226b7468cc1b8a5629a3944ac67a7ab88035
+Migration: so1_atomic_catalog_offer_pricing_026 -> so2_operational_party_relationships_027
+
+Prerequisites:
+- repository is at accepted source checkpoint 733e226
+- approved xbos-track-b-b1 environment is active
+- python --version returns exactly Python 3.13.3
+- local PostgreSQL development database is xbos_track_b_dev
+- development head is either the predecessor or accepted SO2 head
+
+Install from C:\Users\jdkam\XBOS:
+powershell -NoProfile -Command "Expand-Archive -LiteralPath '%USERPROFILE%\Downloads\XBOS_SO2_CRM_OPERATIONAL_PARTY_RELATIONSHIPS_REVISION_2.zip' -DestinationPath '.' -Force"
+XBOS_SO2_RUN_ACCEPTANCE.cmd
+
+The gate first runs all frozen predecessor verifiers and focused contracts. It reconstructs a disposable template0 database through SO1, proves the SO2 transition and downgrade/re-upgrade, and only then performs resumable development adoption. No commit or tag is created.
