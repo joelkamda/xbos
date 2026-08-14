@@ -1,0 +1,12 @@
+{
+  "profile": "clinical_appointment",
+  "terminology": {
+    "service": "Consultation",
+    "reservation": "Appointment",
+    "resource": "Clinician or room",
+    "location": "Clinic"
+  },
+  "capabilities": ["scheduled_consultation", "room_capacity", "no_show", "service_completion"],
+  "time_policy": "PC4_BUSINESS_CALENDAR",
+  "financial_truth": "NONE"
+}

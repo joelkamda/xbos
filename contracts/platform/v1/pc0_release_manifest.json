@@ -15,23 +15,23 @@
     },
     {
       "path": "contracts/platform/v1/pc0_module_map.json",
-      "sha256": "d41f571de2a6b7edadf27c41462ec73550c90cfdd0c8fdd00e2fdc93219716ce"
+      "sha256": "e72dc558f5fb0494837bfbae535ad123312e7f35fd0b01f35328cd2a9268403f"
     },
     {
       "path": "contracts/platform/v1/pc0_data_authority_register.json",
-      "sha256": "a9acd768b57f749727763c02502829d8079f80f6f628638505851c45963ef369"
+      "sha256": "6a0035ac68ec74805849a4a39d531fda79327a5767108be2ce3da83d11c5b04b"
     },
     {
       "path": "contracts/platform/v1/pc0_reference_authority_migration_register.json",
-      "sha256": "7b8f97f1e03726db03fc12650fb269e3f358cf8209c34380c41965070bae73b6"
+      "sha256": "2053bec627e989eb7673fde6f8cd4497a43b7793a04abe46892f6161f435bf82"
     },
     {
       "path": "contracts/platform/v1/pc0_dependency_policy.json",
-      "sha256": "98ba385ca359b14452dd9b6f9376ebe9c5652deb817a61f64524c1084610ff51"
+      "sha256": "35236980eae7374f5eb6ca7d70898bef36948e6a1079e13ef81227e2a3116c42"
     },
     {
       "path": "contracts/platform/v1/pc0_public_private_interfaces.json",
-      "sha256": "0ff568943f9e565f29033efcffb2f5b4ae9239a8601feff86fe2f80e976414e8"
+      "sha256": "3edfb7a1ed254b03c3d8cbff23e3b22e5141269589e987b288b2f9c7aec142cf"
     },
     {
       "path": "contracts/platform/v1/pc0_legacy_exception_baseline.json",
@@ -47,7 +47,7 @@
     },
     {
       "path": "contracts/platform/v1/pc0_frozen_finance_inventory.json",
-      "sha256": "4811d3e601457acb9d9c63ee729986f8e587a4ccc9a6d85b35d1fc826123eb7e"
+      "sha256": "9a709d40c16717d37927bddc6f080fdd359ea9a6d0e547b8e775a6539d892720"
     },
     {
       "path": "contracts/platform/v1/pc0_kernel_boundaries.json",

@@ -229,6 +229,13 @@
       "owner": "R6",
       "current_store": "legacy production routing",
       "boundary": "live WND migration, cutover and writer retirement"
+    },
+    {
+      "code": "operational_scheduling_reservations",
+      "module": "scheduling",
+      "owner": "SO10",
+      "current_store": "so10_services, so10_availability_windows, so10_reservations, immutable versioned resource allocations, so10_service_executions and append-only histories",
+      "boundary": "prospective time/capacity booking and operational service execution; PC4 business time, PC2/SO2 Party, SO1 catalog, SO5 Resource, SO6 workflow, SO8 delivery and Neutral Finance remain external authorities"
     }
   ],
   "rules": [
@@ -274,6 +281,7 @@
     "operational_workflow_task",
     "operational_reporting_read_models",
     "pack_manifest_lifecycle",
-    "wnd_cutover"
+    "wnd_cutover",
+    "operational_scheduling_reservations"
   ]
 }

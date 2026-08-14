@@ -332,6 +332,27 @@
       "sha256": "f311a11fea1edf596e7e37943865c865ba452ca86d30210362f5972cb4e9415b",
       "owner": "SO9",
       "reason": "SO9 authorized non-Finance canonical descendant"
+    },
+    {
+      "root": "alembic_neutral",
+      "path": "versions/so10_scheduling_reservations_service_execution_035.py",
+      "sha256": "c0ce80b5c4388582d2077aad6bb293b4bd5e183870deed9285a5e114802a26dd",
+      "owner": "SO10",
+      "reason": "SO10 authorized non-Finance canonical descendant"
+    },
+    {
+      "root": "alembic_neutral",
+      "path": "sql/so10_scheduling_reservations_service_execution_up.sql",
+      "sha256": "d351a07c904991601415cd4c44268da9e1e6b48b83a17e07c9aebf698e5ff26b",
+      "owner": "SO10",
+      "reason": "SO10 authorized non-Finance canonical descendant"
+    },
+    {
+      "root": "alembic_neutral",
+      "path": "sql/so10_scheduling_reservations_service_execution_down.sql",
+      "sha256": "61b6a1ae4756379cbd713788ffc304443521cc398ccdc5897900d0bee1564be6",
+      "owner": "SO10",
+      "reason": "SO10 authorized non-Finance canonical descendant"
     }
   ],
   "trees": [

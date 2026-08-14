@@ -1,0 +1,162 @@
+{
+  "schema_version": 1,
+  "release": "SO10",
+  "source_checkpoint": "1ed3c4e",
+  "source_checkpoint_full": "1ed3c4e7aeab4fbfbb69d8b958312f9be19452bb",
+  "previous_head": "so9_reporting_read_models_automation_034",
+  "accepted_head": "so10_scheduling_reservations_service_execution_035",
+  "migration_count": 1,
+  "fingerprint_mode": "sha256_git_canonical_lf",
+  "commit": "NONE",
+  "tag": "NONE",
+  "artifacts": [
+    {
+      "path": "SO10_INSTALL_MANIFEST.txt",
+      "sha256": "96bc9c71a21ad51b8a8e44373091499bddc8fbdc23f8d0438951db0c2dab25fc"
+    },
+    {
+      "path": "XBOS_SO10_INSTALL_AND_VERIFY.txt",
+      "sha256": "801cf0db7aa37ad9d87fc2c248e038872074c6dd54e86762b88aa29ea8cbb656"
+    },
+    {
+      "path": "XBOS_SO10_RUN_ACCEPTANCE.cmd",
+      "sha256": "8bdd2df57318fd0bacd10b91551f09b469f4ecb9f9d9ec79a58e24ff3539566a"
+    },
+    {
+      "path": "alembic_neutral/sql/so10_scheduling_reservations_service_execution_down.sql",
+      "sha256": "61b6a1ae4756379cbd713788ffc304443521cc398ccdc5897900d0bee1564be6"
+    },
+    {
+      "path": "alembic_neutral/sql/so10_scheduling_reservations_service_execution_up.sql",
+      "sha256": "d351a07c904991601415cd4c44268da9e1e6b48b83a17e07c9aebf698e5ff26b"
+    },
+    {
+      "path": "alembic_neutral/versions/so10_scheduling_reservations_service_execution_035.py",
+      "sha256": "c0ce80b5c4388582d2077aad6bb293b4bd5e183870deed9285a5e114802a26dd"
+    },
+    {
+      "path": "contracts/platform/v1/pc0_data_authority_register.json",
+      "sha256": "6a0035ac68ec74805849a4a39d531fda79327a5767108be2ce3da83d11c5b04b"
+    },
+    {
+      "path": "contracts/platform/v1/pc0_dependency_policy.json",
+      "sha256": "35236980eae7374f5eb6ca7d70898bef36948e6a1079e13ef81227e2a3116c42"
+    },
+    {
+      "path": "contracts/platform/v1/pc0_frozen_finance_inventory.json",
+      "sha256": "9a709d40c16717d37927bddc6f080fdd359ea9a6d0e547b8e775a6539d892720"
+    },
+    {
+      "path": "contracts/platform/v1/pc0_module_map.json",
+      "sha256": "e72dc558f5fb0494837bfbae535ad123312e7f35fd0b01f35328cd2a9268403f"
+    },
+    {
+      "path": "contracts/platform/v1/pc0_public_private_interfaces.json",
+      "sha256": "3edfb7a1ed254b03c3d8cbff23e3b22e5141269589e987b288b2f9c7aec142cf"
+    },
+    {
+      "path": "contracts/platform/v1/pc0_reference_authority_migration_register.json",
+      "sha256": "2053bec627e989eb7673fde6f8cd4497a43b7793a04abe46892f6161f435bf82"
+    },
+    {
+      "path": "contracts/platform/v1/pc0_release_manifest.json",
+      "sha256": "3a4e4436f039f9396103b54f430b73618e568b73b9d0d1b4efea4b743539c70e"
+    },
+    {
+      "path": "contracts/platform/v1/pc6_release_manifest.json",
+      "sha256": "ec397899f135497490f36df4e0a7d313355a571182c9a3ddc1972385c2509bd1"
+    },
+    {
+      "path": "contracts/shared_operations/v1/examples/clinical_appointment_profile.json",
+      "sha256": "3689961ca7e7c16b557e9e208a52b05003da6c061d572a08f3324b12202baec5"
+    },
+    {
+      "path": "contracts/shared_operations/v1/examples/field_service_schedule_profile.json",
+      "sha256": "c9421a6b56ee1f13ddaf21ffc6aa9bc8c4581394bf5224c3b9e8e626081ba92f"
+    },
+    {
+      "path": "contracts/shared_operations/v1/so1_release_manifest.json",
+      "sha256": "2b435a3cb3bebbcbe6f4c14476419e4216c2582f154b1e6773cc4559550e4ef0"
+    },
+    {
+      "path": "contracts/shared_operations/v1/so2_release_manifest.json",
+      "sha256": "fd2f409092d6836a42125ed8bfdd4cb74bad3dfbda76990e5603a491f07c2741"
+    },
+    {
+      "path": "contracts/shared_operations/v1/so3_release_manifest.json",
+      "sha256": "0b1c605ccee0b07ad8b8dcd79912488c5f062d0a60454c62435c560d1899119b"
+    },
+    {
+      "path": "contracts/shared_operations/v1/so4_release_manifest.json",
+      "sha256": "02d2b73fe2250656166e0e1ace1fb7bff03104af0de7731c7d10e7ac28415fa8"
+    },
+    {
+      "path": "contracts/shared_operations/v1/so5_release_manifest.json",
+      "sha256": "255e05c1c9848c5253a6f5b006cea4199cddc06aa5cc739c11c7a577906f1c3a"
+    },
+    {
+      "path": "contracts/shared_operations/v1/so6_release_manifest.json",
+      "sha256": "748d9d10fcdba7db6445b1dc3aebbcffba8a18b596ad334c7ed46bb67b796d12"
+    },
+    {
+      "path": "contracts/shared_operations/v1/so7_release_manifest.json",
+      "sha256": "0005fe3de4564e9ed5e99f58dd5ee29ef87e7d89dcc27a1f7db3b8d4ed3e4345"
+    },
+    {
+      "path": "contracts/shared_operations/v1/so8_release_manifest.json",
+      "sha256": "7543963c52249ca302e15915cb2ba8cf6fe0b4631b9e19535f206e1f33ba6f15"
+    },
+    {
+      "path": "contracts/shared_operations/v1/so9_release_manifest.json",
+      "sha256": "6c2b0a7312e300091590e697bb290e885fd8953f4ac31d082d4ee2495de3a966"
+    },
+    {
+      "path": "contracts/shared_operations/v1/so10_authority.json",
+      "sha256": "1517394053a24e1276554fe2b5d2ebbafade17505c7231f339356f802eb3eef2"
+    },
+    {
+      "path": "contracts/shared_operations/v1/so10_legacy_adoption_manifest.json",
+      "sha256": "bbc79c4f698ee935e1f3d9bdf25322bc6f18acb2eab058cd027da428b40df065"
+    },
+    {
+      "path": "contracts/shared_operations/v1/so10_public_interfaces.json",
+      "sha256": "cb873e0aa44e65bbd7b378352cf4c6607dcb92364d5fd7edb563ed551db2e085"
+    },
+    {
+      "path": "contracts/shared_operations/v1/so10_xa_metadata.json",
+      "sha256": "9e90ba45fba79042ad018955ab2a6022a023bf71e220e4c8802a767681ea923c"
+    },
+    {
+      "path": "docs/shared_operations/SO10_SCHEDULING_RESERVATIONS_SERVICE_EXECUTION.md",
+      "sha256": "218cd7c4f9ea08ea5fb07477d726d28c1e51014daa0fb2f9447ae66076606d32"
+    },
+    {
+      "path": "docs/shared_operations/adr/0021_SO10_TIME_CAPACITY_BOOKING_SEPARATE_FROM_WORKFLOW_AND_FINANCE.md",
+      "sha256": "70cc38bc06d2db0a54495ce87fa4ffc8ceaee1069739f91d45aa6d8a39e159ee"
+    },
+    {
+      "path": "scripts/verify_so10_scheduling_reservations_service_execution.py",
+      "sha256": "77ec1917be6b20313a74c2285aad1dca743bb3e64e16050d8d7650816ff32892"
+    },
+    {
+      "path": "shared_operations/so10/__init__.py",
+      "sha256": "f5ca62e50870578464acad3566571d175fa385dc6a9b715ee8e94017d42f282f"
+    },
+    {
+      "path": "shared_operations/so10/contracts.py",
+      "sha256": "da5da569ec2fe64db0747d19822469556b1b6310d572d3aef53f45826f723068"
+    },
+    {
+      "path": "shared_operations/so10/service.py",
+      "sha256": "880f69402bbf81faf17964ecfbe49c28c6cb23ed374970f0ea864a98e276a930"
+    },
+    {
+      "path": "shared_operations/so10/sql_repository.py",
+      "sha256": "9f88055b89581e18fc448701f8aa41a12f1d5f14a53c8ce5519f07b5b62a8d02"
+    },
+    {
+      "path": "tests/contracts/test_so10_scheduling_reservations_service_execution.py",
+      "sha256": "2e71b75d474289d2bece96880cf3d1c0a31a0255a99cc872caaad4664cbda695"
+    }
+  ]
+}

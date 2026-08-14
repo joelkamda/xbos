@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "release": "SO10",
+  "source_checkpoint": "1ed3c4e7aeab4fbfbb69d8b958312f9be19452bb",
+  "previous_head": "so9_reporting_read_models_automation_034",
+  "accepted_head": "so10_scheduling_reservations_service_execution_035",
+  "time_authority": "PC4_REUSED",
+  "party_authority": "PC2_SO2_REUSED",
+  "catalog_authority": "SO1_REUSED",
+  "resource_authority": "SO5_REUSED",
+  "security_authority": "PC5_REUSED",
+  "workflow_authority": "SO6_EXTERNAL",
+  "delivery_authority": "SO8_EXTERNAL",
+  "scheduling_authority": "SO10",
+  "capacity_authority": "SO10_TIME_BOUND_ALLOCATION",
+  "service_execution_authority": "SO10_OPERATIONAL_ONLY",
+  "financial_authority": "NEUTRAL_FINANCE_PRESERVED",
+  "finance": "UNCHANGED",
+  "production_dependency_changes": "NONE"
+}

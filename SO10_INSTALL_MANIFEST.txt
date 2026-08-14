@@ -1,0 +1,43 @@
+SO10 cumulative overlay inventory
+Source checkpoint: 1ed3c4e7aeab4fbfbb69d8b958312f9be19452bb
+Previous head: so9_reporting_read_models_automation_034
+Accepted head: so10_scheduling_reservations_service_execution_035
+
+SO10_INSTALL_MANIFEST.txt
+XBOS_SO10_INSTALL_AND_VERIFY.txt
+XBOS_SO10_RUN_ACCEPTANCE.cmd
+alembic_neutral/sql/so10_scheduling_reservations_service_execution_down.sql
+alembic_neutral/sql/so10_scheduling_reservations_service_execution_up.sql
+alembic_neutral/versions/so10_scheduling_reservations_service_execution_035.py
+contracts/platform/v1/pc0_data_authority_register.json
+contracts/platform/v1/pc0_dependency_policy.json
+contracts/platform/v1/pc0_frozen_finance_inventory.json
+contracts/platform/v1/pc0_module_map.json
+contracts/platform/v1/pc0_public_private_interfaces.json
+contracts/platform/v1/pc0_reference_authority_migration_register.json
+contracts/platform/v1/pc0_release_manifest.json
+contracts/platform/v1/pc6_release_manifest.json
+contracts/shared_operations/v1/examples/clinical_appointment_profile.json
+contracts/shared_operations/v1/examples/field_service_schedule_profile.json
+contracts/shared_operations/v1/so1_release_manifest.json
+contracts/shared_operations/v1/so2_release_manifest.json
+contracts/shared_operations/v1/so3_release_manifest.json
+contracts/shared_operations/v1/so4_release_manifest.json
+contracts/shared_operations/v1/so5_release_manifest.json
+contracts/shared_operations/v1/so6_release_manifest.json
+contracts/shared_operations/v1/so7_release_manifest.json
+contracts/shared_operations/v1/so8_release_manifest.json
+contracts/shared_operations/v1/so9_release_manifest.json
+contracts/shared_operations/v1/so10_authority.json
+contracts/shared_operations/v1/so10_legacy_adoption_manifest.json
+contracts/shared_operations/v1/so10_public_interfaces.json
+contracts/shared_operations/v1/so10_release_manifest.json
+contracts/shared_operations/v1/so10_xa_metadata.json
+docs/shared_operations/SO10_SCHEDULING_RESERVATIONS_SERVICE_EXECUTION.md
+docs/shared_operations/adr/0021_SO10_TIME_CAPACITY_BOOKING_SEPARATE_FROM_WORKFLOW_AND_FINANCE.md
+scripts/verify_so10_scheduling_reservations_service_execution.py
+shared_operations/so10/__init__.py
+shared_operations/so10/contracts.py
+shared_operations/so10/service.py
+shared_operations/so10/sql_repository.py
+tests/contracts/test_so10_scheduling_reservations_service_execution.py

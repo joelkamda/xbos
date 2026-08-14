@@ -228,6 +228,20 @@
       "compatibility_path": "M7 readiness remains frozen; live routing and retirement stay unchanged",
       "retirement_owner": "R6",
       "retirement_milestone": "R6 cutover"
+    },
+    {
+      "reference": "legacy_operational_scheduling_reservation",
+      "module_code": "scheduling",
+      "previous_module_owner": "legacy source domains / future packs",
+      "previous_module_kind": "legacy_operational",
+      "target_module_owner": "SO10",
+      "target_module_kind": "shared_operations_authority",
+      "target_data_authority": "operational_scheduling_reservations",
+      "current_authority": "branch/order timestamps, ad hoc service timing fields, legacy staff/resource assignment snapshots and future pack-specific booking writers",
+      "target_authority": "SO10 prospective scheduling, reservation, capacity-allocation and operational service-execution authority",
+      "compatibility_path": "preserve source-domain and Finance historical time; bridge only explicit prospective booking/service references through PC4 time, SO1 target, PC2/SO2 Party and SO5 Resource public authorities",
+      "retirement_owner": "SO10 with source owners and R6",
+      "retirement_milestone": "pack-specific scheduling writer convergence and R6 production cutover"
     }
   ],
   "required_references": [
@@ -257,6 +271,7 @@
     "legacy_staff_resource_assignment",
     "legacy_operational_workflow_task",
     "legacy_operational_reporting",
-    "legacy_financial_writers"
+    "legacy_financial_writers",
+    "legacy_operational_scheduling_reservation"
   ]
 }

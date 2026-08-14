@@ -360,6 +360,32 @@
       ]
     },
     {
+      "module": "scheduling",
+      "public": [
+        "shared_operations.so10.SO10Authority",
+        "shared_operations.so10.SO10AuthorityError",
+        "shared_operations.so10.SchedulingService",
+        "shared_operations.so10.AvailabilityWindow",
+        "shared_operations.so10.Reservation",
+        "shared_operations.so10.ResourceAllocation",
+        "shared_operations.so10.AvailabilityResult",
+        "shared_operations.so10.ServiceExecution",
+        "shared_operations.so10.DefineSchedulingService",
+        "shared_operations.so10.DefineAvailabilityWindow",
+        "shared_operations.so10.CreateReservation",
+        "shared_operations.so10.ConfirmReservation",
+        "shared_operations.so10.RescheduleReservation",
+        "shared_operations.so10.CancelReservation",
+        "shared_operations.so10.MarkNoShow",
+        "shared_operations.so10.StartService",
+        "shared_operations.so10.CompleteService"
+      ],
+      "private": [
+        "shared_operations.so10.sql_repository",
+        "SO10 scheduling, availability, reservation, allocation, execution, history and command tables"
+      ]
+    },
+    {
       "module": "commerce",
       "public": [],
       "private": [

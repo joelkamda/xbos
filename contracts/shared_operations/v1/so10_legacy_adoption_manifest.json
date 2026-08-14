@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "release": "SO10",
+  "decisions": [
+    {
+      "authority": "PC4 business calendars and shifts, PC1 locations, PC2 Parties, SO2 operational relationships, SO1 schedulable catalog targets and SO5 Resources",
+      "classification": "ADOPT",
+      "decision": "Adopt the already-frozen authorities as references. SO10 creates no competing Party, customer, offering, resource, location or business-time identity."
+    },
+    {
+      "authority": "legacy branch/order timestamps, staff assignment snapshots and domain-specific service timing fields",
+      "classification": "MAP",
+      "decision": "Map only prospectively when explicit evidence identifies a booking or service-execution meaning. Historical order and branch timestamps are not bulk-reinterpreted as reservations."
+    },
+    {
+      "authority": "domain-specific appointment, visit, reservation or service references",
+      "classification": "BRIDGE",
+      "decision": "Bridge through stable public source references into SO10 reservation/service-execution records without writing source-domain private state."
+    },
+    {
+      "authority": "Finance business dates, reconciliation calendars, sales/orders, legacy payment facts and existing operational timestamps",
+      "classification": "PRESERVE",
+      "decision": "Preserve historical bytes and source authority. PC4 resolves prospective SO10 business time; frozen Finance retains immutable historical financial time."
+    },
+    {
+      "authority": "future pack-specific appointment/reservation writers and ad hoc scheduling fields",
+      "classification": "RETIRE_LATER",
+      "decision": "Retire only after packs, adapters and R6 cutover prove equivalent behavior. SO10 performs no destructive production conversion."
+    }
+  ]
+}

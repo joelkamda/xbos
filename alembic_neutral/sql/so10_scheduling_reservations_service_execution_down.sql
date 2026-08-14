@@ -1,0 +1,12 @@
+DROP TRIGGER IF EXISTS trg_so10_resource_allocation_immutable ON public.so10_resource_allocations;
+DROP TRIGGER IF EXISTS trg_so10_execution_history_immutable ON public.so10_execution_history;
+DROP TRIGGER IF EXISTS trg_so10_reservation_history_immutable ON public.so10_reservation_history;
+DROP FUNCTION IF EXISTS public.so10_history_immutable();
+DROP TABLE IF EXISTS public.so10_execution_history;
+DROP TABLE IF EXISTS public.so10_service_executions;
+DROP TABLE IF EXISTS public.so10_reservation_history;
+DROP TABLE IF EXISTS public.so10_resource_allocations;
+DROP TABLE IF EXISTS public.so10_reservations;
+DROP TABLE IF EXISTS public.so10_availability_windows;
+DROP TABLE IF EXISTS public.so10_services;
+DROP TABLE IF EXISTS public.so10_commands;

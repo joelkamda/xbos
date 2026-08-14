@@ -91,6 +91,9 @@
       "identity",
       "shared"
     ],
+    "scheduling": [
+      "operating_context"
+    ],
     "commerce": [],
     "crm_relationships": [],
     "finance": [],

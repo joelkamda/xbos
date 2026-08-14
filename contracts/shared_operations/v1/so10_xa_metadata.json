@@ -1,0 +1,44 @@
+{
+  "schema_version": 1,
+  "release": "SO10",
+  "frontend_implementation": "NONE",
+  "views": [
+    "scheduling.services",
+    "scheduling.availability",
+    "scheduling.reservations",
+    "scheduling.calendar",
+    "scheduling.service_execution"
+  ],
+  "actions": [
+    "availability.define",
+    "reservation.create",
+    "reservation.confirm",
+    "reservation.reschedule",
+    "reservation.cancel",
+    "reservation.no_show",
+    "service.start",
+    "service.complete"
+  ],
+  "fields": [
+    "requested_start",
+    "requested_end",
+    "confirmed_start",
+    "confirmed_end",
+    "location_public_id",
+    "business_date",
+    "timezone_name",
+    "capacity_units",
+    "available_capacity",
+    "resource_allocations",
+    "service_execution_status"
+  ],
+  "authorization_source": "PC5",
+  "time_source": "PC4",
+  "party_source": "PC2_SO2",
+  "resource_source": "SO5",
+  "catalog_source": "SO1",
+  "reminder_delivery_source": "SO8_HANDOFF_LATER",
+  "financial_truth": "NONE",
+  "calendar_never_grants_authorization": true,
+  "availability_is_server_authoritative": true
+}

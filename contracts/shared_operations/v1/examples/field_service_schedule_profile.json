@@ -1,0 +1,12 @@
+{
+  "profile": "field_service_schedule",
+  "terminology": {
+    "service": "Site visit",
+    "reservation": "Dispatch booking",
+    "resource": "Technician or equipment",
+    "location": "Customer site"
+  },
+  "capabilities": ["visit_window", "technician_capacity", "reschedule", "service_completion"],
+  "time_policy": "PC4_BUSINESS_CALENDAR",
+  "financial_truth": "NONE"
+}

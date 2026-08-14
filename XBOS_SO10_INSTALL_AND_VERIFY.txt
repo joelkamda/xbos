@@ -1,0 +1,33 @@
+XBOS SO10 — Scheduling, Reservations and Service Execution
+
+Source checkpoint:
+  1ed3c4e7aeab4fbfbb69d8b958312f9be19452bb
+
+Migration:
+  so9_reporting_read_models_automation_034
+  -> so10_scheduling_reservations_service_execution_035
+
+Operator installation (repository root, existing xbos-track-b-b1 venv):
+  powershell -NoProfile -Command "Expand-Archive -LiteralPath '%USERPROFILE%\Downloads\XBOS_SO10_SCHEDULING_RESERVATIONS_SERVICE_EXECUTION.zip' -DestinationPath '.' -Force"
+  XBOS_SO10_RUN_ACCEPTANCE.cmd
+
+Do not run Alembic manually before the gate. The acceptance script performs disposable clean replay, SO9->SO10 upgrade, downgrade/re-upgrade and rerun-safe development adoption.
+
+SO10 authority boundaries:
+  PC4 business time/timezone       = REUSED
+  PC2/SO2 Party/client relationship = REUSED
+  SO1 Atomic Unit/Offer             = REUSED
+  SO5 Resource/capacity             = REUSED
+  PC5 authorization                 = REUSED
+  SO6 workflow/task                 = EXTERNAL
+  SO8 communications/reminders      = EXTERNAL
+  Neutral Finance                   = UNCHANGED
+
+Core laws:
+  Reservation != financial obligation
+  Appointment != payment
+  Resource booking != authorization
+  Service completion != revenue recognition
+  Calendar state != workflow state
+
+SO10 owns only prospective availability, time/capacity allocation, reservation lifecycle and operational service-execution facts. No production cutover or legacy retirement is performed.

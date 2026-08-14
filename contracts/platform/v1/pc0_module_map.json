@@ -233,6 +233,14 @@
       ]
     },
     {
+      "code": "scheduling",
+      "owner": "SO10",
+      "kind": "shared_operations_authority",
+      "source_roots": [
+        "shared_operations/so10"
+      ]
+    },
+    {
       "code": "commerce",
       "owner": "SO1",
       "kind": "legacy_operational",
