@@ -242,6 +242,14 @@
       "compatibility_path": "preserve source-domain and Finance historical time; bridge only explicit prospective booking/service references through PC4 time, SO1 target, PC2/SO2 Party and SO5 Resource public authorities",
       "retirement_owner": "SO10 with source owners and R6",
       "retirement_milestone": "pack-specific scheduling writer convergence and R6 production cutover"
+    },
+    {
+      "reference": "pack_lifecycle",
+      "current_authority": "SO0/PC4 constitutional placeholder; no executable pack lifecycle",
+      "target_authority": "PK immutable pack manifest, dependency graph and tenant lifecycle",
+      "compatibility_path": "additive PK tables and public contracts; reuse PC3 semantics, PC4 configuration/modules, PC5 authorization, SO public contracts and M8.4 Finance conformance without rewriting historical authority",
+      "retirement_owner": "PK",
+      "retirement_milestone": "PK aggregate freeze"
     }
   ],
   "required_references": [
@@ -272,6 +280,7 @@
     "legacy_operational_workflow_task",
     "legacy_operational_reporting",
     "legacy_financial_writers",
-    "legacy_operational_scheduling_reservation"
+    "legacy_operational_scheduling_reservation",
+    "pack_lifecycle"
   ]
 }

@@ -1,0 +1,103 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "xbos.pack-manifest.pk0123.v1",
+  "title": "XBOS Pack Manifest PK0-PK3",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "pack_code",
+    "version",
+    "owner_code",
+    "kind",
+    "kernel_min"
+  ],
+  "properties": {
+    "pack_code": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_.-]{1,119}$"
+    },
+    "version": {
+      "type": "string"
+    },
+    "owner_code": {
+      "type": "string"
+    },
+    "kind": {
+      "enum": [
+        "capability",
+        "industry",
+        "country",
+        "tax",
+        "payment_connector",
+        "communication_connector",
+        "accounting_connector",
+        "integration_connector"
+      ]
+    },
+    "kernel_min": {
+      "type": "string"
+    },
+    "kernel_max": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "required_modules": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true
+    },
+    "optional_modules": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true
+    },
+    "dependencies": {
+      "type": "array"
+    },
+    "permission_references": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true
+    },
+    "semantic_namespaces": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true
+    },
+    "configuration_keys": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true
+    },
+    "extensions": {
+      "type": "array"
+    },
+    "connectors": {
+      "type": "array"
+    },
+    "xa": {
+      "type": "object"
+    },
+    "finance_conformance_profile": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "retention_required": {
+      "type": "boolean"
+    }
+  }
+}

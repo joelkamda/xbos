@@ -1,0 +1,15 @@
+XBOS PK0123 — Pack Manifest, Lifecycle, Public Extensions and Connector Declarations
+
+Source checkpoint: da61371b9378d6406fe5d6fce8611f77d40b72ef
+Predecessor head: so_aggregate_conformance_hardening_036
+Candidate head: pk0123_pack_manifest_lifecycle_037
+
+Operator:
+1. Activate the existing venv: C:\Users\jdkam\venvs\xbos-track-b-b1
+2. Expand this package over C:\Users\jdkam\XBOS
+3. Do not run Alembic manually.
+4. Run XBOS_PK0123_RUN_ACCEPTANCE.cmd
+5. Stop only at PK0123_SINGLE_GATE=PASS or first material failure.
+6. Do not stage, commit or tag until the gate is accepted.
+
+No production or tenant-clone database is touched by the acceptance harness. The disposable database is local PostgreSQL only; development adoption is allowed only from the exact predecessor or already-accepted head.

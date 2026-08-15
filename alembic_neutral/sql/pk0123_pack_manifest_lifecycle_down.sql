@@ -1,0 +1,12 @@
+DROP TRIGGER IF EXISTS trg_pk_pack_history_immutable ON public.pk_pack_installation_history;
+DROP FUNCTION IF EXISTS public.pk_history_immutable();
+DROP TABLE IF EXISTS public.pk_pack_installation_history;
+DROP TABLE IF EXISTS public.pk_tenant_pack_installations;
+DROP TABLE IF EXISTS public.pk_connector_declarations;
+DROP TABLE IF EXISTS public.pk_pack_extensions;
+DROP TABLE IF EXISTS public.pk_pack_dependencies;
+DROP TRIGGER IF EXISTS trg_pk_pack_version_immutable ON public.pk_pack_versions;
+DROP FUNCTION IF EXISTS public.pk_reject_pack_version_mutation();
+DROP TABLE IF EXISTS public.pk_pack_versions;
+DROP TABLE IF EXISTS public.pk_packs;
+DROP TABLE IF EXISTS public.pk_pack_commands;

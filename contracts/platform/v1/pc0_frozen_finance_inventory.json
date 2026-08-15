@@ -374,6 +374,27 @@
       "sha256": "fad91b1f5fc815a47c210842bf80b7b291746d9911c1b65a6dcebea4ad98dd66",
       "owner": "SO2",
       "reason": "Shared Operations aggregate conformance hardening of SO2 tenant-scoped idempotency; no Finance semantics"
+    },
+    {
+      "root": "alembic_neutral",
+      "path": "versions/pk0123_pack_manifest_lifecycle_037.py",
+      "sha256": "b4939eb4da2965c67117a8f9a9b294cb4a6eb4a300538b4c9d0208a0556d5a27",
+      "owner": "PK",
+      "reason": "PK0123 authorized non-Finance canonical descendant; pack composition/lifecycle only"
+    },
+    {
+      "root": "alembic_neutral",
+      "path": "sql/pk0123_pack_manifest_lifecycle_up.sql",
+      "sha256": "e939c0c2038f999f1689ae9bb29111bb1f11d53cec22d24eab59b3e8dcdc6595",
+      "owner": "PK",
+      "reason": "PK0123 authorized non-Finance canonical descendant; pack composition/lifecycle only"
+    },
+    {
+      "root": "alembic_neutral",
+      "path": "sql/pk0123_pack_manifest_lifecycle_down.sql",
+      "sha256": "2cfd8952806b18eea6c8c9647e012355a5ccf85295193374f0fe769c1736da41",
+      "owner": "PK",
+      "reason": "PK0123 authorized non-Finance canonical descendant; pack composition/lifecycle only"
     }
   ],
   "trees": [

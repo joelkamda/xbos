@@ -100,7 +100,8 @@
     "xafpay": [
       "finance"
     ],
-    "shared": []
+    "shared": [],
+    "packs": []
   },
   "law": [
     "composition may assemble modules but domain modules may not depend on composition",
@@ -108,6 +109,7 @@
     "operational and industry modules may not import another module's private models repositories or services",
     "adapters may call only declared public authority interfaces",
     "Neutral Finance is frozen and may not depend on Platform Core implementation modules",
-    "new disallowed imports are never grandfathered automatically"
+    "new disallowed imports are never grandfathered automatically",
+    "packs compose through declared public contracts and may not depend on private authority implementations"
   ]
 }

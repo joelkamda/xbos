@@ -36,31 +36,31 @@
     },
     {
       "path": "contracts/platform/v1/pc0_data_authority_register.json",
-      "sha256": "6a0035ac68ec74805849a4a39d531fda79327a5767108be2ce3da83d11c5b04b"
+      "sha256": "7a7d73f09a4f8c79ecf7bfe8db1fb29f7616695bd82364a2bd5d0e939be29399"
     },
     {
       "path": "contracts/platform/v1/pc0_frozen_finance_inventory.json",
-      "sha256": "d364508bea0c9c33b2c28f4ecfdc93c28eed2857d462b3bc09ef2a5fda50f1d7"
+      "sha256": "eb9ecc3e39aa979839dd7367d6687aa4bc348b0b36301af99b9647f7d8bf2497"
     },
     {
       "path": "contracts/platform/v1/pc0_module_map.json",
-      "sha256": "e72dc558f5fb0494837bfbae535ad123312e7f35fd0b01f35328cd2a9268403f"
+      "sha256": "5e5db4e3b550e11f22f41e7020c0de798c74c706a8696f4461bad7f3b8416582"
     },
     {
       "path": "contracts/platform/v1/pc0_public_private_interfaces.json",
-      "sha256": "3edfb7a1ed254b03c3d8cbff23e3b22e5141269589e987b288b2f9c7aec142cf"
+      "sha256": "94561972bd58eba3bc05691b6f5d1321e8c10bfc5e3a05210edc00f5dfa9a409"
     },
     {
       "path": "contracts/platform/v1/pc0_reference_authority_migration_register.json",
-      "sha256": "2053bec627e989eb7673fde6f8cd4497a43b7793a04abe46892f6161f435bf82"
+      "sha256": "7db20aaaece8b4befee154ff18b4109b5da9ac94630a25966c4397c430f34e54"
     },
     {
       "path": "contracts/platform/v1/pc0_release_manifest.json",
-      "sha256": "194759d0aa9f212431141d31c0686525f69ac6e9cd20b2664bd630fba9ead94b"
+      "sha256": "b38d9aa599a0f069ffffcb85ca8824ebe195ba037b402acc033ee943ed4231fc"
     },
     {
       "path": "contracts/platform/v1/pc6_release_manifest.json",
-      "sha256": "538abd1c8293ae731681a0593c9878d523f33ae2be975cc0536e1dfc26cd3d7d"
+      "sha256": "9393303541f8da6a9980f7637b498f51f1955063d9e1838f40bcb065a472e054"
     },
     {
       "path": "contracts/shared_operations/v1/examples/clinical_reporting_profile.json",
@@ -72,35 +72,35 @@
     },
     {
       "path": "contracts/shared_operations/v1/so1_release_manifest.json",
-      "sha256": "857a343d63cf65aa4c4554d3ef2f5c3669739c09e0426a1046b2ae025d0e7022"
+      "sha256": "008790028336d395e9099484db9dc95e600746c1d2f1f3661c52b569f13340f0"
     },
     {
       "path": "contracts/shared_operations/v1/so2_release_manifest.json",
-      "sha256": "c87026e9a7f8ddaae6e3f1ef8c26e82cefa86961827deebab488215c14a226d8"
+      "sha256": "08c266d175981cf43a8e25dd9f7308293cd7b4ce26c82caacb7f28735a890e77"
     },
     {
       "path": "contracts/shared_operations/v1/so3_release_manifest.json",
-      "sha256": "b6e1fc69ff4381344b622203966854c01c3f17ffeab19564943788cf296bbcff"
+      "sha256": "6afa6094bf08077c7248136532502431840dbbe484e545a5e467b1781169810e"
     },
     {
       "path": "contracts/shared_operations/v1/so4_release_manifest.json",
-      "sha256": "385b11b7b155d32f2a2856f3e7fc3bc89de7d31b2ae0d3d57049f2c7ceb16e9f"
+      "sha256": "ae26380426dbced8d9e11a82e3d06b80b8347e599f5e4ed0ee89bdf3ce276111"
     },
     {
       "path": "contracts/shared_operations/v1/so5_release_manifest.json",
-      "sha256": "d5a05776c84cb0c17decf3373ff650d12f961e6b35d2cebb669769973dcf76ef"
+      "sha256": "a2fd58a8b8e29a2ba2b074ecbe01375b90e297bcd02bb74e975ded93ca15de6c"
     },
     {
       "path": "contracts/shared_operations/v1/so6_release_manifest.json",
-      "sha256": "1fe4361af5f88c2612f9c2dee31ed9fab7a59268c90d5c3b403b2f5f776023b6"
+      "sha256": "4c9fb22e0c412ad53cb745122de07591aeed087e7599a92c9f0663430a2e1ac3"
     },
     {
       "path": "contracts/shared_operations/v1/so7_release_manifest.json",
-      "sha256": "4563ce570c2041b5dd8f45ed84e68d19e474d0dab3b7132de41a4cea410c3f27"
+      "sha256": "620b34758beaef7ddbfe07d9366c161af34b9a790b43c1642d15197884e16b94"
     },
     {
       "path": "contracts/shared_operations/v1/so8_release_manifest.json",
-      "sha256": "43f91f80dbab23afafe6338f8e41ef98c944cfaca829a597d9fa47b77b72e27e"
+      "sha256": "210618c4281723960f7e1c53a63f77a87d4b4671f5bd11376090981e9056e58c"
     },
     {
       "path": "contracts/shared_operations/v1/so9_authority.json",

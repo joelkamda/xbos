@@ -282,6 +282,14 @@
         "core/events",
         "core/shared"
       ]
+    },
+    {
+      "code": "packs",
+      "owner": "PK",
+      "kind": "pack_composition_authority",
+      "source_roots": [
+        "pack_platform"
+      ]
     }
   ],
   "composition_files": [

@@ -1,0 +1,49 @@
+XBOS PK0123 INSTALL MANIFEST
+
+Source checkpoint: da61371b9378d6406fe5d6fce8611f77d40b72ef
+Previous head: so_aggregate_conformance_hardening_036
+Accepted head: pk0123_pack_manifest_lifecycle_037
+Coverage: PK0, PK1, PK2, PK3
+
+Package file count: 40
+Package files:
+- PK0123_INSTALL_MANIFEST.txt
+- XBOS_PK0123_INSTALL_AND_VERIFY.txt
+- XBOS_PK0123_RUN_ACCEPTANCE.cmd
+- alembic_neutral/sql/pk0123_pack_manifest_lifecycle_down.sql
+- alembic_neutral/sql/pk0123_pack_manifest_lifecycle_up.sql
+- alembic_neutral/versions/pk0123_pack_manifest_lifecycle_037.py
+- contracts/packs/v1/examples/neutral_country_pack.json
+- contracts/packs/v1/examples/neutral_payment_provider_connector.json
+- contracts/packs/v1/pk0123_authority.json
+- contracts/packs/v1/pk0123_manifest_schema.json
+- contracts/packs/v1/pk0123_public_interfaces.json
+- contracts/packs/v1/pk0123_release_manifest.json
+- contracts/platform/v1/pc0_data_authority_register.json
+- contracts/platform/v1/pc0_dependency_policy.json
+- contracts/platform/v1/pc0_frozen_finance_inventory.json
+- contracts/platform/v1/pc0_module_map.json
+- contracts/platform/v1/pc0_public_private_interfaces.json
+- contracts/platform/v1/pc0_reference_authority_migration_register.json
+- contracts/platform/v1/pc0_release_manifest.json
+- contracts/platform/v1/pc6_release_manifest.json
+- contracts/shared_operations/v1/so10_release_manifest.json
+- contracts/shared_operations/v1/so1_release_manifest.json
+- contracts/shared_operations/v1/so2_release_manifest.json
+- contracts/shared_operations/v1/so3_release_manifest.json
+- contracts/shared_operations/v1/so4_release_manifest.json
+- contracts/shared_operations/v1/so5_release_manifest.json
+- contracts/shared_operations/v1/so6_release_manifest.json
+- contracts/shared_operations/v1/so7_release_manifest.json
+- contracts/shared_operations/v1/so8_release_manifest.json
+- contracts/shared_operations/v1/so9_release_manifest.json
+- contracts/shared_operations/v1/so_aggregate_release_manifest.json
+- core/platform/architecture_contract.py
+- docs/packs/PK0123_MANIFEST_LIFECYCLE_EXTENSIONS_CONNECTORS.md
+- docs/packs/adr/0023_PK_PACKS_COMPOSE_PUBLIC_AUTHORITIES_AND_CONNECTORS_STAY_AT_EDGES.md
+- pack_platform/__init__.py
+- pack_platform/contracts.py
+- pack_platform/service.py
+- pack_platform/sql_repository.py
+- scripts/verify_pk0123_pack_manifest_lifecycle_extensions.py
+- tests/contracts/test_pk0123_pack_manifest_lifecycle_extensions.py

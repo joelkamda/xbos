@@ -1,0 +1,88 @@
+{
+  "schema_version": 1,
+  "release": "PK0123",
+  "source_checkpoint": "da61371b9378d6406fe5d6fce8611f77d40b72ef",
+  "previous_head": "so_aggregate_conformance_hardening_036",
+  "accepted_head": "pk0123_pack_manifest_lifecycle_037",
+  "scope": [
+    "PK0",
+    "PK1",
+    "PK2",
+    "PK3"
+  ],
+  "constitutional_rule": "pack_is_composition_not_authority",
+  "authorities": {
+    "pack_manifest": {
+      "owner": "PK",
+      "immutable_version": true,
+      "machine_readable": true
+    },
+    "pack_lifecycle": {
+      "owner": "PK",
+      "states": [
+        "staged",
+        "installed",
+        "active",
+        "disabled",
+        "removed"
+      ],
+      "version_pinned": true
+    },
+    "semantic_identity": {
+      "owner": "PC3",
+      "pk_mode": "REFERENCE_ONLY"
+    },
+    "module_configuration_entitlements": {
+      "owner": "PC4",
+      "pk_mode": "PUBLIC_DECLARATION_AND_ORCHESTRATION_ONLY"
+    },
+    "authorization": {
+      "owner": "PC5",
+      "pk_mode": "PERMISSION_REFERENCE_ONLY"
+    },
+    "shared_operations": {
+      "owner": "SO1-SO10",
+      "pk_mode": "PUBLIC_CONTRACT_ONLY"
+    },
+    "finance": {
+      "owner": "Neutral Finance",
+      "pk_mode": "M8.4_CONFORMANCE_REFERENCE_ONLY"
+    },
+    "frontend_experience": {
+      "owner": "XA",
+      "pk_mode": "COMPOSITION_METADATA_ONLY"
+    }
+  },
+  "lifecycle_law": [
+    "installed_not_equal_active",
+    "active_not_equal_entitled",
+    "entitled_not_equal_feature_enabled",
+    "feature_enabled_not_equal_permitted",
+    "tenant_pack_version_is_pinned",
+    "manifest_version_is_immutable",
+    "removal_respects_retention"
+  ],
+  "extension_law": [
+    "public_interfaces_only",
+    "no_private_table_or_repository_binding",
+    "no_runtime_dynamic_import",
+    "no_arbitrary_sql_from_manifest",
+    "no_pack_owned_financial_truth",
+    "no_pack_owned_permission_truth",
+    "no_pack_owned_semantic_identity"
+  ],
+  "connector_law": [
+    "provider_execution_is_not_financial_truth",
+    "provider_success_not_equal_settlement_without_configured_finality",
+    "ambiguous_outcome_never_guessed",
+    "no_blind_retry_after_unknown_submission",
+    "stable_instruction_submission_callback_identities",
+    "secrets_by_reference_only",
+    "raw_provider_payload_not_in_finance"
+  ],
+  "finance": "UNCHANGED",
+  "shared_operations": "UNCHANGED",
+  "production_dependency_changes": "NONE",
+  "frontend_implementation": "NONE",
+  "template_registry": "DEFERRED_TO_PK5_PK6"
+}

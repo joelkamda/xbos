@@ -450,6 +450,7 @@ def _validate_finance(root: Path, finance: dict[str, Any], inventory: dict[str, 
         valid_owner = isinstance(owner, str) and (
             (owner.startswith("PC") and owner[2:].isdigit() and int(owner[2:]) >= 1)
             or (owner.startswith("SO") and owner[2:].isdigit() and 1 <= int(owner[2:]) <= 10)
+            or (owner.startswith("PK") and (owner == "PK" or owner[2:].isdigit()))
         )
         if not valid_owner or not all(isinstance(item.get(key), str) and item[key] for key in ("root","path","sha256")):
             _fail("PC0-NON-FINANCE-EXTENSION", str(item))
@@ -503,6 +504,12 @@ def validate_pc0(root: str | Path, validate_release: bool = True) -> dict[str, A
         contract = root_path / f"contracts/shared_operations/v1/so{number}_authority.json"
         if contract.is_file():
             descendant_heads.append(json.loads(contract.read_text(encoding="utf-8")).get("accepted_head"))
+    aggregate_contract = root_path / "contracts/shared_operations/v1/so_aggregate_conformance_freeze.json"
+    if aggregate_contract.is_file():
+        descendant_heads.append(json.loads(aggregate_contract.read_text(encoding="utf-8")).get("accepted_head"))
+    # Pack Platform descendants are likewise prospective governed descendants.
+    for contract in sorted((root_path / "contracts/packs/v1").glob("pk*_authority.json")) if (root_path / "contracts/packs/v1").is_dir() else []:
+        descendant_heads.append(json.loads(contract.read_text(encoding="utf-8")).get("accepted_head"))
     _validate_finance(
         root_path,
         contracts["finance"],

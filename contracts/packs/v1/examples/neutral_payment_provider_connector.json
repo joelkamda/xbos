@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "specimen": "neutral.payment.provider.connector",
+  "non_authoritative": true,
+  "pack_code": "neutral.example.payout_connector",
+  "version": "1.0.0",
+  "provider_code": "example_rail",
+  "capabilities": [
+    "collection",
+    "payout",
+    "refund"
+  ],
+  "provider_idempotency": "external_reference",
+  "external_reference_lookup": true,
+  "callback_identity_mode": "provider_event_id",
+  "finality_policy": {
+    "accepted": "submitted",
+    "processing": "pending",
+    "failed": "failed",
+    "timeout": "ambiguous",
+    "beneficiary_credited": "provider_final"
+  },
+  "destination_kinds": [
+    "provider_beneficiary_token",
+    "mobile_money_reference",
+    "bank_beneficiary_reference",
+    "wallet_network_reference"
+  ],
+  "secret_reference_keys": [
+    "example_rail.credentials"
+  ],
+  "ambiguous_outcome_policy": "lookup_external_reference_then_manual_hold",
+  "raw_payload_policy": "sanitized_or_encrypted_only",
+  "financial_truth": "NONE",
+  "settlement_owner": "Neutral Finance",
+  "note": "provider-final evidence may authorize creation/confirmation of an existing canonical outgoing settlement contract; this connector does not own settlement, payable, expense, allocation or journal truth"
+}

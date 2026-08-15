@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "release": "PK0123",
+  "public": [
+    "pack_platform.PackAuthority",
+    "pack_platform.PackManifest",
+    "pack_platform.PackDependency",
+    "pack_platform.PackExtension",
+    "pack_platform.ConnectorDeclaration",
+    "pack_platform.RegisterPackVersion",
+    "pack_platform.StagePack",
+    "pack_platform.InstallPack",
+    "pack_platform.ActivatePack",
+    "pack_platform.DisablePack",
+    "pack_platform.RemovePack",
+    "pack_platform.PackVersionRecord",
+    "pack_platform.TenantPackState"
+  ],
+  "private": [
+    "pack_platform.sql_repository.SQLPackRepository",
+    "pk_* persistence tables",
+    "pk_pack_commands"
+  ],
+  "forbidden_runtime_surfaces": [
+    "private SQL repositories of PC/SO/Finance",
+    "arbitrary SQL declared by pack",
+    "dynamic Python import from manifest"
+  ]
+}

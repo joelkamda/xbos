@@ -1,0 +1,183 @@
+{
+  "schema_version": 1,
+  "release": "PK0123_PACK_MANIFEST_LIFECYCLE_EXTENSIONS_CONNECTORS",
+  "source_checkpoint": "da61371",
+  "source_checkpoint_full": "da61371b9378d6406fe5d6fce8611f77d40b72ef",
+  "source_archive_sha256": "f85921332e0734e0fa472845dd9edb8cb020fa5811d66a86dbff9cab29977237",
+  "source_archive_size": 5779060,
+  "previous_head": "so_aggregate_conformance_hardening_036",
+  "accepted_head": "pk0123_pack_manifest_lifecycle_037",
+  "migration_count": 1,
+  "coverage": [
+    "PK0",
+    "PK1",
+    "PK2",
+    "PK3"
+  ],
+  "fingerprint_mode": "sha256_git_canonical_lf",
+  "commit": "NONE",
+  "tag": "NONE",
+  "operator_gate": "XBOS_PK0123_RUN_ACCEPTANCE.cmd",
+  "success_marker": "PK0123_SINGLE_GATE=PASS",
+  "finance": "UNCHANGED",
+  "shared_operations": "UNCHANGED",
+  "production_dependencies": "UNCHANGED",
+  "artifacts": [
+    {
+      "path": "PK0123_INSTALL_MANIFEST.txt",
+      "sha256": "d1fcada52595b9e0fa221d9d4547cf4b0bb0b74bf73eecc363ce60506b054a9f"
+    },
+    {
+      "path": "XBOS_PK0123_INSTALL_AND_VERIFY.txt",
+      "sha256": "41b5d721e7786283ddc8c87148a209bdd857491df392995a1fbd3d5d62deea98"
+    },
+    {
+      "path": "XBOS_PK0123_RUN_ACCEPTANCE.cmd",
+      "sha256": "ade651da3d966cf2964c44f06b2ceee7e1a77950e11fdef7ef78d31ae44e0c50"
+    },
+    {
+      "path": "alembic_neutral/sql/pk0123_pack_manifest_lifecycle_down.sql",
+      "sha256": "2cfd8952806b18eea6c8c9647e012355a5ccf85295193374f0fe769c1736da41"
+    },
+    {
+      "path": "alembic_neutral/sql/pk0123_pack_manifest_lifecycle_up.sql",
+      "sha256": "e939c0c2038f999f1689ae9bb29111bb1f11d53cec22d24eab59b3e8dcdc6595"
+    },
+    {
+      "path": "alembic_neutral/versions/pk0123_pack_manifest_lifecycle_037.py",
+      "sha256": "b4939eb4da2965c67117a8f9a9b294cb4a6eb4a300538b4c9d0208a0556d5a27"
+    },
+    {
+      "path": "contracts/packs/v1/examples/neutral_country_pack.json",
+      "sha256": "32dbf2e04f32bb3f1dee58787a8aba94690e1d0cfe093a663a33d5b3be37748c"
+    },
+    {
+      "path": "contracts/packs/v1/examples/neutral_payment_provider_connector.json",
+      "sha256": "26d96881b0b7079bb5031121fb1964626a04e70c860fe087a29c064aaaef6125"
+    },
+    {
+      "path": "contracts/packs/v1/pk0123_authority.json",
+      "sha256": "349d6aec819424f240bac869e64df8a45691b3ef76ebff8eed0af6f0c8190371"
+    },
+    {
+      "path": "contracts/packs/v1/pk0123_manifest_schema.json",
+      "sha256": "c87b0c1e0fa322451c099a4d7c6fe65f4cb132a3284d6c0208a1bef972e808e4"
+    },
+    {
+      "path": "contracts/packs/v1/pk0123_public_interfaces.json",
+      "sha256": "aba500a7e2dab9bdf7b9eadf165698030ef4758083647fb587a878710dea3735"
+    },
+    {
+      "path": "contracts/platform/v1/pc0_data_authority_register.json",
+      "sha256": "7a7d73f09a4f8c79ecf7bfe8db1fb29f7616695bd82364a2bd5d0e939be29399"
+    },
+    {
+      "path": "contracts/platform/v1/pc0_dependency_policy.json",
+      "sha256": "7ab680712bf9f4b3f291b13eac4cd328d9edf60f1c137918b3f6a1e8dcb21919"
+    },
+    {
+      "path": "contracts/platform/v1/pc0_frozen_finance_inventory.json",
+      "sha256": "eb9ecc3e39aa979839dd7367d6687aa4bc348b0b36301af99b9647f7d8bf2497"
+    },
+    {
+      "path": "contracts/platform/v1/pc0_module_map.json",
+      "sha256": "5e5db4e3b550e11f22f41e7020c0de798c74c706a8696f4461bad7f3b8416582"
+    },
+    {
+      "path": "contracts/platform/v1/pc0_public_private_interfaces.json",
+      "sha256": "94561972bd58eba3bc05691b6f5d1321e8c10bfc5e3a05210edc00f5dfa9a409"
+    },
+    {
+      "path": "contracts/platform/v1/pc0_reference_authority_migration_register.json",
+      "sha256": "7db20aaaece8b4befee154ff18b4109b5da9ac94630a25966c4397c430f34e54"
+    },
+    {
+      "path": "contracts/platform/v1/pc0_release_manifest.json",
+      "sha256": "b38d9aa599a0f069ffffcb85ca8824ebe195ba037b402acc033ee943ed4231fc"
+    },
+    {
+      "path": "contracts/platform/v1/pc6_release_manifest.json",
+      "sha256": "9393303541f8da6a9980f7637b498f51f1955063d9e1838f40bcb065a472e054"
+    },
+    {
+      "path": "contracts/shared_operations/v1/so10_release_manifest.json",
+      "sha256": "d338517f8aced7a399d57232a0fec73976b9a8fc5ef010404eacad683cadcf86"
+    },
+    {
+      "path": "contracts/shared_operations/v1/so1_release_manifest.json",
+      "sha256": "008790028336d395e9099484db9dc95e600746c1d2f1f3661c52b569f13340f0"
+    },
+    {
+      "path": "contracts/shared_operations/v1/so2_release_manifest.json",
+      "sha256": "08c266d175981cf43a8e25dd9f7308293cd7b4ce26c82caacb7f28735a890e77"
+    },
+    {
+      "path": "contracts/shared_operations/v1/so3_release_manifest.json",
+      "sha256": "6afa6094bf08077c7248136532502431840dbbe484e545a5e467b1781169810e"
+    },
+    {
+      "path": "contracts/shared_operations/v1/so4_release_manifest.json",
+      "sha256": "ae26380426dbced8d9e11a82e3d06b80b8347e599f5e4ed0ee89bdf3ce276111"
+    },
+    {
+      "path": "contracts/shared_operations/v1/so5_release_manifest.json",
+      "sha256": "a2fd58a8b8e29a2ba2b074ecbe01375b90e297bcd02bb74e975ded93ca15de6c"
+    },
+    {
+      "path": "contracts/shared_operations/v1/so6_release_manifest.json",
+      "sha256": "4c9fb22e0c412ad53cb745122de07591aeed087e7599a92c9f0663430a2e1ac3"
+    },
+    {
+      "path": "contracts/shared_operations/v1/so7_release_manifest.json",
+      "sha256": "620b34758beaef7ddbfe07d9366c161af34b9a790b43c1642d15197884e16b94"
+    },
+    {
+      "path": "contracts/shared_operations/v1/so8_release_manifest.json",
+      "sha256": "210618c4281723960f7e1c53a63f77a87d4b4671f5bd11376090981e9056e58c"
+    },
+    {
+      "path": "contracts/shared_operations/v1/so9_release_manifest.json",
+      "sha256": "f45a02483e96c0a7fdbe27c5117d042e2475d98a7fdec185e561adeb5c223e8e"
+    },
+    {
+      "path": "contracts/shared_operations/v1/so_aggregate_release_manifest.json",
+      "sha256": "e6e0cfdbb0ab51db57a3c5c6d887e1844b414ac240f87b2511e7acda7c798288"
+    },
+    {
+      "path": "core/platform/architecture_contract.py",
+      "sha256": "687461a559c08a3977e4a152268d909d9b15e696d5ccf955d5b3aef41d3096ef"
+    },
+    {
+      "path": "docs/packs/PK0123_MANIFEST_LIFECYCLE_EXTENSIONS_CONNECTORS.md",
+      "sha256": "23987318398187a1d1dca10c959aa283a25d12b59e434743226ee8a638892b8e"
+    },
+    {
+      "path": "docs/packs/adr/0023_PK_PACKS_COMPOSE_PUBLIC_AUTHORITIES_AND_CONNECTORS_STAY_AT_EDGES.md",
+      "sha256": "2be927b7eec293c79cb109ebdf83ee7030b98f5592531fee9127923d4ef1af8c"
+    },
+    {
+      "path": "pack_platform/__init__.py",
+      "sha256": "feb446bfde46ec8914568b4523cd7ee62a242ee3f7bb5b7758ffd60aab66f7db"
+    },
+    {
+      "path": "pack_platform/contracts.py",
+      "sha256": "b48ca9f604f866ea0612dd9cb30de48b0a8bae203f00a494860b6160fe60f100"
+    },
+    {
+      "path": "pack_platform/service.py",
+      "sha256": "4ed2eb4595baf793138c87d67543274f1990254be4c1e844fdcecc57aafc2a68"
+    },
+    {
+      "path": "pack_platform/sql_repository.py",
+      "sha256": "1fa4be8a1bb3003c197e2ad35dcb460b4f9825cab3cf518d729f12366d0049e2"
+    },
+    {
+      "path": "scripts/verify_pk0123_pack_manifest_lifecycle_extensions.py",
+      "sha256": "3d071a494be442799fda280266eebd1d1ddfda00bf155bd732d9a0d4d41cbcbf"
+    },
+    {
+      "path": "tests/contracts/test_pk0123_pack_manifest_lifecycle_extensions.py",
+      "sha256": "5a45713e23105d49cacba54bb8bc68326e8caa34fe2705a61e99379e70adc6d0"
+    }
+  ]
+}
