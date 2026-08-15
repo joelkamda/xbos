@@ -1,0 +1,89 @@
+{
+  "schema_version": 1,
+  "release": "PK_AGGREGATE_CONFORMANCE_FREEZE",
+  "source_checkpoint": "97c6c751259649ef0a90a63f11fa78d8b1b1d599",
+  "source_archive_sha256": "3568b3ba7094b990514c2662613624ff03ddfe6136d44a214457ee9a9e3442a7",
+  "source_archive_size": 5840802,
+  "previous_head": "pk456_pack_conformance_templates_038",
+  "accepted_head": "pk456_pack_conformance_templates_038",
+  "migration": "NONE",
+  "business_capability_change": "NONE",
+  "coverage": [
+    "PK0",
+    "PK1",
+    "PK2",
+    "PK3",
+    "PK4",
+    "PK5",
+    "PK6"
+  ],
+  "components": [
+    {
+      "release": "PK0123",
+      "source_checkpoint": "da61371b9378d6406fe5d6fce8611f77d40b72ef",
+      "previous_head": "so_aggregate_conformance_hardening_036",
+      "accepted_head": "pk0123_pack_manifest_lifecycle_037"
+    },
+    {
+      "release": "PK456",
+      "source_checkpoint": "8f0034a6f3e7862a769891d84afa3aadf436c13c",
+      "previous_head": "pk0123_pack_manifest_lifecycle_037",
+      "accepted_head": "pk456_pack_conformance_templates_038"
+    }
+  ],
+  "constitutional_rule": "pack_is_composition_not_authority",
+  "aggregate_invariants": {
+    "manifest_lifecycle_coherence": "PASS_REQUIRED",
+    "public_extension_boundaries": "PUBLIC_CONTRACTS_ONLY",
+    "connector_execution": "NON_FINANCIAL_EDGE_AUTHORITY",
+    "connector_finality": "PROVIDER_FINALITY_PRECEDES_CANONICAL_SETTLEMENT_CONFIRMATION",
+    "certification": "IMMUTABLE_EVIDENCE_NOT_RUNTIME_AUTHORIZATION",
+    "template_registry": "IMMUTABLE_VERSIONED_COMPOSITION",
+    "template_application": "DETERMINISTIC_PLAN_THEN_EXPLICIT_ACCEPTANCE",
+    "template_upgrade": "EXPLICIT_DIFF_CONFLICT_CHECK_AND_ACCEPTANCE",
+    "merchant_divergence": "ALLOWLISTED_OVERRIDES_TENANT_SCOPED",
+    "payments_only": "ACCOUNTING_WORKSPACE_MAY_BE_OFF_FINANCE_KERNEL_REMAINS_ON",
+    "tenant_idempotency": "TENANT_SCOPED_EXACT_REPLAY",
+    "pc3_semantics": "REFERENCE_ONLY",
+    "pc4_configuration": "PUBLIC_PLAN_ONLY_NO_PRIVATE_WRITE",
+    "pc5_authorization": "REFERENCE_ONLY",
+    "shared_operations": "PUBLIC_CONTRACT_REUSE_NO_SOURCE_DOMAIN_WRITES",
+    "xa": "COMPOSITION_METADATA_ONLY",
+    "finance": "UNCHANGED",
+    "dependencies": "UNCHANGED",
+    "migration_lineage": "ONE_LINEAR_HEAD"
+  },
+  "payments_product_disposition": {
+    "outbound_provider_execution": "PRODUCT_INTEGRATION_CONTRACT",
+    "canonical_payment_attempt_reuse_without_intent": "NOT_ASSUMED",
+    "provider_execution_is_financial_truth": false,
+    "provider_success_equals_settlement": false,
+    "settlement_threshold": "CONFIGURED_PROVIDER_FINALITY_EVIDENCE",
+    "ambiguous_outcome": "NEVER_BLINDLY_RESUBMIT",
+    "finance_amendment": "DEFERRED_UNLESS_UNIVERSAL_INVARIANT_PROVES_MISSING"
+  },
+  "dependency_fingerprints": {
+    "requirements-prod.txt": "d581097821755ae27c5899eaf0d06be52adbf05c2f4bab13b46872e87980fff5",
+    "requirements-test.txt": "085f5e0cd5e9c3ac500cb1e0bb552f5628129da879513a84d7bf425a7df43cf9"
+  },
+  "pa_handoff": {
+    "status": "READY_AFTER_OPERATOR_GATE",
+    "consumes": [
+      "immutable pack manifests and versions",
+      "pack lifecycle",
+      "public extension and connector declarations",
+      "immutable conformance evidence",
+      "template registry and tenant pinning",
+      "deterministic application and upgrade plans"
+    ],
+    "must_not_do": [
+      "redefine canonical Finance or Shared Operations truth",
+      "turn pack certification into runtime authorization",
+      "introduce dynamic plugin imports or arbitrary SQL execution",
+      "silently mutate tenant template state"
+    ]
+  },
+  "cutover": "NOT_AUTHORIZED",
+  "writer_retirement": "NOT_EXECUTED",
+  "dependency_fingerprint_mode": "sha256_git_canonical_lf"
+}

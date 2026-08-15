@@ -1,0 +1,73 @@
+{
+  "schema_version": 1,
+  "release": "PK_AGGREGATE_CONFORMANCE_FREEZE",
+  "source_checkpoint": "97c6c75",
+  "source_checkpoint_full": "97c6c751259649ef0a90a63f11fa78d8b1b1d599",
+  "source_archive_sha256": "3568b3ba7094b990514c2662613624ff03ddfe6136d44a214457ee9a9e3442a7",
+  "source_archive_size": 5840802,
+  "previous_head": "pk456_pack_conformance_templates_038",
+  "accepted_head": "pk456_pack_conformance_templates_038",
+  "migration_count": 0,
+  "coverage": [
+    "PK0",
+    "PK1",
+    "PK2",
+    "PK3",
+    "PK4",
+    "PK5",
+    "PK6"
+  ],
+  "fingerprint_mode": "sha256_git_canonical_lf",
+  "commit": "NONE",
+  "tag": "NONE",
+  "operator_gate": "XBOS_PK_AGG_RUN_ACCEPTANCE.cmd",
+  "success_marker": "PK_AGG_SINGLE_GATE=PASS",
+  "business_capability_change": "NONE",
+  "finance": "UNCHANGED",
+  "shared_operations": "UNCHANGED",
+  "production_dependencies": "UNCHANGED",
+  "xa": "FROZEN_CONSUMED",
+  "pa_readiness": "PASS_AFTER_OPERATOR_GATE",
+  "artifacts": [
+    {
+      "path": "PK_AGG_INSTALL_MANIFEST.txt",
+      "sha256": "9fab17484cb187a573129adb0da45d59610831f8c05142317ecae0636f3791a1"
+    },
+    {
+      "path": "XBOS_PK_AGG_INSTALL_AND_VERIFY.txt",
+      "sha256": "5c8ce5713d65dde2a7919c12c0a6da9087bcd7e745347b95abb80bdfb9252f8e"
+    },
+    {
+      "path": "XBOS_PK_AGG_RUN_ACCEPTANCE.cmd",
+      "sha256": "fb9fd786311f33e6ac1f43f24d11af554b65cf6eb388a676929bee7572e3efbe"
+    },
+    {
+      "path": "contracts/packs/v1/pk_aggregate_conformance_freeze.json",
+      "sha256": "f3295343c49765aa744d3bc001a5396927201fa877f6ce3afe30f13dcc2d8b77"
+    },
+    {
+      "path": "docs/packs/PK_AGGREGATE_CONFORMANCE_AND_FREEZE.md",
+      "sha256": "3c8877f2eb5edb87b14afd3f531cecae2095de6f5a7a28c48ee105f5691ee183"
+    },
+    {
+      "path": "docs/packs/adr/0025_PK_AGGREGATE_FREEZE_AND_COMPOSITION_BOUNDARY.md",
+      "sha256": "4df173de6e333f84614d362e3b879985ab5f4158f5bcb7ff0bd50d67a1add98b"
+    },
+    {
+      "path": "scripts/verify_pk_aggregate_conformance_freeze.py",
+      "sha256": "40b26a8a85072f7945fa225683afac775b0b7f9dc55741aa3b086ac737aa17c1"
+    },
+    {
+      "path": "tests/contracts/test_pk_aggregate_conformance_freeze.py",
+      "sha256": "e53e8ec1cc9061cb64ea397877375d69636a3d3c6a99e206c0200ae7ff934ce8"
+    },
+    {
+      "path": "contracts/packs/v1/pk0123_release_manifest.json",
+      "sha256": "4b64cfd7adc8e8bd15e3d3f933d8bb3031f6b36284c4655b601d84233150bf9a"
+    },
+    {
+      "path": "contracts/packs/v1/pk456_release_manifest.json",
+      "sha256": "8c7b745e3cc523e9732e1e8316ed6297ef0c13cf213f77ba959661bb8b5e653c"
+    }
+  ]
+}

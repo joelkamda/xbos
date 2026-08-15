@@ -1,0 +1,22 @@
+XBOS PK AGGREGATE CONFORMANCE AND FREEZE INSTALL MANIFEST
+
+Source checkpoint: 97c6c751259649ef0a90a63f11fa78d8b1b1d599
+Source archive SHA-256: 3568b3ba7094b990514c2662613624ff03ddfe6136d44a214457ee9a9e3442a7
+Source archive size: 5840802 bytes
+Previous head: pk456_pack_conformance_templates_038
+Accepted head: pk456_pack_conformance_templates_038
+Migration: NONE
+Coverage: PK0, PK1, PK2, PK3, PK4, PK5, PK6
+Business capability change: NONE
+
+Package file count: 9
+Package files:
+- PK_AGG_INSTALL_MANIFEST.txt
+- XBOS_PK_AGG_INSTALL_AND_VERIFY.txt
+- XBOS_PK_AGG_RUN_ACCEPTANCE.cmd
+- contracts/packs/v1/pk_aggregate_conformance_freeze.json
+- contracts/packs/v1/pk_aggregate_release_manifest.json
+- docs/packs/PK_AGGREGATE_CONFORMANCE_AND_FREEZE.md
+- docs/packs/adr/0025_PK_AGGREGATE_FREEZE_AND_COMPOSITION_BOUNDARY.md
+- scripts/verify_pk_aggregate_conformance_freeze.py
+- tests/contracts/test_pk_aggregate_conformance_freeze.py

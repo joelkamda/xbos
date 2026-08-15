@@ -1,0 +1,29 @@
+XBOS PK AGGREGATE CONFORMANCE AND FREEZE — INSTALL AND VERIFY
+
+Authoritative source checkpoint: 97c6c751259649ef0a90a63f11fa78d8b1b1d599
+Source archive SHA-256: 3568b3ba7094b990514c2662613624ff03ddfe6136d44a214457ee9a9e3442a7
+Previous/accepted migration head: pk456_pack_conformance_templates_038
+Aggregate migration: NONE
+Business capability change: NONE
+
+Purpose:
+Freeze PK0-PK6 as one coherent Pack / Template Platform and prove that manifests, lifecycle, extension boundaries, connector declarations, conformance evidence, template registry, application, merchant divergence and explicit upgrades compose without changing Finance, Shared Operations, dependencies or XA authority.
+
+Operator environment:
+- repository: C:\Users\jdkam\XBOS
+- existing venv: C:\Users\jdkam\venvs\xbos-track-b-b1
+- Python: 3.13.3
+- PostgreSQL: localhost:5432
+- development DB: xbos_track_b_dev
+
+Install from repository root:
+  powershell -NoProfile -Command "Expand-Archive -LiteralPath '%USERPROFILE%\Downloads\XBOS_PK_AGGREGATE_CONFORMANCE_FREEZE.zip' -DestinationPath '.' -Force"
+
+Then run:
+  XBOS_PK_AGG_RUN_ACCEPTANCE.cmd
+
+Do not run Alembic manually. Do not stage, commit or tag until PK_AGG_SINGLE_GATE=PASS.
+
+The aggregate gate creates only the disposable local database xbos_pk_aggregate_test, drops it on exit, and requires xbos_track_b_dev to already be at pk456_pack_conformance_templates_038. It refuses a non-local or differently named development database.
+
+A successful close ends with PK_AGG_SINGLE_GATE=PASS and PK_AGG_PA_READINESS=PASS.
