@@ -1,0 +1,17 @@
+XBOS PK456 — PACK CONFORMANCE, TEMPLATE REGISTRY, APPLICATION & UPGRADE GOVERNANCE
+
+Authoritative source checkpoint: 8f0034a6f3e7862a769891d84afa3aadf436c13c
+Previous migration head: pk0123_pack_manifest_lifecycle_037
+Candidate accepted head: pk456_pack_conformance_templates_038
+Coverage: PK4 + PK5 + PK6
+
+Operator procedure:
+1. Activate the existing Track B venv. Do not create a new environment.
+2. Expand this package over C:\Users\jdkam\XBOS.
+3. Run XBOS_PK456_RUN_ACCEPTANCE.cmd.
+4. Stop at the first failure or PK456_SINGLE_GATE=PASS.
+5. Do not commit/tag until the gate passes and scope is reviewed.
+
+The gate performs predecessor static conformance, focused cumulative tests, real local PostgreSQL clean replay, PK456 database behavior, downgrade/re-upgrade, controlled development adoption, full regression, compilation, JSON validation and whitespace validation.
+
+Finance, Shared Operations and production dependency semantics must remain unchanged.

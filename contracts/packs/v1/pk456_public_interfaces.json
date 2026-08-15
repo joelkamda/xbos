@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "release": "PK456",
+  "public": [
+    "pack_platform.pk456_service.PK456Authority",
+    "pack_platform.pk456_contracts.CertifyPackVersion",
+    "pack_platform.pk456_contracts.RegisterTemplateVersion",
+    "pack_platform.pk456_contracts.PlanTemplateApplication",
+    "pack_platform.pk456_contracts.ApplyTemplate",
+    "pack_platform.pk456_contracts.PlanTemplateUpgrade",
+    "pack_platform.pk456_contracts.UpgradeTemplate",
+    "pack_platform.pk456_contracts.TemplateDefinition",
+    "pack_platform.pk456_contracts.TemplatePackRequirement",
+    "pack_platform.pk456_contracts.TemplatePlan",
+    "pack_platform.pk456_contracts.TenantTemplateState"
+  ],
+  "private": [
+    "pack_platform.pk456_sql_repository.SQLPK456Repository",
+    "pk_pack_certifications",
+    "pk_templates",
+    "pk_template_versions",
+    "pk_template_pack_requirements",
+    "pk_tenant_template_bindings",
+    "pk_tenant_template_overrides",
+    "pk_tenant_template_history"
+  ],
+  "law": [
+    "templates_reference_public_authorities_only",
+    "template_defaults_do_not_override_pc4_authority",
+    "template_semantic_refs_do_not_override_pc3_authority",
+    "template_activation_does_not_grant_pc5_permission",
+    "certification_does_not_grant_runtime_authorization",
+    "pack_or_template_never_owns_financial_truth"
+  ]
+}

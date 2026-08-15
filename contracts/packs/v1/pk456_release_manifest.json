@@ -1,0 +1,171 @@
+{
+  "schema_version": 1,
+  "release": "PK456_PACK_CONFORMANCE_TEMPLATES_APPLICATION_UPGRADES",
+  "source_checkpoint": "8f0034a",
+  "source_checkpoint_full": "8f0034a6f3e7862a769891d84afa3aadf436c13c",
+  "source_archive_sha256": "5a1ba613802652d41dd99efd7e9cd0b8f388c6a3501170bd27b2d7cd6cff7aca",
+  "source_archive_size": 5809226,
+  "previous_head": "pk0123_pack_manifest_lifecycle_037",
+  "accepted_head": "pk456_pack_conformance_templates_038",
+  "migration_count": 1,
+  "coverage": [
+    "PK4",
+    "PK5",
+    "PK6"
+  ],
+  "fingerprint_mode": "sha256_git_canonical_lf",
+  "commit": "NONE",
+  "tag": "NONE",
+  "operator_gate": "XBOS_PK456_RUN_ACCEPTANCE.cmd",
+  "success_marker": "PK456_SINGLE_GATE=PASS",
+  "finance": "UNCHANGED",
+  "shared_operations": "UNCHANGED",
+  "production_dependencies": "UNCHANGED",
+  "payments_outbound_finance_amendment": "DEFERRED_UNLESS_UNIVERSAL_INVARIANT_PROVES_MISSING",
+  "artifacts": [
+    {
+      "path": "PK456_INSTALL_MANIFEST.txt",
+      "sha256": "ef3027ea640f21eda49f34885c09ac3bf181706e9fa22fae0b43a1eb470408c6"
+    },
+    {
+      "path": "XBOS_PK456_INSTALL_AND_VERIFY.txt",
+      "sha256": "702c9673770caa36fb1e5bca50580492f834a06cfb8c2055782383ee275b7f66"
+    },
+    {
+      "path": "XBOS_PK456_RUN_ACCEPTANCE.cmd",
+      "sha256": "2e0ebe6d509aea35823b14aa2db0b60497b1e6d96b4196902b873f010638a6ed"
+    },
+    {
+      "path": "alembic_neutral/sql/pk456_pack_conformance_templates_down.sql",
+      "sha256": "56c25331ef6f7930bf759eef78d2829f97b55740a5ef0add0ba4de251abf4a71"
+    },
+    {
+      "path": "alembic_neutral/sql/pk456_pack_conformance_templates_up.sql",
+      "sha256": "155caffbd9df4430fb51e4d1dd49bfd9d44e74d24911e295268fe5f71aeef962"
+    },
+    {
+      "path": "alembic_neutral/versions/pk456_pack_conformance_templates_038.py",
+      "sha256": "fe7c6a8f5c13c6a7119dc82921205439f8e4093fb861268edca259e6d79f3807"
+    },
+    {
+      "path": "contracts/packs/v1/examples/neutral_field_service_template.json",
+      "sha256": "d84beeaab3f9335661f13e85b39c0343e47e1f19464a97c80fa7940c7b1217e9"
+    },
+    {
+      "path": "contracts/packs/v1/examples/payments_only_template.json",
+      "sha256": "4219191c5160acccbfee64b4ac5f1571396d6198be6c1fa3391ed49de65b0542"
+    },
+    {
+      "path": "contracts/packs/v1/pk0123_release_manifest.json",
+      "sha256": "4b64cfd7adc8e8bd15e3d3f933d8bb3031f6b36284c4655b601d84233150bf9a"
+    },
+    {
+      "path": "contracts/packs/v1/pk456_authority.json",
+      "sha256": "00f2bfa0b0d225d3bf116834fe59ab1e5cfa99e1ebe6013f31b427c384a4a4fc"
+    },
+    {
+      "path": "contracts/packs/v1/pk456_conformance_schema.json",
+      "sha256": "60c608a278fe8fa2af392168e907049e6fc35431369c025cae5932ddc6b144d0"
+    },
+    {
+      "path": "contracts/packs/v1/pk456_public_interfaces.json",
+      "sha256": "25df6c8343e530eb2c254dd4f49e0c848f1d96a78c3095857916ce88200f9e22"
+    },
+    {
+      "path": "contracts/platform/v1/pc0_data_authority_register.json",
+      "sha256": "f755c6e0b4e809f0dba577d728229a8206689ceb9847a8a645623cb03b183409"
+    },
+    {
+      "path": "contracts/platform/v1/pc0_frozen_finance_inventory.json",
+      "sha256": "233f1e68a3efd5dfbaf6fbae4650d39ff63ff6bb4e9e87d776ed8d94bb593055"
+    },
+    {
+      "path": "contracts/platform/v1/pc0_public_private_interfaces.json",
+      "sha256": "3b871942d8e8fc442cbf500a3f771fd6e55d1fb905927ba3025c167ed20d3712"
+    },
+    {
+      "path": "contracts/platform/v1/pc0_reference_authority_migration_register.json",
+      "sha256": "19c7031e2dc443b4c1da263075cd36ab27406fc92a6ceb137505d9b8bc2b433a"
+    },
+    {
+      "path": "contracts/platform/v1/pc0_release_manifest.json",
+      "sha256": "a2d4ace518773cb418ff6b36f544d518622af7227b20d4f5a1fc68cfd32d8333"
+    },
+    {
+      "path": "contracts/platform/v1/pc6_release_manifest.json",
+      "sha256": "98a0f6aec888feea2575957f1e5ef0779324a11b4d22dddb02a59483dde3b532"
+    },
+    {
+      "path": "contracts/shared_operations/v1/so10_release_manifest.json",
+      "sha256": "366eb98afb2212a9d15cc6c3e52b21e8657023e2ded72efe35c7a3f2ac813ad9"
+    },
+    {
+      "path": "contracts/shared_operations/v1/so1_release_manifest.json",
+      "sha256": "72fe8f8bf9055529c7d0a5d579e3c0e7983de7746eff011a82f60b2e0b341a1c"
+    },
+    {
+      "path": "contracts/shared_operations/v1/so2_release_manifest.json",
+      "sha256": "da8088a34eb9aae5c2ab8a4957eda3aa06896729a66a5888ed98ee78a0c12de1"
+    },
+    {
+      "path": "contracts/shared_operations/v1/so3_release_manifest.json",
+      "sha256": "1e5c4e0b13b8662c56122e2ec826e32532bab43f39ff6165d0e2e8f14729ed4d"
+    },
+    {
+      "path": "contracts/shared_operations/v1/so4_release_manifest.json",
+      "sha256": "87824480c0483d151d875d5fb5a19602b42059bc8fc131326cd7adf3a984c370"
+    },
+    {
+      "path": "contracts/shared_operations/v1/so5_release_manifest.json",
+      "sha256": "918bb8dcd908d0fa1ce48b584e9fe18d9fe620d91b5d6ac5f51bd4bf72120a66"
+    },
+    {
+      "path": "contracts/shared_operations/v1/so6_release_manifest.json",
+      "sha256": "5df06b884bfc8259a3614ef029c4c1e1092b3df8cc49503ba079b0330adbc62a"
+    },
+    {
+      "path": "contracts/shared_operations/v1/so7_release_manifest.json",
+      "sha256": "c7269565e3f05f1e7fdbefe37d64b18e558f725fe507814bf865418a062c659f"
+    },
+    {
+      "path": "contracts/shared_operations/v1/so8_release_manifest.json",
+      "sha256": "e1d6f5081ff836a770b988a5e4f1bb2090203d4dd2cd1629b2a8b242992771f6"
+    },
+    {
+      "path": "contracts/shared_operations/v1/so9_release_manifest.json",
+      "sha256": "582fb136f51a5b7688d62d57ce2d2058c3861ad3aace03be7ce69c731aeef850"
+    },
+    {
+      "path": "contracts/shared_operations/v1/so_aggregate_release_manifest.json",
+      "sha256": "3c1c6a6623dec239e046342bc4504c73c51c525f302bf0d3d5b1980ac43afd33"
+    },
+    {
+      "path": "docs/packs/PK456_CONFORMANCE_TEMPLATE_REGISTRY_APPLICATION.md",
+      "sha256": "b0afc891b5ca2ebf35cd04355da564618101baad1d29bda3768b191dc1ab2fcc"
+    },
+    {
+      "path": "docs/packs/adr/0024_PK_CERTIFICATION_TEMPLATES_AND_EXPLICIT_UPGRADES.md",
+      "sha256": "203d6b68a2ee051470c9c147139ebd7abfb88f42934248df0faa02b8e39177d9"
+    },
+    {
+      "path": "pack_platform/pk456_contracts.py",
+      "sha256": "2c886e9802239ace347d156e250727dd877f351f7b09195e80cf736fd9e095a9"
+    },
+    {
+      "path": "pack_platform/pk456_service.py",
+      "sha256": "ec9eb55e6b3147e8ac39a8af25466ea19db8eeb553652ba87b2db7f80a0c8dc0"
+    },
+    {
+      "path": "pack_platform/pk456_sql_repository.py",
+      "sha256": "203c4d9e5f93efe4230275ad0469667c35ba933c48de74b3c4728a0996b43882"
+    },
+    {
+      "path": "scripts/verify_pk456_pack_conformance_templates.py",
+      "sha256": "8fbcb2a2eba16ce320f312695192ecca21ed27470546132fde6bbbfb2a1e02a1"
+    },
+    {
+      "path": "tests/contracts/test_pk456_pack_conformance_templates.py",
+      "sha256": "32252dc30b95b9e84b1bf3387ece177cef4cf1c39b708cf07ef1de697e57ab67"
+    }
+  ]
+}

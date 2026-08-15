@@ -455,12 +455,26 @@
         "pack_platform.DisablePack",
         "pack_platform.RemovePack",
         "pack_platform.PackVersionRecord",
-        "pack_platform.TenantPackState"
+        "pack_platform.TenantPackState",
+        "pack_platform.pk456_service.PK456Authority",
+        "pack_platform.pk456_contracts.CertifyPackVersion",
+        "pack_platform.pk456_contracts.RegisterTemplateVersion",
+        "pack_platform.pk456_contracts.PlanTemplateApplication",
+        "pack_platform.pk456_contracts.ApplyTemplate",
+        "pack_platform.pk456_contracts.PlanTemplateUpgrade",
+        "pack_platform.pk456_contracts.UpgradeTemplate",
+        "pack_platform.pk456_contracts.TemplateDefinition",
+        "pack_platform.pk456_contracts.TemplatePackRequirement",
+        "pack_platform.pk456_contracts.TemplatePlan",
+        "pack_platform.pk456_contracts.TenantTemplateState"
       ],
       "private": [
         "pack_platform.sql_repository.SQLPackRepository",
         "pk_* persistence tables",
-        "pk_pack_commands"
+        "pk_pack_commands",
+        "pack_platform.pk456_sql_repository.SQLPK456Repository",
+        "pk_pack_certifications",
+        "pk_template* persistence tables"
       ]
     }
   ],

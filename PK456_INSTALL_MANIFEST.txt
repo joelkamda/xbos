@@ -1,0 +1,46 @@
+XBOS PK456 INSTALL MANIFEST
+
+Source checkpoint: 8f0034a6f3e7862a769891d84afa3aadf436c13c
+Previous head: pk0123_pack_manifest_lifecycle_037
+Accepted head: pk456_pack_conformance_templates_038
+Coverage: PK4, PK5, PK6
+
+Package file count: 37
+Package files:
+- PK456_INSTALL_MANIFEST.txt
+- XBOS_PK456_INSTALL_AND_VERIFY.txt
+- XBOS_PK456_RUN_ACCEPTANCE.cmd
+- alembic_neutral/sql/pk456_pack_conformance_templates_down.sql
+- alembic_neutral/sql/pk456_pack_conformance_templates_up.sql
+- alembic_neutral/versions/pk456_pack_conformance_templates_038.py
+- contracts/packs/v1/examples/neutral_field_service_template.json
+- contracts/packs/v1/examples/payments_only_template.json
+- contracts/packs/v1/pk0123_release_manifest.json
+- contracts/packs/v1/pk456_authority.json
+- contracts/packs/v1/pk456_conformance_schema.json
+- contracts/packs/v1/pk456_public_interfaces.json
+- contracts/packs/v1/pk456_release_manifest.json
+- contracts/platform/v1/pc0_data_authority_register.json
+- contracts/platform/v1/pc0_frozen_finance_inventory.json
+- contracts/platform/v1/pc0_public_private_interfaces.json
+- contracts/platform/v1/pc0_reference_authority_migration_register.json
+- contracts/platform/v1/pc0_release_manifest.json
+- contracts/platform/v1/pc6_release_manifest.json
+- contracts/shared_operations/v1/so10_release_manifest.json
+- contracts/shared_operations/v1/so1_release_manifest.json
+- contracts/shared_operations/v1/so2_release_manifest.json
+- contracts/shared_operations/v1/so3_release_manifest.json
+- contracts/shared_operations/v1/so4_release_manifest.json
+- contracts/shared_operations/v1/so5_release_manifest.json
+- contracts/shared_operations/v1/so6_release_manifest.json
+- contracts/shared_operations/v1/so7_release_manifest.json
+- contracts/shared_operations/v1/so8_release_manifest.json
+- contracts/shared_operations/v1/so9_release_manifest.json
+- contracts/shared_operations/v1/so_aggregate_release_manifest.json
+- docs/packs/PK456_CONFORMANCE_TEMPLATE_REGISTRY_APPLICATION.md
+- docs/packs/adr/0024_PK_CERTIFICATION_TEMPLATES_AND_EXPLICIT_UPGRADES.md
+- pack_platform/pk456_contracts.py
+- pack_platform/pk456_service.py
+- pack_platform/pk456_sql_repository.py
+- scripts/verify_pk456_pack_conformance_templates.py
+- tests/contracts/test_pk456_pack_conformance_templates.py

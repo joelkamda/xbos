@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "release": "PK456",
+  "source_checkpoint": "8f0034a6f3e7862a769891d84afa3aadf436c13c",
+  "previous_head": "pk0123_pack_manifest_lifecycle_037",
+  "accepted_head": "pk456_pack_conformance_templates_038",
+  "scope": ["PK4", "PK5", "PK6"],
+  "constitutional_rule": "pack_is_composition_not_authority",
+  "pk4": {
+    "pack_certification": "immutable_evidence",
+    "required_checks": [
+      "architecture",
+      "tenant_isolation",
+      "migration_compatibility",
+      "authorization",
+      "semantics",
+      "finance",
+      "shared_operations",
+      "xa",
+      "manifest"
+    ],
+    "finance_conformance": "reuse_frozen_m8_4_authority",
+    "certification_is_not_runtime_authorization": true
+  },
+  "pk5": {
+    "classification_chain": ["industry_semantic_ref", "operating_model_semantic_ref", "template"],
+    "semantic_identity_owner": "PC3",
+    "template_versions_immutable": true,
+    "pack_requirement_kinds": ["required", "optional", "incompatible"],
+    "finance_kernel_may_be_disabled": false
+  },
+  "pk6": {
+    "application": "deterministic_plan_then_explicit_acceptance",
+    "tenant_version_pinning": true,
+    "merchant_overrides": "explicit_allowlist_only",
+    "upgrade": "explicit_diff_conflict_check_and_acceptance",
+    "silent_template_mutation": false,
+    "rollback": "governed_forward_plan_not_database_time_travel"
+  },
+  "payments_product": {
+    "payments_only_template_proof": true,
+    "accounting_workspace_off_means_finance_kernel_off": false,
+    "provider_execution_owner": "product_integration_adapter",
+    "provider_execution_is_financial_truth": false,
+    "provider_finality_precedes_outgoing_settlement_confirmation": true,
+    "finance_amendment": "DEFERRED_UNLESS_UNIVERSAL_INVARIANT_PROVES_MISSING"
+  },
+  "authority_boundaries": {
+    "finance": "UNCHANGED",
+    "shared_operations": "UNCHANGED",
+    "pc3_semantics": "REFERENCE_ONLY",
+    "pc4_configuration": "PUBLIC_PLAN_ONLY_NO_PRIVATE_WRITE",
+    "pc5_authorization": "REFERENCE_ONLY",
+    "xa": "COMPOSITION_METADATA_ONLY"
+  },
+  "production_dependency_changes": "NONE",
+  "frontend_implementation": "NONE"
+}

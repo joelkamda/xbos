@@ -1,0 +1,19 @@
+{
+  "template_code": "neutral.field_service",
+  "version": "1.0.0",
+  "owner_code": "pk",
+  "industry_semantic_ref": "industry:field_service",
+  "operating_model_semantic_ref": "operating_model:scheduled_service",
+  "requirements": [
+    {"pack_code": "neutral.foundation", "version": "1.0.0", "kind": "required"},
+    {"pack_code": "neutral.scheduling", "version": "1.0.0", "kind": "optional"}
+  ],
+  "allowed_override_paths": ["branding.display_name", "service.default_duration_minutes"],
+  "configuration_defaults": {
+    "service": {"default_duration_minutes": 60},
+    "workspaces": {"scheduling": true, "inventory": false}
+  },
+  "xa": {"primary_actions": ["schedule", "dispatch", "complete"]},
+  "finance_workspace_exposed": true,
+  "finance_kernel_required": true
+}

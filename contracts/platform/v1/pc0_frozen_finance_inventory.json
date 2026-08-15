@@ -395,6 +395,27 @@
       "sha256": "2cfd8952806b18eea6c8c9647e012355a5ccf85295193374f0fe769c1736da41",
       "owner": "PK",
       "reason": "PK0123 authorized non-Finance canonical descendant; pack composition/lifecycle only"
+    },
+    {
+      "root": "alembic_neutral",
+      "path": "versions/pk456_pack_conformance_templates_038.py",
+      "sha256": "fe7c6a8f5c13c6a7119dc82921205439f8e4093fb861268edca259e6d79f3807",
+      "owner": "PK456",
+      "reason": "PK456 authorized non-Finance canonical descendant; pack conformance/template composition only"
+    },
+    {
+      "root": "alembic_neutral",
+      "path": "sql/pk456_pack_conformance_templates_up.sql",
+      "sha256": "155caffbd9df4430fb51e4d1dd49bfd9d44e74d24911e295268fe5f71aeef962",
+      "owner": "PK456",
+      "reason": "PK456 authorized non-Finance canonical descendant; pack conformance/template composition only"
+    },
+    {
+      "root": "alembic_neutral",
+      "path": "sql/pk456_pack_conformance_templates_down.sql",
+      "sha256": "56c25331ef6f7930bf759eef78d2829f97b55740a5ef0add0ba4de251abf4a71",
+      "owner": "PK456",
+      "reason": "PK456 authorized non-Finance canonical descendant; pack conformance/template composition only"
     }
   ],
   "trees": [

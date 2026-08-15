@@ -246,7 +246,7 @@
     {
       "reference": "pack_lifecycle",
       "current_authority": "SO0/PC4 constitutional placeholder; no executable pack lifecycle",
-      "target_authority": "PK immutable pack manifest, dependency graph and tenant lifecycle",
+      "target_authority": "PK immutable pack manifests, conformance evidence, template versions, tenant pinning and explicit upgrade lifecycle",
       "compatibility_path": "additive PK tables and public contracts; reuse PC3 semantics, PC4 configuration/modules, PC5 authorization, SO public contracts and M8.4 Finance conformance without rewriting historical authority",
       "retirement_owner": "PK",
       "retirement_milestone": "PK aggregate freeze"

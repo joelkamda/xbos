@@ -1,0 +1,13 @@
+DROP TRIGGER IF EXISTS trg_pk_template_history_immutable ON public.pk_tenant_template_history;
+DROP FUNCTION IF EXISTS public.pk_template_history_immutable();
+DROP TABLE IF EXISTS public.pk_tenant_template_history;
+DROP TABLE IF EXISTS public.pk_tenant_template_overrides;
+DROP TABLE IF EXISTS public.pk_tenant_template_bindings;
+DROP TABLE IF EXISTS public.pk_template_pack_requirements;
+DROP TRIGGER IF EXISTS trg_pk_template_version_immutable ON public.pk_template_versions;
+DROP FUNCTION IF EXISTS public.pk_reject_template_version_mutation();
+DROP TABLE IF EXISTS public.pk_template_versions;
+DROP TABLE IF EXISTS public.pk_templates;
+DROP TRIGGER IF EXISTS trg_pk_pack_certification_immutable ON public.pk_pack_certifications;
+DROP FUNCTION IF EXISTS public.pk_reject_certification_mutation();
+DROP TABLE IF EXISTS public.pk_pack_certifications;

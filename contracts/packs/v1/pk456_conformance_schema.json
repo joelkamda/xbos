@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "certification": {
+    "required_checks": {
+      "architecture": "PASS",
+      "tenant_isolation": "PASS",
+      "migration_compatibility": "PASS",
+      "authorization": "PASS",
+      "semantics": "PASS",
+      "finance": "PASS",
+      "shared_operations": "PASS",
+      "xa": "PASS",
+      "manifest": "PASS"
+    },
+    "evidence": "one_or_more_sha256_references",
+    "record": "immutable",
+    "runtime_authorization": "NO"
+  },
+  "template_application": {
+    "preflight": [
+      "required_pack_versions_exist",
+      "required_pack_versions_certified",
+      "incompatible_packs_absent",
+      "selected_optional_packs_declared",
+      "overrides_allowlisted",
+      "no_secret_material"
+    ],
+    "acceptance": [
+      "required_and_selected_pack_versions_active",
+      "exact_plan_sha256_matches",
+      "explicit_command",
+      "tenant_scoped_idempotency"
+    ]
+  },
+  "upgrade": {
+    "silent": false,
+    "preserve_allowed_overrides": true,
+    "removed_override_path_is_conflict": true,
+    "history": "append_only"
+  }
+}

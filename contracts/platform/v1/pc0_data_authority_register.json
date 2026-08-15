@@ -248,11 +248,18 @@
         "pk_pack_extensions",
         "pk_connector_declarations",
         "pk_tenant_pack_installations",
-        "pk_pack_installation_history"
+        "pk_pack_installation_history",
+        "pk_pack_certifications",
+        "pk_templates",
+        "pk_template_versions",
+        "pk_template_pack_requirements",
+        "pk_tenant_template_bindings",
+        "pk_tenant_template_overrides",
+        "pk_tenant_template_history"
       ],
-      "public_contract": "contracts/packs/v1/pk0123_authority.json",
+      "public_contract": "contracts/packs/v1/pk456_authority.json",
       "private_writes": "PK authority only",
-      "notes": "composition/lifecycle authority only; referenced PC/SO/Finance truths remain external authorities"
+      "notes": "composition/lifecycle/conformance/template authority only; referenced PC/SO/Finance truths remain external authorities"
     }
   ],
   "rules": [

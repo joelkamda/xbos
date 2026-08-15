@@ -1,0 +1,30 @@
+{
+  "template_code": "neutral.payments_only",
+  "version": "1.0.0",
+  "owner_code": "pk",
+  "industry_semantic_ref": "industry:financial_operations",
+  "operating_model_semantic_ref": "operating_model:payments_only",
+  "requirements": [
+    {"pack_code": "neutral.foundation", "version": "1.0.0", "kind": "required"},
+    {"pack_code": "neutral.payments", "version": "1.0.0", "kind": "required"}
+  ],
+  "allowed_override_paths": ["branding.display_name", "payments.default_channel"],
+  "configuration_defaults": {
+    "workspaces": {
+      "payments": true,
+      "accounting": false,
+      "sales": false,
+      "inventory": false,
+      "procurement": false
+    },
+    "payments": {"default_channel": "cash"}
+  },
+  "xa": {
+    "primary_actions": ["receive", "pay", "transfer", "activity"],
+    "accounting_workspace_exposed": false
+  },
+  "finance_workspace_exposed": false,
+  "finance_kernel_required": true,
+  "financial_truth_owner": "Neutral Finance",
+  "provider_execution_owner": "product_integration_adapter"
+}
