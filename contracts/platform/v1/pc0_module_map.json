@@ -290,6 +290,14 @@
       "source_roots": [
         "pack_platform"
       ]
+    },
+    {
+      "code": "platform_admin",
+      "owner": "PA",
+      "kind": "platform_administration_authority",
+      "source_roots": [
+        "platform_admin"
+      ]
     }
   ],
   "composition_files": [

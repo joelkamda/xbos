@@ -55,19 +55,19 @@
     },
     {
       "path": "scripts/verify_pk_aggregate_conformance_freeze.py",
-      "sha256": "40b26a8a85072f7945fa225683afac775b0b7f9dc55741aa3b086ac737aa17c1"
+      "sha256": "b61bd1b618a9c97283a5451abfbd5acde1fe945e32dc4d28badcf6ddc00f32e9"
     },
     {
       "path": "tests/contracts/test_pk_aggregate_conformance_freeze.py",
-      "sha256": "e53e8ec1cc9061cb64ea397877375d69636a3d3c6a99e206c0200ae7ff934ce8"
+      "sha256": "df0e10bf3190c20d74279fd7f6b7b1523a5aea3a5a29286bc7831d15deb66032"
     },
     {
       "path": "contracts/packs/v1/pk0123_release_manifest.json",
-      "sha256": "4b64cfd7adc8e8bd15e3d3f933d8bb3031f6b36284c4655b601d84233150bf9a"
+      "sha256": "ea97719d48e2a11f1174aceec22143d19e72e76bd2102db557eeae8c3c32a9a0"
     },
     {
       "path": "contracts/packs/v1/pk456_release_manifest.json",
-      "sha256": "8c7b745e3cc523e9732e1e8316ed6297ef0c13cf213f77ba959661bb8b5e653c"
+      "sha256": "5a6f5355334d06d0e15f09155c72dc122a567125e87d691955426222778b2637"
     }
   ]
 }

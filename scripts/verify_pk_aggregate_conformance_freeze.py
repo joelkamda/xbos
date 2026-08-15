@@ -90,10 +90,10 @@ def _migration_head() -> tuple[str, list[str]]:
             revisions[revision] = parent if isinstance(parent, str) else None
     parents = {value for value in revisions.values() if value}
     heads = sorted(set(revisions) - parents)
-    if heads != [HEAD]:
+    if len(heads) != 1:
         raise RuntimeError("PK_AGG_MIGRATION_HEAD=" + ",".join(heads))
     lineage: list[str] = []
-    current: str | None = HEAD
+    current: str | None = heads[0]
     while current:
         if current in lineage or current not in revisions:
             raise RuntimeError("PK_AGG_MIGRATION_LINEAGE=" + str(current))
@@ -196,8 +196,10 @@ def static_verify() -> dict:
         raise RuntimeError("PK_AGG_XA_CONSUMPTION")
 
     head, lineage = _migration_head()
-    if lineage[-3:] != ["so_aggregate_conformance_hardening_036", "pk0123_pack_manifest_lifecycle_037", "pk456_pack_conformance_templates_038"]:
-        raise RuntimeError("PK_AGG_MIGRATION_TAIL")
+    expected = ["so_aggregate_conformance_hardening_036", "pk0123_pack_manifest_lifecycle_037", "pk456_pack_conformance_templates_038"]
+    start = lineage.index(expected[0]) if expected[0] in lineage else -1
+    if start < 0 or lineage[start:start+3] != expected:
+        raise RuntimeError("PK_AGG_MIGRATION_PREFIX")
 
     if aggregate.get("dependency_fingerprint_mode") != "sha256_git_canonical_lf":
         raise RuntimeError("PK_AGG_DEPENDENCY_FINGERPRINT_MODE")

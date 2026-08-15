@@ -451,6 +451,7 @@ def _validate_finance(root: Path, finance: dict[str, Any], inventory: dict[str, 
             (owner.startswith("PC") and owner[2:].isdigit() and int(owner[2:]) >= 1)
             or (owner.startswith("SO") and owner[2:].isdigit() and 1 <= int(owner[2:]) <= 10)
             or (owner.startswith("PK") and (owner == "PK" or owner[2:].isdigit()))
+            or owner == "PA"
         )
         if not valid_owner or not all(isinstance(item.get(key), str) and item[key] for key in ("root","path","sha256")):
             _fail("PC0-NON-FINANCE-EXTENSION", str(item))

@@ -36,23 +36,23 @@
     },
     {
       "path": "contracts/platform/v1/pc0_data_authority_register.json",
-      "sha256": "f755c6e0b4e809f0dba577d728229a8206689ceb9847a8a645623cb03b183409"
+      "sha256": "5d0abed4036c53ed62023c295ffa4b606c5a365e2bc5c19b7cb33b09134b729d"
     },
     {
       "path": "contracts/platform/v1/pc0_dependency_policy.json",
-      "sha256": "7ab680712bf9f4b3f291b13eac4cd328d9edf60f1c137918b3f6a1e8dcb21919"
+      "sha256": "45352f7ebc1727968c819182b53cb15f57d7ed2baa270546530a5a65bed23e78"
     },
     {
       "path": "contracts/platform/v1/pc0_frozen_finance_inventory.json",
-      "sha256": "233f1e68a3efd5dfbaf6fbae4650d39ff63ff6bb4e9e87d776ed8d94bb593055"
+      "sha256": "d5fa8a86221f324d3ed081351fb1469e35bf699df47d79138165c694c37a1667"
     },
     {
       "path": "contracts/platform/v1/pc0_module_map.json",
-      "sha256": "5e5db4e3b550e11f22f41e7020c0de798c74c706a8696f4461bad7f3b8416582"
+      "sha256": "526f4a2c1ddf2eacf2f541b43d68b7881f48582e4fcab6e1efbbf14a8c3a6a21"
     },
     {
       "path": "contracts/platform/v1/pc0_public_private_interfaces.json",
-      "sha256": "3b871942d8e8fc442cbf500a3f771fd6e55d1fb905927ba3025c167ed20d3712"
+      "sha256": "69deb750cd4ebd0f0423ec58de6a4e550e8e377a30df6cba1c10cffe9db961de"
     },
     {
       "path": "contracts/platform/v1/pc0_reference_authority_migration_register.json",
@@ -60,11 +60,11 @@
     },
     {
       "path": "contracts/platform/v1/pc0_release_manifest.json",
-      "sha256": "a2d4ace518773cb418ff6b36f544d518622af7227b20d4f5a1fc68cfd32d8333"
+      "sha256": "94e7bca406f775d73bfe93d4ebbf5554da7f09982acfd36fc635f069e217d075"
     },
     {
       "path": "contracts/platform/v1/pc6_release_manifest.json",
-      "sha256": "98a0f6aec888feea2575957f1e5ef0779324a11b4d22dddb02a59483dde3b532"
+      "sha256": "f4996ffad57948bd85f5ad68b6890ca76e9eb5c518a1f6d1bd48a89a75765ef6"
     },
     {
       "path": "contracts/shared_operations/v1/examples/clinical_service_supply_procurement_profile.json",
@@ -76,15 +76,15 @@
     },
     {
       "path": "contracts/shared_operations/v1/so1_release_manifest.json",
-      "sha256": "72fe8f8bf9055529c7d0a5d579e3c0e7983de7746eff011a82f60b2e0b341a1c"
+      "sha256": "b1ef20a0d5bd22d8efd57de5a85e8138c30d96bc94e74fc315c18e1174e7f152"
     },
     {
       "path": "contracts/shared_operations/v1/so2_release_manifest.json",
-      "sha256": "da8088a34eb9aae5c2ab8a4957eda3aa06896729a66a5888ed98ee78a0c12de1"
+      "sha256": "55550a503642f0c4cd613d60ed0560b1115f37be2c3476c00e1991273e633d32"
     },
     {
       "path": "contracts/shared_operations/v1/so3_release_manifest.json",
-      "sha256": "1e5c4e0b13b8662c56122e2ec826e32532bab43f39ff6165d0e2e8f14729ed4d"
+      "sha256": "7357d466adb9ca97f4d4c04b1c2eaf1fa704504a2b7bbc087c893f3f339ed3dd"
     },
     {
       "path": "contracts/shared_operations/v1/so4_authority.json",
@@ -104,7 +104,7 @@
     },
     {
       "path": "core/platform/architecture_contract.py",
-      "sha256": "687461a559c08a3977e4a152268d909d9b15e696d5ccf955d5b3aef41d3096ef"
+      "sha256": "eae3265ad7632fcb9bc811ccda290579d59583ebc15aaf8d762a7262c93755b8"
     },
     {
       "path": "docs/shared_operations/SO4_PROCUREMENT_SUPPLIER_OPERATIONS.md",

@@ -260,6 +260,31 @@
       "public_contract": "contracts/packs/v1/pk456_authority.json",
       "private_writes": "PK authority only",
       "notes": "composition/lifecycle/conformance/template authority only; referenced PC/SO/Finance truths remain external authorities"
+    },
+    {
+      "code": "merchant_administration",
+      "module": "platform_admin",
+      "owner": "PA",
+      "current_store": "pa_merchants and append-only pa_merchant_history",
+      "boundary": "platform administrative progression only; PC1 remains tenant lifecycle authority and PA never substitutes for tenant availability"
+    },
+    {
+      "code": "commercial_subscription",
+      "owner": "PA",
+      "current_store": "pa_plans, immutable pa_plan_versions/quotas, pa_subscriptions and append-only subscription history",
+      "boundary": "commercial plan/subscription intent; effective runtime entitlement truth remains PC4"
+    },
+    {
+      "code": "usage_metering",
+      "owner": "PA",
+      "current_store": "immutable pa_usage_events with derived quota status",
+      "boundary": "commercial/operational usage evidence and quota comparison; quota breach does not silently revoke PC4 entitlements or create Finance truth"
+    },
+    {
+      "code": "merchant_onboarding_readiness",
+      "owner": "PA",
+      "current_store": "pa_onboarding_runs and append-only readiness-check snapshots",
+      "boundary": "orchestration/readiness evidence consuming PC1, PC4, PC5 and PK public truth; does not provision tenant, authorize actor, or mutate template authority"
     }
   ],
   "rules": [
@@ -307,6 +332,10 @@
     "pack_manifest_lifecycle",
     "wnd_cutover",
     "operational_scheduling_reservations",
-    "pack_composition"
+    "pack_composition",
+    "merchant_administration",
+    "commercial_subscription",
+    "usage_metering",
+    "merchant_onboarding_readiness"
   ]
 }

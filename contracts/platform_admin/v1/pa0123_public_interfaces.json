@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "public": [
+    "platform_admin.PlatformAdministrationAuthority",
+    "platform_admin.RegisterMerchant",
+    "platform_admin.TransitionMerchant",
+    "platform_admin.RegisterPlanVersion",
+    "platform_admin.StartSubscription",
+    "platform_admin.TransitionSubscription",
+    "platform_admin.RecordUsage",
+    "platform_admin.StartOnboarding",
+    "platform_admin.EvaluateReadiness",
+    "platform_admin.CompleteOnboarding",
+    "platform_admin.MerchantAdministrationRecord",
+    "platform_admin.PlanVersionRecord",
+    "platform_admin.SubscriptionRecord",
+    "platform_admin.QuotaStatus",
+    "platform_admin.OnboardingRecord"
+  ],
+  "private": [
+    "platform_admin.sql_repository.SQLPlatformAdministrationRepository",
+    "pa_* persistence tables"
+  ],
+  "forbidden": [
+    "direct writes to tenants lifecycle",
+    "direct writes to tenant_entitlements",
+    "direct writes to PC5 permission/session tables",
+    "direct writes to PK template or pack tables",
+    "direct writes to Finance or Shared Operations truth"
+  ]
+}

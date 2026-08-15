@@ -416,6 +416,27 @@
       "sha256": "56c25331ef6f7930bf759eef78d2829f97b55740a5ef0add0ba4de251abf4a71",
       "owner": "PK456",
       "reason": "PK456 authorized non-Finance canonical descendant; pack conformance/template composition only"
+    },
+    {
+      "root": "alembic_neutral",
+      "path": "versions/pa0123_merchant_lifecycle_subscriptions_onboarding_039.py",
+      "sha256": "8c4ebe1b284a619e754e05ae77a1e186fdc31c7b9606b10b3fe15f4a7ea87f6d",
+      "owner": "PA",
+      "reason": "PA0123 authorized non-Finance canonical descendant; merchant administration/commercial subscription/usage/onboarding only"
+    },
+    {
+      "root": "alembic_neutral",
+      "path": "sql/pa0123_merchant_lifecycle_subscriptions_onboarding_up.sql",
+      "sha256": "fef9156887f21f102d0cc3fae2e02183b83207635c7596b01a7f78497642c88a",
+      "owner": "PA",
+      "reason": "PA0123 authorized non-Finance canonical descendant; merchant administration/commercial subscription/usage/onboarding only"
+    },
+    {
+      "root": "alembic_neutral",
+      "path": "sql/pa0123_merchant_lifecycle_subscriptions_onboarding_down.sql",
+      "sha256": "f6317b39e00ffe124fa940c920c5a3581cc92d7690b3f09786612a3815c073b3",
+      "owner": "PA",
+      "reason": "PA0123 authorized non-Finance canonical descendant; merchant administration/commercial subscription/usage/onboarding only"
     }
   ],
   "trees": [

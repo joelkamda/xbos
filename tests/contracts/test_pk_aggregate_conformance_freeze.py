@@ -60,7 +60,14 @@ def test_pk_migration_tail_has_one_head_and_no_aggregate_revision():
         if isinstance(values.get("revision"), str):
             revisions[values["revision"]] = values.get("down_revision")
     heads = sorted(set(revisions) - {parent for parent in revisions.values() if isinstance(parent, str)})
-    assert heads == [HEAD]
+    assert len(heads) == 1
+    current = heads[0]
+    lineage = []
+    while current is not None:
+        lineage.append(current)
+        current = revisions[current]
+    lineage = list(reversed(lineage))
+    assert HEAD in lineage
     assert revisions[HEAD] == "pk0123_pack_manifest_lifecycle_037"
     assert revisions["pk0123_pack_manifest_lifecycle_037"] == "so_aggregate_conformance_hardening_036"
     assert not any("aggregate" in revision and revision.startswith("pk") for revision in revisions)

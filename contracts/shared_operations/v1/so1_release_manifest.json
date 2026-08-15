@@ -36,15 +36,15 @@
     },
     {
       "path": "contracts/platform/v1/pc0_frozen_finance_inventory.json",
-      "sha256": "233f1e68a3efd5dfbaf6fbae4650d39ff63ff6bb4e9e87d776ed8d94bb593055"
+      "sha256": "d5fa8a86221f324d3ed081351fb1469e35bf699df47d79138165c694c37a1667"
     },
     {
       "path": "contracts/platform/v1/pc0_release_manifest.json",
-      "sha256": "a2d4ace518773cb418ff6b36f544d518622af7227b20d4f5a1fc68cfd32d8333"
+      "sha256": "94e7bca406f775d73bfe93d4ebbf5554da7f09982acfd36fc635f069e217d075"
     },
     {
       "path": "contracts/platform/v1/pc6_release_manifest.json",
-      "sha256": "98a0f6aec888feea2575957f1e5ef0779324a11b4d22dddb02a59483dde3b532"
+      "sha256": "f4996ffad57948bd85f5ad68b6890ca76e9eb5c518a1f6d1bd48a89a75765ef6"
     },
     {
       "path": "contracts/shared_operations/v1/examples/professional_service_profile.json",
@@ -76,7 +76,7 @@
     },
     {
       "path": "core/platform/architecture_contract.py",
-      "sha256": "687461a559c08a3977e4a152268d909d9b15e696d5ccf955d5b3aef41d3096ef"
+      "sha256": "eae3265ad7632fcb9bc811ccda290579d59583ebc15aaf8d762a7262c93755b8"
     },
     {
       "path": "docs/shared_operations/SO1_ATOMIC_UNITS_CATALOG_OFFERS_PRICING.md",

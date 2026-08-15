@@ -1,0 +1,199 @@
+{
+  "schema_version": 1,
+  "release": "PA0123_MERCHANT_LIFECYCLE_SUBSCRIPTIONS_USAGE_ONBOARDING",
+  "source_checkpoint": "2402858",
+  "source_checkpoint_full": "24028584c4e7c252c03169fb87dfd880e12e8f7a",
+  "source_archive_sha256": "9f6b5ba290770316efe39bb0f49609e343a4b630bb8dc6ec15d8369321f38f10",
+  "source_archive_size": 5860524,
+  "previous_head": "pk456_pack_conformance_templates_038",
+  "accepted_head": "pa0123_merchant_lifecycle_subscriptions_onboarding_039",
+  "migration_count": 1,
+  "coverage": [
+    "PA0",
+    "PA1",
+    "PA2",
+    "PA3"
+  ],
+  "fingerprint_mode": "sha256_git_canonical_lf",
+  "commit": "NONE",
+  "tag": "NONE",
+  "operator_gate": "XBOS_PA0123_RUN_ACCEPTANCE.cmd",
+  "success_marker": "PA0123_SINGLE_GATE=PASS",
+  "finance": "UNCHANGED",
+  "shared_operations": "UNCHANGED",
+  "production_dependencies": "UNCHANGED",
+  "pc1_tenant_authority": "REUSED",
+  "pc4_entitlement_authority": "REUSED",
+  "pc5_security_authority": "REUSED",
+  "pk_composition_authority": "REUSED",
+  "artifacts": [
+    {
+      "path": "PA0123_INSTALL_MANIFEST.txt",
+      "sha256": "a0ff696219b7aa52068c9cf9b2dd8cf8dde3e8851eb0639b331172c7141ecce3"
+    },
+    {
+      "path": "XBOS_PA0123_INSTALL_AND_VERIFY.txt",
+      "sha256": "fe03e751d9d1cf6945446dd585e820c6ea62af5f6b3965af6d9e7c2251bc445a"
+    },
+    {
+      "path": "XBOS_PA0123_RUN_ACCEPTANCE.cmd",
+      "sha256": "24e3081ff74fc16455172d468d7d470580aa3fbb645109371b4de21fd7e3680c"
+    },
+    {
+      "path": "alembic_neutral/sql/pa0123_merchant_lifecycle_subscriptions_onboarding_down.sql",
+      "sha256": "f6317b39e00ffe124fa940c920c5a3581cc92d7690b3f09786612a3815c073b3"
+    },
+    {
+      "path": "alembic_neutral/sql/pa0123_merchant_lifecycle_subscriptions_onboarding_up.sql",
+      "sha256": "fef9156887f21f102d0cc3fae2e02183b83207635c7596b01a7f78497642c88a"
+    },
+    {
+      "path": "alembic_neutral/versions/pa0123_merchant_lifecycle_subscriptions_onboarding_039.py",
+      "sha256": "8c4ebe1b284a619e754e05ae77a1e186fdc31c7b9606b10b3fe15f4a7ea87f6d"
+    },
+    {
+      "path": "contracts/packs/v1/pk0123_release_manifest.json",
+      "sha256": "ea97719d48e2a11f1174aceec22143d19e72e76bd2102db557eeae8c3c32a9a0"
+    },
+    {
+      "path": "contracts/packs/v1/pk456_release_manifest.json",
+      "sha256": "5a6f5355334d06d0e15f09155c72dc122a567125e87d691955426222778b2637"
+    },
+    {
+      "path": "contracts/packs/v1/pk_aggregate_release_manifest.json",
+      "sha256": "aa9d88be7ceceb60fcfa51c862baa17a2b5d10430433b22ed7375afad6a50c9c"
+    },
+    {
+      "path": "contracts/platform/v1/pc0_data_authority_register.json",
+      "sha256": "5d0abed4036c53ed62023c295ffa4b606c5a365e2bc5c19b7cb33b09134b729d"
+    },
+    {
+      "path": "contracts/platform/v1/pc0_dependency_policy.json",
+      "sha256": "45352f7ebc1727968c819182b53cb15f57d7ed2baa270546530a5a65bed23e78"
+    },
+    {
+      "path": "contracts/platform/v1/pc0_frozen_finance_inventory.json",
+      "sha256": "d5fa8a86221f324d3ed081351fb1469e35bf699df47d79138165c694c37a1667"
+    },
+    {
+      "path": "contracts/platform/v1/pc0_module_map.json",
+      "sha256": "526f4a2c1ddf2eacf2f541b43d68b7881f48582e4fcab6e1efbbf14a8c3a6a21"
+    },
+    {
+      "path": "contracts/platform/v1/pc0_public_private_interfaces.json",
+      "sha256": "69deb750cd4ebd0f0423ec58de6a4e550e8e377a30df6cba1c10cffe9db961de"
+    },
+    {
+      "path": "contracts/platform/v1/pc0_release_manifest.json",
+      "sha256": "94e7bca406f775d73bfe93d4ebbf5554da7f09982acfd36fc635f069e217d075"
+    },
+    {
+      "path": "contracts/platform/v1/pc6_release_manifest.json",
+      "sha256": "f4996ffad57948bd85f5ad68b6890ca76e9eb5c518a1f6d1bd48a89a75765ef6"
+    },
+    {
+      "path": "contracts/platform_admin/v1/examples/neutral_merchant_plan.json",
+      "sha256": "0be92ff12ffee7b628edc116e5ecc4901de1d5c2731d92058186a8d906bb113e"
+    },
+    {
+      "path": "contracts/platform_admin/v1/pa0123_authority.json",
+      "sha256": "f7fcd55971c87944171866835048c767b1a519dea8e957a9428ebd9aa4a9f2a5"
+    },
+    {
+      "path": "contracts/platform_admin/v1/pa0123_public_interfaces.json",
+      "sha256": "33ea5061ac48dbe10eea414286a6c3aea8b7953855d318f1edeb34318864b3a6"
+    },
+    {
+      "path": "contracts/platform_admin/v1/pa0123_readiness_contract.json",
+      "sha256": "0a2697e4698fd46e1b74ff409bff6b006250a667ec275eb4569f7a163dfde643"
+    },
+    {
+      "path": "contracts/shared_operations/v1/so10_release_manifest.json",
+      "sha256": "1367c10495e9112af588bdb684b0c3250e190a241210f920dd3f1c2993ac1441"
+    },
+    {
+      "path": "contracts/shared_operations/v1/so1_release_manifest.json",
+      "sha256": "b1ef20a0d5bd22d8efd57de5a85e8138c30d96bc94e74fc315c18e1174e7f152"
+    },
+    {
+      "path": "contracts/shared_operations/v1/so2_release_manifest.json",
+      "sha256": "55550a503642f0c4cd613d60ed0560b1115f37be2c3476c00e1991273e633d32"
+    },
+    {
+      "path": "contracts/shared_operations/v1/so3_release_manifest.json",
+      "sha256": "7357d466adb9ca97f4d4c04b1c2eaf1fa704504a2b7bbc087c893f3f339ed3dd"
+    },
+    {
+      "path": "contracts/shared_operations/v1/so4_release_manifest.json",
+      "sha256": "65d842178e4702b509e8c5da5128d6110621d7e0274c84a8c9f74cde06c8f9d5"
+    },
+    {
+      "path": "contracts/shared_operations/v1/so5_release_manifest.json",
+      "sha256": "e3a13db42a56c37dcf512a86aac0a4eabbe584417e6ee31865f25f690eef91a6"
+    },
+    {
+      "path": "contracts/shared_operations/v1/so6_release_manifest.json",
+      "sha256": "1af5e9d78a1cef524d1e487c7f6e3d83b5e531aec46fcfa418fe4c4e6352ddc7"
+    },
+    {
+      "path": "contracts/shared_operations/v1/so7_release_manifest.json",
+      "sha256": "e4605d6002d40dbccef83288f0a3505cb6f641912b3f8666304cc4ad72074b84"
+    },
+    {
+      "path": "contracts/shared_operations/v1/so8_release_manifest.json",
+      "sha256": "7d5466cb7bf2c3dd5233dc360c9732f46d84d1448798f21cbae216a450461e6c"
+    },
+    {
+      "path": "contracts/shared_operations/v1/so9_release_manifest.json",
+      "sha256": "886b96d1946cb2e0c7973088084f4946fdcfd49936074b71889d0ce54b2e2b3b"
+    },
+    {
+      "path": "contracts/shared_operations/v1/so_aggregate_release_manifest.json",
+      "sha256": "6d4bf02799009c4852e5f8954c4e571fdd9fc647f78bc3ec3b1950b38862f77f"
+    },
+    {
+      "path": "core/platform/architecture_contract.py",
+      "sha256": "eae3265ad7632fcb9bc811ccda290579d59583ebc15aaf8d762a7262c93755b8"
+    },
+    {
+      "path": "docs/platform_admin/PA0123_MERCHANT_LIFECYCLE_SUBSCRIPTIONS_USAGE_ONBOARDING.md",
+      "sha256": "d9ae2ecf99866ff389646579bbd5b8af7b538459b0ef47b90fb4b7a8308926d2"
+    },
+    {
+      "path": "docs/platform_admin/adr/0026_PA_ADMINISTRATION_ORCHESTRATES_PC_AND_PK_AUTHORITIES.md",
+      "sha256": "69168a8f458de5db7d78816ffd72470ea54dea8576502f317aa2690ea64f629f"
+    },
+    {
+      "path": "platform_admin/__init__.py",
+      "sha256": "d0e77c6651d9b6dd14090a9b16f80f5a9389ac6fbd70cf85dd72841382c3feee"
+    },
+    {
+      "path": "platform_admin/contracts.py",
+      "sha256": "f06200da93b0be818fd0c622a747b69c20e72cc452d82939974676029b89e92d"
+    },
+    {
+      "path": "platform_admin/service.py",
+      "sha256": "951e8331dcc8cc4f8023b2e6419e6bc43785ad9c325c26ad1e3a176c06d5b10d"
+    },
+    {
+      "path": "platform_admin/sql_repository.py",
+      "sha256": "a932334d65dcf5a0b98ad72617a817d72807a2b667b121236ad085d07eedf928"
+    },
+    {
+      "path": "scripts/verify_pa0123_platform_administration.py",
+      "sha256": "1e407de05ca5401809ff2f027050e89dba27895f4c4c7a5bd6b15e4f70b12c12"
+    },
+    {
+      "path": "scripts/verify_pk_aggregate_conformance_freeze.py",
+      "sha256": "b61bd1b618a9c97283a5451abfbd5acde1fe945e32dc4d28badcf6ddc00f32e9"
+    },
+    {
+      "path": "tests/contracts/test_pa0123_platform_administration.py",
+      "sha256": "5eee52f788fabeecbcf696c059bb0be48a5c715b304bd09a769f86e124b3de9f"
+    },
+    {
+      "path": "tests/contracts/test_pk_aggregate_conformance_freeze.py",
+      "sha256": "df0e10bf3190c20d74279fd7f6b7b1523a5aea3a5a29286bc7831d15deb66032"
+    }
+  ]
+}

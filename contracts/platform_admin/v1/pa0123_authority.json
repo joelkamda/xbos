@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "release": "PA0123_MERCHANT_LIFECYCLE_SUBSCRIPTIONS_USAGE_ONBOARDING",
+  "source_checkpoint": "24028584c4e7c252c03169fb87dfd880e12e8f7a",
+  "previous_head": "pk456_pack_conformance_templates_038",
+  "accepted_head": "pa0123_merchant_lifecycle_subscriptions_onboarding_039",
+  "coverage": ["PA0", "PA1", "PA2", "PA3"],
+  "constitutional_rule": "platform_admin_orchestrates_public_authorities_without_redefining_them",
+  "authority_boundaries": {
+    "tenant_lifecycle": "PC1",
+    "effective_entitlement": "PC4",
+    "authorization_and_admin_identity": "PC5",
+    "template_and_pack_composition": "PK",
+    "merchant_administration": "PA",
+    "commercial_plan_subscription": "PA",
+    "usage_metering_quota_evidence": "PA",
+    "onboarding_readiness_orchestration": "PA",
+    "finance": "UNCHANGED",
+    "shared_operations": "UNCHANGED"
+  },
+  "laws": [
+    "merchant administration state is not PC1 tenant lifecycle",
+    "subscription entitlement projection is commercial intent; runtime entitlement truth remains PC4",
+    "quota breach never silently revokes entitlement or changes Finance truth",
+    "readiness consumes PC1 PC4 PC5 and PK public truth",
+    "onboarding completion never substitutes for authorization, tenant activation, pack application or financial cutover",
+    "usage events and readiness evidence are tenant scoped and append only",
+    "exact command replay is tenant scoped"
+  ],
+  "production_dependency_changes": "NONE",
+  "cutover": "NOT_AUTHORIZED",
+  "writer_retirement": "NOT_EXECUTED"
+}

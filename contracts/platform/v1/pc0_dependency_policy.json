@@ -101,7 +101,13 @@
       "finance"
     ],
     "shared": [],
-    "packs": []
+    "packs": [],
+    "platform_admin": [
+      "structure",
+      "operating_context",
+      "security_authority",
+      "packs"
+    ]
   },
   "law": [
     "composition may assemble modules but domain modules may not depend on composition",

@@ -1,0 +1,18 @@
+DROP TRIGGER IF EXISTS trg_pa_onboarding_checks_immutable ON public.pa_onboarding_checks;
+DROP TRIGGER IF EXISTS trg_pa_usage_immutable ON public.pa_usage_events;
+DROP TRIGGER IF EXISTS trg_pa_subscription_history_immutable ON public.pa_subscription_history;
+DROP TRIGGER IF EXISTS trg_pa_plan_quota_immutable ON public.pa_plan_quotas;
+DROP TRIGGER IF EXISTS trg_pa_plan_version_immutable ON public.pa_plan_versions;
+DROP TRIGGER IF EXISTS trg_pa_merchant_history_immutable ON public.pa_merchant_history;
+DROP TABLE IF EXISTS public.pa_onboarding_checks;
+DROP TABLE IF EXISTS public.pa_onboarding_runs;
+DROP TABLE IF EXISTS public.pa_usage_events;
+DROP TABLE IF EXISTS public.pa_subscription_history;
+DROP TABLE IF EXISTS public.pa_subscriptions;
+DROP TABLE IF EXISTS public.pa_plan_quotas;
+DROP TABLE IF EXISTS public.pa_plan_versions;
+DROP TABLE IF EXISTS public.pa_plans;
+DROP TABLE IF EXISTS public.pa_merchant_history;
+DROP TABLE IF EXISTS public.pa_merchants;
+DROP TABLE IF EXISTS public.pa_commands;
+DROP FUNCTION IF EXISTS public.pa_reject_append_only_mutation();

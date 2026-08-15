@@ -1,0 +1,10 @@
+XBOS PA0123 — Merchant Lifecycle, Plans/Subscriptions, Usage/Quotas and Onboarding/Readiness
+
+Source checkpoint: 24028584c4e7c252c03169fb87dfd880e12e8f7a
+Previous migration head: pk456_pack_conformance_templates_038
+Candidate head: pa0123_merchant_lifecycle_subscriptions_onboarding_039
+
+Install by expanding this package over the exact source checkout, then run:
+  XBOS_PA0123_RUN_ACCEPTANCE.cmd
+
+Do not manually run Alembic, stage, commit or tag before PA0123_SINGLE_GATE=PASS.

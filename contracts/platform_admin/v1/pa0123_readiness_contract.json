@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "required_checks": [
+    "pc1_tenant_available",
+    "pk_template_pinned",
+    "pc4_entitlements_effective",
+    "pc5_tenant_admin_ready"
+  ],
+  "result_states": ["pass", "fail"],
+  "readiness_rule": "all_required_checks_must_pass",
+  "evidence_rule": "every check requires a non-empty external authority evidence reference",
+  "go_live_rule": "PA readiness does not itself activate tenant, grant permission, apply template, or authorize financial cutover"
+}

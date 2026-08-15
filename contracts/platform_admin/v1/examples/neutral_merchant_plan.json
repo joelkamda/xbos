@@ -1,0 +1,11 @@
+{
+  "plan_code": "neutral.standard",
+  "version": "1.0.0",
+  "owner_code": "platform_admin",
+  "entitlement_codes": ["platform.core", "packs.templates", "reports.basic"],
+  "quotas": [
+    {"meter_code": "active_users", "limit": "25"},
+    {"meter_code": "api_calls", "limit": "100000"}
+  ],
+  "notes": "Commercial projection only; effective entitlements remain PC4 authority."
+}

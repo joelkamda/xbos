@@ -1,0 +1,8 @@
+PA0123 bounded implementation package.
+Coverage: PA0, PA1, PA2, PA3.
+Authority: PA owns merchant administration, commercial subscription intent, usage evidence/quota comparison and onboarding orchestration.
+Reused authorities: PC1 tenant lifecycle; PC4 effective entitlement; PC5 authorization/admin identity; PK template/pack composition.
+Finance: UNCHANGED.
+Shared Operations: UNCHANGED.
+Dependencies: UNCHANGED.
+Cutover: NOT_AUTHORIZED.
