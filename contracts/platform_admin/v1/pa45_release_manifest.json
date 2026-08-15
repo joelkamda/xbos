@@ -166,7 +166,7 @@
     },
     {
       "path": "scripts/verify_pa45_platform_support_recovery_health.py",
-      "sha256": "36e4de64d89c6c455a28f983629de57cc50bb70b9ac81aa0fe9d761858bbb754"
+      "sha256": "926064fc237270b248b6764f9505f39020f0a20f4a3478677587ac546b0cd43d"
     },
     {
       "path": "tests/contracts/test_pa45_platform_support_recovery_health.py",

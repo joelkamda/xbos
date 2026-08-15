@@ -4,9 +4,11 @@ import argparse
 import hashlib
 import json
 import os
+import sys
 from pathlib import Path
 
 ROOT=Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path: sys.path.insert(0,str(ROOT))
 SOURCE="8ff3d8b"
 SOURCE_FULL="8ff3d8b2685a24006d79b5cc6cd3e85c17d52d70"
 PREVIOUS="pa0123_merchant_lifecycle_subscriptions_onboarding_039"

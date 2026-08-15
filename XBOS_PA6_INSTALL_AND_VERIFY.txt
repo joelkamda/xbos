@@ -1,0 +1,31 @@
+XBOS PA6 PLATFORM ADMINISTRATION AGGREGATE CONFORMANCE AND FREEZE — INSTALL AND VERIFY
+
+Authoritative source checkpoint: 03ede10255cfb330d3d3e76429c8c9b35d8e45ba
+Source archive SHA-256: aea33ed15d5e004b4e0d5f35e9e9b93e1bee11f07c7f3d04c6a45ba365d9f65a
+Previous/accepted migration head: pa45_support_recovery_health_040
+Aggregate migration: NONE
+Business capability change: NONE
+Revision 2 repair: make the frozen PA45 verifier self-bootstrap the repository root when executed directly; no PA semantics, migration, dependency or authority change.
+Revision 3 repair: make PA6 development adoption resumable from the exact PA0123 predecessor to the already-accepted PA45 head; current PA45 head is verified, any other development head still fails closed. No new migration or business capability.
+
+Purpose:
+Freeze PA0-PA6 as one coherent Platform Administration / Merchant Lifecycle layer and prove the full merchant-administration journey without changing PC, PK, SO, Finance or dependency authority.
+
+Operator environment:
+- repository: C:\Users\jdkam\XBOS
+- existing venv: C:\Users\jdkam\venvs\xbos-track-b-b1
+- Python: 3.13.3
+- PostgreSQL: localhost:5432
+- development DB: xbos_track_b_dev
+
+Install from repository root:
+  powershell -NoProfile -Command "Expand-Archive -LiteralPath '%USERPROFILE%\Downloads\XBOS_PA6_PLATFORM_ADMINISTRATION_AGGREGATE_CONFORMANCE_FREEZE_REVISION_3.zip' -DestinationPath '.' -Force"
+
+Then run:
+  XBOS_PA6_RUN_ACCEPTANCE.cmd
+
+Do not run Alembic manually. Do not stage, commit or tag until PA6_SINGLE_GATE=PASS.
+
+The gate creates only the disposable local database xbos_pa6_aggregate_test and drops it on exit. For xbos_track_b_dev it accepts pa45_support_recovery_health_040 directly, or safely resumes the single already-approved PA45 migration when the database is exactly at pa0123_merchant_lifecycle_subscriptions_onboarding_039. Any other development head fails closed. It refuses a non-local or differently named development database.
+
+A successful close ends with PA6_SINGLE_GATE=PASS and PA6_R0_READINESS=PASS.

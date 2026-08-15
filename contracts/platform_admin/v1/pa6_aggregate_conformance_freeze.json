@@ -1,0 +1,79 @@
+{
+  "schema_version": 1,
+  "release": "PA6_PLATFORM_ADMINISTRATION_AGGREGATE_CONFORMANCE_FREEZE",
+  "source_checkpoint": "03ede10255cfb330d3d3e76429c8c9b35d8e45ba",
+  "source_archive_sha256": "aea33ed15d5e004b4e0d5f35e9e9b93e1bee11f07c7f3d04c6a45ba365d9f65a",
+  "source_archive_size": 5919017,
+  "previous_head": "pa45_support_recovery_health_040",
+  "accepted_head": "pa45_support_recovery_health_040",
+  "migration": "NONE",
+  "business_capability_change": "NONE",
+  "coverage": ["PA0", "PA1", "PA2", "PA3", "PA4", "PA5", "PA6"],
+  "components": [
+    {
+      "release": "PA0123",
+      "source_checkpoint": "24028584c4e7c252c03169fb87dfd880e12e8f7a",
+      "previous_head": "pk456_pack_conformance_templates_038",
+      "accepted_head": "pa0123_merchant_lifecycle_subscriptions_onboarding_039"
+    },
+    {
+      "release": "PA45",
+      "source_checkpoint": "8ff3d8b2685a24006d79b5cc6cd3e85c17d52d70",
+      "previous_head": "pa0123_merchant_lifecycle_subscriptions_onboarding_039",
+      "accepted_head": "pa45_support_recovery_health_040"
+    }
+  ],
+  "constitutional_rule": "platform_admin_orchestrates_public_authorities_without_redefining_them",
+  "aggregate_invariants": {
+    "merchant_administration": "PA_OWNS_ADMINISTRATIVE_PROGRESSION_PC1_OWNS_TENANT_LIFECYCLE",
+    "plans_subscriptions": "PA_OWNS_COMMERCIAL_INTENT_PC4_OWNS_EFFECTIVE_RUNTIME_ENTITLEMENT",
+    "usage_quotas": "APPEND_ONLY_USAGE_EVIDENCE_QUOTA_BREACH_NEVER_SILENTLY_MUTATES_ENTITLEMENT_OR_FINANCE",
+    "onboarding": "RESUMABLE_READINESS_ORCHESTRATION_CONSUMES_PC1_PC4_PC5_PK_PUBLIC_TRUTH",
+    "support_delegation": "TIME_BOUNDED_TENANT_SCOPED_PC5_AUTHORIZED_AND_EVIDENCED",
+    "break_glass": "STEP_UP_AND_EVIDENCE_REQUIRED_STRICT_EXPIRY",
+    "recovery": "COORDINATION_AND_EVIDENCE_ONLY_AFFECTED_DOMAIN_REMAINS_SOURCE_TRUTH",
+    "health": "DERIVED_OBSERVATION_ONLY_NEVER_MUTATION_AUTHORITY",
+    "tenant_idempotency": "TENANT_SCOPED_EXACT_REPLAY_FAIL_CLOSED",
+    "public_boundaries": "PC1_PC4_PC5_PK_REUSED_NO_PRIVATE_AUTHORITY_BYPASS",
+    "finance": "UNCHANGED",
+    "shared_operations": "UNCHANGED",
+    "pack_platform": "UNCHANGED",
+    "dependencies": "UNCHANGED",
+    "migration_lineage": "FROZEN_PREFIX_WITH_LEGAL_DESCENDANTS"
+  },
+  "full_merchant_journey": [
+    "merchant_registered",
+    "plan_version_registered",
+    "subscription_activated",
+    "commercial_entitlements_projected",
+    "usage_recorded_and_quota_evaluated",
+    "onboarding_started",
+    "readiness_evaluated",
+    "onboarding_completed",
+    "merchant_marked_operational",
+    "delegated_support_opened_and_evidenced",
+    "recovery_case_evidenced_and_resolved",
+    "merchant_health_observed",
+    "platform_health_observed",
+    "support_session_closed"
+  ],
+  "dependency_fingerprints": {
+    "requirements-prod.txt": "d581097821755ae27c5899eaf0d06be52adbf05c2f4bab13b46872e87980fff5",
+    "requirements-test.txt": "085f5e0cd5e9c3ac500cb1e0bb552f5628129da879513a84d7bf425a7df43cf9"
+  },
+  "next_handoff": {
+    "status": "R0_READY_AFTER_OPERATOR_GATE",
+    "sequence": "R0-R5",
+    "must_preserve": [
+      "frozen Neutral Finance",
+      "frozen Platform Core",
+      "frozen XA",
+      "frozen Shared Operations",
+      "frozen Pack Platform",
+      "frozen Platform Administration"
+    ]
+  },
+  "cutover": "NOT_AUTHORIZED",
+  "writer_retirement": "NOT_EXECUTED",
+  "dependency_fingerprint_mode": "sha256_git_canonical_lf"
+}

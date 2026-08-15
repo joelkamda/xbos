@@ -1,0 +1,82 @@
+{
+  "schema_version": 1,
+  "release": "PA6_PLATFORM_ADMINISTRATION_AGGREGATE_CONFORMANCE_FREEZE",
+  "source_checkpoint": "03ede10",
+  "source_checkpoint_full": "03ede10255cfb330d3d3e76429c8c9b35d8e45ba",
+  "source_archive_sha256": "aea33ed15d5e004b4e0d5f35e9e9b93e1bee11f07c7f3d04c6a45ba365d9f65a",
+  "source_archive_size": 5919017,
+  "previous_head": "pa45_support_recovery_health_040",
+  "accepted_head": "pa45_support_recovery_health_040",
+  "migration_count": 0,
+  "coverage": [
+    "PA0",
+    "PA1",
+    "PA2",
+    "PA3",
+    "PA4",
+    "PA5",
+    "PA6"
+  ],
+  "fingerprint_mode": "sha256_git_canonical_lf",
+  "commit": "NONE",
+  "tag": "NONE",
+  "operator_gate": "XBOS_PA6_RUN_ACCEPTANCE.cmd",
+  "success_marker": "PA6_SINGLE_GATE=PASS",
+  "business_capability_change": "NONE",
+  "finance": "UNCHANGED",
+  "shared_operations": "UNCHANGED",
+  "pack_platform": "UNCHANGED",
+  "production_dependencies": "UNCHANGED",
+  "platform_core": "FROZEN_REUSED",
+  "r0_readiness": "PASS_AFTER_OPERATOR_GATE",
+  "artifacts": [
+    {
+      "path": "PA6_INSTALL_MANIFEST.txt",
+      "sha256": "0fcb19f2d9ef2ff67187db925c30bd1d5f3b73cf998697813dde4170a9aafe8a"
+    },
+    {
+      "path": "XBOS_PA6_INSTALL_AND_VERIFY.txt",
+      "sha256": "ab3f07b0d3dc677a6a68a9efd9ec93fdc3c883f1fcb7da7c8a72f9acdefbe9e6"
+    },
+    {
+      "path": "XBOS_PA6_RUN_ACCEPTANCE.cmd",
+      "sha256": "2da87f68240580ae425ab58feae9ffb33e461fe703fdd553866a0e7ba99de9d3"
+    },
+    {
+      "path": "contracts/platform_admin/v1/pa6_aggregate_conformance_freeze.json",
+      "sha256": "3351c9ee1c72b09f9816497a100933ff83debb0b89cd69aea9598d7dc2b1cfed"
+    },
+    {
+      "path": "docs/platform_admin/PA6_PLATFORM_ADMINISTRATION_AGGREGATE_CONFORMANCE_AND_FREEZE.md",
+      "sha256": "a54536fe286b67fb2be6a8e8afe05b6ce6b522250cf75f4f2dc437647b865f9e"
+    },
+    {
+      "path": "docs/platform_admin/adr/0027_PA6_FREEZES_PLATFORM_ADMINISTRATION_WITHOUT_ACQUIRING_DOMAIN_AUTHORITY.md",
+      "sha256": "6b4bdad8fa9bf9d9071c51b50d399818a9e5603422b8e6d9785ea0643dbe810b"
+    },
+    {
+      "path": "scripts/verify_pa6_platform_administration_aggregate_freeze.py",
+      "sha256": "46f484377737a52dad27ac135a77b2f50382e02596c115279070b8990fbc06af"
+    },
+    {
+      "path": "tests/contracts/test_pa6_platform_administration_aggregate_freeze.py",
+      "sha256": "34c54c855449bcfcefb173ef045cc01999d5c7c33c35e97ea1d90277fad53426"
+    },
+    {
+      "path": "contracts/platform_admin/v1/pa0123_release_manifest.json",
+      "sha256": "79e3e634ec07f20659487ddd49f30355900ad61e88817d5be8bfed04cc18d19e"
+    },
+    {
+      "path": "contracts/platform_admin/v1/pa45_release_manifest.json",
+      "sha256": "5d797c3d456b1575e7d7d81f86bbc1558b9d18622e3a5253c6f3a33ba67f2b50"
+    },
+    {
+      "path": "contracts/packs/v1/pk_aggregate_release_manifest.json",
+      "sha256": "a54cf20374cf38bc732a7a72a729addc9718ccc88558076d3dd2486614d20009"
+    },
+    {
+      "path": "scripts/verify_pa45_platform_support_recovery_health.py",
+      "sha256": "926064fc237270b248b6764f9505f39020f0a20f4a3478677587ac546b0cd43d"
+    }
+  ]
+}

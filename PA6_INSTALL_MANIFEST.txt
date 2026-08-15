@@ -1,0 +1,25 @@
+XBOS PA6 PLATFORM ADMINISTRATION AGGREGATE CONFORMANCE AND FREEZE INSTALL MANIFEST
+
+Source checkpoint: 03ede10255cfb330d3d3e76429c8c9b35d8e45ba
+Source archive SHA-256: aea33ed15d5e004b4e0d5f35e9e9b93e1bee11f07c7f3d04c6a45ba365d9f65a
+Source archive size: 5919017 bytes
+Previous head: pa45_support_recovery_health_040
+Accepted head: pa45_support_recovery_health_040
+Migration: NONE
+Coverage: PA0, PA1, PA2, PA3, PA4, PA5, PA6
+Business capability change: NONE
+Revision 3: controlled resumable development adoption from exact PA0123 predecessor to accepted PA45 head; no new migration or capability.
+
+Package file count: 11
+Package files:
+- PA6_INSTALL_MANIFEST.txt
+- XBOS_PA6_INSTALL_AND_VERIFY.txt
+- XBOS_PA6_RUN_ACCEPTANCE.cmd
+- contracts/platform_admin/v1/pa45_release_manifest.json
+- contracts/platform_admin/v1/pa6_aggregate_conformance_freeze.json
+- contracts/platform_admin/v1/pa6_release_manifest.json
+- docs/platform_admin/PA6_PLATFORM_ADMINISTRATION_AGGREGATE_CONFORMANCE_AND_FREEZE.md
+- docs/platform_admin/adr/0027_PA6_FREEZES_PLATFORM_ADMINISTRATION_WITHOUT_ACQUIRING_DOMAIN_AUTHORITY.md
+- scripts/verify_pa45_platform_support_recovery_health.py
+- scripts/verify_pa6_platform_administration_aggregate_freeze.py
+- tests/contracts/test_pa6_platform_administration_aggregate_freeze.py
