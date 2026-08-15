@@ -285,6 +285,24 @@
       "owner": "PA",
       "current_store": "pa_onboarding_runs and append-only readiness-check snapshots",
       "boundary": "orchestration/readiness evidence consuming PC1, PC4, PC5 and PK public truth; does not provision tenant, authorize actor, or mutate template authority"
+    },
+    {
+      "code": "platform_support_session",
+      "owner": "PA",
+      "current_store": "pa_support_sessions, append-only pa_support_session_history and pa_support_actions",
+      "boundary": "bounded tenant-scoped delegated/break-glass support evidence; PC5 remains authorization and identity authority"
+    },
+    {
+      "code": "merchant_recovery_case",
+      "owner": "PA",
+      "current_store": "pa_recovery_cases, append-only pa_recovery_case_history and pa_recovery_actions",
+      "boundary": "administrative recovery coordination/evidence only; affected PC/PK/SO/Finance authority remains source truth"
+    },
+    {
+      "code": "merchant_platform_health",
+      "owner": "PA",
+      "current_store": "append-only pa_health_snapshots and pa_health_checks",
+      "boundary": "derived merchant/platform health observation only; never operational, authorization or financial truth"
     }
   ],
   "rules": [
@@ -336,6 +354,9 @@
     "merchant_administration",
     "commercial_subscription",
     "usage_metering",
-    "merchant_onboarding_readiness"
+    "merchant_onboarding_readiness",
+    "platform_support_session",
+    "merchant_recovery_case",
+    "merchant_platform_health"
   ]
 }

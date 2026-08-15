@@ -1,0 +1,10 @@
+XBOS PA45 — Support, Recovery, Delegated Administration and Merchant/Platform Health
+
+Source checkpoint: 8ff3d8b2685a24006d79b5cc6cd3e85c17d52d70
+Previous migration head: pa0123_merchant_lifecycle_subscriptions_onboarding_039
+Candidate head: pa45_support_recovery_health_040
+
+Install by expanding this package over the exact source checkout, then run:
+  XBOS_PA45_RUN_ACCEPTANCE.cmd
+
+Do not manually run Alembic, stage, commit or tag before PA45_SINGLE_GATE=PASS.

@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "statuses": ["healthy", "unknown", "degraded", "blocked"],
+  "aggregation_precedence": ["healthy", "unknown", "degraded", "blocked"],
+  "scopes": {
+    "merchant": "tenant-scoped derived health snapshot",
+    "platform": "platform-wide derived health snapshot with no tenant identity"
+  },
+  "required_check_fields": ["check_code", "status", "evidence_reference", "observed_at"],
+  "laws": [
+    "health is observation, never source truth",
+    "a missing or ambiguous upstream condition is unknown, not healthy",
+    "a health result cannot authorize mutation or financial posting",
+    "evidence references are mandatory for every check",
+    "historical snapshots are append-only"
+  ]
+}

@@ -494,11 +494,30 @@
         "platform_admin.PlanVersionRecord",
         "platform_admin.SubscriptionRecord",
         "platform_admin.QuotaStatus",
-        "platform_admin.OnboardingRecord"
+        "platform_admin.OnboardingRecord",
+        "platform_admin.pa45_service.PA45Authority",
+        "platform_admin.pa45_service.PA45AuthorityError",
+        "platform_admin.pa45_contracts.OpenSupportSession",
+        "platform_admin.pa45_contracts.TransitionSupportSession",
+        "platform_admin.pa45_contracts.RecordSupportAction",
+        "platform_admin.pa45_contracts.OpenRecoveryCase",
+        "platform_admin.pa45_contracts.RecordRecoveryAction",
+        "platform_admin.pa45_contracts.TransitionRecoveryCase",
+        "platform_admin.pa45_contracts.CaptureMerchantHealth",
+        "platform_admin.pa45_contracts.CapturePlatformHealth",
+        "platform_admin.pa45_contracts.SupportSessionRecord",
+        "platform_admin.pa45_contracts.SupportActionRecord",
+        "platform_admin.pa45_contracts.RecoveryCaseRecord",
+        "platform_admin.pa45_contracts.RecoveryActionRecord",
+        "platform_admin.pa45_contracts.HealthSnapshotRecord"
       ],
       "private": [
         "platform_admin.sql_repository.SQLPlatformAdministrationRepository",
-        "pa_* persistence tables"
+        "pa_* persistence tables",
+        "platform_admin.pa45_sql_repository.SQLPA45Repository",
+        "pa_support_* persistence tables",
+        "pa_recovery_* persistence tables",
+        "pa_health_* persistence tables"
       ]
     }
   ],

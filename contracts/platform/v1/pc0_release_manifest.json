@@ -19,7 +19,7 @@
     },
     {
       "path": "contracts/platform/v1/pc0_data_authority_register.json",
-      "sha256": "5d0abed4036c53ed62023c295ffa4b606c5a365e2bc5c19b7cb33b09134b729d"
+      "sha256": "2ea28d3036d49ea6b7d5c3ee671abffe30b7dcab65c0f8824a448809304d616f"
     },
     {
       "path": "contracts/platform/v1/pc0_reference_authority_migration_register.json",
@@ -31,7 +31,7 @@
     },
     {
       "path": "contracts/platform/v1/pc0_public_private_interfaces.json",
-      "sha256": "69deb750cd4ebd0f0423ec58de6a4e550e8e377a30df6cba1c10cffe9db961de"
+      "sha256": "bd871ee69a3f29fe17a11080d6596b552c5743f186bc794b63dbc900f145bc06"
     },
     {
       "path": "contracts/platform/v1/pc0_legacy_exception_baseline.json",
@@ -47,7 +47,7 @@
     },
     {
       "path": "contracts/platform/v1/pc0_frozen_finance_inventory.json",
-      "sha256": "d5fa8a86221f324d3ed081351fb1469e35bf699df47d79138165c694c37a1667"
+      "sha256": "fcfbc8950e106d45c0aab5fd08e1571e6da4d115865b074cc99ef2cce2585609"
     },
     {
       "path": "contracts/platform/v1/pc0_kernel_boundaries.json",

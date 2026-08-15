@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "release": "PA45_SUPPORT_RECOVERY_DELEGATED_ADMINISTRATION_HEALTH",
+  "source_checkpoint": "8ff3d8b",
+  "source_checkpoint_full": "8ff3d8b2685a24006d79b5cc6cd3e85c17d52d70",
+  "previous_head": "pa0123_merchant_lifecycle_subscriptions_onboarding_039",
+  "accepted_head": "pa45_support_recovery_health_040",
+  "coverage": ["PA4", "PA5"],
+  "authority_boundaries": {
+    "tenant_lifecycle": "PC1_REUSED",
+    "authorization_and_identity": "PC5_REUSED",
+    "merchant_administration": "PA0123_REUSED",
+    "template_composition": "PK_REUSED",
+    "support_session": "PA45",
+    "recovery_case": "PA45",
+    "health_snapshot": "PA45_DERIVED_EVIDENCE",
+    "finance": "UNCHANGED",
+    "shared_operations": "UNCHANGED"
+  },
+  "invariants": [
+    "delegated support is time bounded, tenant scoped, explicitly authorized and fully evidenced",
+    "break-glass support requires step-up authorization evidence and a stricter maximum duration",
+    "support access never creates permanent tenant roles or bypasses PC5 authorization truth",
+    "support actions and recovery actions are append-only evidence and do not rewrite business truth",
+    "recovery cases coordinate diagnosis and recovery evidence without becoming source truth for the affected domain",
+    "merchant and platform health are derived observations only and never mutate operational or financial state",
+    "health snapshots preserve evidence references and worst-status aggregation without inventing causal truth",
+    "sensitive secrets and credentials are forbidden from generic support and recovery metadata",
+    "exact command replay remains scope-aware and fail-closed"
+  ],
+  "production_dependency_changes": "NONE",
+  "cutover": "NOT_AUTHORIZED",
+  "writer_retirement": "NOT_EXECUTED"
+}

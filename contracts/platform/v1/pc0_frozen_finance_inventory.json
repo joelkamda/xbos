@@ -437,6 +437,27 @@
       "sha256": "f6317b39e00ffe124fa940c920c5a3581cc92d7690b3f09786612a3815c073b3",
       "owner": "PA",
       "reason": "PA0123 authorized non-Finance canonical descendant; merchant administration/commercial subscription/usage/onboarding only"
+    },
+    {
+      "root": "alembic_neutral",
+      "path": "versions/pa45_support_recovery_health_040.py",
+      "sha256": "1092ab64bd0d541f08bc934ab30d480d085a5a15e9f09e4f67dc434fd3517616",
+      "owner": "PA",
+      "reason": "PA45 authorized non-Finance canonical descendant; bounded support/recovery/health evidence only"
+    },
+    {
+      "root": "alembic_neutral",
+      "path": "sql/pa45_support_recovery_health_up.sql",
+      "sha256": "444f4de9c0b351ee6cd24eaf9de63960140f2f7c80f029d3db5fa4ae755baf3e",
+      "owner": "PA",
+      "reason": "PA45 authorized non-Finance canonical descendant; bounded support/recovery/health evidence only"
+    },
+    {
+      "root": "alembic_neutral",
+      "path": "sql/pa45_support_recovery_health_down.sql",
+      "sha256": "c54324d6a0124ef95273877ad4b07b512e4c1c04c01d249d1cf04ab7b3cdba6b",
+      "owner": "PA",
+      "reason": "PA45 authorized non-Finance canonical descendant; bounded support/recovery/health evidence only"
     }
   ],
   "trees": [

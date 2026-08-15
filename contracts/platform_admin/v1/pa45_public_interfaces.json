@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "public": [
+    "platform_admin.pa45_service.PA45Authority",
+    "platform_admin.pa45_service.PA45AuthorityError",
+    "platform_admin.pa45_contracts.OpenSupportSession",
+    "platform_admin.pa45_contracts.TransitionSupportSession",
+    "platform_admin.pa45_contracts.RecordSupportAction",
+    "platform_admin.pa45_contracts.OpenRecoveryCase",
+    "platform_admin.pa45_contracts.RecordRecoveryAction",
+    "platform_admin.pa45_contracts.TransitionRecoveryCase",
+    "platform_admin.pa45_contracts.CaptureMerchantHealth",
+    "platform_admin.pa45_contracts.CapturePlatformHealth",
+    "platform_admin.pa45_contracts.SupportSessionRecord",
+    "platform_admin.pa45_contracts.SupportActionRecord",
+    "platform_admin.pa45_contracts.RecoveryCaseRecord",
+    "platform_admin.pa45_contracts.RecoveryActionRecord",
+    "platform_admin.pa45_contracts.HealthSnapshotRecord"
+  ],
+  "private": [
+    "platform_admin.pa45_sql_repository.SQLPA45Repository",
+    "pa_support_* persistence tables",
+    "pa_recovery_* persistence tables",
+    "pa_health_* persistence tables"
+  ],
+  "forbidden": [
+    "direct writes to PC5 identity, membership, role, permission, approval or session tables",
+    "support-session persistence as a substitute for tenant authorization",
+    "health observations mutating merchant, SO, Finance or integration truth",
+    "recovery evidence silently repairing external authority state",
+    "secret or credential material in generic metadata"
+  ]
+}

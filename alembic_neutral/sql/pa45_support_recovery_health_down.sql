@@ -1,0 +1,14 @@
+DROP TRIGGER IF EXISTS trg_pa_health_checks_immutable ON public.pa_health_checks;
+DROP TRIGGER IF EXISTS trg_pa_health_snapshots_immutable ON public.pa_health_snapshots;
+DROP TRIGGER IF EXISTS trg_pa_recovery_actions_immutable ON public.pa_recovery_actions;
+DROP TRIGGER IF EXISTS trg_pa_recovery_history_immutable ON public.pa_recovery_case_history;
+DROP TRIGGER IF EXISTS trg_pa_support_actions_immutable ON public.pa_support_actions;
+DROP TRIGGER IF EXISTS trg_pa_support_history_immutable ON public.pa_support_session_history;
+DROP TABLE IF EXISTS public.pa_health_checks;
+DROP TABLE IF EXISTS public.pa_health_snapshots;
+DROP TABLE IF EXISTS public.pa_recovery_actions;
+DROP TABLE IF EXISTS public.pa_recovery_case_history;
+DROP TABLE IF EXISTS public.pa_recovery_cases;
+DROP TABLE IF EXISTS public.pa_support_actions;
+DROP TABLE IF EXISTS public.pa_support_session_history;
+DROP TABLE IF EXISTS public.pa_support_sessions;

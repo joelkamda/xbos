@@ -1,0 +1,176 @@
+{
+  "schema_version": 1,
+  "release": "PA45_SUPPORT_RECOVERY_DELEGATED_ADMINISTRATION_HEALTH",
+  "source_checkpoint": "8ff3d8b",
+  "source_checkpoint_full": "8ff3d8b2685a24006d79b5cc6cd3e85c17d52d70",
+  "source_archive_sha256": "5272ba4844afa28ece1dd21656d132b55dc2b0c2e8d781f9abfa9964d34f7254",
+  "source_archive_size": 5890189,
+  "previous_head": "pa0123_merchant_lifecycle_subscriptions_onboarding_039",
+  "accepted_head": "pa45_support_recovery_health_040",
+  "migration_count": 1,
+  "coverage": [
+    "PA4",
+    "PA5"
+  ],
+  "fingerprint_mode": "sha256_git_canonical_lf",
+  "commit": "NONE",
+  "tag": "NONE",
+  "operator_gate": "XBOS_PA45_RUN_ACCEPTANCE.cmd",
+  "success_marker": "PA45_SINGLE_GATE=PASS",
+  "finance": "UNCHANGED",
+  "shared_operations": "UNCHANGED",
+  "production_dependencies": "UNCHANGED",
+  "pc5_security_authority": "REUSED",
+  "pa0123_merchant_authority": "REUSED",
+  "pk_composition_authority": "REUSED",
+  "artifacts": [
+    {
+      "path": "PA45_INSTALL_MANIFEST.txt",
+      "sha256": "ceaef6c8d13a897f4b7e72523e6b634bf7af1b63cd6231366d4406e0fd17e036"
+    },
+    {
+      "path": "XBOS_PA45_INSTALL_AND_VERIFY.txt",
+      "sha256": "8ee9a408d5bce3ff50a354f017caa66b0e12fd24d20a72726b8d92ca9556546e"
+    },
+    {
+      "path": "XBOS_PA45_RUN_ACCEPTANCE.cmd",
+      "sha256": "66c9e635a447764a2dd3538b44798ac9d65aa6b6876c34eb0759f843bf7bf510"
+    },
+    {
+      "path": "alembic_neutral/sql/pa45_support_recovery_health_down.sql",
+      "sha256": "c54324d6a0124ef95273877ad4b07b512e4c1c04c01d249d1cf04ab7b3cdba6b"
+    },
+    {
+      "path": "alembic_neutral/sql/pa45_support_recovery_health_up.sql",
+      "sha256": "444f4de9c0b351ee6cd24eaf9de63960140f2f7c80f029d3db5fa4ae755baf3e"
+    },
+    {
+      "path": "alembic_neutral/versions/pa45_support_recovery_health_040.py",
+      "sha256": "1092ab64bd0d541f08bc934ab30d480d085a5a15e9f09e4f67dc434fd3517616"
+    },
+    {
+      "path": "contracts/packs/v1/pk0123_release_manifest.json",
+      "sha256": "0fd35409278602521f479192bdbeb7cba1a15b8ddcfa228e9ffb09b55622749f"
+    },
+    {
+      "path": "contracts/packs/v1/pk456_release_manifest.json",
+      "sha256": "0f31af68cd169f5b577501eebf43ce878b6a4f8691ea18f37975c9b69a786fd5"
+    },
+    {
+      "path": "contracts/packs/v1/pk_aggregate_release_manifest.json",
+      "sha256": "a54cf20374cf38bc732a7a72a729addc9718ccc88558076d3dd2486614d20009"
+    },
+    {
+      "path": "contracts/platform/v1/pc0_data_authority_register.json",
+      "sha256": "2ea28d3036d49ea6b7d5c3ee671abffe30b7dcab65c0f8824a448809304d616f"
+    },
+    {
+      "path": "contracts/platform/v1/pc0_frozen_finance_inventory.json",
+      "sha256": "fcfbc8950e106d45c0aab5fd08e1571e6da4d115865b074cc99ef2cce2585609"
+    },
+    {
+      "path": "contracts/platform/v1/pc0_public_private_interfaces.json",
+      "sha256": "bd871ee69a3f29fe17a11080d6596b552c5743f186bc794b63dbc900f145bc06"
+    },
+    {
+      "path": "contracts/platform/v1/pc0_release_manifest.json",
+      "sha256": "d0b23cac5f1eea46895381ef984908ec81d38c706c6f947897b43cb722a0fb9b"
+    },
+    {
+      "path": "contracts/platform/v1/pc6_release_manifest.json",
+      "sha256": "6faffca601081aa0d039fcbdc2cc063e2aa95888d35d6dc98bd48b0286b59344"
+    },
+    {
+      "path": "contracts/platform_admin/v1/examples/neutral_support_policy.json",
+      "sha256": "3f48805bdb26452ea61b9d4df0bb9b9e1876ea81bcd7ac56985e49565a5d8993"
+    },
+    {
+      "path": "contracts/platform_admin/v1/pa0123_release_manifest.json",
+      "sha256": "79e3e634ec07f20659487ddd49f30355900ad61e88817d5be8bfed04cc18d19e"
+    },
+    {
+      "path": "contracts/platform_admin/v1/pa45_authority.json",
+      "sha256": "a8316de6fa0f750958a9dc08dc5cb91ea356d8d8e36243521ae5d51a513a0727"
+    },
+    {
+      "path": "contracts/platform_admin/v1/pa45_health_contract.json",
+      "sha256": "b15f4ecaac2346eab1ec6b7369571a11dbd0c0dd0763bcb87cd3f934fb4d788b"
+    },
+    {
+      "path": "contracts/platform_admin/v1/pa45_public_interfaces.json",
+      "sha256": "ac620d5913cb828b05eaa85c447a5e5e6a69466313015b5f0ccf360f48b942eb"
+    },
+    {
+      "path": "contracts/shared_operations/v1/so10_release_manifest.json",
+      "sha256": "2e05949068fb3df4514d667e61f5abbd80ae48b1aa11e9e70317f584cc82c69e"
+    },
+    {
+      "path": "contracts/shared_operations/v1/so1_release_manifest.json",
+      "sha256": "eb1aa8c0ab87fffa6646c809715af301dca928b104da5a4bcb726c36acef2873"
+    },
+    {
+      "path": "contracts/shared_operations/v1/so2_release_manifest.json",
+      "sha256": "e3525b695f95d3db7ef13560e30b85e2f7af5501a24d8348973b4dd346140711"
+    },
+    {
+      "path": "contracts/shared_operations/v1/so3_release_manifest.json",
+      "sha256": "fde559eaaada8ef34da35166b053de3172199f0ea5c23837feb30c3bf5771c8c"
+    },
+    {
+      "path": "contracts/shared_operations/v1/so4_release_manifest.json",
+      "sha256": "3e425e5c08834ef86425cfdd44d94cc2afbe4947b2bc4d3c2544510d9957f8b3"
+    },
+    {
+      "path": "contracts/shared_operations/v1/so5_release_manifest.json",
+      "sha256": "e87f1d377b55aef6aa13931b7a8105ee6d3bd6c6a15fffee03dae9cc95c91fb4"
+    },
+    {
+      "path": "contracts/shared_operations/v1/so6_release_manifest.json",
+      "sha256": "42ab91bfba4ca17ae391f4c3e87527c42674fbe0f57aa27ce67cedf2db28aa50"
+    },
+    {
+      "path": "contracts/shared_operations/v1/so7_release_manifest.json",
+      "sha256": "7a392ebf9803b7324384e4d0f1e466794eff87ae915f83c3f618fbf316d8808c"
+    },
+    {
+      "path": "contracts/shared_operations/v1/so8_release_manifest.json",
+      "sha256": "1d9a624e569e1d94f916af81c7d81d9236c370d70f0b229e3d367f75b210bfa4"
+    },
+    {
+      "path": "contracts/shared_operations/v1/so9_release_manifest.json",
+      "sha256": "e8a6c568d40bd9f4126d01e0f903b940ca8e55822d7e17785a57bd991cf78769"
+    },
+    {
+      "path": "contracts/shared_operations/v1/so_aggregate_release_manifest.json",
+      "sha256": "bbca0b4c5ec7347a46ecc834c61c5e0b9b8f712e0eee5854484b7ac01bfcbe02"
+    },
+    {
+      "path": "docs/platform_admin/PA45_SUPPORT_RECOVERY_DELEGATED_ADMINISTRATION_AND_HEALTH.md",
+      "sha256": "631558edab30891f4bd45696b7f6f87d30cfccd33f2fa8ea5ab2c5ea0f15c741"
+    },
+    {
+      "path": "docs/platform_admin/adr/0027_PA_SUPPORT_IS_BOUNDED_AND_HEALTH_IS_DERIVED_EVIDENCE.md",
+      "sha256": "489428103cfa3e48a012a3488ef6059c13b4b79a464b0d675a73fef33d15da50"
+    },
+    {
+      "path": "platform_admin/pa45_contracts.py",
+      "sha256": "ffc4c3059632b89d6a14b5b6f3e43086237b36ef7cd02a4c732fb771fd724f94"
+    },
+    {
+      "path": "platform_admin/pa45_service.py",
+      "sha256": "b309282f8d57c613387ec95b7633f90655961a9daaf10913022f731cc73851be"
+    },
+    {
+      "path": "platform_admin/pa45_sql_repository.py",
+      "sha256": "79d2201406e5ee231cb95587141e2a275eec1f79a01cbb6d8a16830e11614cce"
+    },
+    {
+      "path": "scripts/verify_pa45_platform_support_recovery_health.py",
+      "sha256": "36e4de64d89c6c455a28f983629de57cc50bb70b9ac81aa0fe9d761858bbb754"
+    },
+    {
+      "path": "tests/contracts/test_pa45_platform_support_recovery_health.py",
+      "sha256": "8612b6999788f6271b951aa438c5c94dfad6a0e47cc4ecc1efdaad062e775aa4"
+    }
+  ]
+}

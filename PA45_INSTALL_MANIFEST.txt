@@ -1,0 +1,45 @@
+XBOS PA45 INSTALL MANIFEST
+
+Source checkpoint: 8ff3d8b2685a24006d79b5cc6cd3e85c17d52d70
+Previous head: pa0123_merchant_lifecycle_subscriptions_onboarding_039
+Candidate head: pa45_support_recovery_health_040
+Files: 38
+
+PA45_INSTALL_MANIFEST.txt
+XBOS_PA45_INSTALL_AND_VERIFY.txt
+XBOS_PA45_RUN_ACCEPTANCE.cmd
+alembic_neutral/sql/pa45_support_recovery_health_down.sql
+alembic_neutral/sql/pa45_support_recovery_health_up.sql
+alembic_neutral/versions/pa45_support_recovery_health_040.py
+contracts/packs/v1/pk0123_release_manifest.json
+contracts/packs/v1/pk456_release_manifest.json
+contracts/packs/v1/pk_aggregate_release_manifest.json
+contracts/platform/v1/pc0_data_authority_register.json
+contracts/platform/v1/pc0_frozen_finance_inventory.json
+contracts/platform/v1/pc0_public_private_interfaces.json
+contracts/platform/v1/pc0_release_manifest.json
+contracts/platform/v1/pc6_release_manifest.json
+contracts/platform_admin/v1/examples/neutral_support_policy.json
+contracts/platform_admin/v1/pa0123_release_manifest.json
+contracts/platform_admin/v1/pa45_authority.json
+contracts/platform_admin/v1/pa45_health_contract.json
+contracts/platform_admin/v1/pa45_public_interfaces.json
+contracts/platform_admin/v1/pa45_release_manifest.json
+contracts/shared_operations/v1/so10_release_manifest.json
+contracts/shared_operations/v1/so1_release_manifest.json
+contracts/shared_operations/v1/so2_release_manifest.json
+contracts/shared_operations/v1/so3_release_manifest.json
+contracts/shared_operations/v1/so4_release_manifest.json
+contracts/shared_operations/v1/so5_release_manifest.json
+contracts/shared_operations/v1/so6_release_manifest.json
+contracts/shared_operations/v1/so7_release_manifest.json
+contracts/shared_operations/v1/so8_release_manifest.json
+contracts/shared_operations/v1/so9_release_manifest.json
+contracts/shared_operations/v1/so_aggregate_release_manifest.json
+docs/platform_admin/PA45_SUPPORT_RECOVERY_DELEGATED_ADMINISTRATION_AND_HEALTH.md
+docs/platform_admin/adr/0027_PA_SUPPORT_IS_BOUNDED_AND_HEALTH_IS_DERIVED_EVIDENCE.md
+platform_admin/pa45_contracts.py
+platform_admin/pa45_service.py
+platform_admin/pa45_sql_repository.py
+scripts/verify_pa45_platform_support_recovery_health.py
+tests/contracts/test_pa45_platform_support_recovery_health.py

@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "profile_code": "neutral.support.default",
+  "delegated_max_hours": 8,
+  "break_glass_max_minutes": 60,
+  "required_controls": [
+    "pc5_authorization_reference",
+    "tenant_scope",
+    "explicit_reason",
+    "expiry",
+    "append_only_action_evidence"
+  ],
+  "break_glass_additional_controls": [
+    "pc5_step_up_reference",
+    "incident_evidence_reference"
+  ],
+  "notes": "Example only; it does not grant access or replace PC5 policy authority."
+}
