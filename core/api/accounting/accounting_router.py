@@ -979,11 +979,10 @@ def _build_commercial_summary(logs) -> Dict[str, Any]:
 # ACCOUNTS / A-R ENDPOINTS
 # ============================================================
 
-@router.get("/accounts/ar")
-@require_permissions("accounting.view")
-def list_accounts_receivable(
+def _list_accounts_receivable_for_context(
+    *,
     request: Request,
-    db: Session = Depends(get_db),
+    db: Session,
     limit: int = 200,
     offset: int = 0,
 ):
@@ -1024,12 +1023,27 @@ def list_accounts_receivable(
     }
 
 
-@router.get("/accounts/ar/{ar_id}")
+@router.get("/accounts/ar")
 @require_permissions("accounting.view")
-def get_accounts_receivable(
-    ar_id: int,
+def list_accounts_receivable(
     request: Request,
     db: Session = Depends(get_db),
+    limit: int = 200,
+    offset: int = 0,
+):
+    return _list_accounts_receivable_for_context(
+        request=request,
+        db=db,
+        limit=limit,
+        offset=offset,
+    )
+
+
+def _get_accounts_receivable_for_context(
+    *,
+    ar_id: int,
+    request: Request,
+    db: Session,
 ):
     ctx = request.state.user
 
@@ -1051,6 +1065,20 @@ def get_accounts_receivable(
         tenant_id=ctx["tenant_id"],
         branch_id=ctx["branch_id"],
         ar=ar,
+    )
+
+
+@router.get("/accounts/ar/{ar_id}")
+@require_permissions("accounting.view")
+def get_accounts_receivable(
+    ar_id: int,
+    request: Request,
+    db: Session = Depends(get_db),
+):
+    return _get_accounts_receivable_for_context(
+        ar_id=ar_id,
+        request=request,
+        db=db,
     )
 
 

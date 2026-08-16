@@ -1,3 +1,7 @@
+from datetime import datetime, timedelta
+from zoneinfo import ZoneInfo
+from core.domain.accounting.models import TreasuryLog
+from core.domain.payments.models import PaymentIntent
 import uuid
 from decimal import Decimal
 from typing import Any, Dict, List
@@ -19,6 +23,7 @@ from core.domain.orders.repository import OrderRepository
 from core.domain.accounting.accounts_receivable.service import (
     AccountsReceivableService,
 )
+from core.domain.accounting.accounting_controller import AccountingController
 
 
 def _d(v: Any) -> Decimal:
@@ -308,6 +313,7 @@ class PaymentsController:
         ctx = self._get_ctx(request)
 
         tenant_id = ctx["tenant_id"]
+        branch_id = ctx["branch_id"]
 
         intent = PaymentIntentRepository.get_by_id(
             db=db,
@@ -315,7 +321,7 @@ class PaymentsController:
             intent_id=payment_id,
         )
 
-        if not intent:
+        if not intent or getattr(intent, "branch_id", None) != branch_id:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Payment not found",
@@ -363,6 +369,397 @@ class PaymentsController:
                 for a in attempts
             ],
         }
+
+    # =====================================================
+    # PAYMENTS ACTIVITY READ MODEL
+    # =====================================================
+
+    async def list_activity(
+        self,
+        request: Request,
+        db: Session,
+        limit: int = 100,
+    ):
+        # Read-only projection:
+        # - posted movement comes from TreasuryLog
+        # - unresolved work comes from PaymentIntent
+        # - no ledger, PaymentIntent, or financial event is created here.
+        ctx = self._get_ctx(request)
+        tenant_id = ctx["tenant_id"]
+        branch_id = ctx["branch_id"]
+
+        safe_limit = max(10, min(int(limit or 100), 250))
+
+        posted_event_types = (
+            "PAYMENT_RECEIVED",
+            "DEBT_REPAYMENT",
+            "OTHER_INCOME",
+            "SERVICE_REVENUE",
+            "EXPENSE_POSTED",
+            "REFUND_PAID",
+            "CASH_MOVE",
+        )
+
+        recent_events = (
+            db.query(TreasuryLog)
+            .filter(
+                TreasuryLog.tenant_id == tenant_id,
+                TreasuryLog.branch_id == branch_id,
+                TreasuryLog.event_type.in_(posted_event_types),
+            )
+            .order_by(TreasuryLog.occurred_at.desc(), TreasuryLog.id.desc())
+            .limit(safe_limit * 3)
+            .all()
+        )
+
+        unresolved_statuses = ("pending", "processing", "failed", "cancelled")
+        recent_intents = (
+            db.query(PaymentIntent)
+            .filter(
+                PaymentIntent.tenant_id == tenant_id,
+                PaymentIntent.branch_id == branch_id,
+                PaymentIntent.status.in_(unresolved_statuses),
+            )
+            .order_by(PaymentIntent.created_at.desc(), PaymentIntent.id.desc())
+            .limit(safe_limit)
+            .all()
+        )
+
+        def _clean(value):
+            text = str(value or "").strip()
+            return text or None
+
+        def _event_reference(log, meta):
+            event_type = str(log.event_type or "").upper()
+
+            if event_type == "PAYMENT_RECEIVED":
+                sale_id = (
+                    meta.get("sale_id")
+                    or meta.get("payable_id")
+                    or (
+                        log.reference_id
+                        if str(log.reference_type or "").lower() == "sale"
+                        else None
+                    )
+                )
+                if sale_id:
+                    return f"Sale #{sale_id}"
+
+            if event_type == "DEBT_REPAYMENT":
+                sale_id = meta.get("sale_id")
+                ar_id = (
+                    meta.get("ar_id")
+                    or meta.get("accounts_receivable_id")
+                    or meta.get("receivable_id")
+                )
+                if sale_id:
+                    return f"Sale #{sale_id}"
+                if ar_id:
+                    return f"A/R #{ar_id}"
+
+            explicit = (
+                meta.get("reference")
+                or meta.get("receipt_ref")
+                or meta.get("bill_reference")
+                or meta.get("client_reference")
+            )
+            if explicit:
+                return str(explicit)
+
+            if log.reference_type and log.reference_id:
+                return f"{log.reference_type} #{log.reference_id}"
+
+            return None
+
+        def _event_row(log):
+            meta = log.meta or {}
+            event_type = str(log.event_type or "").upper()
+            amount = float(log.amount or 0)
+
+            labels = {
+                "PAYMENT_RECEIVED": "Sale payment",
+                "DEBT_REPAYMENT": "A/R payment",
+                "OTHER_INCOME": "Income",
+                "SERVICE_REVENUE": "Income",
+                "EXPENSE_POSTED": "Expense",
+                "REFUND_PAID": "Refund",
+                "CASH_MOVE": "Transfer",
+            }
+
+            if event_type in {
+                "PAYMENT_RECEIVED",
+                "DEBT_REPAYMENT",
+                "OTHER_INCOME",
+                "SERVICE_REVENUE",
+            }:
+                flow = "in"
+            elif event_type in {"EXPENSE_POSTED", "REFUND_PAID"}:
+                flow = "out"
+            else:
+                flow = "transfer"
+
+            source_channel = _clean(meta.get("source_channel"))
+            target_channel = _clean(meta.get("target_channel"))
+
+            if event_type == "CASH_MOVE" and (source_channel or target_channel):
+                channel = f"{source_channel or '?'} → {target_channel or '?'}"
+            else:
+                channel = _clean(log.channel) or "—"
+
+            detail = (
+                meta.get("item_name")
+                or meta.get("subcategory_name")
+                or meta.get("category_name")
+                or meta.get("source_name")
+                or meta.get("vendor")
+                or meta.get("note")
+            )
+
+            return {
+                "id": f"event:{log.id}",
+                "source": "treasury_event",
+                "source_id": log.id,
+                "activity_type": labels.get(event_type, event_type.replace("_", " ").title()),
+                "event_type": event_type,
+                "status": "POSTED",
+                "flow": flow,
+                "amount": amount,
+                "currency": str(log.currency or "XAF"),
+                "channel": channel,
+                "reference": _event_reference(log, meta),
+                "detail": _clean(detail),
+                "occurred_at": log.occurred_at.isoformat() if log.occurred_at else None,
+                "document_type": {
+                    "OTHER_INCOME": "income_receipt",
+                    "SERVICE_REVENUE": "income_receipt",
+                    "DEBT_REPAYMENT": "payment_receipt",
+                    "EXPENSE_POSTED": "payment_voucher",
+                    "CASH_MOVE": "transfer_slip",
+                }.get(event_type),
+                "_sort_at": log.occurred_at or log.created_at,
+            }
+
+        def _intent_row(intent):
+            meta = intent.meta or {}
+            raw_status = str(getattr(intent.status, "value", intent.status) or "").lower()
+            balance_due = float(intent.balance_due or 0)
+            total_amount = float(intent.amount or 0)
+            amount = balance_due if balance_due > 0 else total_amount
+
+            payable_type = str(intent.payable_type or "").strip().lower()
+            payable_id = intent.payable_id
+
+            if payable_type == "sale" and payable_id:
+                reference = f"Sale #{payable_id}"
+            elif payable_type and payable_id:
+                reference = f"{payable_type.replace('_', ' ').title()} #{payable_id}"
+            else:
+                reference = None
+
+            detail = (
+                meta.get("customer_name")
+                or meta.get("customer")
+                or meta.get("description")
+                or meta.get("reference")
+            )
+
+            return {
+                "id": f"intent:{intent.id}",
+                "source": "payment_intent",
+                "source_id": intent.id,
+                "activity_type": (
+                    "Outstanding payment"
+                    if raw_status in {"pending", "processing"}
+                    else "Payment intent"
+                ),
+                "event_type": "PAYMENT_INTENT",
+                "status": raw_status.upper() or "PENDING",
+                "flow": "attention",
+                "amount": amount,
+                "currency": str(intent.currency or "XAF"),
+                "channel": _clean(intent.channel) or "—",
+                "reference": reference,
+                "detail": _clean(detail),
+                "occurred_at": intent.created_at.isoformat() if intent.created_at else None,
+                "document_type": None,
+                "_sort_at": intent.created_at,
+            }
+
+        rows = [_event_row(log) for log in recent_events]
+        rows.extend(_intent_row(intent) for intent in recent_intents)
+        rows.sort(
+            key=lambda row: (
+                row.get("_sort_at") is not None,
+                row.get("_sort_at"),
+                row.get("id"),
+            ),
+            reverse=True,
+        )
+        rows = rows[:safe_limit]
+
+        for row in rows:
+            row.pop("_sort_at", None)
+
+        # Track A / WND authoritative business-day window: 08:00 → 08:00 Douala.
+        business_tz = ZoneInfo("Africa/Douala")
+        now_local = datetime.now(business_tz)
+        window_start = now_local.replace(hour=8, minute=0, second=0, microsecond=0)
+        if now_local < window_start:
+            window_start = window_start - timedelta(days=1)
+        window_end = window_start + timedelta(days=1)
+
+        window_events = (
+            db.query(TreasuryLog)
+            .filter(
+                TreasuryLog.tenant_id == tenant_id,
+                TreasuryLog.branch_id == branch_id,
+                TreasuryLog.occurred_at >= window_start,
+                TreasuryLog.occurred_at < window_end,
+                TreasuryLog.event_type.in_(posted_event_types),
+            )
+            .all()
+        )
+
+        received_types = {
+            "PAYMENT_RECEIVED",
+            "DEBT_REPAYMENT",
+            "OTHER_INCOME",
+            "SERVICE_REVENUE",
+        }
+        paid_types = {"EXPENSE_POSTED", "REFUND_PAID"}
+
+        received = sum(
+            float(log.amount or 0)
+            for log in window_events
+            if str(log.event_type or "").upper() in received_types
+        )
+        paid_out = sum(
+            float(log.amount or 0)
+            for log in window_events
+            if str(log.event_type or "").upper() in paid_types
+        )
+        transferred = sum(
+            float(log.amount or 0)
+            for log in window_events
+            if str(log.event_type or "").upper() == "CASH_MOVE"
+        )
+
+        attention = (
+            db.query(PaymentIntent)
+            .filter(
+                PaymentIntent.tenant_id == tenant_id,
+                PaymentIntent.branch_id == branch_id,
+                PaymentIntent.status.in_(("pending", "processing", "failed")),
+            )
+            .count()
+        )
+
+        return {
+            "window": {
+                "label": "Current business day",
+                "timezone": "Africa/Douala",
+                "start": window_start.isoformat(),
+                "end": window_end.isoformat(),
+            },
+            "summary": {
+                "received": received,
+                "paid_out": paid_out,
+                "transferred": transferred,
+                "attention": attention,
+            },
+            "count": len(rows),
+            "items": rows,
+        }
+
+    # =====================================================
+    # STANDALONE INCOME TAXONOMY
+    # =====================================================
+
+    async def standalone_income_taxonomy(
+        self,
+        request: Request,
+        db: Session,
+    ):
+        """Expose canonical Revenue taxonomy to Payments operators."""
+        self._get_ctx(request)
+        return AccountingController.taxonomy_tree(
+            request=request,
+            db=db,
+            taxonomy_type="FINANCE",
+            domain_name="Revenue",
+        )
+
+    # =====================================================
+    # STANDALONE EXPENSE TAXONOMY
+    # =====================================================
+
+    async def standalone_expense_taxonomy(
+        self,
+        request: Request,
+        db: Session,
+    ):
+        """Expose canonical Expenses taxonomy to Payments operators."""
+        self._get_ctx(request)
+        return AccountingController.taxonomy_tree(
+            request=request,
+            db=db,
+            taxonomy_type="FINANCE",
+            domain_name="Expenses",
+        )
+
+    # =====================================================
+    # STANDALONE RECEIVE INCOME
+    # =====================================================
+
+    async def standalone_receive_income(
+        self,
+        request: Request,
+        payload: Dict[str, Any],
+        db: Session,
+    ):
+        """Delegate standalone income directly to canonical Accounting truth."""
+        self._get_ctx(request)
+        return AccountingController.create_manual_income(
+            request=request,
+            db=db,
+            payload=payload,
+        )
+
+    # =====================================================
+    # STANDALONE PAY EXPENSE
+    # =====================================================
+
+    async def standalone_pay_expense(
+        self,
+        request: Request,
+        payload: Dict[str, Any],
+        db: Session,
+    ):
+        """Delegate standalone expense directly to canonical Accounting truth."""
+        self._get_ctx(request)
+        return AccountingController.create_expense(
+            request=request,
+            db=db,
+            payload=payload,
+        )
+
+    # =====================================================
+    # STANDALONE TRANSFER
+    # =====================================================
+
+    async def standalone_transfer(
+        self,
+        request: Request,
+        payload: Dict[str, Any],
+        db: Session,
+    ):
+        """Delegate standalone transfer directly to canonical cash-movement truth."""
+        self._get_ctx(request)
+        return AccountingController.create_cash_movement(
+            request=request,
+            db=db,
+            payload=payload,
+        )
 
     # =====================================================
     # POS SETTLEMENT (ORDER-DRIVEN / MANUAL / BALANCE)

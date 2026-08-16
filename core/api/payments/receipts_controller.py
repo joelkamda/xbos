@@ -150,6 +150,7 @@ class ReceiptsController:
             raise HTTPException(status_code=401)
 
         tenant_id = ctx["tenant_id"]
+        branch_id = ctx["branch_id"]
 
         intent = PaymentIntentRepository.get_by_id(
             db,
@@ -157,7 +158,7 @@ class ReceiptsController:
             intent_id=intent_id,
         )
 
-        if not intent:
+        if not intent or getattr(intent, "branch_id", None) != branch_id:
             raise HTTPException(
                 status_code=404,
                 detail="PaymentIntent not found",
