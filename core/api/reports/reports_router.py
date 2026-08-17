@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 
 from database import get_db
 from core.domain.reports.reports_service import ReportsService
+from core.domain.reports.operational_reports_service import OperationalReportsService
 from core.rbac.utils.permission_decorator import require_permissions
 
 
@@ -286,3 +287,79 @@ def statement_drilldown(
         },
         "message": "Drilldown will be implemented after the monthly statement is live.",
     }
+
+# ============================================================
+# TRACK A OPERATIONAL REPORTS - READ ONLY
+# ============================================================
+
+@router.get("/payments")
+@require_permissions(
+    "report.view",
+    "report.financial",
+    "report.finance.view",
+    "report.financial.overview",
+)
+def payments_report(
+    month: str,
+    request: Request,
+    db: Session = Depends(get_db),
+):
+    ctx = _ctx(request)
+    try:
+        return OperationalReportsService.payment_report(
+            db,
+            tenant_id=ctx["tenant_id"],
+            branch_id=ctx["branch_id"],
+            month=month,
+        )
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(exc),
+        )
+
+
+@router.get("/reconciliation")
+@require_permissions(
+    "report.view",
+    "report.financial",
+    "report.finance.view",
+    "report.financial.overview",
+)
+def reconciliation_report(
+    month: str,
+    request: Request,
+    db: Session = Depends(get_db),
+):
+    ctx = _ctx(request)
+    try:
+        return OperationalReportsService.reconciliation_report(
+            db,
+            tenant_id=ctx["tenant_id"],
+            branch_id=ctx["branch_id"],
+            month=month,
+        )
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(exc),
+        )
+
+
+@router.get("/debt")
+@require_permissions(
+    "report.view",
+    "report.financial",
+    "report.finance.view",
+    "report.financial.overview",
+)
+def debt_report(
+    request: Request,
+    db: Session = Depends(get_db),
+):
+    ctx = _ctx(request)
+    return OperationalReportsService.debt_report(
+        db,
+        tenant_id=ctx["tenant_id"],
+        branch_id=ctx["branch_id"],
+    )
