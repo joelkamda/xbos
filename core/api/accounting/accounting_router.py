@@ -12,7 +12,7 @@ from core.domain.accounting.repository import (
     CONTROL_RECON_CHANNELS,
     resolve_persisted_actual_closing,
 )
-from core.domain.accounting.models import TreasuryLog
+from core.domain.accounting.models import TreasuryLog, ReconSheet
 from core.domain.accounting.accounting_controller import AccountingController
 from core.domain.accounting.accounts_receivable.service import (
     AccountsReceivableService,
@@ -324,6 +324,45 @@ def _get_owned_treasury_log(
         )
 
     return log
+
+
+def _assert_event_outside_closed_reconciliation(
+    db: Session,
+    *,
+    tenant_id: int,
+    branch_id: int,
+    occurred_at: Optional[datetime],
+) -> None:
+    """
+    Track A financial-truth guard.
+
+    Manual accounting rows may be edited only while their economic timestamp is
+    outside a closed/approved reconciliation window. Reopened windows are
+    intentionally editable; closed/approved windows are not silently rewritten.
+    """
+    if occurred_at is None:
+        return
+
+    locked = (
+        db.query(ReconSheet)
+        .filter(
+            ReconSheet.tenant_id == tenant_id,
+            ReconSheet.branch_id == branch_id,
+            ReconSheet.status.in_(["closed", "approved"]),
+            ReconSheet.window_start <= occurred_at,
+            ReconSheet.window_end > occurred_at,
+        )
+        .first()
+    )
+
+    if locked:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=(
+                "This accounting event belongs to a closed/reconciled window. "
+                "Reopen that reconciliation window before changing financial history."
+            ),
+        )
 
 
 def _changed_payload(payload: BaseModel) -> Dict[str, Any]:
@@ -1380,6 +1419,22 @@ def update_manual_income(
         allowed_event_types={"OTHER_INCOME", "SERVICE_REVENUE"},
     )
 
+    _assert_event_outside_closed_reconciliation(
+        db,
+        tenant_id=ctx["tenant_id"],
+        branch_id=ctx["branch_id"],
+        occurred_at=log.occurred_at,
+    )
+
+    proposed_occurred_at = _payload_occurred_at(patch)
+    if proposed_occurred_at:
+        _assert_event_outside_closed_reconciliation(
+            db,
+            tenant_id=ctx["tenant_id"],
+            branch_id=ctx["branch_id"],
+            occurred_at=proposed_occurred_at,
+        )
+
     meta = dict(log.meta or {})
 
     if "amount" in patch:
@@ -1391,7 +1446,7 @@ def update_manual_income(
     if "channel" in patch and patch.get("channel"):
         log.channel = _safe_settlement_channel(patch.get("channel"))
 
-    occurred_at = _payload_occurred_at(patch)
+    occurred_at = proposed_occurred_at
     if occurred_at:
         log.occurred_at = occurred_at
         meta["business_date"] = patch.get("business_date")
@@ -1508,6 +1563,22 @@ def update_expense(
         allowed_event_types={"EXPENSE_POSTED"},
     )
 
+    _assert_event_outside_closed_reconciliation(
+        db,
+        tenant_id=ctx["tenant_id"],
+        branch_id=ctx["branch_id"],
+        occurred_at=log.occurred_at,
+    )
+
+    proposed_occurred_at = _payload_occurred_at(patch)
+    if proposed_occurred_at:
+        _assert_event_outside_closed_reconciliation(
+            db,
+            tenant_id=ctx["tenant_id"],
+            branch_id=ctx["branch_id"],
+            occurred_at=proposed_occurred_at,
+        )
+
     meta = dict(log.meta or {})
 
     if "amount" in patch:
@@ -1519,7 +1590,7 @@ def update_expense(
     if "channel" in patch and patch.get("channel"):
         log.channel = _safe_settlement_channel(patch.get("channel"))
 
-    occurred_at = _payload_occurred_at(patch)
+    occurred_at = proposed_occurred_at
     if occurred_at:
         log.occurred_at = occurred_at
         meta["business_date"] = patch.get("business_date")
@@ -1637,6 +1708,22 @@ def update_cash_movement(
         allowed_event_types={"CASH_MOVE"},
     )
 
+    _assert_event_outside_closed_reconciliation(
+        db,
+        tenant_id=ctx["tenant_id"],
+        branch_id=ctx["branch_id"],
+        occurred_at=log.occurred_at,
+    )
+
+    proposed_occurred_at = _payload_occurred_at(patch)
+    if proposed_occurred_at:
+        _assert_event_outside_closed_reconciliation(
+            db,
+            tenant_id=ctx["tenant_id"],
+            branch_id=ctx["branch_id"],
+            occurred_at=proposed_occurred_at,
+        )
+
     meta = dict(log.meta or {})
 
     if "amount" in patch:
@@ -1665,7 +1752,7 @@ def update_cash_movement(
             detail="source_channel and target_channel must be different",
         )
 
-    occurred_at = _payload_occurred_at(patch)
+    occurred_at = proposed_occurred_at
     if occurred_at:
         log.occurred_at = occurred_at
         meta["business_date"] = patch.get("business_date")
@@ -1704,32 +1791,29 @@ def get_treasury_feed(
     offset: int = 0,
     start: Optional[str] = None,
     end: Optional[str] = None,
+    q: Optional[str] = None,
+    channel: Optional[str] = None,
+    event_type: Optional[str] = None,
 ):
-    ctx = request.state.user
-    start_dt = _parse_dt(start)
-    end_dt = _parse_dt(end)
-
-    logs = TreasuryRepository.list_logs(
-        db,
-        tenant_id=ctx["tenant_id"],
-        branch_id=ctx["branch_id"],
-        start=start_dt,
-        end=end_dt,
+    payload = AccountingController.daily(
+        request=request,
+        db=db,
+        start=start,
+        end=end,
         limit=limit,
         offset=offset,
+        q=q,
+        channel=channel,
+        event_type=event_type,
     )
 
-    items = [_serialize_log(log) for log in logs]
-
     return {
-        "limit": limit,
-        "offset": offset,
-        "count": len(items),
-        "items": items,
-        "window_start": _iso_utc(start_dt),
-        "window_end": _iso_utc(end_dt),
-        "window_start_business": _iso_business(start_dt),
-        "window_end_business": _iso_business(end_dt),
+        "limit": payload.get("limit", limit),
+        "offset": payload.get("offset", offset),
+        "count": payload.get("count", 0),
+        "items": payload.get("rows", []),
+        "summary": payload.get("summary", {}),
+        "has_more": payload.get("has_more", False),
         "business_timezone": BUSINESS_TIMEZONE_NAME,
     }
 
@@ -1795,56 +1879,27 @@ def get_attempt_financials(
 def accounting_daily(
     request: Request,
     db: Session = Depends(get_db),
-    limit: int = 1000,
+    limit: int = 50,
     offset: int = 0,
     start: Optional[str] = None,
     end: Optional[str] = None,
+    q: Optional[str] = None,
+    channel: Optional[str] = None,
+    event_type: Optional[str] = None,
 ):
-    ctx = request.state.user
-    start_dt = _parse_dt(start)
-    end_dt = _parse_dt(end)
-
-    logs = TreasuryRepository.list_logs(
-        db,
-        tenant_id=ctx["tenant_id"],
-        branch_id=ctx["branch_id"],
-        start=start_dt,
-        end=end_dt,
+    payload = AccountingController.daily(
+        request=request,
+        db=db,
+        start=start,
+        end=end,
         limit=limit,
         offset=offset,
+        q=q,
+        channel=channel,
+        event_type=event_type,
     )
-
-    rows = [_serialize_log(log) for log in logs]
-
-    income = sum(
-        abs(_f(row.get("amount")))
-        for row in rows
-        if row.get("type") == "income"
-    )
-
-    expense = sum(
-        abs(_f(row.get("amount")))
-        for row in rows
-        if row.get("type") == "expense"
-    )
-
-    return {
-        "summary": {
-            "income": income,
-            "expense": expense,
-            "net": income - expense,
-            "rows": len(rows),
-            "events": len(rows),
-        },
-        "rows": rows,
-        "window_start": _iso_utc(start_dt),
-        "window_end": _iso_utc(end_dt),
-        "window_start_business": _iso_business(start_dt),
-        "window_end_business": _iso_business(end_dt),
-        "business_timezone": BUSINESS_TIMEZONE_NAME,
-        "limit": limit,
-        "offset": offset,
-    }
+    payload["business_timezone"] = BUSINESS_TIMEZONE_NAME
+    return payload
 
 
 # ============================================================
@@ -1860,6 +1915,9 @@ def accounting_income(
     offset: int = 0,
     start: Optional[str] = None,
     end: Optional[str] = None,
+    q: Optional[str] = None,
+    channel: Optional[str] = None,
+    event_type: Optional[str] = None,
 ):
     return AccountingController.income(
         request=request,
@@ -1868,6 +1926,9 @@ def accounting_income(
         end=end,
         limit=limit,
         offset=offset,
+        q=q,
+        channel=channel,
+        event_type=event_type,
     )
 
 
@@ -1884,6 +1945,9 @@ def accounting_expenses(
     offset: int = 0,
     start: Optional[str] = None,
     end: Optional[str] = None,
+    q: Optional[str] = None,
+    channel: Optional[str] = None,
+    event_type: Optional[str] = None,
 ):
     return AccountingController.expenses(
         request=request,
@@ -1892,6 +1956,9 @@ def accounting_expenses(
         end=end,
         limit=limit,
         offset=offset,
+        q=q,
+        channel=channel,
+        event_type=event_type,
     )
 
 
@@ -1908,6 +1975,9 @@ def accounting_cash_movements(
     offset: int = 0,
     start: Optional[str] = None,
     end: Optional[str] = None,
+    q: Optional[str] = None,
+    channel: Optional[str] = None,
+    event_type: Optional[str] = None,
 ):
     return AccountingController.cash_moves(
         request=request,
@@ -1916,6 +1986,9 @@ def accounting_cash_movements(
         end=end,
         limit=limit,
         offset=offset,
+        q=q,
+        channel=channel,
+        event_type=event_type,
     )
 
 

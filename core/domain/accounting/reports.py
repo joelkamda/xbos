@@ -1,4 +1,5 @@
 from typing import Dict, List, Optional, Any
+import json
 from datetime import datetime
 
 from sqlalchemy.orm import Session
@@ -192,15 +193,20 @@ class AccountingReportsService:
 
     @staticmethod
     def _serialize_row(log) -> Dict:
+        timestamp = log.occurred_at or log.created_at
         return {
             "id": log.id,
-            "time": AccountingReportsService._time_str(log.occurred_at or log.created_at),
+            "time": AccountingReportsService._time_str(timestamp),
+            "occurred_at": log.occurred_at.isoformat() if log.occurred_at else None,
+            "created_at": log.created_at.isoformat() if log.created_at else None,
+            "date": timestamp.isoformat() if timestamp else None,
             "type": AccountingReportsService._row_type(log),
             "entry": AccountingReportsService._entry_label(log),
             "channel": log.channel,
             "amount": _f(log.amount),
             "reference_type": log.reference_type,
             "reference_id": log.reference_id,
+            "taxonomy_node_id": log.taxonomy_node_id,
             "details": log.meta or {},
             "event_type": log.event_type,
             "direction": log.direction,
@@ -292,6 +298,118 @@ class AccountingReportsService:
 
         return rows
 
+    @staticmethod
+    def _matches_filters(
+        log,
+        *,
+        q: Optional[str] = None,
+        channel: Optional[str] = None,
+        event_type: Optional[str] = None,
+    ) -> bool:
+        meta = log.meta or {}
+
+        safe_channel = str(channel or "").strip().lower()
+        if safe_channel and safe_channel != "all":
+            # Channel filters mean reconciliation/treasury impact, not merely a
+            # descriptive channel tag. This prevents commercial-only events such
+            # as SALE_REVENUE_GROSS, COGS, discounts, and complimentary rows from
+            # appearing as if they changed a settlement balance.
+            if AccountingReportsService._channel_effect(log, safe_channel) == 0:
+                return False
+
+        safe_event = str(event_type or "").strip().upper()
+        if safe_event and safe_event != "ALL":
+            if str(getattr(log, "event_type", "") or "").strip().upper() != safe_event:
+                return False
+
+        needle = str(q or "").strip().lower()
+        if not needle:
+            return True
+
+        try:
+            meta_blob = json.dumps(meta, default=str, sort_keys=True)
+        except Exception:
+            meta_blob = str(meta)
+
+        haystack = " ".join(
+            [
+                str(getattr(log, "id", "") or ""),
+                str(getattr(log, "event_type", "") or ""),
+                str(getattr(log, "channel", "") or ""),
+                str(getattr(log, "direction", "") or ""),
+                str(getattr(log, "reference_type", "") or ""),
+                str(getattr(log, "reference_id", "") or ""),
+                str(getattr(log, "idempotency_key", "") or ""),
+                AccountingReportsService._entry_label(log),
+                meta_blob,
+            ]
+        ).lower()
+
+        return needle in haystack
+
+    @staticmethod
+    def _filtered(
+        logs,
+        *,
+        q: Optional[str] = None,
+        channel: Optional[str] = None,
+        event_type: Optional[str] = None,
+    ):
+        return [
+            log
+            for log in logs
+            if AccountingReportsService._matches_filters(
+                log,
+                q=q,
+                channel=channel,
+                event_type=event_type,
+            )
+        ]
+
+    @staticmethod
+    def _page(logs, *, limit: int, offset: int):
+        safe_limit = max(1, min(int(limit or 50), 200))
+        safe_offset = max(0, int(offset or 0))
+        page = logs[safe_offset : safe_offset + safe_limit]
+        return page, safe_limit, safe_offset
+
+    @staticmethod
+    def _channel_effect(log, channel: Optional[str]) -> float:
+        safe_channel = str(channel or "").strip().lower()
+        if not safe_channel or safe_channel == "all":
+            return 0.0
+
+        meta = log.meta or {}
+        amount = abs(_f(log.amount))
+        event_type = str(log.event_type or "")
+        log_channel = str(log.channel or "").strip().lower()
+        source = str(meta.get("source_channel") or meta.get("from") or "").strip().lower()
+        target = str(meta.get("target_channel") or meta.get("to") or log_channel).strip().lower()
+
+        if event_type in {"PAYMENT_RECEIVED", "OTHER_INCOME", "SERVICE_REVENUE"}:
+            return amount if log_channel == safe_channel else 0.0
+        if event_type in {"EXPENSE_POSTED", "REFUND_PAID"}:
+            return -amount if log_channel == safe_channel else 0.0
+        if event_type == "CASH_MOVE":
+            if source == safe_channel:
+                return -amount
+            if target == safe_channel:
+                return amount
+            return 0.0
+        if event_type == "DEBT_CREATED":
+            return amount if safe_channel == "ar" else 0.0
+        if event_type == "DEBT_REPAYMENT":
+            if safe_channel == "ar":
+                return -amount
+            return amount if log_channel == safe_channel else 0.0
+        if event_type == "STORE_CREDIT_CREATED":
+            return amount if safe_channel == "ap" else 0.0
+
+        # All remaining event families are commercial/accounting evidence only
+        # for reconciliation purposes. Their economic meaning may be income or
+        # expense, but they must not be treated as settlement-channel movement.
+        return 0.0
+
     # =========================================================
     # DAILY TAB
     # =========================================================
@@ -304,47 +422,68 @@ class AccountingReportsService:
         branch_id: int,
         start: Optional[datetime] = None,
         end: Optional[datetime] = None,
-        limit: int = 200,
+        limit: int = 50,
         offset: int = 0,
+        q: Optional[str] = None,
+        channel: Optional[str] = None,
+        event_type: Optional[str] = None,
     ) -> Dict:
-        page_logs = TreasuryRepository.list_logs(
+        all_logs = AccountingReportsService._all_logs(
             db,
             tenant_id=tenant_id,
             branch_id=branch_id,
             start=start,
             end=end,
+        )
+        filtered_logs = AccountingReportsService._filtered(
+            all_logs,
+            q=q,
+            channel=channel,
+            event_type=event_type,
+        )
+        page_logs, safe_limit, safe_offset = AccountingReportsService._page(
+            filtered_logs,
             limit=limit,
             offset=offset,
         )
-        summary_logs = AccountingReportsService._all_logs(
-            db,
-            tenant_id=tenant_id,
-            branch_id=branch_id,
-            start=start,
-            end=end,
-        )
 
-        rows = [AccountingReportsService._serialize_row(l) for l in page_logs]
+        rows = [AccountingReportsService._serialize_row(log) for log in page_logs]
 
         income = 0.0
         expense = 0.0
-        for log in summary_logs:
+        for log in filtered_logs:
             row_type = AccountingReportsService._row_type(log)
             amount = _f(log.amount)
             if row_type == "income":
-                income += amount
+                income += abs(amount)
             elif row_type == "expense":
                 expense += abs(amount)
+
+        count = len(filtered_logs)
+        channel_effects = [
+            AccountingReportsService._channel_effect(log, channel)
+            for log in filtered_logs
+        ]
+        channel_inflow = sum(value for value in channel_effects if value > 0)
+        channel_outflow = sum(abs(value) for value in channel_effects if value < 0)
+        channel_net = channel_inflow - channel_outflow
 
         return {
             "summary": {
                 "income": income,
                 "expense": expense,
                 "net": income - expense,
-                "rows": len(summary_logs),
+                "rows": count,
                 "returned_rows": len(rows),
+                "channel_inflow": channel_inflow,
+                "channel_outflow": channel_outflow,
+                "channel_net": channel_net,
             },
             "rows": rows,
+            "count": count,
+            "limit": safe_limit,
+            "offset": safe_offset,
+            "has_more": safe_offset + len(rows) < count,
         }
 
     # =========================================================
@@ -359,39 +498,57 @@ class AccountingReportsService:
         branch_id: int,
         start: Optional[datetime] = None,
         end: Optional[datetime] = None,
-        limit: int = 200,
+        limit: int = 50,
         offset: int = 0,
+        q: Optional[str] = None,
+        channel: Optional[str] = None,
+        event_type: Optional[str] = None,
     ) -> Dict:
-        event_types = list(AccountingReportsService.INCOME_EVENTS)
-        page_logs = TreasuryRepository.list_by_event_types(
+        all_logs = AccountingReportsService._all_logs_by_event_types(
             db,
             tenant_id=tenant_id,
             branch_id=branch_id,
-            event_types=event_types,
+            event_types=list(AccountingReportsService.INCOME_EVENTS),
             start=start,
             end=end,
+        )
+        filtered_logs = AccountingReportsService._filtered(
+            all_logs,
+            q=q,
+            channel=channel,
+            event_type=event_type,
+        )
+        page_logs, safe_limit, safe_offset = AccountingReportsService._page(
+            filtered_logs,
             limit=limit,
             offset=offset,
         )
-        summary_logs = AccountingReportsService._all_logs_by_event_types(
-            db,
-            tenant_id=tenant_id,
-            branch_id=branch_id,
-            event_types=event_types,
-            start=start,
-            end=end,
-        )
+        rows = [AccountingReportsService._serialize_row(log) for log in page_logs]
+        total = sum(abs(_f(log.amount)) for log in filtered_logs)
+        count = len(filtered_logs)
 
-        rows = [AccountingReportsService._serialize_row(l) for l in page_logs]
-        total = sum(_f(log.amount) for log in summary_logs)
+        by_event: Dict[str, float] = {}
+        by_channel: Dict[str, float] = {}
+        for log in filtered_logs:
+            event = str(log.event_type or "")
+            channel_key = str(log.channel or "unknown")
+            amount = abs(_f(log.amount))
+            by_event[event] = by_event.get(event, 0.0) + amount
+            by_channel[channel_key] = by_channel.get(channel_key, 0.0) + amount
 
         return {
             "summary": {
                 "total_income": total,
-                "rows": len(summary_logs),
+                "rows": count,
                 "returned_rows": len(rows),
+                "by_event_type": by_event,
+                "by_channel": by_channel,
             },
             "rows": rows,
+            "count": count,
+            "limit": safe_limit,
+            "offset": safe_offset,
+            "has_more": safe_offset + len(rows) < count,
         }
 
     # =========================================================
@@ -406,45 +563,57 @@ class AccountingReportsService:
         branch_id: int,
         start: Optional[datetime] = None,
         end: Optional[datetime] = None,
-        limit: int = 200,
+        limit: int = 50,
         offset: int = 0,
+        q: Optional[str] = None,
+        channel: Optional[str] = None,
+        event_type: Optional[str] = None,
     ) -> Dict:
-        event_types = list(AccountingReportsService.EXPENSE_EVENTS)
-        page_logs = TreasuryRepository.list_by_event_types(
+        all_logs = AccountingReportsService._all_logs_by_event_types(
             db,
             tenant_id=tenant_id,
             branch_id=branch_id,
-            event_types=event_types,
+            event_types=list(AccountingReportsService.EXPENSE_EVENTS),
             start=start,
             end=end,
+        )
+        filtered_logs = AccountingReportsService._filtered(
+            all_logs,
+            q=q,
+            channel=channel,
+            event_type=event_type,
+        )
+        page_logs, safe_limit, safe_offset = AccountingReportsService._page(
+            filtered_logs,
             limit=limit,
             offset=offset,
         )
-        summary_logs = AccountingReportsService._all_logs_by_event_types(
-            db,
-            tenant_id=tenant_id,
-            branch_id=branch_id,
-            event_types=event_types,
-            start=start,
-            end=end,
-        )
-
-        rows = [AccountingReportsService._serialize_row(l) for l in page_logs]
-        total = sum(abs(_f(log.amount)) for log in summary_logs)
+        rows = [AccountingReportsService._serialize_row(log) for log in page_logs]
+        total = sum(abs(_f(log.amount)) for log in filtered_logs)
+        count = len(filtered_logs)
 
         by_event: Dict[str, float] = {}
-        for log in summary_logs:
-            event_type = str(log.event_type or "")
-            by_event[event_type] = by_event.get(event_type, 0.0) + abs(_f(log.amount))
+        by_channel: Dict[str, float] = {}
+        for log in filtered_logs:
+            event = str(log.event_type or "")
+            channel_key = str(log.channel or "unknown")
+            amount = abs(_f(log.amount))
+            by_event[event] = by_event.get(event, 0.0) + amount
+            by_channel[channel_key] = by_channel.get(channel_key, 0.0) + amount
 
         return {
             "summary": {
                 "total_expense": total,
-                "rows": len(summary_logs),
+                "rows": count,
                 "returned_rows": len(rows),
                 "by_event_type": by_event,
+                "by_channel": by_channel,
             },
             "rows": rows,
+            "count": count,
+            "limit": safe_limit,
+            "offset": safe_offset,
+            "has_more": safe_offset + len(rows) < count,
         }
 
     # =========================================================
@@ -459,47 +628,59 @@ class AccountingReportsService:
         branch_id: int,
         start: Optional[datetime] = None,
         end: Optional[datetime] = None,
-        limit: int = 200,
+        limit: int = 50,
         offset: int = 0,
+        q: Optional[str] = None,
+        channel: Optional[str] = None,
+        event_type: Optional[str] = None,
     ) -> Dict:
-        event_types = list(AccountingReportsService.CASH_MOVE_EVENTS)
-        page_logs = TreasuryRepository.list_by_event_types(
+        all_logs = AccountingReportsService._all_logs_by_event_types(
             db,
             tenant_id=tenant_id,
             branch_id=branch_id,
-            event_types=event_types,
+            event_types=list(AccountingReportsService.CASH_MOVE_EVENTS),
             start=start,
             end=end,
+        )
+        filtered_logs = AccountingReportsService._filtered(
+            all_logs,
+            q=q,
+            channel=channel,
+            event_type=event_type,
+        )
+        page_logs, safe_limit, safe_offset = AccountingReportsService._page(
+            filtered_logs,
             limit=limit,
             offset=offset,
         )
-        summary_logs = AccountingReportsService._all_logs_by_event_types(
-            db,
-            tenant_id=tenant_id,
-            branch_id=branch_id,
-            event_types=event_types,
-            start=start,
-            end=end,
-        )
-
-        rows = [AccountingReportsService._serialize_row(l) for l in page_logs]
+        rows = [AccountingReportsService._serialize_row(log) for log in page_logs]
+        count = len(filtered_logs)
 
         by_channel: Dict[str, float] = {}
         total = 0.0
-        for log in summary_logs:
-            amount = _f(log.amount)
+        for log in filtered_logs:
+            amount = abs(_f(log.amount))
             total += amount
-            key = log.channel or "unknown"
-            by_channel[key] = by_channel.get(key, 0.0) + amount
+            meta = log.meta or {}
+            source = str(meta.get("source_channel") or meta.get("from") or "")
+            target = str(meta.get("target_channel") or meta.get("to") or log.channel or "")
+            if source:
+                by_channel[source] = by_channel.get(source, 0.0) + amount
+            if target:
+                by_channel[target] = by_channel.get(target, 0.0) + amount
 
         return {
             "summary": {
                 "total_movement": total,
-                "rows": len(summary_logs),
+                "rows": count,
                 "returned_rows": len(rows),
                 "by_channel": by_channel,
             },
             "rows": rows,
+            "count": count,
+            "limit": safe_limit,
+            "offset": safe_offset,
+            "has_more": safe_offset + len(rows) < count,
         }
 
     # =========================================================
