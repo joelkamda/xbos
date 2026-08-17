@@ -23,6 +23,9 @@ from core.domain.orders.repository import OrderRepository
 from core.domain.accounting.accounts_receivable.service import (
     AccountsReceivableService,
 )
+from core.domain.accounting.accounts_receivable.repository import (
+    AccountsReceivableRepository,
+)
 from core.domain.accounting.accounting_controller import AccountingController
 
 
@@ -196,6 +199,40 @@ class PaymentsController:
             db.add(order)
             return None
 
+        # AUX1 debtor-intake guard. This runs only after PaymentService has
+        # resolved the authoritative final balance, so discounts, prior
+        # attempts, and partial settlement math cannot produce a false guard.
+        existing_ar = (
+            AccountsReceivableRepository.get_by_order_id(
+                db,
+                tenant_id=tenant_id,
+                branch_id=branch_id,
+                order_id=int(order_id),
+            )
+            or AccountsReceivableRepository.get_by_sale_id(
+                db,
+                tenant_id=tenant_id,
+                branch_id=branch_id,
+                sale_id=int(getattr(sale, "id", 0) or 0),
+            )
+        )
+
+        customer_name = _extract_customer_name(receipt_meta)
+        customer_phone = _extract_customer_phone(receipt_meta)
+
+        # Existing historical unnamed receivables remain operable and can be
+        # identified later from Accounting > Accounts. Every NEW A/R account
+        # must identify the debtor before the settlement is committed.
+        if not existing_ar and not customer_name:
+            db.rollback()
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=(
+                    "Debtor name is required before leaving a sale balance "
+                    "on Accounts Receivable"
+                ),
+            )
+
         ar = AccountsReceivableService.create_or_update_from_settlement(
             db,
             tenant_id=tenant_id,
@@ -206,8 +243,8 @@ class PaymentsController:
             original_amount=original_amount_d,
             paid_amount=total_paid_d,
             balance_due=balance_due_d,
-            customer_name=_extract_customer_name(receipt_meta),
-            customer_phone=_extract_customer_phone(receipt_meta),
+            customer_name=customer_name,
+            customer_phone=customer_phone,
             note=_extract_note(receipt_meta, note),
             created_by_user_id=user_id,
         )

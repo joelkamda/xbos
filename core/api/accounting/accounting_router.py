@@ -3,7 +3,7 @@ from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 from sqlalchemy import text
 from typing import Optional, Dict, Any, List
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from zoneinfo import ZoneInfo
 
 from database import get_db
@@ -184,6 +184,11 @@ class ReconClosePayload(BaseModel):
     rows: List[ReconCloseRowPayload]
 
 
+class AccountsReceivableIdentityPayload(BaseModel):
+    customer_name: str = Field(..., min_length=1, max_length=200)
+    customer_phone: Optional[str] = Field(default=None, max_length=80)
+
+
 class AccountsReceivableRepayPayload(BaseModel):
     amount: float = Field(..., gt=0)
     payment_method: str = "cash"
@@ -338,6 +343,38 @@ def _time_str(value: Optional[datetime]) -> str:
 
     display_value = _display_dt(value)
     return display_value.strftime("%I:%M %p") if display_value else ""
+
+
+def _parse_ar_date_bound(
+    value: Optional[str],
+    *,
+    inclusive_end_date: bool = False,
+) -> Optional[datetime]:
+    """
+    Parse A/R opened-date filters into naive UTC for the current plain
+    DateTime A/R columns. A YYYY-MM-DD end date is inclusive for that entire
+    Africa/Douala calendar day by converting it to the next local midnight.
+    """
+
+    if not value:
+        return None
+
+    raw = str(value).strip()
+
+    try:
+        if len(raw) == 10 and raw[4] == "-" and raw[7] == "-":
+            local = datetime.fromisoformat(raw).replace(tzinfo=BUSINESS_TZ)
+            if inclusive_end_date:
+                local += timedelta(days=1)
+            return local.astimezone(UTC_TZ).replace(tzinfo=None)
+    except ValueError:
+        pass
+
+    parsed = _parse_dt(raw)
+    if parsed is None:
+        return None
+
+    return parsed.astimezone(UTC_TZ).replace(tzinfo=None)
 
 
 def _iso_utc(value: Optional[datetime]) -> Optional[str]:
@@ -983,41 +1020,79 @@ def _list_accounts_receivable_for_context(
     *,
     request: Request,
     db: Session,
-    limit: int = 200,
+    limit: int = 25,
     offset: int = 0,
+    status_filter: str = "active",
+    start: Optional[str] = None,
+    end: Optional[str] = None,
+    q: Optional[str] = None,
 ):
     ctx = request.state.user
 
-    rows = AccountsReceivableService.list_open(
+    safe_limit = min(max(int(limit or 25), 1), 200)
+    safe_offset = max(int(offset or 0), 0)
+    safe_status = str(status_filter or "active").strip().lower()
+
+    if safe_status not in {"active", "open", "partial", "settled", "cancelled", "all"}:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid A/R status filter",
+        )
+
+    start_at = _parse_ar_date_bound(start)
+    end_at = _parse_ar_date_bound(end, inclusive_end_date=True)
+
+    if start_at and end_at and start_at >= end_at:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="A/R start date must be before end date",
+        )
+
+    rows, total_count = AccountsReceivableRepository.list_accounts(
         db,
         tenant_id=ctx["tenant_id"],
         branch_id=ctx["branch_id"],
-        limit=limit,
-        offset=offset,
+        status_filter=safe_status,
+        start_at=start_at,
+        end_at=end_at,
+        search=q,
+        limit=safe_limit,
+        offset=safe_offset,
     )
 
-    items = [
-        _serialize_ar_with_repayments(
-            db,
-            tenant_id=ctx["tenant_id"],
-            branch_id=ctx["branch_id"],
-            ar=row,
-        )
-        for row in rows
-    ]
+    # List rows stay lightweight. Repayment history is loaded only when the
+    # operator expands a specific A/R account through the detail endpoint.
+    items = [AccountsReceivableService.serialize(row) for row in rows]
+
+    aggregate = AccountsReceivableRepository.summarize_accounts(
+        db,
+        tenant_id=ctx["tenant_id"],
+        branch_id=ctx["branch_id"],
+        status_filter=safe_status,
+        start_at=start_at,
+        end_at=end_at,
+        search=q,
+    )
 
     summary = {
-        "open_count": len([r for r in items if r.get("status") == "open"]),
-        "partial_count": len([r for r in items if r.get("status") == "partial"]),
-        "total_original": sum(_f(r.get("original_amount")) for r in items),
-        "total_paid": sum(_f(r.get("paid_amount")) for r in items),
-        "total_balance_due": sum(_f(r.get("balance_due")) for r in items),
+        "account_count": int(aggregate["account_count"]),
+        "open_count": int(aggregate["open_count"]),
+        "partial_count": int(aggregate["partial_count"]),
+        "settled_count": int(aggregate["settled_count"]),
+        "total_original": _f(aggregate["total_original"]),
+        "total_paid": _f(aggregate["total_paid"]),
+        "total_balance_due": _f(aggregate["total_balance_due"]),
     }
 
     return {
-        "limit": limit,
-        "offset": offset,
-        "count": len(items),
+        "limit": safe_limit,
+        "offset": safe_offset,
+        "count": total_count,
+        "page_count": len(items),
+        "status_filter": safe_status,
+        "start": start,
+        "end": end,
+        "q": str(q or "").strip(),
         "summary": summary,
         "items": items,
     }
@@ -1028,14 +1103,22 @@ def _list_accounts_receivable_for_context(
 def list_accounts_receivable(
     request: Request,
     db: Session = Depends(get_db),
-    limit: int = 200,
+    limit: int = 25,
     offset: int = 0,
+    status_filter: str = "active",
+    start: Optional[str] = None,
+    end: Optional[str] = None,
+    q: Optional[str] = None,
 ):
     return _list_accounts_receivable_for_context(
         request=request,
         db=db,
         limit=limit,
         offset=offset,
+        status_filter=status_filter,
+        start=start,
+        end=end,
+        q=q,
     )
 
 
@@ -1080,6 +1163,47 @@ def get_accounts_receivable(
         request=request,
         db=db,
     )
+
+
+@router.patch("/accounts/ar/{ar_id}/identity")
+@require_permissions("accounting.post")
+def update_accounts_receivable_identity(
+    ar_id: int,
+    payload: AccountsReceivableIdentityPayload,
+    request: Request,
+    db: Session = Depends(get_db),
+):
+    ctx = request.state.user
+
+    try:
+        ar = AccountsReceivableService.update_identity(
+            db,
+            tenant_id=ctx["tenant_id"],
+            branch_id=ctx["branch_id"],
+            ar_id=ar_id,
+            customer_name=payload.customer_name,
+            customer_phone=payload.customer_phone,
+        )
+
+        db.commit()
+        db.refresh(ar)
+
+        return {
+            "ok": True,
+            "account": _serialize_ar_with_repayments(
+                db,
+                tenant_id=ctx["tenant_id"],
+                branch_id=ctx["branch_id"],
+                ar=ar,
+            ),
+        }
+
+    except ValueError as exc:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(exc),
+        )
 
 
 @router.post("/accounts/ar/{ar_id}/repay")

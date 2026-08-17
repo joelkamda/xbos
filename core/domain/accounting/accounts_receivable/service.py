@@ -225,6 +225,9 @@ class AccountsReceivableService:
                 sale_id=int(sale_id),
             )
 
+        clean_customer_name = _clean_text(customer_name)
+        clean_customer_phone = _clean_text(customer_phone)
+
         status = _status_from_amounts(
             paid_amount=paid_d,
             balance_due=balance_d,
@@ -241,8 +244,8 @@ class AccountsReceivableService:
             existing.paid_amount = paid_d
             existing.balance_due = balance_d
             existing.status = status
-            existing.customer_name = customer_name or existing.customer_name
-            existing.customer_phone = customer_phone or existing.customer_phone
+            existing.customer_name = clean_customer_name or existing.customer_name
+            existing.customer_phone = clean_customer_phone or existing.customer_phone
             existing.note = note or existing.note
             existing.updated_at = now
 
@@ -257,8 +260,8 @@ class AccountsReceivableService:
             order_id=order_id,
             sale_id=sale_id,
             payment_intent_id=payment_intent_id,
-            customer_name=customer_name,
-            customer_phone=customer_phone,
+            customer_name=clean_customer_name,
+            customer_phone=clean_customer_phone,
             note=note,
             original_amount=original_d,
             paid_amount=paid_d,
@@ -270,6 +273,47 @@ class AccountsReceivableService:
         )
 
         AccountsReceivableRepository.create(db, ar)
+        db.flush()
+
+        return ar
+
+    @staticmethod
+    def update_identity(
+        db: Session,
+        *,
+        tenant_id: int,
+        branch_id: int,
+        ar_id: int,
+        customer_name: Any,
+        customer_phone: Any = None,
+    ) -> AccountsReceivable:
+        """
+        Update debtor identity only.
+
+        Financial invariants are deliberately outside the writable surface:
+        original_amount, paid_amount, balance_due, status, sale/order links,
+        and payment_intent_id are never touched here.
+        """
+
+        ar = AccountsReceivableRepository.get_by_id_for_update(
+            db,
+            tenant_id=tenant_id,
+            branch_id=branch_id,
+            ar_id=ar_id,
+        )
+
+        if not ar:
+            raise ValueError("A/R account not found")
+
+        clean_name = _clean_text(customer_name)
+        if not clean_name:
+            raise ValueError("Debtor name is required")
+
+        ar.customer_name = clean_name
+        ar.customer_phone = _clean_text(customer_phone)
+        ar.updated_at = _utc_now()
+
+        db.add(ar)
         db.flush()
 
         return ar
