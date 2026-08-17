@@ -99,7 +99,7 @@ def _safe_month_key(yyyymm: str) -> str:
 # ============================================================
 
 @router.get("/monthly-summary/{year}")
-@require_permissions("report.view", "report.financial")
+@require_permissions("report.view", "report.financial", "report.finance.view", "report.financial.overview")
 def monthly_summary(
     year: int,
     request: Request,
@@ -153,7 +153,7 @@ def monthly_summary(
 # ============================================================
 
 @router.get("/monthly-statement/{yyyymm}")
-@require_permissions("report.financial", "report.finance.view", "report.financial.overview")
+@require_permissions("report.view", "report.financial", "report.finance.view", "report.financial.overview")
 def monthly_statement(
     yyyymm: str,
     request: Request,
@@ -171,7 +171,7 @@ def monthly_statement(
        Source = OTHER_INCOME + SERVICE_REVENUE treasury logs.
 
     C. COGS
-       Hybrid:
+       Source of truth = explicit treasury/accounting COGS classification.
        - kitchen/manual COGS from treasury COGS classifications,
        - bar/drinks COGS from sold quantity × seeded atomic unit cost.
 

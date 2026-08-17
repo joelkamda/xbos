@@ -208,6 +208,91 @@ class AccountingReportsService:
         }
 
     # =========================================================
+    # COMPLETE FINANCIAL READ HELPERS
+    # =========================================================
+
+    @staticmethod
+    def _all_logs(
+        db: Session,
+        *,
+        tenant_id: int,
+        branch_id: int,
+        start: Optional[datetime] = None,
+        end: Optional[datetime] = None,
+    ):
+        """
+        Read the complete requested treasury window in bounded repository pages.
+
+        Financial aggregates must never depend on a UI page size. The repository
+        remains the canonical tenant/branch/time filter; pagination here is only an
+        implementation detail used to collect the complete financial population.
+        """
+        page_size = 200
+        page_offset = 0
+        rows = []
+
+        for _ in range(10000):
+            batch = TreasuryRepository.list_logs(
+                db,
+                tenant_id=tenant_id,
+                branch_id=branch_id,
+                start=start,
+                end=end,
+                limit=page_size,
+                offset=page_offset,
+            )
+            if not batch:
+                break
+
+            rows.extend(batch)
+            page_offset += len(batch)
+        else:
+            raise RuntimeError("Treasury report pagination did not terminate")
+
+        return rows
+
+    @staticmethod
+    def _all_logs_by_event_types(
+        db: Session,
+        *,
+        tenant_id: int,
+        branch_id: int,
+        event_types: List[str],
+        start: Optional[datetime] = None,
+        end: Optional[datetime] = None,
+    ):
+        """
+        Read every treasury event matching the requested financial event set.
+
+        Callers may still return a paginated detail list, but summary values are
+        computed from this complete population.
+        """
+        page_size = 200
+        page_offset = 0
+        rows = []
+
+        for _ in range(10000):
+            batch = TreasuryRepository.list_by_event_types(
+                db,
+                tenant_id=tenant_id,
+                branch_id=branch_id,
+                event_types=event_types,
+                start=start,
+                end=end,
+                limit=page_size,
+                offset=page_offset,
+            )
+            if not batch:
+                break
+
+            rows.extend(batch)
+            page_offset += len(batch)
+        else:
+            raise RuntimeError("Treasury report event pagination did not terminate")
+
+        return rows
+
+    # =========================================================
     # DAILY TAB
     # =========================================================
 
@@ -222,8 +307,7 @@ class AccountingReportsService:
         limit: int = 200,
         offset: int = 0,
     ) -> Dict:
-
-        logs = TreasuryRepository.list_logs(
+        page_logs = TreasuryRepository.list_logs(
             db,
             tenant_id=tenant_id,
             branch_id=branch_id,
@@ -232,24 +316,33 @@ class AccountingReportsService:
             limit=limit,
             offset=offset,
         )
+        summary_logs = AccountingReportsService._all_logs(
+            db,
+            tenant_id=tenant_id,
+            branch_id=branch_id,
+            start=start,
+            end=end,
+        )
 
-        rows = [AccountingReportsService._serialize_row(l) for l in logs]
+        rows = [AccountingReportsService._serialize_row(l) for l in page_logs]
 
         income = 0.0
         expense = 0.0
-
-        for r in rows:
-            if r["type"] == "income":
-                income += r["amount"]
-            elif r["type"] == "expense":
-                expense += abs(r["amount"])
+        for log in summary_logs:
+            row_type = AccountingReportsService._row_type(log)
+            amount = _f(log.amount)
+            if row_type == "income":
+                income += amount
+            elif row_type == "expense":
+                expense += abs(amount)
 
         return {
             "summary": {
                 "income": income,
                 "expense": expense,
                 "net": income - expense,
-                "rows": len(rows),
+                "rows": len(summary_logs),
+                "returned_rows": len(rows),
             },
             "rows": rows,
         }
@@ -269,25 +362,34 @@ class AccountingReportsService:
         limit: int = 200,
         offset: int = 0,
     ) -> Dict:
-
-        logs = TreasuryRepository.list_by_event_types(
+        event_types = list(AccountingReportsService.INCOME_EVENTS)
+        page_logs = TreasuryRepository.list_by_event_types(
             db,
             tenant_id=tenant_id,
             branch_id=branch_id,
-            event_types=list(AccountingReportsService.INCOME_EVENTS),
+            event_types=event_types,
             start=start,
             end=end,
             limit=limit,
             offset=offset,
         )
+        summary_logs = AccountingReportsService._all_logs_by_event_types(
+            db,
+            tenant_id=tenant_id,
+            branch_id=branch_id,
+            event_types=event_types,
+            start=start,
+            end=end,
+        )
 
-        rows = [AccountingReportsService._serialize_row(l) for l in logs]
-        total = sum(r["amount"] for r in rows)
+        rows = [AccountingReportsService._serialize_row(l) for l in page_logs]
+        total = sum(_f(log.amount) for log in summary_logs)
 
         return {
             "summary": {
                 "total_income": total,
-                "rows": len(rows),
+                "rows": len(summary_logs),
+                "returned_rows": len(rows),
             },
             "rows": rows,
         }
@@ -307,29 +409,39 @@ class AccountingReportsService:
         limit: int = 200,
         offset: int = 0,
     ) -> Dict:
-
-        logs = TreasuryRepository.list_by_event_types(
+        event_types = list(AccountingReportsService.EXPENSE_EVENTS)
+        page_logs = TreasuryRepository.list_by_event_types(
             db,
             tenant_id=tenant_id,
             branch_id=branch_id,
-            event_types=list(AccountingReportsService.EXPENSE_EVENTS),
+            event_types=event_types,
             start=start,
             end=end,
             limit=limit,
             offset=offset,
         )
+        summary_logs = AccountingReportsService._all_logs_by_event_types(
+            db,
+            tenant_id=tenant_id,
+            branch_id=branch_id,
+            event_types=event_types,
+            start=start,
+            end=end,
+        )
 
-        rows = [AccountingReportsService._serialize_row(l) for l in logs]
-        total = sum(abs(r["amount"]) for r in rows)
+        rows = [AccountingReportsService._serialize_row(l) for l in page_logs]
+        total = sum(abs(_f(log.amount)) for log in summary_logs)
 
         by_event: Dict[str, float] = {}
-        for r in rows:
-            by_event[r["event_type"]] = by_event.get(r["event_type"], 0.0) + abs(r["amount"])
+        for log in summary_logs:
+            event_type = str(log.event_type or "")
+            by_event[event_type] = by_event.get(event_type, 0.0) + abs(_f(log.amount))
 
         return {
             "summary": {
                 "total_expense": total,
-                "rows": len(rows),
+                "rows": len(summary_logs),
+                "returned_rows": len(rows),
                 "by_event_type": by_event,
             },
             "rows": rows,
@@ -350,33 +462,41 @@ class AccountingReportsService:
         limit: int = 200,
         offset: int = 0,
     ) -> Dict:
-
-        logs = TreasuryRepository.list_by_event_types(
+        event_types = list(AccountingReportsService.CASH_MOVE_EVENTS)
+        page_logs = TreasuryRepository.list_by_event_types(
             db,
             tenant_id=tenant_id,
             branch_id=branch_id,
-            event_types=list(AccountingReportsService.CASH_MOVE_EVENTS),
+            event_types=event_types,
             start=start,
             end=end,
             limit=limit,
             offset=offset,
         )
+        summary_logs = AccountingReportsService._all_logs_by_event_types(
+            db,
+            tenant_id=tenant_id,
+            branch_id=branch_id,
+            event_types=event_types,
+            start=start,
+            end=end,
+        )
 
-        rows = [AccountingReportsService._serialize_row(l) for l in logs]
+        rows = [AccountingReportsService._serialize_row(l) for l in page_logs]
 
         by_channel: Dict[str, float] = {}
         total = 0.0
-
-        for r in rows:
-            amt = r["amount"]
-            total += amt
-            key = r["channel"] or "unknown"
-            by_channel[key] = by_channel.get(key, 0.0) + amt
+        for log in summary_logs:
+            amount = _f(log.amount)
+            total += amount
+            key = log.channel or "unknown"
+            by_channel[key] = by_channel.get(key, 0.0) + amount
 
         return {
             "summary": {
                 "total_movement": total,
-                "rows": len(rows),
+                "rows": len(summary_logs),
+                "returned_rows": len(rows),
                 "by_channel": by_channel,
             },
             "rows": rows,
@@ -397,35 +517,43 @@ class AccountingReportsService:
         limit: int = 200,
         offset: int = 0,
     ) -> Dict:
-
-        logs = TreasuryRepository.list_by_event_types(
+        event_types = list(AccountingReportsService.DEBT_EVENTS)
+        page_logs = TreasuryRepository.list_by_event_types(
             db,
             tenant_id=tenant_id,
             branch_id=branch_id,
-            event_types=list(AccountingReportsService.DEBT_EVENTS),
+            event_types=event_types,
             start=start,
             end=end,
             limit=limit,
             offset=offset,
         )
+        summary_logs = AccountingReportsService._all_logs_by_event_types(
+            db,
+            tenant_id=tenant_id,
+            branch_id=branch_id,
+            event_types=event_types,
+            start=start,
+            end=end,
+        )
 
-        rows = [AccountingReportsService._serialize_row(l) for l in logs]
+        rows = [AccountingReportsService._serialize_row(l) for l in page_logs]
 
         debt_created = 0.0
         debt_repaid = 0.0
-
-        for r in rows:
-            if r["event_type"] == "DEBT_CREATED":
-                debt_created += r["amount"]
-            elif r["event_type"] == "DEBT_REPAYMENT":
-                debt_repaid += r["amount"]
+        for log in summary_logs:
+            if log.event_type == "DEBT_CREATED":
+                debt_created += _f(log.amount)
+            elif log.event_type == "DEBT_REPAYMENT":
+                debt_repaid += _f(log.amount)
 
         return {
             "summary": {
                 "debt_created": debt_created,
                 "debt_repaid": debt_repaid,
                 "outstanding_estimate": debt_created - debt_repaid,
-                "rows": len(rows),
+                "rows": len(summary_logs),
+                "returned_rows": len(rows),
             },
             "rows": rows,
         }
@@ -802,14 +930,15 @@ class AccountingReportsService:
         - Persisted current-window actual/note/status are preserved.
         """
 
-        logs = TreasuryRepository.list_logs(
+        # Reconciliation expected balances and commercial summaries are financial
+        # aggregates. They must consume the complete requested window regardless
+        # of any legacy/UI limit or offset supplied by the caller.
+        logs = AccountingReportsService._all_logs(
             db,
             tenant_id=tenant_id,
             branch_id=branch_id,
             start=start,
             end=end,
-            limit=limit,
-            offset=offset,
         )
 
         rows = AccountingReportsService._build_reconciliation_rows(logs)
