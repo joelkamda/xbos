@@ -1,0 +1,80 @@
+XBOS PRE-R0 SEMANTIC CLASSIFICATION HARDENING 041 — REVISION 2 PACKAGE MANIFEST
+
+Immutable source
+  commit: 11e7c902475560122794790d3a080a29d65cc972
+  archive_sha256: 0529c7360d1b8c3d77aa82d41c79b1e9df4e037798fd7effab76ad29befc7c73
+  archive_size: 5937670 bytes
+
+Migration
+  previous: pa45_support_recovery_health_040
+  candidate: semantic_classification_hardening_041
+  count: 1
+
+Release-integrity note
+  The three new Alembic artifacts are PC3-owned descendants under alembic_neutral.
+  pc0_frozen_finance_inventory.json therefore authorizes those non-Finance extensions.
+  PC0/PC6, SO, PK and PA cumulative release metadata is refreshed to preserve the accepted integrity chain.
+  Historical PC1-PC5 release manifests are not rewritten. No Finance/SO/PK/PA authority or business implementation is changed.
+
+Package payload
+  SEMANTIC_HARDENING_INSTALL_MANIFEST.txt
+  XBOS_SEMANTIC_HARDENING_INSTALL_AND_VERIFY.txt
+  XBOS_SEMANTIC_HARDENING_RUN_ACCEPTANCE.cmd
+  alembic_neutral/sql/semantic_classification_hardening_down.sql
+  alembic_neutral/sql/semantic_classification_hardening_up.sql
+  alembic_neutral/versions/semantic_classification_hardening_041.py
+  contracts/packs/v1/pk0123_release_manifest.json
+  contracts/packs/v1/pk456_release_manifest.json
+  contracts/packs/v1/pk_aggregate_release_manifest.json
+  contracts/platform/v1/pc0_frozen_finance_inventory.json
+  contracts/platform/v1/pc0_release_manifest.json
+  contracts/platform/v1/pc6_release_manifest.json
+  contracts/platform/v1/sc41_classification_target_contract.json
+  contracts/platform/v1/sc41_global_taxonomy_registry.json
+  contracts/platform/v1/sc41_public_interfaces.json
+  contracts/platform/v1/sc41_release_manifest.json
+  contracts/platform/v1/sc41_semantic_classification_hardening.json
+  contracts/platform_admin/v1/pa0123_release_manifest.json
+  contracts/platform_admin/v1/pa45_release_manifest.json
+  contracts/platform_admin/v1/pa6_release_manifest.json
+  contracts/shared_operations/v1/so10_release_manifest.json
+  contracts/shared_operations/v1/so1_release_manifest.json
+  contracts/shared_operations/v1/so2_release_manifest.json
+  contracts/shared_operations/v1/so3_release_manifest.json
+  contracts/shared_operations/v1/so4_release_manifest.json
+  contracts/shared_operations/v1/so5_release_manifest.json
+  contracts/shared_operations/v1/so6_release_manifest.json
+  contracts/shared_operations/v1/so7_release_manifest.json
+  contracts/shared_operations/v1/so8_release_manifest.json
+  contracts/shared_operations/v1/so9_release_manifest.json
+  contracts/shared_operations/v1/so_aggregate_release_manifest.json
+  core/platform/semantics/classification_hardening/__init__.py
+  core/platform/semantics/classification_hardening/contracts.py
+  core/platform/semantics/classification_hardening/service.py
+  core/platform/semantics/classification_hardening/sql_repository.py
+  docs/platform_core/SEMANTIC_CLASSIFICATION_HARDENING_041.md
+  docs/platform_core/adr/0010_PRE_R0_GLOBAL_SEMANTIC_CLASSIFICATION_HARDENING.md
+  scripts/verify_semantic_classification_hardening.py
+  tests/contracts/test_semantic_classification_hardening.py
+
+Payload count
+  39 files (including this manifest and sc41_release_manifest.json)
+
+Revision 2 correction
+  Scope: PostgreSQL joined-row lock correction only, plus a static regression guard.
+  create_node now locks taxonomy_systems as FOR UPDATE OF s while reading semantic_namespaces through LEFT JOIN.
+  No schema, migration lineage, semantic contract, Finance/SO/PK/PA authority, or business behavior is changed.
+
+Operator rule
+  Expand over the exact immutable source checkout only.
+  Do not commit, tag, or start R0 until XBOS_SEMANTIC_HARDENING_RUN_ACCEPTANCE.cmd returns SEMANTIC_HARDENING_SINGLE_GATE=PASS.
+
+Revision 3 correction
+---------------------
+Revision 2 exposed the next PostgreSQL acceptance defect: SC41 timestamped operations
+were converted to frozen PC3 DATE-effective semantic-version dates by PostgreSQL
+CAST(timestamptz AS date). That conversion depends on the database session timezone and
+can resolve midnight UTC as the previous calendar day. Revision 3 derives the PC3
+semantic date explicitly in UTC before binding. The same bridge is used for concept
+resolution, classification snapshots, hierarchy semantic-version selection, and graph
+mapping selection. No authority or schema semantics are broadened.

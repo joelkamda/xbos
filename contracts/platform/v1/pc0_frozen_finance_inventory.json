@@ -458,6 +458,27 @@
       "sha256": "c54324d6a0124ef95273877ad4b07b512e4c1c04c01d249d1cf04ab7b3cdba6b",
       "owner": "PA",
       "reason": "PA45 authorized non-Finance canonical descendant; bounded support/recovery/health evidence only"
+    },
+    {
+      "root": "alembic_neutral",
+      "path": "versions/semantic_classification_hardening_041.py",
+      "sha256": "0f08ed83493cbe3660fdd91b9f16f10ad2e68c22ef5396be9c4640682ff19813",
+      "owner": "PC3",
+      "reason": "Pre-R0 PC3 semantic-classification hardening authorized non-Finance canonical descendant; global taxonomy/history/overlay governance only"
+    },
+    {
+      "root": "alembic_neutral",
+      "path": "sql/semantic_classification_hardening_up.sql",
+      "sha256": "9c839bcd344ce84e9dccababfa8e378b6393c81f09f484d8a785ed0ed76b97a5",
+      "owner": "PC3",
+      "reason": "Pre-R0 PC3 semantic-classification hardening authorized non-Finance canonical descendant; global taxonomy/history/overlay governance only"
+    },
+    {
+      "root": "alembic_neutral",
+      "path": "sql/semantic_classification_hardening_down.sql",
+      "sha256": "ebb4beab0ae81868ddf1535a14c495bc2e948059971a518a6a9f8e019d065bdf",
+      "owner": "PC3",
+      "reason": "Pre-R0 PC3 semantic-classification hardening authorized non-Finance canonical descendant; global taxonomy/history/overlay governance only"
     }
   ],
   "trees": [

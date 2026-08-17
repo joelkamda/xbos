@@ -44,7 +44,7 @@
     },
     {
       "path": "contracts/platform/v1/pc0_frozen_finance_inventory.json",
-      "sha256": "fcfbc8950e106d45c0aab5fd08e1571e6da4d115865b074cc99ef2cce2585609"
+      "sha256": "15b909119d5f3a76ab89109e1d03fae82a067e993e15f75d549343f45cb45555"
     },
     {
       "path": "contracts/platform/v1/pc0_module_map.json",
@@ -60,11 +60,11 @@
     },
     {
       "path": "contracts/platform/v1/pc0_release_manifest.json",
-      "sha256": "d0b23cac5f1eea46895381ef984908ec81d38c706c6f947897b43cb722a0fb9b"
+      "sha256": "9b46ef426b18c5e0481a1e0ff58c9aae24e61f57171f6c61e7bc0a2e838b1d3d"
     },
     {
       "path": "contracts/platform/v1/pc6_release_manifest.json",
-      "sha256": "6faffca601081aa0d039fcbdc2cc063e2aa95888d35d6dc98bd48b0286b59344"
+      "sha256": "3218044cfae968756a7b6bb9c8ebb8ebd335be316eba15a5406a2c5a28833f4b"
     },
     {
       "path": "contracts/shared_operations/v1/examples/clinical_resources_profile.json",
@@ -76,19 +76,19 @@
     },
     {
       "path": "contracts/shared_operations/v1/so1_release_manifest.json",
-      "sha256": "eb1aa8c0ab87fffa6646c809715af301dca928b104da5a4bcb726c36acef2873"
+      "sha256": "395cd260434c1d8865dc73cf0f84cd3cbc89d7a73af0dbd0af748f1f0b470c9f"
     },
     {
       "path": "contracts/shared_operations/v1/so2_release_manifest.json",
-      "sha256": "e3525b695f95d3db7ef13560e30b85e2f7af5501a24d8348973b4dd346140711"
+      "sha256": "af220a981ff99c76792adbb00dc87d1087bd21aa238ecb92fedd53a2c37812c5"
     },
     {
       "path": "contracts/shared_operations/v1/so3_release_manifest.json",
-      "sha256": "fde559eaaada8ef34da35166b053de3172199f0ea5c23837feb30c3bf5771c8c"
+      "sha256": "f81c0f784ab4e8c4d7dc64f71f494a7d6942ce486d601d4e2be9b6d681a59dcd"
     },
     {
       "path": "contracts/shared_operations/v1/so4_release_manifest.json",
-      "sha256": "3e425e5c08834ef86425cfdd44d94cc2afbe4947b2bc4d3c2544510d9957f8b3"
+      "sha256": "39c3ed98c2d2242d40dfb1216d902ec90a339cdcaf863836ae52a07dbee38111"
     },
     {
       "path": "contracts/shared_operations/v1/so5_authority.json",

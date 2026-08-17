@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "module": "core.platform.semantics.classification_hardening",
+  "public": [
+    "SemanticClassificationAuthority",
+    "ClassificationTargetRegistry",
+    "SQLSemanticClassificationRepository",
+    "CreateTaxonomySystem",
+    "CreateTaxonomyNode",
+    "ReparentTaxonomyNode",
+    "SetTenantTaxonomyOverlay",
+    "ClearTenantTaxonomyOverlay",
+    "AssignSemanticClassification",
+    "EndSemanticClassification",
+    "EffectiveTaxonomyNode",
+    "ClassificationView",
+    "HealthIssue"
+  ],
+  "read_models": [
+    "hierarchy",
+    "object_classifications",
+    "matrix",
+    "graph",
+    "health"
+  ],
+  "private": [
+    "semantic_classification_commands",
+    "semantic_taxonomy_nodes integer IDs",
+    "semantic_taxonomy_placements integer IDs",
+    "tenant_taxonomy_overlays integer IDs",
+    "SQL statements"
+  ],
+  "rules": [
+    "target validation is injected from the owning authority and arbitrary dynamic table lookup is forbidden",
+    "global and pack taxonomy nodes have no tenant owner; tenant extension nodes require a tenant semantic namespace",
+    "tenant overlays are deltas and never mutate inherited nodes",
+    "placement history is append-only except one-way close of the open effective period",
+    "effective hierarchy cycles are rejected across both base placements and tenant parent overrides",
+    "classification governance is append-only except one-way close of the open effective period",
+    "active pack/template sources are composition context, not semantic ownership"
+  ]
+}

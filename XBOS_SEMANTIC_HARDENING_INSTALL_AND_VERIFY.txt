@@ -1,0 +1,49 @@
+XBOS PRE-R0 SEMANTIC CLASSIFICATION HARDENING 041 — INSTALL AND VERIFY
+
+Authoritative source checkpoint: 11e7c902475560122794790d3a080a29d65cc972
+Source archive SHA-256: 0529c7360d1b8c3d77aa82d41c79b1e9df4e037798fd7effab76ad29befc7c73
+Source archive size: 5937670 bytes
+Previous head: pa45_support_recovery_health_040
+Candidate head: semantic_classification_hardening_041
+
+Purpose:
+Complete the bounded Pre-R0 semantic-classification infrastructure required for XBOS Global without changing Finance, frozen PC3 files, Shared Operations, Pack/Template authority, Platform Administration, Restaurant or WND production.
+
+Key hardening:
+- global/pack/tenant semantic taxonomy placement without fake tenants;
+- immutable effective-dated hierarchy history;
+- tenant delta overlays with effective-cycle guards;
+- tenant-qualified descendant command idempotency;
+- governed target validation and assignment provenance;
+- hierarchy/object/matrix/graph/health backend read contracts;
+- 40-system global semantic-classification seed registry.
+
+Operator environment:
+- repository: C:\Users\jdkam\XBOS
+- existing venv: C:\Users\jdkam\venvs\xbos-track-b-b1
+- Python: 3.13.3
+- PostgreSQL: localhost:5432
+- development DB: xbos_track_b_dev
+
+Install from repository root:
+  powershell -NoProfile -Command "Expand-Archive -LiteralPath '%USERPROFILE%\Downloads\XBOS_PRE_R0_SEMANTIC_CLASSIFICATION_HARDENING_REVISION_1.zip' -DestinationPath '.' -Force"
+
+Then run:
+  XBOS_SEMANTIC_HARDENING_RUN_ACCEPTANCE.cmd
+
+Do not run Alembic manually. Do not stage, commit, tag, or begin R0 until SEMANTIC_HARDENING_SINGLE_GATE=PASS.
+
+The gate creates only the disposable local database xbos_semantic_classification_hardening_test. For xbos_track_b_dev it is resumable and fail-closed:
+- pa45_support_recovery_health_040 -> upgrade exactly once to semantic_classification_hardening_041;
+- semantic_classification_hardening_041 -> verify in place without data mutation;
+- any other head -> fail.
+
+A successful run ends with:
+  SEMANTIC_HARDENING_SINGLE_GATE=PASS
+  SEMANTIC_HARDENING_R0_READINESS=PASS
+
+REVISION 3 NOTE
+The candidate migration remains semantic_classification_hardening_041. Revision 3 is a
+code/gate correction only: timestamped SC41 operations now map deterministically to
+frozen PC3 DATE-effective semantics using UTC calendar dates rather than PostgreSQL
+session-timezone casts. Re-expand cumulatively and rerun the same single gate.

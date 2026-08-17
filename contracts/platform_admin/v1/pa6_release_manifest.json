@@ -64,15 +64,15 @@
     },
     {
       "path": "contracts/platform_admin/v1/pa0123_release_manifest.json",
-      "sha256": "79e3e634ec07f20659487ddd49f30355900ad61e88817d5be8bfed04cc18d19e"
+      "sha256": "cb0bc54eb32b02533da1b3843ebdc480cafadf60767f9cc597b59d3fe4aaee6a"
     },
     {
       "path": "contracts/platform_admin/v1/pa45_release_manifest.json",
-      "sha256": "5d797c3d456b1575e7d7d81f86bbc1558b9d18622e3a5253c6f3a33ba67f2b50"
+      "sha256": "183a74cf70383105321f6eb209f9d857c0bd8aea55dc345397c18131157192f4"
     },
     {
       "path": "contracts/packs/v1/pk_aggregate_release_manifest.json",
-      "sha256": "a54cf20374cf38bc732a7a72a729addc9718ccc88558076d3dd2486614d20009"
+      "sha256": "859af824e603babeb3c12911fe336ee21624d556c439180537e9812ced00f41c"
     },
     {
       "path": "scripts/verify_pa45_platform_support_recovery_health.py",

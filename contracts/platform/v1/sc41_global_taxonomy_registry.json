@@ -1,0 +1,803 @@
+{
+  "schema_version": 1,
+  "contract": "XBOS_GLOBAL_SEMANTIC_CLASSIFICATION_REGISTRY_V0_1",
+  "status": "CANDIDATE_CONSTITUTIONAL_SEED",
+  "physical_model": "taxonomy_systems + semantic_taxonomy_nodes + effective placements; one reusable hierarchy engine, many logical taxonomy systems",
+  "depth_model": "unbounded; domain/category/subcategory are presentation vocabulary only",
+  "universal_tree": false,
+  "taxonomy_system_count": 40,
+  "systems": [
+    {
+      "ordinal": 1,
+      "system_code": "commerce",
+      "display_name": "Commerce",
+      "depth_1_domains": [
+        "Goods & Merchandise",
+        "Services",
+        "Offers & Bundles",
+        "Subscriptions & Memberships",
+        "Digital Goods",
+        "Catalog & Assortment",
+        "Pricing Classes",
+        "Promotions & Discounts",
+        "Product Attributes",
+        "Commercial Product Forms",
+        "Commercial Terms",
+        "Merchandise Segments"
+      ]
+    },
+    {
+      "ordinal": 2,
+      "system_code": "finance",
+      "display_name": "Finance",
+      "depth_1_domains": [
+        "Assets",
+        "Liabilities",
+        "Equity",
+        "Revenue",
+        "Expenses",
+        "Cost of Sales / COGS",
+        "Receivables",
+        "Payables",
+        "Payments & Settlements",
+        "Treasury",
+        "Reconciliation",
+        "Budgeting",
+        "Costing & Valuation",
+        "Financial Dimensions",
+        "Currencies & Monetary Reference",
+        "Financial Reporting"
+      ]
+    },
+    {
+      "ordinal": 3,
+      "system_code": "operations",
+      "display_name": "Operations",
+      "depth_1_domains": [
+        "Orders",
+        "Service Management & Execution",
+        "Fulfillment",
+        "Scheduling & Dispatch",
+        "Reservations & Appointments",
+        "Tasks & Work Cases",
+        "Workflows",
+        "Operational Approvals",
+        "Maintenance",
+        "Incidents & Exceptions",
+        "Operational Controls",
+        "Operational Events"
+      ]
+    },
+    {
+      "ordinal": 4,
+      "system_code": "party",
+      "display_name": "Party",
+      "depth_1_domains": [
+        "Individual Classes",
+        "Organization Classes",
+        "Customers & Clients",
+        "Suppliers & Vendors",
+        "Partners",
+        "Contractors",
+        "Agents & Intermediaries",
+        "Beneficiaries & Recipients",
+        "Prospects & Leads",
+        "Owners & Stakeholders",
+        "Relationship Roles",
+        "Party Segments"
+      ]
+    },
+    {
+      "ordinal": 5,
+      "system_code": "workforce",
+      "display_name": "Workforce",
+      "depth_1_domains": [
+        "Employment Classes",
+        "Job Families",
+        "Positions",
+        "Skills & Competencies",
+        "Qualifications",
+        "Compensation Classes",
+        "Attendance",
+        "Leave",
+        "Training",
+        "Performance",
+        "Workforce Availability",
+        "Workforce Segments"
+      ]
+    },
+    {
+      "ordinal": 6,
+      "system_code": "organization",
+      "display_name": "Organization",
+      "depth_1_domains": [
+        "Organization Types",
+        "Business Units",
+        "Divisions",
+        "Departments",
+        "Teams",
+        "Branch Types",
+        "Operating Units",
+        "Management Structures",
+        "Ownership Structures",
+        "Governance Structures",
+        "Organizational Roles"
+      ]
+    },
+    {
+      "ordinal": 7,
+      "system_code": "resources",
+      "display_name": "Resources",
+      "depth_1_domains": [
+        "Human Resource Classes",
+        "Equipment",
+        "Tools",
+        "Vehicles",
+        "Service Resources",
+        "Production Resources",
+        "Shared Resources",
+        "Consumable Resources",
+        "Capacity Pools",
+        "Resource Availability",
+        "Resource Condition",
+        "Specialized Resources"
+      ]
+    },
+    {
+      "ordinal": 8,
+      "system_code": "asset_management",
+      "display_name": "Asset Management",
+      "depth_1_domains": [
+        "Asset Classes",
+        "Ownership & Custody",
+        "Acquisition Classes",
+        "Capitalization",
+        "Asset Lifecycle",
+        "Depreciation Classes",
+        "Maintenance Classes",
+        "Condition",
+        "Warranty & Guarantee",
+        "Leasing",
+        "Disposal",
+        "Asset Criticality"
+      ]
+    },
+    {
+      "ordinal": 9,
+      "system_code": "facilities_spaces",
+      "display_name": "Facilities Spaces",
+      "depth_1_domains": [
+        "Property Types",
+        "Buildings",
+        "Floors & Zones",
+        "Rooms & Spaces",
+        "Storage Areas",
+        "Production Areas",
+        "Customer Areas",
+        "Restricted Areas",
+        "Parking",
+        "Utilities Infrastructure",
+        "Amenities",
+        "Facility Condition"
+      ]
+    },
+    {
+      "ordinal": 10,
+      "system_code": "devices_technology",
+      "display_name": "Devices Technology",
+      "depth_1_domains": [
+        "POS Terminals",
+        "Payment Terminals",
+        "Computers",
+        "Mobile Devices",
+        "Printers & Scanners",
+        "Network Devices",
+        "IoT & Sensors",
+        "Security & Surveillance",
+        "Production Devices",
+        "Warehouse Devices",
+        "Access-Control Devices",
+        "Specialized Industry Devices"
+      ]
+    },
+    {
+      "ordinal": 11,
+      "system_code": "industry",
+      "display_name": "Industry",
+      "depth_1_domains": [
+        "Hospitality & Food Service",
+        "Retail & Wholesale",
+        "Healthcare",
+        "Education",
+        "Professional Services",
+        "Financial Services",
+        "Manufacturing",
+        "Construction",
+        "Logistics & Transportation",
+        "Agriculture",
+        "Real Estate",
+        "Events & Entertainment",
+        "Technology",
+        "Energy & Utilities",
+        "Public Sector",
+        "Nonprofit & Associations"
+      ]
+    },
+    {
+      "ordinal": 12,
+      "system_code": "geography_territory",
+      "display_name": "Geography Territory",
+      "depth_1_domains": [
+        "Countries & Territories",
+        "Administrative Regions",
+        "Cities & Localities",
+        "Markets",
+        "Operating Regions",
+        "Service Areas",
+        "Delivery Zones",
+        "Sales Territories",
+        "Trade Zones",
+        "Customs Regions",
+        "Geographic Groupings"
+      ]
+    },
+    {
+      "ordinal": 13,
+      "system_code": "legal_regulatory",
+      "display_name": "Legal Regulatory",
+      "depth_1_domains": [
+        "Legal Forms",
+        "Legal Instruments & Contracts",
+        "Rights & Obligations",
+        "Licenses & Permits",
+        "Sector Regulation",
+        "Employment Regulation",
+        "Consumer Protection",
+        "Data & Privacy",
+        "Intellectual Property",
+        "Trade & Customs",
+        "Disputes & Claims",
+        "Retention Obligations",
+        "Regulatory Reporting"
+      ]
+    },
+    {
+      "ordinal": 14,
+      "system_code": "tax",
+      "display_name": "Tax",
+      "depth_1_domains": [
+        "Transaction Taxes",
+        "Corporate & Income Taxes",
+        "Payroll Taxes",
+        "Withholding",
+        "Excise",
+        "Customs & Duties",
+        "Property Taxes",
+        "Tax Treatments",
+        "Exemptions & Reliefs",
+        "Tax Registrations",
+        "Tax Jurisdictions",
+        "Tax Reporting"
+      ]
+    },
+    {
+      "ordinal": 15,
+      "system_code": "security_access",
+      "display_name": "Security Access",
+      "depth_1_domains": [
+        "Identity Classes",
+        "Authentication Methods",
+        "Role Profiles",
+        "Permission Families",
+        "Access Scopes",
+        "Approval Authority",
+        "Segregation of Duties",
+        "Assurance & Step-Up",
+        "Delegated Access",
+        "Support / Break-Glass Access",
+        "Data Sensitivity",
+        "Device Trust",
+        "Security Contexts"
+      ]
+    },
+    {
+      "ordinal": 16,
+      "system_code": "risk_compliance",
+      "display_name": "Risk Compliance",
+      "depth_1_domains": [
+        "Strategic Risk",
+        "Financial Risk",
+        "Operational Risk",
+        "Credit Risk",
+        "Liquidity Risk",
+        "Market Risk",
+        "Fraud Risk",
+        "Cyber Risk",
+        "Supplier Risk",
+        "Business Continuity",
+        "Compliance Obligations",
+        "Control Families",
+        "Monitoring & Assurance",
+        "Insurance & Coverage"
+      ]
+    },
+    {
+      "ordinal": 17,
+      "system_code": "quality_safety",
+      "display_name": "Quality Safety",
+      "depth_1_domains": [
+        "Quality Standards",
+        "Inspections",
+        "Defects",
+        "Non-Conformance",
+        "Corrective / Preventive Actions",
+        "Product Quality",
+        "Service Quality",
+        "Supplier Quality",
+        "Occupational Safety",
+        "Food Safety",
+        "Clinical Safety",
+        "Equipment Safety",
+        "Fire & Emergency",
+        "Hazards",
+        "Protective Measures"
+      ]
+    },
+    {
+      "ordinal": 18,
+      "system_code": "supply_chain",
+      "display_name": "Supply Chain",
+      "depth_1_domains": [
+        "Sourcing",
+        "Procurement",
+        "Purchasing Classes",
+        "Receiving",
+        "Warehousing",
+        "Stocking Models",
+        "Replenishment",
+        "Distribution",
+        "Fulfillment Networks",
+        "Returns",
+        "Reverse Logistics",
+        "Import & Export",
+        "Supply Constraints"
+      ]
+    },
+    {
+      "ordinal": 19,
+      "system_code": "transport_mobility",
+      "display_name": "Transport Mobility",
+      "depth_1_domains": [
+        "Transport Modes",
+        "Fleet Classes",
+        "Routes",
+        "Journeys",
+        "Delivery Modes",
+        "Passenger Transport",
+        "Freight",
+        "Drivers & Operators",
+        "Stops & Hubs",
+        "Mobility Services",
+        "Transport Zones",
+        "Specialized Transport"
+      ]
+    },
+    {
+      "ordinal": 20,
+      "system_code": "production_manufacturing",
+      "display_name": "Production Manufacturing",
+      "depth_1_domains": [
+        "Production Types",
+        "Processes",
+        "Work Centers",
+        "Recipes & Formulas",
+        "Bills of Material",
+        "Inputs",
+        "Outputs",
+        "Batches & Lots",
+        "Production Stages",
+        "Yield",
+        "Waste",
+        "Byproducts",
+        "Packaging",
+        "Production Constraints"
+      ]
+    },
+    {
+      "ordinal": 21,
+      "system_code": "project_portfolio",
+      "display_name": "Project Portfolio",
+      "depth_1_domains": [
+        "Projects",
+        "Programs",
+        "Portfolios",
+        "Initiatives",
+        "Workstreams",
+        "Milestones",
+        "Deliverables",
+        "Dependency Classes",
+        "Project Types",
+        "Funding Classes",
+        "Project Risk",
+        "Project Status Families"
+      ]
+    },
+    {
+      "ordinal": 22,
+      "system_code": "customer_experience",
+      "display_name": "Customer Experience",
+      "depth_1_domains": [
+        "Customer Journeys",
+        "Touchpoints",
+        "Customer Needs",
+        "Feedback",
+        "Complaints",
+        "Satisfaction",
+        "Loyalty",
+        "Engagement",
+        "Recovery",
+        "Retention",
+        "Experience Segments",
+        "Customer Events"
+      ]
+    },
+    {
+      "ordinal": 23,
+      "system_code": "information_documents",
+      "display_name": "Information Documents",
+      "depth_1_domains": [
+        "Document Types",
+        "Forms",
+        "Records",
+        "Agreements",
+        "Financial Documents",
+        "Regulatory Documents",
+        "Certificates & Licenses",
+        "Policies & Procedures",
+        "Operational Documents",
+        "Media & Attachments",
+        "Document Profiles",
+        "Record Classes"
+      ]
+    },
+    {
+      "ordinal": 24,
+      "system_code": "data_information",
+      "display_name": "Data Information",
+      "depth_1_domains": [
+        "Master Data",
+        "Reference Data",
+        "Transaction Data",
+        "Personal Data",
+        "Financial Data",
+        "Operational Data",
+        "Analytical Data",
+        "Sensitive Data",
+        "Data Quality",
+        "Data Retention",
+        "Data Lineage",
+        "Data Sources",
+        "Data Products"
+      ]
+    },
+    {
+      "ordinal": 25,
+      "system_code": "knowledge",
+      "display_name": "Knowledge",
+      "depth_1_domains": [
+        "Knowledge Domains",
+        "Articles",
+        "Procedures",
+        "Guides",
+        "FAQs",
+        "Training Knowledge",
+        "Troubleshooting",
+        "Reference Material",
+        "Best Practices",
+        "Internal Knowledge",
+        "Public Knowledge"
+      ]
+    },
+    {
+      "ordinal": 26,
+      "system_code": "communications",
+      "display_name": "Communications",
+      "depth_1_domains": [
+        "Message Types",
+        "Notification Purposes",
+        "Transactional Messages",
+        "Alerts",
+        "Reminders",
+        "Campaigns",
+        "Audience Types",
+        "Conversation Types",
+        "Delivery Classes",
+        "Escalation Classes",
+        "Communication Purposes"
+      ]
+    },
+    {
+      "ordinal": 27,
+      "system_code": "integrations_providers",
+      "display_name": "Integrations Providers",
+      "depth_1_domains": [
+        "Provider Types",
+        "Connectors",
+        "Payment Rails",
+        "Banking Rails",
+        "APIs",
+        "Webhooks",
+        "Data Sources",
+        "Import & Export",
+        "Synchronization",
+        "External Systems",
+        "Identity Providers",
+        "Communication Providers",
+        "Logistics Providers",
+        "Industry Providers"
+      ]
+    },
+    {
+      "ordinal": 28,
+      "system_code": "analytics_reporting",
+      "display_name": "Analytics Reporting",
+      "depth_1_domains": [
+        "Metrics & KPIs",
+        "Reports",
+        "Dashboards",
+        "Dimensions",
+        "Measures",
+        "Operational Analytics",
+        "Financial Analytics",
+        "Customer Analytics",
+        "Workforce Analytics",
+        "Supply Analytics",
+        "Forecasts",
+        "Alerts & Exceptions",
+        "Audit & Compliance Analytics"
+      ]
+    },
+    {
+      "ordinal": 29,
+      "system_code": "platform_system",
+      "display_name": "Platform System",
+      "depth_1_domains": [
+        "Modules",
+        "Capabilities",
+        "Features",
+        "Services",
+        "APIs",
+        "Events & Commands",
+        "Background Jobs",
+        "Routes & Navigation",
+        "Data Domains",
+        "Runtime Components",
+        "Platform Operations",
+        "Platform Health"
+      ]
+    },
+    {
+      "ordinal": 30,
+      "system_code": "composition_templates",
+      "display_name": "Composition Templates",
+      "depth_1_domains": [
+        "Industry Profiles",
+        "Operating Models",
+        "Packs",
+        "Templates",
+        "Module Sets",
+        "Configuration Profiles",
+        "Workflow Profiles",
+        "Role Profiles",
+        "Document Profiles",
+        "Dashboard & Layout Profiles",
+        "Readiness Profiles",
+        "Composition Families"
+      ]
+    },
+    {
+      "ordinal": 31,
+      "system_code": "governance_policy_configuration",
+      "display_name": "Governance Policy Configuration",
+      "depth_1_domains": [
+        "Governance Frameworks",
+        "Business Rules",
+        "Defaults",
+        "Limits & Quotas",
+        "Thresholds",
+        "Feature Flags",
+        "Operational Policies",
+        "Financial Policies",
+        "Security Policies",
+        "Approval Policies",
+        "Retention Policies",
+        "Numbering & Identifier Policies",
+        "Payment Settings",
+        "Document Settings",
+        "Notification Settings",
+        "Integration Settings",
+        "Location Overrides"
+      ]
+    },
+    {
+      "ordinal": 32,
+      "system_code": "time_calendar",
+      "display_name": "Time Calendar",
+      "depth_1_domains": [
+        "Business Calendars",
+        "Fiscal Calendars",
+        "Operating Days",
+        "Shifts",
+        "Service Windows",
+        "Booking Windows",
+        "Seasons",
+        "Holidays",
+        "Period Types",
+        "Deadlines",
+        "Recurrence Classes",
+        "Time Zones"
+      ]
+    },
+    {
+      "ordinal": 33,
+      "system_code": "measurement_units",
+      "display_name": "Measurement Units",
+      "depth_1_domains": [
+        "Count",
+        "Quantity",
+        "Mass",
+        "Volume",
+        "Length",
+        "Area",
+        "Time",
+        "Temperature",
+        "Energy",
+        "Power",
+        "Packaging Units",
+        "Service Units",
+        "Capacity Units",
+        "Measurement Systems",
+        "Conversion Families"
+      ]
+    },
+    {
+      "ordinal": 34,
+      "system_code": "language_localization",
+      "display_name": "Language Localization",
+      "depth_1_domains": [
+        "Languages",
+        "Locales",
+        "Writing Systems",
+        "Regional Formats",
+        "Number Formats",
+        "Date & Time Formats",
+        "Address Formats",
+        "Name Formats",
+        "Terminology Sets",
+        "Translation Domains",
+        "Localization Profiles"
+      ]
+    },
+    {
+      "ordinal": 35,
+      "system_code": "channels",
+      "display_name": "Channels",
+      "depth_1_domains": [
+        "Physical / In-Person",
+        "Web",
+        "Mobile",
+        "POS",
+        "Kiosk",
+        "Marketplace",
+        "Call Center",
+        "Messaging",
+        "Social",
+        "Agent",
+        "Partner",
+        "API / Machine",
+        "Self-Service"
+      ]
+    },
+    {
+      "ordinal": 36,
+      "system_code": "ai_automation",
+      "display_name": "Ai Automation",
+      "depth_1_domains": [
+        "AI Capabilities",
+        "Agents",
+        "Models",
+        "Automation Types",
+        "Decision Support",
+        "Recommendations",
+        "Extraction",
+        "Classification",
+        "Generation",
+        "Forecasting",
+        "Anomaly Detection",
+        "Human Review",
+        "AI Risk & Assurance"
+      ]
+    },
+    {
+      "ordinal": 37,
+      "system_code": "sustainability_esg",
+      "display_name": "Sustainability Esg",
+      "depth_1_domains": [
+        "Energy",
+        "Emissions",
+        "Water",
+        "Waste",
+        "Materials",
+        "Responsible Sourcing",
+        "Environmental Impact",
+        "Social Impact",
+        "Workforce ESG",
+        "Governance",
+        "Sustainability Objectives",
+        "ESG Reporting"
+      ]
+    },
+    {
+      "ordinal": 38,
+      "system_code": "audit_evidence",
+      "display_name": "Audit Evidence",
+      "depth_1_domains": [
+        "Audit Event Types",
+        "Evidence Types",
+        "Source Evidence",
+        "System Evidence",
+        "User Evidence",
+        "Approvals & Attestations",
+        "Certifications",
+        "Change Evidence",
+        "Reconciliation Evidence",
+        "Control Evidence",
+        "Investigation Evidence",
+        "Chain of Custody"
+      ]
+    },
+    {
+      "ordinal": 39,
+      "system_code": "planning_capacity",
+      "display_name": "Planning Capacity",
+      "depth_1_domains": [
+        "Strategic Plans",
+        "Operating Plans",
+        "Financial Plans",
+        "Workforce Plans",
+        "Procurement Plans",
+        "Production Plans",
+        "Sales & Demand Plans",
+        "Capacity Plans",
+        "Scenarios",
+        "Forecast Horizons",
+        "Demand Classes",
+        "Consumption Classes",
+        "Availability Classes",
+        "Capacity Constraints"
+      ]
+    },
+    {
+      "ordinal": 40,
+      "system_code": "standards_reference",
+      "display_name": "Standards Reference",
+      "depth_1_domains": [
+        "Internal Standards",
+        "Industry Standards",
+        "Accounting Standards",
+        "Product Standards",
+        "Commodity Codes",
+        "Occupation Codes",
+        "Geographic Codes",
+        "Regulatory Schemes",
+        "External Ontologies",
+        "Certification Schemes",
+        "Import & Export Codes",
+        "Identifier Schemes",
+        "Classification Crosswalks"
+      ]
+    }
+  ],
+  "extension_law": "new namespaced taxonomy systems may be added without schema change when they answer a durable independent classification question",
+  "authority_law": "classification describes and connects; it never replaces native domain authority"
+}

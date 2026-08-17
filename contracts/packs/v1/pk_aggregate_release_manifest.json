@@ -63,11 +63,11 @@
     },
     {
       "path": "contracts/packs/v1/pk0123_release_manifest.json",
-      "sha256": "0fd35409278602521f479192bdbeb7cba1a15b8ddcfa228e9ffb09b55622749f"
+      "sha256": "ed4b2896196643bf30159466406fd6c7adaf69ea9028334cca4d1d1115334cf1"
     },
     {
       "path": "contracts/packs/v1/pk456_release_manifest.json",
-      "sha256": "0f31af68cd169f5b577501eebf43ce878b6a4f8691ea18f37975c9b69a786fd5"
+      "sha256": "94b9db1398c57ae208fbdc945ab1291e9bee79e0b1c2170fd94ff95a1eb6de0d"
     }
   ]
 }

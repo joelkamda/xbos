@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "contract": "XBOS_SEMANTIC_CLASSIFICATION_TARGET_VALIDATION",
+  "law": "PC3 classifies references but never owns or dynamically dereferences arbitrary caller-supplied database tables; arbitrary dynamic table lookup is forbidden",
+  "registration": "runtime composition injects an owning-authority validator for each tenant-contextual target_type",
+  "assignment_context": "frozen PC3 classification_assignments remains tenant-contextual; this checkpoint does not invent a fake platform tenant to classify global objects",
+  "tenant_contextual_targets": [
+    {"target_type": "atomic_unit", "owner": "SO1/SO0 adopted Atomic Unit authority", "scope": "tenant", "reference": "public_id"},
+    {"target_type": "party", "owner": "PC2", "scope": "tenant", "reference": "public_id"},
+    {"target_type": "resource", "owner": "SO5", "scope": "tenant", "reference": "public_id"},
+    {"target_type": "tenant", "owner": "PC1", "scope": "self_tenant_context", "reference": "canonical tenant identity"},
+    {"target_type": "report", "owner": "SO9", "scope": "tenant", "reference": "public_id"},
+    {"target_type": "document", "owner": "SO7", "scope": "tenant", "reference": "public_id"}
+  ],
+  "native_global_semantic_reference_targets": [
+    {"target_type": "pack", "owner": "PK", "mechanism": "pack manifest semantic namespace/reference contracts"},
+    {"target_type": "template", "owner": "PK", "mechanism": "PK template industry_semantic_ref and operating_model_semantic_ref"},
+    {"target_type": "taxonomy_system", "owner": "PC3", "mechanism": "taxonomy_system namespace/owner reference"}
+  ],
+  "extension_rule": "new tenant-contextual target types may be composed with an explicit owner and validator without altering the semantic database schema; global-object classification must use its native authority semantic-reference contract unless a later proven need justifies a dedicated global assignment mechanism"
+}
