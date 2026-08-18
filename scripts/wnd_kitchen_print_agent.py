@@ -317,7 +317,11 @@ def main():
                 event=None
                 if a.force_current and first: event="CURRENT QUEUE"
                 elif prev is None: event="NEW ORDER"
-                elif prev!=signature: event="UPDATED ORDER"
+                elif prev!=signature:
+                    state["orders"][key]["signature"]=signature
+                    state["orders"][key]["last_seen_at"]=datetime.now(timezone.utc).isoformat()
+                    event=None
+                    log(f"SUPPRESSED_REPRINT order={order['order_id']} reason=already_printed")
                 if event:
                     job=raw_spool(p["name"],escpos_bon(order,event),f"WND Kitchen Bon #{order['order_id']}")
                     log(f"PRINTED order={order['order_id']} event={event} items={len(order['items'])} job={job} printer={p['name']}")
