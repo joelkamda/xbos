@@ -675,11 +675,37 @@ def resolve_inventory_profile(
     # Stock tracking
     # --------------------------------------------------------
 
+    # Commercial charges can be billable Atomic Units without being physical
+    # stock. Legacy taxonomy placement must not make these stock-tracked.
+    # An explicit track_stock/is_stock_tracked flag remains highest authority.
+    charge_type = _lower(meta.get("charge_type"))
+    revenue_classification = _lower(meta.get("revenue_classification"))
+
+    semantic_non_stock_charge = (
+        charge_type in {
+            "delivery",
+            "delivery_fee",
+            "service_fee",
+            "handling_fee",
+            "commission",
+        }
+        or revenue_classification in {
+            "delivery_fees",
+            "service_fees",
+            "commissions",
+        }
+    )
+
     if explicit_track_stock is not None:
         stock_tracked = bool(explicit_track_stock)
         source = "meta"
+    elif semantic_non_stock_charge:
+        stock_tracked = False
+        inventory_family = FAMILY_NON_INVENTORY
+        source = "meta_semantic_non_stock_charge"
+        warnings.append("NON_STOCK_CHARGE_OVERRIDES_INVENTORY_TAXONOMY")
     else:
-        # Any item under COMMERCE → Inventory is stock-aware by default.
+        # Physical items under COMMERCE → Inventory are stock-aware by default.
         # Services/subscriptions/digital goods outside Inventory become false.
         stock_tracked = candidate is not None
         source = "taxonomy" if candidate else "taxonomy_non_inventory"

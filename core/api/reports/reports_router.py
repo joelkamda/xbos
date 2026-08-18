@@ -5,6 +5,8 @@ from sqlalchemy.orm import Session
 
 from database import get_db
 from core.domain.reports.reports_service import ReportsService
+from core.domain.reports.operational_reports_service import OperationalReportsService
+from core.domain.reports.stock_report_service import StockReportService
 from core.rbac.utils.permission_decorator import require_permissions
 
 
@@ -99,7 +101,7 @@ def _safe_month_key(yyyymm: str) -> str:
 # ============================================================
 
 @router.get("/monthly-summary/{year}")
-@require_permissions("report.view", "report.financial")
+@require_permissions("report.view", "report.financial", "report.finance.view", "report.financial.overview")
 def monthly_summary(
     year: int,
     request: Request,
@@ -153,7 +155,7 @@ def monthly_summary(
 # ============================================================
 
 @router.get("/monthly-statement/{yyyymm}")
-@require_permissions("report.financial", "report.finance.view", "report.financial.overview")
+@require_permissions("report.view", "report.financial", "report.finance.view", "report.financial.overview")
 def monthly_statement(
     yyyymm: str,
     request: Request,
@@ -171,7 +173,7 @@ def monthly_statement(
        Source = OTHER_INCOME + SERVICE_REVENUE treasury logs.
 
     C. COGS
-       Hybrid:
+       Source of truth = explicit treasury/accounting COGS classification.
        - kitchen/manual COGS from treasury COGS classifications,
        - bar/drinks COGS from sold quantity × seeded atomic unit cost.
 
@@ -286,3 +288,110 @@ def statement_drilldown(
         },
         "message": "Drilldown will be implemented after the monthly statement is live.",
     }
+
+# ============================================================
+# TRACK A OPERATIONAL REPORTS - READ ONLY
+# ============================================================
+
+@router.get("/payments")
+@require_permissions(
+    "report.view",
+    "report.financial",
+    "report.finance.view",
+    "report.financial.overview",
+)
+def payments_report(
+    month: str,
+    request: Request,
+    db: Session = Depends(get_db),
+):
+    ctx = _ctx(request)
+    try:
+        return OperationalReportsService.payment_report(
+            db,
+            tenant_id=ctx["tenant_id"],
+            branch_id=ctx["branch_id"],
+            month=month,
+        )
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(exc),
+        )
+
+
+@router.get("/reconciliation")
+@require_permissions(
+    "report.view",
+    "report.financial",
+    "report.finance.view",
+    "report.financial.overview",
+)
+def reconciliation_report(
+    month: str,
+    request: Request,
+    db: Session = Depends(get_db),
+):
+    ctx = _ctx(request)
+    try:
+        return OperationalReportsService.reconciliation_report(
+            db,
+            tenant_id=ctx["tenant_id"],
+            branch_id=ctx["branch_id"],
+            month=month,
+        )
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(exc),
+        )
+
+
+
+@router.get("/stock")
+@require_permissions(
+    "report.view",
+    "report.financial",
+    "report.finance.view",
+    "report.financial.overview",
+)
+def stock_report(
+    start: str,
+    end: str,
+    request: Request,
+    db: Session = Depends(get_db),
+):
+    # Read-only WND Track-A stock-control report.
+    ctx = _ctx(request)
+
+    try:
+        return StockReportService.report(
+            db,
+            tenant_id=ctx["tenant_id"],
+            branch_id=ctx["branch_id"],
+            start_date=start,
+            end_date=end,
+        )
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(exc),
+        )
+
+@router.get("/debt")
+@require_permissions(
+    "report.view",
+    "report.financial",
+    "report.finance.view",
+    "report.financial.overview",
+)
+def debt_report(
+    request: Request,
+    db: Session = Depends(get_db),
+):
+    ctx = _ctx(request)
+    return OperationalReportsService.debt_report(
+        db,
+        tenant_id=ctx["tenant_id"],
+        branch_id=ctx["branch_id"],
+    )

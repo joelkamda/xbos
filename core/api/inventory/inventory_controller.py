@@ -124,6 +124,37 @@ class InventoryController:
 
         return default
 
+    def _mutation_reference_id(self, payload: dict) -> int:
+        # Positive client request id for retry-safe HTTP inventory mutations.
+        # Legacy reference_id remains accepted as a compatibility fallback.
+
+        value = payload.get("request_id")
+
+        if value is None or value == "":
+            value = payload.get("reference_id")
+
+        if value is None or value == "":
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="request_id is required",
+            )
+
+        try:
+            parsed = int(value)
+        except Exception:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="request_id must be an integer",
+            )
+
+        if parsed <= 0:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="request_id must be greater than zero",
+            )
+
+        return parsed
+
     # -------------------------------------------------
     # Serialization
     # -------------------------------------------------
@@ -281,6 +312,12 @@ class InventoryController:
         self,
         request: Request,
         atomic_unit_id: Optional[str],
+        movement_type: Optional[str],
+        reference_type: Optional[str],
+        reference_id: Optional[int],
+        source: Optional[str],
+        limit: int,
+        offset: int,
         db: Session,
     ):
         ctx = self._ctx(request)
@@ -296,19 +333,55 @@ class InventoryController:
                     detail="atomic_unit_id must be an integer",
                 )
 
+        safe_limit = max(1, min(int(limit or 100), 500))
+        safe_offset = max(0, int(offset or 0))
+
         try:
+            filters = {
+                "tenant_id": ctx["tenant_id"],
+                "branch_id": ctx["branch_id"],
+                "atomic_unit_id": parsed_atomic_unit_id,
+                "movement_type": movement_type or None,
+                "reference_type": reference_type or None,
+                "reference_id": reference_id,
+                "source": source or None,
+            }
+
             movements = InventoryRepository.list_movements(
                 db,
-                tenant_id=ctx["tenant_id"],
-                branch_id=ctx["branch_id"],
-                atomic_unit_id=parsed_atomic_unit_id,
-                limit=200,
+                **filters,
+                limit=safe_limit,
+                offset=safe_offset,
             )
 
-            rows = [self._serialize_movement(m) for m in movements]
+            total = InventoryRepository.count_movements(
+                db,
+                **filters,
+            )
+
+            rows = [
+                self._serialize_movement(m)
+                for m in movements
+            ]
+
+            pages = (
+                max(1, (total + safe_limit - 1) // safe_limit)
+                if total
+                else 1
+            )
+
+            page = min(
+                pages,
+                (safe_offset // safe_limit) + 1,
+            )
 
             return {
                 "count": len(rows),
+                "total": total,
+                "limit": safe_limit,
+                "offset": safe_offset,
+                "page": page,
+                "pages": pages,
                 "items": rows,
             }
 
@@ -370,12 +443,7 @@ class InventoryController:
             required=False,
             default=None,
         )
-        reference_id = self._int_payload(
-            payload,
-            "reference_id",
-            required=False,
-            default=None,
-        )
+        reference_id = self._mutation_reference_id(payload)
 
         if quantity is None or quantity <= 0:
             raise HTTPException(
@@ -446,12 +514,7 @@ class InventoryController:
 
         atomic_unit_id = self._int_payload(payload, "atomic_unit_id")
         quantity_delta = self._int_payload(payload, "quantity_delta")
-        reference_id = self._int_payload(
-            payload,
-            "reference_id",
-            required=False,
-            default=None,
-        )
+        reference_id = self._mutation_reference_id(payload)
 
         allow_negative = self._bool_payload(
             payload,
@@ -504,5 +567,80 @@ class InventoryController:
             db.rollback()
             raise APIError(
                 message="Failed to adjust inventory",
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            ) from e
+
+    # -------------------------------------------------
+    # Waste / loss / spoilage
+    # -------------------------------------------------
+
+    async def record_waste_or_loss(
+        self,
+        request: Request,
+        payload: dict,
+        db: Session,
+    ):
+        ctx = self._ctx(request)
+
+        atomic_unit_id = self._int_payload(payload, "atomic_unit_id")
+        quantity = self._int_payload(payload, "quantity")
+        reference_id = self._mutation_reference_id(payload)
+        movement_type = str(payload.get("movement_type") or "waste").strip().lower()
+
+        if movement_type not in {"waste", "loss", "spoilage"}:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="movement_type must be waste, loss, or spoilage",
+            )
+
+        if quantity is None or quantity <= 0:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="quantity must be greater than zero",
+            )
+
+        try:
+            movement = InventoryService.record_waste_or_loss(
+                db,
+                tenant_id=ctx["tenant_id"],
+                branch_id=ctx["branch_id"],
+                atomic_unit_id=atomic_unit_id,
+                quantity=quantity,
+                movement_type=movement_type,
+                source=payload.get("source") or "manual",
+                reference_type=payload.get("reference_type") or movement_type,
+                reference_id=reference_id,
+                allow_negative=self._bool_payload(
+                    payload,
+                    "allow_negative",
+                    default=False,
+                ),
+            )
+
+            db.commit()
+            db.refresh(movement)
+
+            return {
+                "ok": True,
+                "movement": self._serialize_movement(movement),
+                "stock_status": InventoryService.get_stock_status(
+                    db,
+                    tenant_id=ctx["tenant_id"],
+                    branch_id=ctx["branch_id"],
+                    atomic_unit_id=atomic_unit_id,
+                ),
+            }
+
+        except ValueError as e:
+            db.rollback()
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=str(e),
+            )
+
+        except Exception as e:
+            db.rollback()
+            raise APIError(
+                message="Failed to record inventory waste/loss",
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             ) from e
