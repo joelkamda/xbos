@@ -183,6 +183,7 @@ class InventoryRepository:
         reference_id: Optional[int] = None,
         source: Optional[str] = None,
         limit: int = 100,
+        offset: int = 0,
     ) -> List[InventoryMovement]:
         """
         List inventory movements with optional filters.
@@ -229,12 +230,73 @@ class InventoryRepository:
                 InventoryMovement.source == source
             )
 
-        stmt = stmt.order_by(
-            InventoryMovement.created_at.desc(),
-            InventoryMovement.id.desc(),
-        ).limit(limit)
+        safe_limit = max(1, min(int(limit or 100), 500))
+        safe_offset = max(0, int(offset or 0))
+
+        stmt = (
+            stmt.order_by(
+                InventoryMovement.id.desc(),
+                InventoryMovement.created_at.desc(),
+            )
+            .offset(safe_offset)
+            .limit(safe_limit)
+        )
 
         return list(db.execute(stmt).scalars().all())
+
+    @staticmethod
+    def count_movements(
+        db: Session,
+        *,
+        tenant_id: int,
+        branch_id: Optional[int] = None,
+        atomic_unit_id: Optional[int] = None,
+        inventory_item_id: Optional[int] = None,
+        movement_type: Optional[str] = None,
+        reference_type: Optional[str] = None,
+        reference_id: Optional[int] = None,
+        source: Optional[str] = None,
+    ) -> int:
+        stmt = select(func.count(InventoryMovement.id)).where(
+            InventoryMovement.tenant_id == tenant_id
+        )
+
+        if branch_id is not None:
+            stmt = stmt.where(
+                InventoryMovement.branch_id == branch_id
+            )
+
+        if atomic_unit_id is not None:
+            stmt = stmt.where(
+                InventoryMovement.atomic_unit_id == atomic_unit_id
+            )
+
+        if inventory_item_id is not None:
+            stmt = stmt.where(
+                InventoryMovement.inventory_item_id == inventory_item_id
+            )
+
+        if movement_type is not None:
+            stmt = stmt.where(
+                InventoryMovement.movement_type == movement_type
+            )
+
+        if reference_type is not None:
+            stmt = stmt.where(
+                InventoryMovement.reference_type == reference_type
+            )
+
+        if reference_id is not None:
+            stmt = stmt.where(
+                InventoryMovement.reference_id == reference_id
+            )
+
+        if source is not None:
+            stmt = stmt.where(
+                InventoryMovement.source == source
+            )
+
+        return int(db.execute(stmt).scalar_one() or 0)
 
     @staticmethod
     def list_movements_for_reference(

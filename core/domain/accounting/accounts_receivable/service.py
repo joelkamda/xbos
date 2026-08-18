@@ -56,6 +56,17 @@ def _utc_now() -> datetime:
     """
 
     return datetime.now(timezone.utc)
+def _utc_now_naive() -> datetime:
+    """
+    UTC wall-clock for legacy A/R timestamp WITHOUT time zone columns.
+
+    Passing an aware datetime into those columns lets PostgreSQL convert
+    through the session timezone before dropping the offset. Store naive
+    UTC explicitly until Track B migrates these columns to timestamptz.
+    """
+
+    return _utc_now().replace(tzinfo=None)
+
 
 
 def _d(value: Any) -> Decimal:
@@ -235,6 +246,8 @@ class AccountsReceivableService:
 
         now = _utc_now()
 
+        storage_now = _utc_now_naive()
+
         if existing:
             existing.sale_id = sale_id or existing.sale_id
             existing.payment_intent_id = (
@@ -247,7 +260,7 @@ class AccountsReceivableService:
             existing.customer_name = clean_customer_name or existing.customer_name
             existing.customer_phone = clean_customer_phone or existing.customer_phone
             existing.note = note or existing.note
-            existing.updated_at = now
+            existing.updated_at = storage_now
 
             db.add(existing)
             db.flush()
@@ -268,8 +281,8 @@ class AccountsReceivableService:
             balance_due=balance_d,
             status=status,
             created_by_user_id=created_by_user_id,
-            created_at=now,
-            updated_at=now,
+            created_at=storage_now,
+            updated_at=storage_now,
         )
 
         AccountsReceivableRepository.create(db, ar)
@@ -311,7 +324,7 @@ class AccountsReceivableService:
 
         ar.customer_name = clean_name
         ar.customer_phone = _clean_text(customer_phone)
-        ar.updated_at = _utc_now()
+        ar.updated_at = _utc_now_naive()
 
         db.add(ar)
         db.flush()
@@ -484,6 +497,7 @@ class AccountsReceivableService:
             )
 
         now = _utc_now()
+        storage_now = _utc_now_naive()
 
         repayment = AccountsReceivableRepayment(
             tenant_id=tenant_id,
@@ -494,7 +508,7 @@ class AccountsReceivableService:
             reference=clean_reference,
             note=clean_note,
             created_by_user_id=created_by_user_id,
-            created_at=now,
+            created_at=storage_now,
         )
 
         AccountsReceivableRepository.create_repayment(db, repayment)
@@ -553,12 +567,12 @@ class AccountsReceivableService:
 
         if next_balance <= 0:
             ar.status = "settled"
-            ar.settled_at = now
+            ar.settled_at = storage_now
         else:
             ar.status = "partial" if next_paid > 0 else "open"
             ar.settled_at = None
 
-        ar.updated_at = now
+        ar.updated_at = storage_now
         db.add(ar)
 
         # -----------------------------------------------------
