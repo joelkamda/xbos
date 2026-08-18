@@ -291,6 +291,9 @@ class AccountingController:
         end: Optional[str] = None,
         limit: int = 200,
         offset: int = 0,
+        q: Optional[str] = None,
+        channel: Optional[str] = None,
+        event_type: Optional[str] = None,
     ):
         ctx = _ctx(request)
 
@@ -302,6 +305,9 @@ class AccountingController:
             end=_parse_dt(end),
             limit=limit,
             offset=offset,
+            q=q,
+            channel=channel,
+            event_type=event_type,
         )
 
     @staticmethod
@@ -313,6 +319,9 @@ class AccountingController:
         end: Optional[str] = None,
         limit: int = 200,
         offset: int = 0,
+        q: Optional[str] = None,
+        channel: Optional[str] = None,
+        event_type: Optional[str] = None,
     ):
         ctx = _ctx(request)
 
@@ -324,6 +333,9 @@ class AccountingController:
             end=_parse_dt(end),
             limit=limit,
             offset=offset,
+            q=q,
+            channel=channel,
+            event_type=event_type,
         )
 
     @staticmethod
@@ -335,6 +347,9 @@ class AccountingController:
         end: Optional[str] = None,
         limit: int = 200,
         offset: int = 0,
+        q: Optional[str] = None,
+        channel: Optional[str] = None,
+        event_type: Optional[str] = None,
     ):
         ctx = _ctx(request)
 
@@ -346,6 +361,9 @@ class AccountingController:
             end=_parse_dt(end),
             limit=limit,
             offset=offset,
+            q=q,
+            channel=channel,
+            event_type=event_type,
         )
 
     @staticmethod
@@ -357,6 +375,9 @@ class AccountingController:
         end: Optional[str] = None,
         limit: int = 200,
         offset: int = 0,
+        q: Optional[str] = None,
+        channel: Optional[str] = None,
+        event_type: Optional[str] = None,
     ):
         ctx = _ctx(request)
 
@@ -368,6 +389,9 @@ class AccountingController:
             end=_parse_dt(end),
             limit=limit,
             offset=offset,
+            q=q,
+            channel=channel,
+            event_type=event_type,
         )
 
     @staticmethod

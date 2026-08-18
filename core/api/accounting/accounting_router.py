@@ -3,7 +3,7 @@ from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 from sqlalchemy import text
 from typing import Optional, Dict, Any, List
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from zoneinfo import ZoneInfo
 
 from database import get_db
@@ -12,7 +12,7 @@ from core.domain.accounting.repository import (
     CONTROL_RECON_CHANNELS,
     resolve_persisted_actual_closing,
 )
-from core.domain.accounting.models import TreasuryLog
+from core.domain.accounting.models import TreasuryLog, ReconSheet
 from core.domain.accounting.accounting_controller import AccountingController
 from core.domain.accounting.accounts_receivable.service import (
     AccountsReceivableService,
@@ -184,6 +184,11 @@ class ReconClosePayload(BaseModel):
     rows: List[ReconCloseRowPayload]
 
 
+class AccountsReceivableIdentityPayload(BaseModel):
+    customer_name: str = Field(..., min_length=1, max_length=200)
+    customer_phone: Optional[str] = Field(default=None, max_length=80)
+
+
 class AccountsReceivableRepayPayload(BaseModel):
     amount: float = Field(..., gt=0)
     payment_method: str = "cash"
@@ -321,6 +326,45 @@ def _get_owned_treasury_log(
     return log
 
 
+def _assert_event_outside_closed_reconciliation(
+    db: Session,
+    *,
+    tenant_id: int,
+    branch_id: int,
+    occurred_at: Optional[datetime],
+) -> None:
+    """
+    Track A financial-truth guard.
+
+    Manual accounting rows may be edited only while their economic timestamp is
+    outside a closed/approved reconciliation window. Reopened windows are
+    intentionally editable; closed/approved windows are not silently rewritten.
+    """
+    if occurred_at is None:
+        return
+
+    locked = (
+        db.query(ReconSheet)
+        .filter(
+            ReconSheet.tenant_id == tenant_id,
+            ReconSheet.branch_id == branch_id,
+            ReconSheet.status.in_(["closed", "approved"]),
+            ReconSheet.window_start <= occurred_at,
+            ReconSheet.window_end > occurred_at,
+        )
+        .first()
+    )
+
+    if locked:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=(
+                "This accounting event belongs to a closed/reconciled window. "
+                "Reopen that reconciliation window before changing financial history."
+            ),
+        )
+
+
 def _changed_payload(payload: BaseModel) -> Dict[str, Any]:
     return payload.model_dump(exclude_unset=True)
 
@@ -338,6 +382,38 @@ def _time_str(value: Optional[datetime]) -> str:
 
     display_value = _display_dt(value)
     return display_value.strftime("%I:%M %p") if display_value else ""
+
+
+def _parse_ar_date_bound(
+    value: Optional[str],
+    *,
+    inclusive_end_date: bool = False,
+) -> Optional[datetime]:
+    """
+    Parse A/R opened-date filters into naive UTC for the current plain
+    DateTime A/R columns. A YYYY-MM-DD end date is inclusive for that entire
+    Africa/Douala calendar day by converting it to the next local midnight.
+    """
+
+    if not value:
+        return None
+
+    raw = str(value).strip()
+
+    try:
+        if len(raw) == 10 and raw[4] == "-" and raw[7] == "-":
+            local = datetime.fromisoformat(raw).replace(tzinfo=BUSINESS_TZ)
+            if inclusive_end_date:
+                local += timedelta(days=1)
+            return local.astimezone(UTC_TZ).replace(tzinfo=None)
+    except ValueError:
+        pass
+
+    parsed = _parse_dt(raw)
+    if parsed is None:
+        return None
+
+    return parsed.astimezone(UTC_TZ).replace(tzinfo=None)
 
 
 def _iso_utc(value: Optional[datetime]) -> Optional[str]:
@@ -979,57 +1055,117 @@ def _build_commercial_summary(logs) -> Dict[str, Any]:
 # ACCOUNTS / A-R ENDPOINTS
 # ============================================================
 
-@router.get("/accounts/ar")
-@require_permissions("accounting.view")
-def list_accounts_receivable(
+def _list_accounts_receivable_for_context(
+    *,
     request: Request,
-    db: Session = Depends(get_db),
-    limit: int = 200,
+    db: Session,
+    limit: int = 25,
     offset: int = 0,
+    status_filter: str = "active",
+    start: Optional[str] = None,
+    end: Optional[str] = None,
+    q: Optional[str] = None,
 ):
     ctx = request.state.user
 
-    rows = AccountsReceivableService.list_open(
+    safe_limit = min(max(int(limit or 25), 1), 200)
+    safe_offset = max(int(offset or 0), 0)
+    safe_status = str(status_filter or "active").strip().lower()
+
+    if safe_status not in {"active", "open", "partial", "settled", "cancelled", "all"}:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid A/R status filter",
+        )
+
+    start_at = _parse_ar_date_bound(start)
+    end_at = _parse_ar_date_bound(end, inclusive_end_date=True)
+
+    if start_at and end_at and start_at >= end_at:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="A/R start date must be before end date",
+        )
+
+    rows, total_count = AccountsReceivableRepository.list_accounts(
         db,
         tenant_id=ctx["tenant_id"],
         branch_id=ctx["branch_id"],
-        limit=limit,
-        offset=offset,
+        status_filter=safe_status,
+        start_at=start_at,
+        end_at=end_at,
+        search=q,
+        limit=safe_limit,
+        offset=safe_offset,
     )
 
-    items = [
-        _serialize_ar_with_repayments(
-            db,
-            tenant_id=ctx["tenant_id"],
-            branch_id=ctx["branch_id"],
-            ar=row,
-        )
-        for row in rows
-    ]
+    # List rows stay lightweight. Repayment history is loaded only when the
+    # operator expands a specific A/R account through the detail endpoint.
+    items = [AccountsReceivableService.serialize(row) for row in rows]
+
+    aggregate = AccountsReceivableRepository.summarize_accounts(
+        db,
+        tenant_id=ctx["tenant_id"],
+        branch_id=ctx["branch_id"],
+        status_filter=safe_status,
+        start_at=start_at,
+        end_at=end_at,
+        search=q,
+    )
 
     summary = {
-        "open_count": len([r for r in items if r.get("status") == "open"]),
-        "partial_count": len([r for r in items if r.get("status") == "partial"]),
-        "total_original": sum(_f(r.get("original_amount")) for r in items),
-        "total_paid": sum(_f(r.get("paid_amount")) for r in items),
-        "total_balance_due": sum(_f(r.get("balance_due")) for r in items),
+        "account_count": int(aggregate["account_count"]),
+        "open_count": int(aggregate["open_count"]),
+        "partial_count": int(aggregate["partial_count"]),
+        "settled_count": int(aggregate["settled_count"]),
+        "total_original": _f(aggregate["total_original"]),
+        "total_paid": _f(aggregate["total_paid"]),
+        "total_balance_due": _f(aggregate["total_balance_due"]),
     }
 
     return {
-        "limit": limit,
-        "offset": offset,
-        "count": len(items),
+        "limit": safe_limit,
+        "offset": safe_offset,
+        "count": total_count,
+        "page_count": len(items),
+        "status_filter": safe_status,
+        "start": start,
+        "end": end,
+        "q": str(q or "").strip(),
         "summary": summary,
         "items": items,
     }
 
 
-@router.get("/accounts/ar/{ar_id}")
+@router.get("/accounts/ar")
 @require_permissions("accounting.view")
-def get_accounts_receivable(
-    ar_id: int,
+def list_accounts_receivable(
     request: Request,
     db: Session = Depends(get_db),
+    limit: int = 25,
+    offset: int = 0,
+    status_filter: str = "active",
+    start: Optional[str] = None,
+    end: Optional[str] = None,
+    q: Optional[str] = None,
+):
+    return _list_accounts_receivable_for_context(
+        request=request,
+        db=db,
+        limit=limit,
+        offset=offset,
+        status_filter=status_filter,
+        start=start,
+        end=end,
+        q=q,
+    )
+
+
+def _get_accounts_receivable_for_context(
+    *,
+    ar_id: int,
+    request: Request,
+    db: Session,
 ):
     ctx = request.state.user
 
@@ -1052,6 +1188,61 @@ def get_accounts_receivable(
         branch_id=ctx["branch_id"],
         ar=ar,
     )
+
+
+@router.get("/accounts/ar/{ar_id}")
+@require_permissions("accounting.view")
+def get_accounts_receivable(
+    ar_id: int,
+    request: Request,
+    db: Session = Depends(get_db),
+):
+    return _get_accounts_receivable_for_context(
+        ar_id=ar_id,
+        request=request,
+        db=db,
+    )
+
+
+@router.patch("/accounts/ar/{ar_id}/identity")
+@require_permissions("accounting.post")
+def update_accounts_receivable_identity(
+    ar_id: int,
+    payload: AccountsReceivableIdentityPayload,
+    request: Request,
+    db: Session = Depends(get_db),
+):
+    ctx = request.state.user
+
+    try:
+        ar = AccountsReceivableService.update_identity(
+            db,
+            tenant_id=ctx["tenant_id"],
+            branch_id=ctx["branch_id"],
+            ar_id=ar_id,
+            customer_name=payload.customer_name,
+            customer_phone=payload.customer_phone,
+        )
+
+        db.commit()
+        db.refresh(ar)
+
+        return {
+            "ok": True,
+            "account": _serialize_ar_with_repayments(
+                db,
+                tenant_id=ctx["tenant_id"],
+                branch_id=ctx["branch_id"],
+                ar=ar,
+            ),
+        }
+
+    except ValueError as exc:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(exc),
+        )
 
 
 @router.post("/accounts/ar/{ar_id}/repay")
@@ -1228,6 +1419,22 @@ def update_manual_income(
         allowed_event_types={"OTHER_INCOME", "SERVICE_REVENUE"},
     )
 
+    _assert_event_outside_closed_reconciliation(
+        db,
+        tenant_id=ctx["tenant_id"],
+        branch_id=ctx["branch_id"],
+        occurred_at=log.occurred_at,
+    )
+
+    proposed_occurred_at = _payload_occurred_at(patch)
+    if proposed_occurred_at:
+        _assert_event_outside_closed_reconciliation(
+            db,
+            tenant_id=ctx["tenant_id"],
+            branch_id=ctx["branch_id"],
+            occurred_at=proposed_occurred_at,
+        )
+
     meta = dict(log.meta or {})
 
     if "amount" in patch:
@@ -1239,7 +1446,7 @@ def update_manual_income(
     if "channel" in patch and patch.get("channel"):
         log.channel = _safe_settlement_channel(patch.get("channel"))
 
-    occurred_at = _payload_occurred_at(patch)
+    occurred_at = proposed_occurred_at
     if occurred_at:
         log.occurred_at = occurred_at
         meta["business_date"] = patch.get("business_date")
@@ -1356,6 +1563,22 @@ def update_expense(
         allowed_event_types={"EXPENSE_POSTED"},
     )
 
+    _assert_event_outside_closed_reconciliation(
+        db,
+        tenant_id=ctx["tenant_id"],
+        branch_id=ctx["branch_id"],
+        occurred_at=log.occurred_at,
+    )
+
+    proposed_occurred_at = _payload_occurred_at(patch)
+    if proposed_occurred_at:
+        _assert_event_outside_closed_reconciliation(
+            db,
+            tenant_id=ctx["tenant_id"],
+            branch_id=ctx["branch_id"],
+            occurred_at=proposed_occurred_at,
+        )
+
     meta = dict(log.meta or {})
 
     if "amount" in patch:
@@ -1367,7 +1590,7 @@ def update_expense(
     if "channel" in patch and patch.get("channel"):
         log.channel = _safe_settlement_channel(patch.get("channel"))
 
-    occurred_at = _payload_occurred_at(patch)
+    occurred_at = proposed_occurred_at
     if occurred_at:
         log.occurred_at = occurred_at
         meta["business_date"] = patch.get("business_date")
@@ -1485,6 +1708,22 @@ def update_cash_movement(
         allowed_event_types={"CASH_MOVE"},
     )
 
+    _assert_event_outside_closed_reconciliation(
+        db,
+        tenant_id=ctx["tenant_id"],
+        branch_id=ctx["branch_id"],
+        occurred_at=log.occurred_at,
+    )
+
+    proposed_occurred_at = _payload_occurred_at(patch)
+    if proposed_occurred_at:
+        _assert_event_outside_closed_reconciliation(
+            db,
+            tenant_id=ctx["tenant_id"],
+            branch_id=ctx["branch_id"],
+            occurred_at=proposed_occurred_at,
+        )
+
     meta = dict(log.meta or {})
 
     if "amount" in patch:
@@ -1513,7 +1752,7 @@ def update_cash_movement(
             detail="source_channel and target_channel must be different",
         )
 
-    occurred_at = _payload_occurred_at(patch)
+    occurred_at = proposed_occurred_at
     if occurred_at:
         log.occurred_at = occurred_at
         meta["business_date"] = patch.get("business_date")
@@ -1552,32 +1791,29 @@ def get_treasury_feed(
     offset: int = 0,
     start: Optional[str] = None,
     end: Optional[str] = None,
+    q: Optional[str] = None,
+    channel: Optional[str] = None,
+    event_type: Optional[str] = None,
 ):
-    ctx = request.state.user
-    start_dt = _parse_dt(start)
-    end_dt = _parse_dt(end)
-
-    logs = TreasuryRepository.list_logs(
-        db,
-        tenant_id=ctx["tenant_id"],
-        branch_id=ctx["branch_id"],
-        start=start_dt,
-        end=end_dt,
+    payload = AccountingController.daily(
+        request=request,
+        db=db,
+        start=start,
+        end=end,
         limit=limit,
         offset=offset,
+        q=q,
+        channel=channel,
+        event_type=event_type,
     )
 
-    items = [_serialize_log(log) for log in logs]
-
     return {
-        "limit": limit,
-        "offset": offset,
-        "count": len(items),
-        "items": items,
-        "window_start": _iso_utc(start_dt),
-        "window_end": _iso_utc(end_dt),
-        "window_start_business": _iso_business(start_dt),
-        "window_end_business": _iso_business(end_dt),
+        "limit": payload.get("limit", limit),
+        "offset": payload.get("offset", offset),
+        "count": payload.get("count", 0),
+        "items": payload.get("rows", []),
+        "summary": payload.get("summary", {}),
+        "has_more": payload.get("has_more", False),
         "business_timezone": BUSINESS_TIMEZONE_NAME,
     }
 
@@ -1643,56 +1879,27 @@ def get_attempt_financials(
 def accounting_daily(
     request: Request,
     db: Session = Depends(get_db),
-    limit: int = 1000,
+    limit: int = 50,
     offset: int = 0,
     start: Optional[str] = None,
     end: Optional[str] = None,
+    q: Optional[str] = None,
+    channel: Optional[str] = None,
+    event_type: Optional[str] = None,
 ):
-    ctx = request.state.user
-    start_dt = _parse_dt(start)
-    end_dt = _parse_dt(end)
-
-    logs = TreasuryRepository.list_logs(
-        db,
-        tenant_id=ctx["tenant_id"],
-        branch_id=ctx["branch_id"],
-        start=start_dt,
-        end=end_dt,
+    payload = AccountingController.daily(
+        request=request,
+        db=db,
+        start=start,
+        end=end,
         limit=limit,
         offset=offset,
+        q=q,
+        channel=channel,
+        event_type=event_type,
     )
-
-    rows = [_serialize_log(log) for log in logs]
-
-    income = sum(
-        abs(_f(row.get("amount")))
-        for row in rows
-        if row.get("type") == "income"
-    )
-
-    expense = sum(
-        abs(_f(row.get("amount")))
-        for row in rows
-        if row.get("type") == "expense"
-    )
-
-    return {
-        "summary": {
-            "income": income,
-            "expense": expense,
-            "net": income - expense,
-            "rows": len(rows),
-            "events": len(rows),
-        },
-        "rows": rows,
-        "window_start": _iso_utc(start_dt),
-        "window_end": _iso_utc(end_dt),
-        "window_start_business": _iso_business(start_dt),
-        "window_end_business": _iso_business(end_dt),
-        "business_timezone": BUSINESS_TIMEZONE_NAME,
-        "limit": limit,
-        "offset": offset,
-    }
+    payload["business_timezone"] = BUSINESS_TIMEZONE_NAME
+    return payload
 
 
 # ============================================================
@@ -1708,6 +1915,9 @@ def accounting_income(
     offset: int = 0,
     start: Optional[str] = None,
     end: Optional[str] = None,
+    q: Optional[str] = None,
+    channel: Optional[str] = None,
+    event_type: Optional[str] = None,
 ):
     return AccountingController.income(
         request=request,
@@ -1716,6 +1926,9 @@ def accounting_income(
         end=end,
         limit=limit,
         offset=offset,
+        q=q,
+        channel=channel,
+        event_type=event_type,
     )
 
 
@@ -1732,6 +1945,9 @@ def accounting_expenses(
     offset: int = 0,
     start: Optional[str] = None,
     end: Optional[str] = None,
+    q: Optional[str] = None,
+    channel: Optional[str] = None,
+    event_type: Optional[str] = None,
 ):
     return AccountingController.expenses(
         request=request,
@@ -1740,6 +1956,9 @@ def accounting_expenses(
         end=end,
         limit=limit,
         offset=offset,
+        q=q,
+        channel=channel,
+        event_type=event_type,
     )
 
 
@@ -1756,6 +1975,9 @@ def accounting_cash_movements(
     offset: int = 0,
     start: Optional[str] = None,
     end: Optional[str] = None,
+    q: Optional[str] = None,
+    channel: Optional[str] = None,
+    event_type: Optional[str] = None,
 ):
     return AccountingController.cash_moves(
         request=request,
@@ -1764,6 +1986,9 @@ def accounting_cash_movements(
         end=end,
         limit=limit,
         offset=offset,
+        q=q,
+        channel=channel,
+        event_type=event_type,
     )
 
 

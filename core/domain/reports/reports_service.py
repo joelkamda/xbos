@@ -381,9 +381,87 @@ class ReportsService:
             atomic_paths=atomic_paths,
         )
 
-        sales_total = sum((_d(log.amount) for log in sales_logs), Decimal("0"))
+        # Track A compatibility rule:
+        # Historical/manual Revenue -> Product Sales entries were emitted as
+        # OTHER_INCOME even though their stored FINANCE taxonomy correctly says
+        # Product Sales. Reporting honors the economic taxonomy without rewriting
+        # treasury history or inventing POS Sale records.
+        manual_income_logs = ReportsService._treasury_logs(
+            db,
+            tenant_id=tenant_id,
+            branch_id=branch_id,
+            start=start,
+            end=end,
+            event_types=["OTHER_INCOME", "SERVICE_REVENUE"],
+        )
+        manual_product_sales_logs = [
+            log
+            for log in manual_income_logs
+            if str(_meta(log).get("category_name") or "").strip().casefold()
+            == "product sales"
+        ]
 
-        if sales_total != sales_detail_total:
+        manual_product_sales_by_subcategory: Dict[str, Decimal] = {}
+        for log in manual_product_sales_logs:
+            meta = _meta(log)
+            subcategory = (
+                meta.get("subcategory_name")
+                or meta.get("item_name")
+                or "Unclassified Product Sales"
+            )
+            key = str(subcategory)
+            manual_product_sales_by_subcategory[key] = (
+                manual_product_sales_by_subcategory.get(key, Decimal("0"))
+                + _d(log.amount)
+            )
+
+        manual_product_sales_total = sum(
+            manual_product_sales_by_subcategory.values(),
+            Decimal("0"),
+        )
+
+        if manual_product_sales_total:
+            manual_children = [
+                {
+                    "key": f"sales:manual-product-sales:{subcategory}",
+                    "label": subcategory,
+                    "amount": _f(amount),
+                    "source": "treasury_logs",
+                    "meta": {
+                        "source_model": "manual_product_sales",
+                        "category_name": "Product Sales",
+                        "subcategory_name": subcategory,
+                        "sale_created": False,
+                    },
+                    "children": [],
+                }
+                for subcategory, amount in sorted(
+                    manual_product_sales_by_subcategory.items()
+                )
+            ]
+
+            sales_section.append(
+                {
+                    "key": "sales:manual-product-sales",
+                    "label": "Manual / Backfill Product Sales",
+                    "amount": _f(manual_product_sales_total),
+                    "source": "treasury_logs",
+                    "meta": {
+                        "source_model": "manual_product_sales",
+                        "category_name": "Product Sales",
+                        "sale_created": False,
+                    },
+                    "children": manual_children,
+                }
+            )
+
+        system_sales_total = sum(
+            (_d(log.amount) for log in sales_logs),
+            Decimal("0"),
+        )
+        sales_total = system_sales_total + manual_product_sales_total
+
+        if system_sales_total != sales_detail_total:
             warnings.append(
                 {
                     "code": "SALES_TOTAL_MISMATCH",
@@ -391,7 +469,7 @@ class ReportsService:
                         "SALE_REVENUE_GROSS total differs from SaleItem grouped total. "
                         "Statement uses treasury gross as the financial source of truth."
                     ),
-                    "treasury_total": _f(sales_total),
+                    "treasury_total": _f(system_sales_total),
                     "sale_item_total": _f(sales_detail_total),
                     "difference": _f(sales_total - sales_detail_total),
                 }
@@ -443,8 +521,11 @@ class ReportsService:
             end=end,
         )
 
-        gross_profit = sales_total + other_income_total - cogs_total
-        net_profit = gross_profit - opex_total
+        # Gross profit is trading margin: sales less COGS.
+        # Other income is below gross profit and is included before operating
+        # expenses when calculating net profit.
+        gross_profit = sales_total - cogs_total
+        net_profit = gross_profit + other_income_total - opex_total
 
         return {
             "month": yyyymm,
@@ -762,10 +843,15 @@ class ReportsService:
         total = Decimal("0")
 
         for log in logs:
+            m = _meta(log)
+
+            # Revenue -> Product Sales is economically Sales Revenue even when
+            # legacy/manual posting stored event_type=OTHER_INCOME.
+            if str(m.get("category_name") or "").strip().casefold() == "product sales":
+                continue
+
             amount = _d(log.amount)
             total += amount
-
-            m = _meta(log)
 
             category = (
                 m.get("category_name")
