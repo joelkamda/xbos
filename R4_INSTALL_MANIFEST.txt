@@ -1,0 +1,12 @@
+XBOS R4 — Restaurant Pack Registration
+
+Install cumulatively over accepted R3 source commit 64fa78ef9df34a263ebfff449839bbeca477aac7.
+
+R4 migration: NONE.
+Canonical database head remains r2_restaurant_menu_fulfillment_043.
+
+R4 registers and certifies the neutral Restaurant industry pack through existing PK public authorities only.
+No tenant pack installation, template application, WND cutover, Finance writer, SO writer, or schema change is authorized.
+
+Run: XBOS_R4_RUN_ACCEPTANCE.cmd
+Success: R4_SINGLE_GATE=PASS

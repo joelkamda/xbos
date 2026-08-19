@@ -1,0 +1,111 @@
+{
+  "schema_version": 1,
+  "contract": "XBOS_R4_RESTAURANT_PACK_REGISTRATION_RELEASE_MANIFEST",
+  "source_checkpoint": "64fa78ef9df34a263ebfff449839bbeca477aac7",
+  "source_archive_sha256": "5bc1b85479db5d45becb4555cdacf1c22a8683acf9588c4ab0578819484a1271",
+  "source_archive_size": 6109884,
+  "previous_head": "r2_restaurant_menu_fulfillment_043",
+  "accepted_head": "r2_restaurant_menu_fulfillment_043",
+  "migration_count": 0,
+  "operator_gate": "XBOS_R4_RUN_ACCEPTANCE.cmd",
+  "success_marker": "R4_SINGLE_GATE=PASS",
+  "runtime_change": "RESTAURANT_PACK_R4_PK_COMPOSITION_ONLY",
+  "database_change": "GLOBAL_PK_PACK_VERSION_AND_CERTIFICATION_DATA_ONLY_NO_SCHEMA_CHANGE",
+  "finance": "UNCHANGED",
+  "shared_operations_authority": "UNCHANGED",
+  "platform_core_business_authority": "UNCHANGED",
+  "pack_platform_business_authority": "UNCHANGED; existing public authority consumed only",
+  "platform_admin_business_authority": "UNCHANGED",
+  "r1_restaurant_authority": "UNCHANGED",
+  "r2_restaurant_authority": "UNCHANGED",
+  "r3_restaurant_authority": "UNCHANGED",
+  "wnd_production": "UNCHANGED",
+  "tenant_installation": "NONE",
+  "template_application": "NONE",
+  "historical_release_manifests_rewritten": false,
+  "artifact_count": 16,
+  "hashing": "sha256; text canonicalization CRLF->LF only",
+  "self_excluded": true,
+  "artifacts": [
+    {
+      "path": "R4_INSTALL_MANIFEST.txt",
+      "sha256": "11790e7226007370caae600b129261bbb901a8a4766e14a6bcd8d8b2c19e911c",
+      "size": 520
+    },
+    {
+      "path": "XBOS_R4_INSTALL_AND_VERIFY.txt",
+      "sha256": "b2bb9a4e8294e9816d713d59325c7dc6bfbc99f36ac598664a3d62aa50ed4121",
+      "size": 601
+    },
+    {
+      "path": "XBOS_R4_RUN_ACCEPTANCE.cmd",
+      "sha256": "09cb2c4255ec05d131d983af918dcef794e710e3e6eed010011ab46593839231",
+      "size": 3028
+    },
+    {
+      "path": "contracts/restaurant/v1/r4_pack_registration_authority.json",
+      "sha256": "4241ecd4cd69bd0f22c561e357f426a893e4ef4374da2e0a6da1335ee4a28be7",
+      "size": 1697
+    },
+    {
+      "path": "contracts/restaurant/v1/r4_pk_conformance.json",
+      "sha256": "6dc15d79ecde458246d37632d7b98bab884dc014304c2180a77eb1da39b6942b",
+      "size": 1212
+    },
+    {
+      "path": "contracts/restaurant/v1/r4_public_interfaces.json",
+      "sha256": "9ab08151f4dfed6ccf1a14ce32d5577595191ad9ec13613b47e794304ec85bdb",
+      "size": 944
+    },
+    {
+      "path": "contracts/restaurant/v1/r4_r5_readiness.json",
+      "sha256": "435a3b4f3ae2fc8e1ebbcc7af7e2dc86a9f233a8fb9f77a77215338ab444e761",
+      "size": 1100
+    },
+    {
+      "path": "contracts/restaurant/v1/r4_restaurant_pack_manifest.json",
+      "sha256": "16fb7616c7576a80ff97a39251a105848c4437ef2819c8dfb3038cd650233c05",
+      "size": 4595
+    },
+    {
+      "path": "contracts/restaurant/v1/r4_semantic_configuration_contributions.json",
+      "sha256": "abebb74de1351a015db27eb41ceff567e23d3dc79882f86c0a15b70e40308489",
+      "size": 2017
+    },
+    {
+      "path": "docs/restaurant/R4_RESTAURANT_PACK_REGISTRATION.md",
+      "sha256": "88995e4bd6e9a77861c308fcdf5aaf598a99992fe0d5a6463996a886c63c24cd",
+      "size": 2271
+    },
+    {
+      "path": "docs/restaurant/adr/0005_R4_RESTAURANT_PACK_REGISTRATION_BOUNDARY.md",
+      "sha256": "cda73fb76b608ab72e4dd96d701ea02cd0a346b764ff33c6eafdc8c1a6d1c522",
+      "size": 876
+    },
+    {
+      "path": "restaurant/r4/__init__.py",
+      "sha256": "a6d37f5d51a20a5ae871a545f2f5b97b59e269e80cdb94b877de033b69ff0101",
+      "size": 335
+    },
+    {
+      "path": "restaurant/r4/contracts.py",
+      "sha256": "a1b585bafdcc7fb83a5f12175050d1b833973fb89ff46131cd4f31f0f990af11",
+      "size": 1589
+    },
+    {
+      "path": "restaurant/r4/service.py",
+      "sha256": "15bd93d138b34e643c83d86ef44ddbd77de197038399da2b2d2ec9960554de68",
+      "size": 8567
+    },
+    {
+      "path": "scripts/verify_r4_restaurant_pack_registration.py",
+      "sha256": "dd8d497d8001d4be6590df4d0081a75d94d11a7b0124480c0a9f78e9c9051e6c",
+      "size": 12951
+    },
+    {
+      "path": "tests/contracts/test_r4_restaurant_pack_registration.py",
+      "sha256": "bf64e0549366c0c605670fad1accade1b2a541d737fb8703fe5565d6ad949035",
+      "size": 5797
+    }
+  ]
+}

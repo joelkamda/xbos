@@ -1,0 +1,44 @@
+{
+  "schema_version": 1,
+  "contract": "R4_RESTAURANT_PACK_REGISTRATION_AUTHORITY",
+  "source_checkpoint": "64fa78ef9df34a263ebfff449839bbeca477aac7",
+  "previous_head": "r2_restaurant_menu_fulfillment_043",
+  "accepted_head": "r2_restaurant_menu_fulfillment_043",
+  "migration": "NONE",
+  "pack_code": "industry.restaurant",
+  "pack_version": "1.0.0",
+  "pack_kind": "industry",
+  "registration_owner": "PK",
+  "certification_owner": "PK",
+  "restaurant_role": "public command producer/orchestrator only",
+  "registration": {
+    "global_pack_version": true,
+    "tenant_installation": false,
+    "tenant_activation": false,
+    "template_registration": false,
+    "template_application": false,
+    "wnd_cutover": false
+  },
+  "authority_boundaries": {
+    "pc3": "semantic contribution declaration/reference only",
+    "pc4": "configuration declaration only",
+    "pc5": "permission reference only",
+    "so1": "catalog authority unchanged",
+    "so3": "inventory authority unchanged",
+    "so5": "resource authority unchanged",
+    "so8": "delivery authority unchanged",
+    "so9": "report authority unchanged",
+    "so10": "scheduling authority unchanged",
+    "finance": "Neutral Finance remains sole financial truth writer",
+    "xa": "composition metadata only",
+    "pk": "sole pack registry/lifecycle/certification writer"
+  },
+  "database": {
+    "schema_change": "NONE",
+    "r4_tables": [],
+    "expected_head": "r2_restaurant_menu_fulfillment_043",
+    "allowed_data_change": "global PK pack-version + certification rows only"
+  },
+  "wnd_specimen_not_standard": true,
+  "r5_scope_reserved": "Restaurant template definition plus WND tenant/template proof; no R4 tenant activation"
+}

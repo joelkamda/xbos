@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "contract": "R4_RESTAURANT_SEMANTIC_CONFIGURATION_CONTRIBUTIONS",
+  "semantic_contribution": {
+    "namespace_code": "restaurant",
+    "scope": "pack",
+    "source_key": "industry.restaurant@1.0.0",
+    "owner": "PC3",
+    "closed_value_sets": false,
+    "taxonomy_systems": [
+      "restaurant.charge_nature",
+      "restaurant.course",
+      "restaurant.fulfillment_station",
+      "restaurant.service_mode"
+    ],
+    "law": [
+      "Restaurant pack contributes through PC3 public authority",
+      "tenant overlays remain tenant deltas",
+      "templates reference/select semantics but do not own semantic identity",
+      "service modes and courses remain extensible rather than closed to WND vocabulary"
+    ]
+  },
+  "configuration": {
+    "owner": "PC4",
+    "default_policy": "template_or_tenant_required",
+    "keys": [
+      "restaurant.fulfillment.course_firing.enabled",
+      "restaurant.fulfillment.output_delivery.enabled",
+      "restaurant.fulfillment.station_routing.enabled",
+      "restaurant.reservations.enabled",
+      "restaurant.service_modes.enabled",
+      "restaurant.tables.enabled",
+      "restaurant.tips.enabled",
+      "restaurant.commissions.enabled"
+    ],
+    "industry_wide_hardcoded_defaults": false,
+    "wnd_literals": false
+  },
+  "permission_references": {
+    "owner": "PC5",
+    "registered_by_r4": false,
+    "references": [
+      "restaurant.configuration.pack.manage",
+      "restaurant.finance.report.view",
+      "restaurant.fulfillment.recipe.manage",
+      "restaurant.fulfillment.ticket.manage",
+      "restaurant.service.order.create",
+      "restaurant.service.order.manage",
+      "restaurant.service.session.manage"
+    ]
+  },
+  "experience": {
+    "owner": "XA",
+    "frontend_implemented": false,
+    "composition_engine_implemented": false,
+    "tables_required": false,
+    "workspace_slots": [
+      "restaurant.service",
+      "restaurant.fulfillment",
+      "restaurant.reporting",
+      "restaurant.configuration"
+    ]
+  }
+}

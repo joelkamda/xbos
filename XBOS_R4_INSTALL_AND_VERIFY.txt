@@ -1,0 +1,9 @@
+XBOS R4 RESTAURANT PACK REGISTRATION
+
+1. Confirm current branch is restaurant/r4-pack-registration.
+2. Expand this revision ZIP into repository root with -Force.
+3. Do not manually change PostgreSQL. R4 has no migration.
+4. Run XBOS_R4_RUN_ACCEPTANCE.cmd from repository root.
+5. The gate rehearses registration/certification in a disposable local PostgreSQL database, then adopts only the global Restaurant pack version and certification in xbos_track_b_dev.
+6. No tenant installation, activation, template, or WND cutover is performed.
+7. Stop only at R4_SINGLE_GATE=PASS or first concrete failure.

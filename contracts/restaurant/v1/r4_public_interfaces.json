@@ -1,0 +1,32 @@
+{
+  "schema_version": 1,
+  "module_code": "R4",
+  "public_package": "restaurant.r4",
+  "private_package": null,
+  "http_routes_added": [],
+  "public": [
+    "build_restaurant_pack_manifest",
+    "build_registration_command",
+    "build_certification_command",
+    "build_registration_plan",
+    "plan_fingerprint",
+    "RestaurantPackRegistration.register",
+    "RestaurantPackRegistration.certify",
+    "RestaurantPackRegistrationPlan",
+    "RestaurantSemanticContribution",
+    "RestaurantConfigurationDeclaration",
+    "RestaurantExperienceMetadata"
+  ],
+  "writers": {
+    "pack_registry": "PK public authority only",
+    "pack_certification": "PK public authority only",
+    "tenant_installation": "NONE",
+    "template": "NONE",
+    "finance": "NONE",
+    "shared_operations": "NONE",
+    "semantics": "NONE direct",
+    "configuration": "NONE direct",
+    "permissions": "NONE direct"
+  },
+  "cross_module_private_access": "FORBIDDEN"
+}

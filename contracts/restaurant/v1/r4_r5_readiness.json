@@ -1,0 +1,32 @@
+{
+  "schema_version": 1,
+  "contract": "R4_R5_READINESS",
+  "provides": [
+    "immutable Restaurant industry-pack manifest",
+    "PK0-PK3 registration command",
+    "PK4 certification command and evidence chain",
+    "Restaurant pack semantic contribution declaration",
+    "PC4 configuration key declaration",
+    "PC5 permission references",
+    "XA composition metadata",
+    "global pack registration without tenant installation"
+  ],
+  "r5_may_add": [
+    "Restaurant template version(s)",
+    "operating-model template variants",
+    "WND tenant/template mapping proof",
+    "explicit WND overrides",
+    "tenant pack stage/install/activate through PK lifecycle",
+    "semantic selection/overlay plans through PC3/SC41",
+    "PC4 effective configuration plan"
+  ],
+  "r5_must_not_add": [
+    "WND source-code assumptions to Restaurant core",
+    "parallel Finance authority",
+    "parallel SO1/SO3/SO5/SO8/SO9/SO10 authority",
+    "silent template mutation",
+    "tenant activation without explicit PK lifecycle",
+    "R6 production cutover"
+  ],
+  "status": "READY_WHEN_R4_SINGLE_GATE_PASS"
+}

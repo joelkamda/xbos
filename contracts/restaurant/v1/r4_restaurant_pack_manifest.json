@@ -1,0 +1,149 @@
+{
+  "schema_version": 1,
+  "contract": "R4_RESTAURANT_PACK_MANIFEST",
+  "pack_code": "industry.restaurant",
+  "version": "1.0.0",
+  "owner_code": "restaurant",
+  "kind": "industry",
+  "kernel_min": "1.0.0",
+  "required_modules": [
+    "catalog",
+    "finance",
+    "inventory",
+    "operating_context",
+    "party",
+    "resources",
+    "security_authority",
+    "semantics"
+  ],
+  "optional_modules": [
+    "communications",
+    "documents",
+    "reports",
+    "scheduling"
+  ],
+  "permission_references": [
+    "restaurant.configuration.pack.manage",
+    "restaurant.finance.report.view",
+    "restaurant.fulfillment.recipe.manage",
+    "restaurant.fulfillment.ticket.manage",
+    "restaurant.service.order.create",
+    "restaurant.service.order.manage",
+    "restaurant.service.session.manage"
+  ],
+  "semantic_namespaces": [
+    "restaurant"
+  ],
+  "configuration_keys": [
+    "restaurant.fulfillment.course_firing.enabled",
+    "restaurant.fulfillment.output_delivery.enabled",
+    "restaurant.fulfillment.station_routing.enabled",
+    "restaurant.reservations.enabled",
+    "restaurant.service_modes.enabled",
+    "restaurant.tables.enabled",
+    "restaurant.tips.enabled",
+    "restaurant.commissions.enabled"
+  ],
+  "connectors": [],
+  "finance_conformance_profile": "restaurant.r3.financial_semantics.v1",
+  "retention_required": true,
+  "xa": {
+    "profile_family": "restaurant",
+    "workspace_slots": [
+      "restaurant.service",
+      "restaurant.fulfillment",
+      "restaurant.reporting",
+      "restaurant.configuration"
+    ],
+    "navigation_candidates": [
+      "restaurant.orders",
+      "restaurant.tables_sessions",
+      "restaurant.fulfillment",
+      "restaurant.reports",
+      "restaurant.settings"
+    ],
+    "frontend_implemented": false,
+    "composition_engine_implemented": false,
+    "tables_required": false,
+    "wnd_profile_is_standard": false
+  },
+  "dependencies": [],
+  "extensions": [
+    {
+      "extension_code": "restaurant.semantics",
+      "kind": "semantics",
+      "target_authority": "PC3",
+      "public_interface": "core.platform.semantics.SemanticAuthority",
+      "declaration": {
+        "namespace_code": "restaurant",
+        "scope": "pack",
+        "source_key": "industry.restaurant@1.0.0",
+        "taxonomy_systems": [
+          "restaurant.charge_nature",
+          "restaurant.course",
+          "restaurant.fulfillment_station",
+          "restaurant.service_mode"
+        ],
+        "closed_value_sets": false,
+        "law": "pack_contributes_semantics_via_pc3; values remain open and governed"
+      }
+    },
+    {
+      "extension_code": "restaurant.configuration",
+      "kind": "configuration",
+      "target_authority": "PC4",
+      "public_interface": "core.platform.operating_context.OperatingContextAuthority",
+      "declaration": {
+        "keys": [
+          "restaurant.fulfillment.course_firing.enabled",
+          "restaurant.fulfillment.output_delivery.enabled",
+          "restaurant.fulfillment.station_routing.enabled",
+          "restaurant.reservations.enabled",
+          "restaurant.service_modes.enabled",
+          "restaurant.tables.enabled",
+          "restaurant.tips.enabled",
+          "restaurant.commissions.enabled"
+        ],
+        "default_policy": "template_or_tenant_required",
+        "writes_pc4_directly": false
+      }
+    },
+    {
+      "extension_code": "restaurant.finance_conformance",
+      "kind": "finance_conformance",
+      "target_authority": "Neutral Finance",
+      "public_interface": "core.domain.finance.pack_conformance_service.evaluate_pack",
+      "declaration": {
+        "profile_reference": "restaurant.r3.financial_semantics.v1",
+        "writer_routing": "unchanged",
+        "financial_truth_owner": "Neutral Finance",
+        "restaurant_finance_writer": false
+      }
+    },
+    {
+      "extension_code": "restaurant.navigation",
+      "kind": "navigation",
+      "target_authority": "XA",
+      "public_interface": "experience_contracts.validate_experience",
+      "declaration": {
+        "profile_family": "restaurant",
+        "workspace_slots": [
+          "restaurant.service",
+          "restaurant.fulfillment",
+          "restaurant.reporting",
+          "restaurant.configuration"
+        ],
+        "navigation_candidates": [
+          "restaurant.orders",
+          "restaurant.tables_sessions",
+          "restaurant.fulfillment",
+          "restaurant.reports",
+          "restaurant.settings"
+        ],
+        "frontend_implemented": false,
+        "composition_engine_implemented": false,
+        "tables_required": false
+      }
+    }
+  ]
+}

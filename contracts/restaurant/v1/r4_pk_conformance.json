@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "contract": "R4_PK_CONFORMANCE",
+  "pack_code": "industry.restaurant",
+  "pack_version": "1.0.0",
+  "certification_code": "restaurant.r4.conformance",
+  "suite_version": "1.0.0",
+  "required_checks": [
+    "architecture",
+    "tenant_isolation",
+    "migration_compatibility",
+    "authorization",
+    "semantics",
+    "finance",
+    "shared_operations",
+    "xa",
+    "manifest"
+  ],
+  "evidence_paths": [
+    "contracts/restaurant/v1/r0_release_manifest.json",
+    "contracts/restaurant/v1/r1_release_manifest.json",
+    "contracts/restaurant/v1/r2_release_manifest.json",
+    "contracts/restaurant/v1/r3_release_manifest.json",
+    "contracts/packs/v1/pk_aggregate_release_manifest.json",
+    "contracts/platform/v1/sc41_semantic_classification_hardening.json",
+    "contracts/experience/v1/xa_release_manifest.json"
+  ],
+  "registration_path": "pack_platform.PackAuthority.register(RegisterPackVersion)",
+  "certification_path": "pack_platform.pk456_service.PK456Authority.certify(CertifyPackVersion)",
+  "direct_pk_table_write": false,
+  "direct_finance_write": false,
+  "direct_shared_operations_write": false,
+  "tenant_installation": "NONE",
+  "template_application": "NONE"
+}
