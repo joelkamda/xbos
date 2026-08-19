@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "module_code": "R3",
+  "public_package": "restaurant.r3",
+  "private_package": null,
+  "http_routes_added": [],
+  "commands": [],
+  "mapping_inputs": [
+    "RestaurantFinanceContext",
+    "CommercialTerm",
+    "EarningInstruction",
+    "CorrectionRequest",
+    "RestaurantReportRequest"
+  ],
+  "mapping_outputs": [
+    "RestaurantFinancePlan",
+    "FinanceCommandDescriptor",
+    "CorrectionPlan",
+    "RestaurantReportPlan"
+  ],
+  "services": [
+    "RestaurantFinancialSemantics.compile_order_charge",
+    "RestaurantFinancialSemantics.correction_plan",
+    "RestaurantFinancialSemantics.report_plan",
+    "assert_plan_replay"
+  ],
+  "stable_errors_prefix": "R3_",
+  "cross_module_private_access": "FORBIDDEN",
+  "finance_execution": "FORBIDDEN"
+}

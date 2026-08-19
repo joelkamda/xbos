@@ -1,0 +1,98 @@
+{
+  "schema_version": 1,
+  "contract": "XBOS_R3_RESTAURANT_FINANCIAL_SEMANTICS_RELEASE_MANIFEST",
+  "source_checkpoint": "c9ab012e8e666f2bf96b8ad50b571f608acfeebd",
+  "source_archive_sha256": "5790bd3c1d5d345614ad092dfc87b5ecd63b67f9b9ff3ee5c3a7e544a21b7340",
+  "source_archive_size": 6086967,
+  "previous_head": "r2_restaurant_menu_fulfillment_043",
+  "accepted_head": "r2_restaurant_menu_fulfillment_043",
+  "migration_count": 0,
+  "operator_gate": "XBOS_R3_RUN_ACCEPTANCE.cmd",
+  "success_marker": "R3_SINGLE_GATE=PASS",
+  "runtime_change": "RESTAURANT_PACK_R3_MAPPING_ONLY",
+  "database_change": "NONE",
+  "finance": "UNCHANGED; public typed contracts consumed only",
+  "shared_operations_authority": "UNCHANGED",
+  "platform_core_business_authority": "UNCHANGED",
+  "pack_platform_business_authority": "UNCHANGED",
+  "platform_admin_business_authority": "UNCHANGED",
+  "r1_restaurant_authority": "UNCHANGED",
+  "r2_restaurant_authority": "UNCHANGED",
+  "wnd_production": "UNCHANGED",
+  "historical_release_manifests_rewritten": false,
+  "artifact_count": 14,
+  "hashing": "sha256; text canonicalization CRLF->LF only",
+  "self_excluded": true,
+  "artifacts": [
+    {
+      "path": "R3_INSTALL_MANIFEST.txt",
+      "sha256": "2de2cf6546671b8a962131f1082cc87ccf613271b76d7974e6b3ab2f304c110f",
+      "size": 391
+    },
+    {
+      "path": "XBOS_R3_INSTALL_AND_VERIFY.txt",
+      "sha256": "cf47386cc0e235f2b1785c052468d1790ef0f0d98d2e5e3af7a44aff80333e5f",
+      "size": 530
+    },
+    {
+      "path": "XBOS_R3_RUN_ACCEPTANCE.cmd",
+      "sha256": "96d6e70014acdab6b77f30a659dd26b0319f042c0b66b57167dbdcb1363ac7b7",
+      "size": 2794
+    },
+    {
+      "path": "contracts/restaurant/v1/r3_finance_boundary.json",
+      "sha256": "7fd1880596c6dd51b80371f0671d5890aa91342dc791a56d3f364cbe2620d38d",
+      "size": 962
+    },
+    {
+      "path": "contracts/restaurant/v1/r3_financial_semantics_authority.json",
+      "sha256": "f0beb45cfcfbb9fc2590a5612e0163719d878b41d7e607d2f2a58a5e4a513b67",
+      "size": 2065
+    },
+    {
+      "path": "contracts/restaurant/v1/r3_public_interfaces.json",
+      "sha256": "db272eca2a571abd36f0c4456cda3a289d6f07ed807109f2c88496cd1616f7d0",
+      "size": 776
+    },
+    {
+      "path": "contracts/restaurant/v1/r3_r4_readiness.json",
+      "sha256": "eaa007e446796340fbaab9304630384e2909042e137deb7db1cdfa31775e2de0",
+      "size": 849
+    },
+    {
+      "path": "docs/restaurant/R3_RESTAURANT_FINANCIAL_SEMANTICS.md",
+      "sha256": "f14d43c9bcc4febc87b92b8a1cfc6e3916fa23a9c1694f9818b196c4f5ebda9a",
+      "size": 2626
+    },
+    {
+      "path": "docs/restaurant/adr/0004_R3_RESTAURANT_FINANCIAL_SEMANTICS_BOUNDARY.md",
+      "sha256": "f86179b36803be6bb15f73bb74e98417ff76a49b0f786393c4fc76d8b580563d",
+      "size": 785
+    },
+    {
+      "path": "restaurant/r3/__init__.py",
+      "sha256": "23130007829b1423f62650b923702c9c5e7438a709c5bf7d9b6b84badb17e323",
+      "size": 95
+    },
+    {
+      "path": "restaurant/r3/contracts.py",
+      "sha256": "71264faa2a3c7499ce63d412da09a24a59c1b068e7093bdb638e231baff01a13",
+      "size": 19351
+    },
+    {
+      "path": "restaurant/r3/service.py",
+      "sha256": "390d3f5b3c3ce6f75255127b5d89e92c1f4a9d7723dee443782ebdd63d243bb8",
+      "size": 18348
+    },
+    {
+      "path": "scripts/verify_r3_restaurant_financial_semantics.py",
+      "sha256": "6f9c540fff0d729f2d7e1eba4978aecf2d1a8d9dffd8b17f08001e466ecbd7d7",
+      "size": 4232
+    },
+    {
+      "path": "tests/contracts/test_r3_restaurant_financial_semantics.py",
+      "sha256": "70b6e5bc6a5edd7befce36812c3a941c7fd05cf3d4138c5b8e5ea40ba18ce0e6",
+      "size": 7873
+    }
+  ]
+}

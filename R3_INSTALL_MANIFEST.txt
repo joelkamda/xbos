@@ -1,0 +1,11 @@
+XBOS R3 — Restaurant Financial Semantics
+
+Install cumulatively over accepted R2 source commit c9ab012e8e666f2bf96b8ad50b571f608acfeebd.
+
+R3 migration: NONE.
+Canonical database head remains r2_restaurant_menu_fulfillment_043.
+
+Adds Restaurant-side deterministic mappings only; Neutral Finance remains the sole financial writer.
+
+Run: XBOS_R3_RUN_ACCEPTANCE.cmd
+Success: R3_SINGLE_GATE=PASS

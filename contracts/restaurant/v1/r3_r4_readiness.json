@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "contract": "R3_R4_READINESS",
+  "provides": [
+    "deterministic Restaurant-to-Finance mapping plans",
+    "R1/R2 commercial source evidence",
+    "governed discounts/complimentary/service fees/tax semantics",
+    "tips and commissions as Finance mappings",
+    "refund/cancellation correction mapping",
+    "restaurant report projection plan"
+  ],
+  "r4_may_add": [
+    "Restaurant pack manifest",
+    "Restaurant semantic contributions",
+    "default configuration declarations",
+    "capability dependencies",
+    "experience metadata",
+    "PK registration/conformance proof"
+  ],
+  "r4_must_not_add": [
+    "parallel Finance authority",
+    "parallel SO1/SO3/SO8 authority",
+    "WND tenant literals as pack defaults without justification",
+    "live WND cutover"
+  ],
+  "status": "READY_WHEN_R3_SINGLE_GATE_PASS"
+}

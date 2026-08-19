@@ -1,0 +1,9 @@
+XBOS R3 RESTAURANT FINANCIAL SEMANTICS
+
+1. Confirm current branch is restaurant/r3-restaurant-financial-semantics.
+2. Expand this revision ZIP into repository root with -Force.
+3. Do not manually change PostgreSQL. R3 has no migration.
+4. Run XBOS_R3_RUN_ACCEPTANCE.cmd from repository root.
+5. Stop only at R3_SINGLE_GATE=PASS or first concrete failure.
+
+R3 composes R1/R2 Restaurant evidence into existing Neutral Finance contracts. It does not execute Finance commands, add a financial writer, or create an R3 database schema.

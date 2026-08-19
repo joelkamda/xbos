@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "contract": "R3_FINANCE_BOUNDARY",
+  "imports_allowed": [
+    "core.domain.finance.*_contract public typed contracts",
+    "restaurant.r1 public contracts",
+    "restaurant.r2 public contracts"
+  ],
+  "imports_forbidden": [
+    "core.domain.finance.*_repository",
+    "core.domain.finance.*_engine",
+    "payment settlement writer",
+    "journal writer",
+    "inventory writer"
+  ],
+  "handoff": {
+    "creates_financial_truth": false,
+    "executes_finance_commands": false,
+    "writer_routing": "unchanged",
+    "finance_authority": "Neutral Finance"
+  },
+  "finance_contracts_consumed": [
+    "XBOS_M21_CANONICAL_EVENT_ENGINE",
+    "XBOS_M31_TYPED_OBLIGATION_LIFECYCLE_AND_BALANCES",
+    "XBOS_M52_COMMERCIAL_TERMS_TAXES_AND_FEES",
+    "XBOS_M53_TIPS_AND_COMMISSIONS",
+    "XBOS_M54_REFUNDS_CORRECTIONS_AND_LOSS_EVENTS"
+  ],
+  "report_authority": "Neutral Finance / SO9",
+  "restaurant_report_role": "projection dimensions only"
+}
