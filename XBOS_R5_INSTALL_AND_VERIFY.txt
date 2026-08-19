@@ -1,0 +1,24 @@
+XBOS R5 — Install and Verify
+
+1. Start from branch:
+   restaurant/r5-wnd-tenant-template-proof
+
+2. Expected source commit:
+   7b52093f6fcbe264a56bb1cf673c937488125a3f
+
+3. Extract this cumulative R5 package over the repository root.
+
+4. Do not manually edit or migrate PostgreSQL.
+
+5. Run:
+   XBOS_R5_RUN_ACCEPTANCE.cmd
+
+6. Stop only at:
+   R5_SINGLE_GATE=PASS
+
+R5 is migration-free. The accepted Alembic head remains:
+  r2_restaurant_menu_fulfillment_043
+
+The gate uses a disposable PostgreSQL database first and adopts composition
+data into xbos_track_b_dev only after the complete regression is green.
+Production xbos is never targeted.

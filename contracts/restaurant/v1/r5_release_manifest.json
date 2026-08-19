@@ -1,0 +1,128 @@
+{
+  "schema_version": 1,
+  "contract": "XBOS_R5_WND_TENANT_TEMPLATE_PROOF_RELEASE_MANIFEST",
+  "source_checkpoint": "7b52093f6fcbe264a56bb1cf673c937488125a3f",
+  "source_archive_sha256": "b54388395bac540ae5726e8db73ca91e3b334c84ad70f20d02bf502494b8a33a",
+  "source_archive_size": 6132001,
+  "previous_head": "r2_restaurant_menu_fulfillment_043",
+  "accepted_head": "r2_restaurant_menu_fulfillment_043",
+  "migration_count": 0,
+  "operator_gate": "XBOS_R5_RUN_ACCEPTANCE.cmd",
+  "success_marker": "R5_SINGLE_GATE=PASS",
+  "runtime_change": "RESTAURANT_PACK_R5_WND_PROOF_TENANT_TEMPLATE_PC4_COMPOSITION",
+  "database_change": "PROOF_ONLY_PK_PC1_PC4_DATA_IN_XBOS_TRACK_B_DEV; NO_SCHEMA_CHANGE; WND_PRODUCTION_UNCHANGED",
+  "finance": "UNCHANGED",
+  "shared_operations_authority": "UNCHANGED",
+  "platform_core_business_authority": "UNCHANGED; existing PC1/PC4 public authorities consumed only",
+  "pack_platform_business_authority": "UNCHANGED; existing PK public authorities consumed only",
+  "platform_admin_business_authority": "UNCHANGED",
+  "r1_restaurant_authority": "UNCHANGED",
+  "r2_restaurant_authority": "UNCHANGED",
+  "r3_restaurant_authority": "UNCHANGED",
+  "r4_restaurant_authority": "UNCHANGED",
+  "wnd_production": "UNCHANGED",
+  "proof_tenant_code": "wnd-r5-proof",
+  "template_pin": "restaurant.counter_service@1.0.0",
+  "production_cutover": "NONE",
+  "historical_release_manifests_rewritten": false,
+  "artifact_count": 19,
+  "hashing": "sha256; text canonicalization CRLF->LF only",
+  "self_excluded": true,
+  "artifacts": [
+    {
+      "path": "R5_INSTALL_MANIFEST.txt",
+      "sha256": "cefbd4c5f5eab53a3446a6d19a02ed46c556b08ada91ff801c5e1101760679d1",
+      "size": 795
+    },
+    {
+      "path": "XBOS_R5_INSTALL_AND_VERIFY.txt",
+      "sha256": "c17d1ff8626ca1de1c34f7c6a1aae7ddefd3647fbaaa1888f30ec53fb293dc67",
+      "size": 641
+    },
+    {
+      "path": "XBOS_R5_RUN_ACCEPTANCE.cmd",
+      "sha256": "47e3b5bd882ee24209045e63fe8e89e2f9535627131e87a011f8cd5cf0daffd1",
+      "size": 3595
+    },
+    {
+      "path": "contracts/restaurant/v1/r5_pc4_operating_configuration.json",
+      "sha256": "d680d8b0e59336303cdb05e5a485f8c45379a9e1f9b136e685bb608b2a76a938",
+      "size": 3016
+    },
+    {
+      "path": "contracts/restaurant/v1/r5_pk_tenant_template_lifecycle.json",
+      "sha256": "a781f1392e9ba77d55adb12585db392b434ccce93709da4dd31dd6c20696061b",
+      "size": 1086
+    },
+    {
+      "path": "contracts/restaurant/v1/r5_public_interfaces.json",
+      "sha256": "151d1ba61c9391984244b83a68aa1c4d63bcbb05c8b11afb750f12f87a65e22e",
+      "size": 730
+    },
+    {
+      "path": "contracts/restaurant/v1/r5_r6_readiness.json",
+      "sha256": "63c198361de3d74902b1885e8583411f5a5a5d8adf8208565e8b034042349f4f",
+      "size": 1361
+    },
+    {
+      "path": "contracts/restaurant/v1/r5_restaurant_templates.json",
+      "sha256": "1ae4ee049e357ec92a8fa645aac892ac3d8797268481965043b60a6680a0ca3b",
+      "size": 2997
+    },
+    {
+      "path": "contracts/restaurant/v1/r5_taxonomy_overlay_plan.json",
+      "sha256": "fafb99a573d189b906a61bc6ffa6e703da108c55b265fe74db03a73d34a0d44f",
+      "size": 1157
+    },
+    {
+      "path": "contracts/restaurant/v1/r5_wnd_logpom_profile.json",
+      "sha256": "91812503978bd056e80d99408b6112cec18903ac2b4fc2f8bd9349d2e1e133fe",
+      "size": 2844
+    },
+    {
+      "path": "contracts/restaurant/v1/r5_wnd_migration_mapping_plan.json",
+      "sha256": "bbb4665fa1aebbf37c4fac84ea9b811a968cd8e625e4821bd53cc25d2efb2094",
+      "size": 2157
+    },
+    {
+      "path": "contracts/restaurant/v1/r5_wnd_tenant_template_authority.json",
+      "sha256": "f02a17568a38ca33b4fc1d5e9dd777cace236a1ffcbecd4740c90c6af7a7f5ed",
+      "size": 1875
+    },
+    {
+      "path": "docs/restaurant/R5_WND_TENANT_PROFILE_AND_TEMPLATE_PROOF.md",
+      "sha256": "f0559c626ef36ad34b67fd7f3ae5a8423042b78af8478f9c581384a7ba16e0a8",
+      "size": 5032
+    },
+    {
+      "path": "docs/restaurant/adr/0006_R5_WND_TENANT_TEMPLATE_COMPOSITION_BOUNDARY.md",
+      "sha256": "05e9d1ae77d43e3cb0007e7554db27d5c22ab5c4d062e7ca48f64026d24ae4a8",
+      "size": 1261
+    },
+    {
+      "path": "restaurant/r5/__init__.py",
+      "sha256": "3e88f33150f0d42b87b9f6b9ac733992a29b6259ac315b3cb7a1954bbc5e7d88",
+      "size": 563
+    },
+    {
+      "path": "restaurant/r5/contracts.py",
+      "sha256": "3ffab78db01fae318c3b50e9e2bd65b28b2f5592f550ca63f5d8fb2d6e6ac141",
+      "size": 1932
+    },
+    {
+      "path": "restaurant/r5/service.py",
+      "sha256": "1d7c5e4db878348f36e59292492d32705f72b4b04c372c08443dae80967416d4",
+      "size": 16598
+    },
+    {
+      "path": "scripts/verify_r5_wnd_tenant_template_proof.py",
+      "sha256": "2c2a0c6db655941bc6efa5ff685cf2d0e517daa927532c9418e8eaff87fba484",
+      "size": 27734
+    },
+    {
+      "path": "tests/contracts/test_r5_wnd_tenant_template_proof.py",
+      "sha256": "95a0380dd11706dbf41b4624a12f5aac19e006953e10db8aa099c83c26e2245f",
+      "size": 11289
+    }
+  ]
+}

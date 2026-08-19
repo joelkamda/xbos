@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "contract": "R5_WND_TAXONOMY_OVERLAY_PLAN",
+  "authority": "PC3/SC41",
+  "source": {
+    "legacy_tables": [
+      "taxonomy_nodes",
+      "atomic_unit_taxonomy",
+      "atomic_units"
+    ],
+    "observed_2026_08_18_counts": {
+      "taxonomy_nodes": 249,
+      "atomic_unit_taxonomy": 1008,
+      "atomic_units": 813
+    }
+  },
+  "target": {
+    "pack_namespace": "restaurant",
+    "global_semantics": "reuse global/pack semantic concepts where equivalent",
+    "tenant_overlay": "WND labels/order/suppression/parent overrides only when truly tenant-specific",
+    "atomic_unit_classification": "SO1/SO3-owned targets classified through governed SC41 target types"
+  },
+  "execution": {
+    "r5": "PLAN_AND_PROOF_ONLY",
+    "r6": "MIGRATE_SELECTED_PRODUCTION_DATA_WITH_PROVENANCE",
+    "bulk_rewrite": false,
+    "legacy_ids_become_semantic_identity": false
+  },
+  "laws": [
+    "WND taxonomy is not copied as a second global taxonomy",
+    "semantic identity is distinct from labels and paths",
+    "tenant overlays do not mutate global or pack-owned nodes",
+    "historical source evidence is preserved for R6 provenance"
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "contract": "R5_PUBLIC_INTERFACES",
+  "consumes": [
+    "core.platform.structure.StructuralAuthority",
+    "core.platform.operating_context.OperatingContextAuthority",
+    "pack_platform.PackAuthority",
+    "pack_platform.pk456_service.PK456Authority",
+    "restaurant.r4 public pack registration/certification composition"
+  ],
+  "produces": [
+    "Restaurant template definitions",
+    "WND Track B proof tenant profile",
+    "PK lifecycle/template commands",
+    "PC4 configuration/calendar/localization commands",
+    "R6 migration mapping plans"
+  ],
+  "http_routes_added": false,
+  "cross_module_private_access": "FORBIDDEN",
+  "direct_sql": "FORBIDDEN",
+  "production_wnd_cutover": "FORBIDDEN"
+}

@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "contract": "R5_R6_READINESS",
+  "provides": [
+    "certified active Restaurant pack on WND-shaped proof tenant",
+    "immutable Restaurant counter-service and full-service template versions",
+    "WND proof tenant pinned to restaurant.counter_service@1.0.0",
+    "real PC4 08:00-08:00 business calendar and 18:00 payment-shift cutoff proof",
+    "WND payment-method configuration",
+    "WND branding and terminology profile",
+    "menu/catalog and staff-role migration mapping plan",
+    "taxonomy overlay plan",
+    "Finance/document/inventory migration mapping plan",
+    "production-safe boundary proving R5 changes no WND production data"
+  ],
+  "r6_may_add": [
+    "actual WND production tenant/Logpom structural mapping",
+    "selected production taxonomy/AU/menu/staff data transformation with provenance",
+    "frontend UAT against neutral authorities",
+    "final delta migration and writer cutover",
+    "durable kitchen output bridge cutover",
+    "rollback/recovery proof before canonical writers begin"
+  ],
+  "r6_must_not_do_without_explicit_cutover_authorization": [
+    "write production xbos",
+    "retire legacy WND writers",
+    "route production finance/inventory/orders to neutral writers",
+    "transform historical ambiguous data without exception handling"
+  ],
+  "status": "READY_WHEN_R5_SINGLE_GATE_PASS"
+}

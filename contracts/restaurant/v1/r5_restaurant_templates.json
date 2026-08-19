@@ -1,0 +1,112 @@
+{
+  "schema_version": 1,
+  "contract": "R5_RESTAURANT_TEMPLATE_VERSIONS",
+  "pack_requirement": {
+    "pack_code": "industry.restaurant",
+    "version": "1.0.0",
+    "kind": "required"
+  },
+  "templates": [
+    {
+      "template_code": "restaurant.counter_service",
+      "version": "1.0.0",
+      "owner_code": "restaurant",
+      "industry_semantic_ref": "restaurant:industry",
+      "operating_model_semantic_ref": "restaurant:counter_service",
+      "configuration_defaults": {
+        "restaurant": {
+          "tables": {
+            "enabled": false
+          },
+          "reservations": {
+            "enabled": false
+          },
+          "fulfillment": {
+            "course_firing": {
+              "enabled": false
+            },
+            "output_delivery": {
+              "enabled": true
+            },
+            "station_routing": {
+              "enabled": true
+            }
+          },
+          "service_modes": {
+            "enabled": [
+              "counter",
+              "takeaway",
+              "delivery"
+            ]
+          },
+          "tips": {
+            "enabled": true
+          },
+          "commissions": {
+            "enabled": false
+          }
+        }
+      },
+      "wnd_selected": true
+    },
+    {
+      "template_code": "restaurant.full_service",
+      "version": "1.0.0",
+      "owner_code": "restaurant",
+      "industry_semantic_ref": "restaurant:industry",
+      "operating_model_semantic_ref": "restaurant:full_service",
+      "configuration_defaults": {
+        "restaurant": {
+          "tables": {
+            "enabled": true
+          },
+          "reservations": {
+            "enabled": true
+          },
+          "fulfillment": {
+            "course_firing": {
+              "enabled": true
+            },
+            "output_delivery": {
+              "enabled": true
+            },
+            "station_routing": {
+              "enabled": true
+            }
+          },
+          "service_modes": {
+            "enabled": [
+              "dine_in",
+              "takeaway",
+              "delivery"
+            ]
+          },
+          "tips": {
+            "enabled": true
+          },
+          "commissions": {
+            "enabled": true
+          }
+        }
+      },
+      "wnd_selected": false
+    }
+  ],
+  "allowed_override_paths": [
+    "restaurant.commissions.enabled",
+    "restaurant.fulfillment.course_firing.enabled",
+    "restaurant.fulfillment.output_delivery.enabled",
+    "restaurant.fulfillment.station_routing.enabled",
+    "restaurant.reservations.enabled",
+    "restaurant.service_modes.enabled",
+    "restaurant.tables.enabled",
+    "restaurant.tips.enabled"
+  ],
+  "laws": [
+    "template versions are immutable",
+    "tenant overrides do not mutate template versions",
+    "finance_kernel_required remains true",
+    "Restaurant pack v1.0.0 is required and must be certified/active before application",
+    "full-service capability exists independently of WND's lower-complexity profile"
+  ]
+}

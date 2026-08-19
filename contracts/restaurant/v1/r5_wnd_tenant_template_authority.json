@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "contract": "R5_WND_TENANT_TEMPLATE_COMPOSITION_AUTHORITY",
+  "source_checkpoint": "7b52093f6fcbe264a56bb1cf673c937488125a3f",
+  "previous_head": "r2_restaurant_menu_fulfillment_043",
+  "accepted_head": "r2_restaurant_menu_fulfillment_043",
+  "migration": "NONE",
+  "pack_code": "industry.restaurant",
+  "pack_version": "1.0.0",
+  "template_registration_owner": "PK4-PK6",
+  "tenant_pack_lifecycle_owner": "PK0-PK3",
+  "tenant_structure_owner": "PC1",
+  "operating_configuration_owner": "PC4",
+  "semantic_overlay_owner": "PC3/SC41",
+  "finance_owner": "Neutral Finance",
+  "inventory_owner": "SO3",
+  "catalog_owner": "SO1",
+  "document_delivery_owners": [
+    "SO7",
+    "SO8"
+  ],
+  "r5_role": "composition/orchestration through public authority contracts only",
+  "database": {
+    "schema_change": "NONE",
+    "expected_head": "r2_restaurant_menu_fulfillment_043",
+    "allowed_development_data_change": [
+      "one explicit WND-shaped Track B proof tenant and canonical Logpom structural context",
+      "Restaurant template versions",
+      "proof-tenant Restaurant pack lifecycle rows",
+      "proof-tenant Restaurant template binding and explicit overrides",
+      "PC4 proof-tenant configuration/calendar/localization rows"
+    ],
+    "forbidden": [
+      "R5-owned tables",
+      "new Finance writers",
+      "new SO1/SO3/SO5/SO7/SO8/SO9/SO10 writers",
+      "legacy WND production migration",
+      "R6 cutover"
+    ]
+  },
+  "production": {
+    "wnd_database": "xbos",
+    "changed": false,
+    "cutover_authorized": false,
+    "writer_retirement": false
+  },
+  "proof_tenant": {
+    "code": "wnd-r5-proof",
+    "purpose": "Track B composition proof only; not production WND",
+    "location": "LOGPOM",
+    "template_pin": "restaurant.counter_service@1.0.0",
+    "production_identity": false
+  },
+  "wnd_specimen_not_standard": true
+}

@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "contract": "R5_PK_TENANT_TEMPLATE_LIFECYCLE",
+  "pack": "industry.restaurant@1.0.0",
+  "template": "restaurant.counter_service@1.0.0",
+  "sibling_template": "restaurant.full_service@1.0.0",
+  "proof_tenant_code": "wnd-r5-proof",
+  "steps": [
+    "register immutable Restaurant template versions through PK456Authority",
+    "provision WND-shaped proof tenant through PC1 StructuralAuthority",
+    "stage industry.restaurant@1.0.0 through PackAuthority",
+    "install industry.restaurant@1.0.0 through PackAuthority",
+    "activate industry.restaurant@1.0.0 through PackAuthority",
+    "plan WND template application through PK456Authority",
+    "apply template with explicit WND overrides through PK456Authority",
+    "materialize effective template configuration through PC4 public authority"
+  ],
+  "required_pack_certification": true,
+  "template_application_idempotent": true,
+  "tenant_pack_lifecycle_idempotent": true,
+  "direct_pk_table_write": false,
+  "direct_pc4_table_write": false,
+  "production_wnd_installation": false,
+  "r6_cutover": false
+}

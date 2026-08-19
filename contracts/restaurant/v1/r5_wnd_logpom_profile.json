@@ -1,0 +1,104 @@
+{
+  "schema_version": 1,
+  "contract": "R5_WND_LOGPOM_TENANT_PROFILE",
+  "profile_code": "wnd.logpom",
+  "proof_tenant": {
+    "code": "wnd-r5-proof",
+    "name": "Wine & Dine — Track B Proof",
+    "country_code": "CM",
+    "currency": "XAF",
+    "locale": "fr-CM",
+    "timezone": "Africa/Douala",
+    "legal_entity_code": "WND-CM",
+    "legal_entity_name": "Wine & Dine Cameroon",
+    "organization_code": "WND",
+    "organization_name": "Wine & Dine",
+    "location_code": "LOGPOM",
+    "location_name": "Logpom",
+    "production_identity": false
+  },
+  "template_pin": {
+    "template_code": "restaurant.counter_service",
+    "version": "1.0.0",
+    "pack_code": "industry.restaurant",
+    "pack_version": "1.0.0",
+    "overrides": {
+      "restaurant.service_modes.enabled": [
+        "dine_in",
+        "takeaway",
+        "delivery"
+      ],
+      "restaurant.tips.enabled": false,
+      "restaurant.commissions.enabled": true
+    }
+  },
+  "business_calendar": {
+    "calendar_code": "wnd.operations",
+    "timezone": "Africa/Douala",
+    "business_day_boundary": "08:00:00",
+    "shifts": [
+      {
+        "code": "day",
+        "starts_at": "08:00:00",
+        "ends_at": "18:00:00"
+      },
+      {
+        "code": "night",
+        "starts_at": "18:00:00",
+        "ends_at": "08:00:00"
+      }
+    ],
+    "payment_shift_cutoff_local_time": "18:00:00",
+    "commission_attribution_basis": "original_order_creator",
+    "law": "18:00 changes payment/shift attribution only; it does not reassign waiter/order-author commission ownership"
+  },
+  "payment_configuration": {
+    "settlement_methods": [
+      "cash",
+      "mtn",
+      "orange"
+    ],
+    "composition_options": [
+      "split",
+      "unpaid_receivable"
+    ],
+    "accounting_channels": [
+      "cash",
+      "mtn",
+      "orange",
+      "xafpay",
+      "bank",
+      "ar",
+      "ap"
+    ],
+    "law": "tenant configuration; not Restaurant or kernel constants"
+  },
+  "branding": {
+    "business_display_name": "Wine & Dine",
+    "branding_asset_reference": "asset:tenant/wnd/logo-primary",
+    "terminology": {
+      "order": "Order",
+      "cashier": "Cashier",
+      "kitchen": "Kitchen",
+      "waiter": "Waiter",
+      "sales_archive": "Sales Archive"
+    }
+  },
+  "track_a_evidence": {
+    "accepted_tag": "wnd-track-a-final-accepted-20260818",
+    "backend_head": "651e83a40f9a69f496def3a599c94dbd63d97ef3",
+    "frontend_head": "50583b1a3fcc67e7f817ea92121b94147fbd5984",
+    "observed_counts": {
+      "atomic_units": 813,
+      "taxonomy_nodes": 249,
+      "atomic_unit_taxonomy": 1008,
+      "sales": 7526,
+      "sale_items": 16080,
+      "orders": 8171,
+      "order_items": 17359,
+      "inventory_movements": 37534
+    },
+    "evidence_role": "migration/control evidence only; counts are not template defaults"
+  },
+  "r6_cutover": "NOT_AUTHORIZED"
+}

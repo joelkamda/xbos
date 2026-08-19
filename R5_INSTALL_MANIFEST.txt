@@ -1,0 +1,29 @@
+XBOS R5 — WND Tenant Profile and Restaurant Template Proof
+
+Source checkpoint:
+  7b52093f6fcbe264a56bb1cf673c937488125a3f
+
+Source archive:
+  XBOS_R5_SOURCE_POST_R4.zip
+  SHA256 b54388395bac540ae5726e8db73ca91e3b334c84ad70f20d02bf502494b8a33a
+  SIZE 6132001
+
+Accepted schema head:
+  r2_restaurant_menu_fulfillment_043
+
+Migration:
+  NONE
+
+R5 adds:
+  - immutable Restaurant counter-service and full-service templates
+  - WND-shaped Track B proof tenant composition
+  - PK stage/install/activate and template application proof
+  - PC4 WND calendar/configuration/localization proof
+  - WND taxonomy/menu/staff/Finance/document/inventory migration plans
+  - R6 readiness contract
+
+R5 does not:
+  - modify production xbos
+  - perform R6 cutover
+  - add Finance/SO duplicate writers
+  - add R5 tables

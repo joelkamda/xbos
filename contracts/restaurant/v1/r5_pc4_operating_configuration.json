@@ -1,0 +1,116 @@
+{
+  "schema_version": 1,
+  "contract": "R5_WND_PC4_OPERATING_CONFIGURATION",
+  "effective_from": "2026-08-19T00:00:00+00:00",
+  "restaurant_template_keys": [
+    {
+      "key": "restaurant.tables.enabled",
+      "type": "boolean",
+      "owner": "restaurant",
+      "scope": "tenant"
+    },
+    {
+      "key": "restaurant.reservations.enabled",
+      "type": "boolean",
+      "owner": "restaurant",
+      "scope": "tenant"
+    },
+    {
+      "key": "restaurant.fulfillment.course_firing.enabled",
+      "type": "boolean",
+      "owner": "restaurant",
+      "scope": "tenant"
+    },
+    {
+      "key": "restaurant.fulfillment.output_delivery.enabled",
+      "type": "boolean",
+      "owner": "restaurant",
+      "scope": "tenant"
+    },
+    {
+      "key": "restaurant.fulfillment.station_routing.enabled",
+      "type": "boolean",
+      "owner": "restaurant",
+      "scope": "tenant"
+    },
+    {
+      "key": "restaurant.service_modes.enabled",
+      "type": "json",
+      "owner": "restaurant",
+      "scope": "tenant"
+    },
+    {
+      "key": "restaurant.tips.enabled",
+      "type": "boolean",
+      "owner": "restaurant",
+      "scope": "tenant"
+    },
+    {
+      "key": "restaurant.commissions.enabled",
+      "type": "boolean",
+      "owner": "restaurant",
+      "scope": "tenant"
+    }
+  ],
+  "wnd_tenant_keys": [
+    {
+      "key": "wnd.payment_shift.cutoff_local_time",
+      "type": "time",
+      "owner": "wnd",
+      "scope": "tenant",
+      "value": "18:00:00"
+    },
+    {
+      "key": "wnd.payments.enabled_methods",
+      "type": "json",
+      "owner": "wnd",
+      "scope": "tenant"
+    },
+    {
+      "key": "wnd.commission.attribution_basis",
+      "type": "code",
+      "owner": "wnd",
+      "scope": "tenant",
+      "value": "original_order_creator"
+    }
+  ],
+  "calendar": {
+    "calendar_code": "wnd.operations",
+    "timezone": "Africa/Douala",
+    "business_day_boundary": "08:00:00",
+    "shifts": [
+      {
+        "code": "day",
+        "starts_at": "08:00:00",
+        "ends_at": "18:00:00"
+      },
+      {
+        "code": "night",
+        "starts_at": "18:00:00",
+        "ends_at": "08:00:00"
+      }
+    ],
+    "payment_shift_cutoff_local_time": "18:00:00",
+    "commission_attribution_basis": "original_order_creator",
+    "law": "18:00 changes payment/shift attribution only; it does not reassign waiter/order-author commission ownership"
+  },
+  "localization": {
+    "business_display_name": "Wine & Dine",
+    "branding_asset_reference": "asset:tenant/wnd/logo-primary",
+    "terminology": {
+      "order": "Order",
+      "cashier": "Cashier",
+      "kitchen": "Kitchen",
+      "waiter": "Waiter",
+      "sales_archive": "Sales Archive"
+    }
+  },
+  "proofs": [
+    "07:59 Douala belongs to the previous business date and night shift",
+    "08:00 Douala starts the new business date and day shift",
+    "17:59 Douala is day shift",
+    "18:00 Douala is night shift",
+    "commission attribution remains original_order_creator across 18:00"
+  ],
+  "kernel_rule_added": false
+}

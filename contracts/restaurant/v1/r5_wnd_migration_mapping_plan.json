@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "contract": "R5_WND_MIGRATION_MAPPING_PLAN",
+  "execution": "R6_ONLY",
+  "menu_catalog": {
+    "source": [
+      "atomic_units",
+      "taxonomy_nodes",
+      "atomic_unit_taxonomy",
+      "sale_items.atomic_unit_id"
+    ],
+    "target": [
+      "SO1 catalog/offer authority",
+      "R2 menu section/placement/modifier projections"
+    ],
+    "r5_action": "mapping contract only"
+  },
+  "staff_roles": {
+    "legacy_roles": [
+      "staff",
+      "cashier",
+      "waiter",
+      "manager",
+      "shift_supervisor",
+      "admin"
+    ],
+    "target": [
+      "PC5 tenant roles/permissions",
+      "R1 waiter/cashier operational attribution"
+    ],
+    "commission_rule": "original order creator remains commission attribution basis",
+    "r5_action": "mapping contract only"
+  },
+  "finance": {
+    "target": "R3 -> Neutral Finance",
+    "must_preserve": [
+      "A/R repayment settles existing receivable and is not new income",
+      "reconciliation continuity cannot skip an unclosed middle business window",
+      "persisted actual predecessor closing becomes next opening",
+      "later corrections cascade without erasing later actual evidence",
+      "post-financial correction is forward-only reversal/refund semantics"
+    ],
+    "r5_finance_writer": false
+  },
+  "documents": {
+    "kitchen_bon": "R2 ticket payload -> SO8 durable delivery / SO7 document authority at later cutover",
+    "receipt": "financial/document read model; no new R5 document writer"
+  },
+  "inventory": {
+    "target": "SO3",
+    "must_preserve": [
+      "reserved sale has exactly one inventory quantity effect",
+      "sale_commit finalization does not deduct stock again",
+      "direct-sale fallback deducts once only when reservation lifecycle is absent",
+      "manual stock mutation remains stockability-gated atomic and retry-safe",
+      "non-stock charges never touch inventory",
+      "POS sales quantity remains independent control evidence",
+      "closed Stock Reconciliation evidence is immutable",
+      "no invented universal costing model"
+    ],
+    "r5_inventory_writer": false
+  },
+  "production_data_moved_in_r5": false
+}
