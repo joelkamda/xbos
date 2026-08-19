@@ -1,6 +1,6 @@
 # core/api/orders/orders_router.py
 
-from fastapi import APIRouter, Request, Depends, Body
+from fastapi import APIRouter, Request, Depends, Body, Query
 from sqlalchemy.orm import Session
 
 from database import get_db
@@ -28,6 +28,39 @@ async def list_orders(
     db: Session = Depends(get_db),
 ):
     return await controller.list_orders(request, db)
+
+
+
+@router.get("/kitchen/history")
+@require_permissions("order.view")
+async def kitchen_history(
+    request: Request,
+    start: str = Query(...),
+    end: str = Query(...),
+    limit: int = Query(500, ge=1, le=2000),
+):
+    return await controller.kitchen_history(
+        request,
+        start=start,
+        end=end,
+        limit=limit,
+    )
+
+
+@router.get("/kitchen/item-summary")
+@require_permissions("order.view")
+async def kitchen_item_summary(
+    request: Request,
+    start: str = Query(...),
+    end: str = Query(...),
+    db: Session = Depends(get_db),
+):
+    return await controller.kitchen_item_summary(
+        request,
+        start=start,
+        end=end,
+        db=db,
+    )
 
 
 @router.get("/{order_id}")

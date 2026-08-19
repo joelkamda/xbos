@@ -1,8 +1,13 @@
 from fastapi import Request, HTTPException
-from sqlalchemy.orm import Session
+from datetime import datetime
+import json
+import os
+from pathlib import Path
+from sqlalchemy.orm import Session, selectinload
 
 from core.domain.orders.service import OrderService
 from core.domain.orders.repository import OrderRepository
+from core.domain.sales.models import Sale
 from core.domain.taxonomy.models import AtomicUnitTaxonomy, TaxonomyNode
 from core.users.user_model import User
 
@@ -370,6 +375,378 @@ class OrdersController:
                 )
                 for item in (order.items or [])
             ],
+        }
+
+    # =====================================================
+    # TRACK A KITCHEN HISTORY BRIDGE
+    # =====================================================
+
+    def _kitchen_history_path(self) -> Path:
+        state_dir = (
+            Path(os.environ.get("LOCALAPPDATA", str(Path.home())))
+            / "XBOS"
+        )
+        return state_dir / os.environ.get(
+            "XBOS_KITCHEN_HISTORY_FILE",
+            "kitchen_history_xbos.jsonl",
+        )
+
+    def _kitchen_window_datetime(
+        self,
+        value: str,
+        *,
+        label: str,
+    ) -> datetime:
+        raw = str(value or "").strip()
+
+        if not raw:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Missing {label}",
+            )
+
+        try:
+            parsed = datetime.fromisoformat(
+                raw.replace("Z", "+00:00")
+            )
+        except Exception:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Invalid {label}",
+            )
+
+        if parsed.tzinfo is None:
+            raise HTTPException(
+                status_code=400,
+                detail=f"{label} must include timezone offset",
+            )
+
+        return parsed
+
+    def _kitchen_history_rows(
+        self,
+        *,
+        tenant_id: int,
+        branch_id: int,
+        start_dt: datetime,
+        end_dt: datetime,
+        limit: int | None,
+    ) -> list[dict]:
+        path = self._kitchen_history_path()
+
+        if not path.is_file():
+            return []
+
+        rows = []
+
+        try:
+            lines = path.read_text(
+                encoding="utf-8",
+                errors="replace",
+            ).splitlines()
+        except Exception as exc:
+            raise HTTPException(
+                status_code=500,
+                detail=f"Unable to read kitchen history: {exc}",
+            )
+
+        for line in lines:
+            raw = str(line or "").strip()
+
+            if not raw:
+                continue
+
+            try:
+                row = json.loads(raw)
+            except Exception:
+                # Concurrent append can briefly expose a partial final line.
+                continue
+
+            if int(row.get("tenant_id") or 0) != int(tenant_id):
+                continue
+
+            if int(row.get("branch_id") or 0) != int(branch_id):
+                continue
+
+            occurred_raw = str(row.get("occurred_at") or "").strip()
+
+            try:
+                occurred_at = datetime.fromisoformat(
+                    occurred_raw.replace("Z", "+00:00")
+                )
+            except Exception:
+                continue
+
+            if occurred_at.tzinfo is None:
+                continue
+
+            if not (start_dt <= occurred_at < end_dt):
+                continue
+
+            rows.append(row)
+
+        rows.sort(
+            key=lambda row: str(row.get("occurred_at") or ""),
+            reverse=True,
+        )
+
+        if limit is not None:
+            return rows[: max(1, min(int(limit), 2000))]
+
+        return rows
+
+    async def kitchen_history(
+        self,
+        request: Request,
+        *,
+        start: str,
+        end: str,
+        limit: int = 500,
+    ):
+        ctx = self._ctx(request)
+        start_dt = self._kitchen_window_datetime(
+            start,
+            label="start",
+        )
+        end_dt = self._kitchen_window_datetime(
+            end,
+            label="end",
+        )
+
+        if end_dt <= start_dt:
+            raise HTTPException(
+                status_code=400,
+                detail="end must be after start",
+            )
+
+        rows = self._kitchen_history_rows(
+            tenant_id=ctx["tenant_id"],
+            branch_id=ctx["branch_id"],
+            start_dt=start_dt,
+            end_dt=end_dt,
+            limit=limit,
+        )
+
+        event_counts = {}
+        printed_lines = 0
+
+        for row in rows:
+            event = str(row.get("event") or "UNKNOWN")
+            event_counts[event] = event_counts.get(event, 0) + 1
+            printed_lines += len(row.get("items") or [])
+
+        return {
+            "start": start,
+            "end": end,
+            "history_file_present": self._kitchen_history_path().is_file(),
+            "rows": rows,
+            "summary": {
+                "events": len(rows),
+                "printed_lines": printed_lines,
+                "event_counts": event_counts,
+            },
+            "note": (
+                "Structured bon history begins when the Track A history "
+                "bridge is activated; earlier print chronology is not invented."
+            ),
+        }
+
+    async def kitchen_item_summary(
+        self,
+        request: Request,
+        *,
+        start: str,
+        end: str,
+        db: Session,
+    ):
+        ctx = self._ctx(request)
+        start_dt = self._kitchen_window_datetime(
+            start,
+            label="start",
+        )
+        end_dt = self._kitchen_window_datetime(
+            end,
+            label="end",
+        )
+
+        if end_dt <= start_dt:
+            raise HTTPException(
+                status_code=400,
+                detail="end must be after start",
+            )
+
+        history_rows = self._kitchen_history_rows(
+            tenant_id=ctx["tenant_id"],
+            branch_id=ctx["branch_id"],
+            start_dt=start_dt,
+            end_dt=end_dt,
+            limit=None,
+        )
+
+        summary_rows: dict[str, dict] = {}
+
+        def item_key(
+            atomic_unit_id,
+            name_snapshot,
+        ) -> str:
+            if atomic_unit_id is not None:
+                return f"au:{atomic_unit_id}"
+
+            normalized = " ".join(
+                str(name_snapshot or "ITEM").strip().upper().split()
+            )
+            return f"name:{normalized}"
+
+        def ensure_row(
+            atomic_unit_id,
+            name_snapshot,
+        ) -> dict:
+            key = item_key(
+                atomic_unit_id,
+                name_snapshot,
+            )
+
+            if key not in summary_rows:
+                summary_rows[key] = {
+                    "key": key,
+                    "atomic_unit_id": atomic_unit_id,
+                    "name_snapshot": str(
+                        name_snapshot or "ITEM"
+                    ),
+                    "ordered_qty": 0,
+                    "cancelled_qty": 0,
+                    "net_kitchen_qty": 0,
+                    "sold_qty": 0,
+                    "sales_xaf": 0.0,
+                    "kitchen_minus_sold_qty": 0,
+                    "bon_events": 0,
+                }
+
+            return summary_rows[key]
+
+        for event_row in history_rows:
+            seen_in_event = set()
+
+            for item in event_row.get("items") or []:
+                quantity = int(item.get("quantity") or 0)
+
+                if quantity <= 0:
+                    continue
+
+                row = ensure_row(
+                    item.get("atomic_unit_id"),
+                    item.get("name_snapshot"),
+                )
+
+                direction = str(
+                    item.get("direction") or ""
+                ).strip().lower()
+
+                if direction == "add":
+                    row["ordered_qty"] += quantity
+                elif direction == "cancel":
+                    row["cancelled_qty"] += quantity
+
+                if row["key"] not in seen_in_event:
+                    row["bon_events"] += 1
+                    seen_in_event.add(row["key"])
+
+        sales = (
+            db.query(Sale)
+            .options(selectinload(Sale.items))
+            .filter(
+                Sale.tenant_id == ctx["tenant_id"],
+                Sale.branch_id == ctx["branch_id"],
+                Sale.created_at >= start_dt,
+                Sale.created_at < end_dt,
+                Sale.status != "cancelled",
+            )
+            .all()
+        )
+
+        route_cache: dict[int, bool] = {}
+
+        for sale in sales:
+            for item in sale.items or []:
+                atomic_unit_id = int(item.atomic_unit_id)
+
+                if atomic_unit_id not in route_cache:
+                    route = self._fulfillment_payload_for_item(
+                        db,
+                        tenant_id=ctx["tenant_id"],
+                        atomic_unit_id=atomic_unit_id,
+                    )
+                    route_cache[atomic_unit_id] = bool(
+                        route.get("requires_fulfillment")
+                    )
+
+                if not route_cache[atomic_unit_id]:
+                    continue
+
+                row = ensure_row(
+                    atomic_unit_id,
+                    item.name_snapshot,
+                )
+                row["sold_qty"] += int(item.quantity or 0)
+                row["sales_xaf"] += float(item.line_total or 0)
+
+        rows = []
+
+        for row in summary_rows.values():
+            row["net_kitchen_qty"] = (
+                int(row["ordered_qty"])
+                - int(row["cancelled_qty"])
+            )
+            row["kitchen_minus_sold_qty"] = (
+                int(row["net_kitchen_qty"])
+                - int(row["sold_qty"])
+            )
+            rows.append(row)
+
+        rows.sort(
+            key=lambda row: (
+                -int(row["sold_qty"]),
+                -int(row["net_kitchen_qty"]),
+                str(row["name_snapshot"]).upper(),
+            )
+        )
+
+        return {
+            "start": start,
+            "end": end,
+            "history_file_present": self._kitchen_history_path().is_file(),
+            "rows": rows,
+            "summary": {
+                "ordered_qty": sum(
+                    int(row["ordered_qty"])
+                    for row in rows
+                ),
+                "cancelled_qty": sum(
+                    int(row["cancelled_qty"])
+                    for row in rows
+                ),
+                "net_kitchen_qty": sum(
+                    int(row["net_kitchen_qty"])
+                    for row in rows
+                ),
+                "sold_qty": sum(
+                    int(row["sold_qty"])
+                    for row in rows
+                ),
+                "sales_xaf": sum(
+                    float(row["sales_xaf"])
+                    for row in rows
+                ),
+                "kitchen_minus_sold_qty": sum(
+                    int(row["kitchen_minus_sold_qty"])
+                    for row in rows
+                ),
+            },
+            "source_note": (
+                "Ordered/cancelled/net kitchen quantities come from structured "
+                "bon events captured after bridge activation. Sold quantity and "
+                "sales XAF come from existing sale_items commercial truth."
+            ),
         }
 
     # =====================================================

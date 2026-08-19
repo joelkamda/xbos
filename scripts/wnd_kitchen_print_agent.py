@@ -24,6 +24,7 @@ BRANCH_ID=1
 STATE_DIR=Path(os.environ.get("LOCALAPPDATA", str(Path.home()))) / "XBOS"
 STATE_PATH=STATE_DIR / os.environ.get("XBOS_KITCHEN_STATE_FILE", "kitchen_print_state.json")
 LOG_PATH=STATE_DIR / os.environ.get("XBOS_KITCHEN_LOG_FILE", "kitchen_print_agent.log")
+HISTORY_PATH=STATE_DIR / os.environ.get("XBOS_KITCHEN_HISTORY_FILE", "kitchen_history_xbos.jsonl")
 VIRTUAL=("pdf","onenote","fax","xps","microsoft print")
 THERMAL=("pos-80","pos80","80c","80mm","thermal","receipt")
 
@@ -35,6 +36,109 @@ def log(msg):
         with LOG_PATH.open("a", encoding="utf-8") as f: f.write(line+"\\n")
     except Exception:
         pass
+
+
+def _history_item_payload(item,event):
+    raw_name=str(
+        item.get("name_snapshot")
+        or item.get("name")
+        or "ITEM"
+    ).strip()
+    upper=raw_name.upper()
+    direction="snapshot"
+
+    event_upper=str(event or "").upper()
+    if event_upper in {"NEW ORDER","KITCHEN ADDITION"}:
+        direction="add"
+    elif event_upper=="KITCHEN CANCELLATION":
+        direction="cancel"
+    elif event_upper=="KITCHEN CHANGE":
+        if upper.startswith("ADD:"):
+            direction="add"
+            raw_name=raw_name.split(":",1)[1].strip()
+        elif upper.startswith("CANCEL:"):
+            direction="cancel"
+            raw_name=raw_name.split(":",1)[1].strip()
+
+    return {
+        "atomic_unit_id":item.get("atomic_unit_id"),
+        "name_snapshot":raw_name or "ITEM",
+        "quantity":int(item.get("quantity") or 0),
+        "direction":direction,
+        "modifiers":[
+            {
+                "modifier_type":str(
+                    modifier.get("modifier_type")
+                    or modifier.get("type")
+                    or ""
+                ),
+                "name_snapshot":str(
+                    modifier.get("name_snapshot")
+                    or modifier.get("name")
+                    or ""
+                ),
+                "quantity":int(
+                    modifier.get("quantity") or 1
+                ),
+            }
+            for modifier in (item.get("modifiers") or [])
+        ],
+    }
+
+
+def append_history(order,event,printer_name,job):
+    STATE_DIR.mkdir(parents=True, exist_ok=True)
+    occurred_at=datetime.now(timezone.utc).isoformat()
+
+    row={
+        "event_id":(
+            f"{order.get('order_id')}:"
+            f"{job}:"
+            f"{occurred_at}"
+        ),
+        "tenant_id":TENANT_ID,
+        "branch_id":BRANCH_ID,
+        "order_id":int(order.get("order_id") or 0),
+        "event":str(event or "NEW ORDER"),
+        "occurred_at":occurred_at,
+        "order_created_at":(
+            order.get("created_at").isoformat()
+            if hasattr(order.get("created_at"),"isoformat")
+            else str(order.get("created_at") or "")
+        ),
+        "order_status":str(order.get("status") or ""),
+        "staff":str(order.get("staff") or ""),
+        "printer":str(printer_name or ""),
+        "job_id":int(job) if job is not None else None,
+        "print_status":"printed",
+        "items":[
+            _history_item_payload(item,event)
+            for item in (order.get("items") or [])
+        ],
+    }
+
+    try:
+        with HISTORY_PATH.open(
+            "a",
+            encoding="utf-8",
+            newline="\n",
+        ) as handle:
+            handle.write(
+                json.dumps(
+                    row,
+                    ensure_ascii=False,
+                    sort_keys=True,
+                    default=str,
+                )
+                + "\n"
+            )
+    except Exception as exc:
+        log(
+            "HISTORY_WRITE_FAIL "
+            f"order={order.get('order_id')} "
+            f"event={event} "
+            f"error={clean(exc)}"
+        )
 
 def clean(v):
     s=unicodedata.normalize("NFKD", str(v or ""))
@@ -534,9 +638,10 @@ def main():
                         log(f"SUPPRESSED_REPRINT order={order['order_id']} reason=no_semantic_kitchen_delta")
                 if event:
                     job=raw_spool(p["name"],escpos_bon(print_order,event),f"WND Kitchen Bon #{order['order_id']}")
-                    log(f"PRINTED order={order['order_id']} event={event} items={len(print_order['items'])} job={job} printer={p['name']}")
                     state["orders"][key]={"signature":signature,"printed_at":datetime.now(timezone.utc).isoformat(),"event":event,"kitchen_items":kitchen_items_snapshot(order.get("items") or [])}
                     save_state(state)
+                    append_history(print_order,event,p["name"],job)
+                    log(f"PRINTED order={order['order_id']} event={event} items={len(print_order['items'])} job={job} printer={p['name']}")
             first=False
             if a.once or not a.watch: break
             time.sleep(max(1.0,a.poll_seconds))
