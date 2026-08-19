@@ -1,0 +1,30 @@
+XBOS R1 RESTAURANT SERVICE OPERATION — INSTALL MANIFEST
+
+BOUNDARY
+Source commit: 28290b66ea6301ca1015e286bcf49552895c5bf2
+Previous Alembic head: semantic_classification_hardening_041
+Candidate Alembic head: r1_restaurant_service_operation_042
+
+R1 AUTHORITY
+- configurable Restaurant service modes
+- optional Restaurant semantics over SO5 resources for dining areas/tables/seats/stations/pickup points
+- service sessions with optional SO10 reservation composition
+- Restaurant orders/order lines and lifecycle history
+- Party/Identity staff attribution without staff-account duplication
+- operational tabs/check grouping
+- exact quantity split-bill partition intent
+- read-only commercial obligation handoff to Neutral Finance
+
+NON-AUTHORITY
+- no Finance writer or journal/settlement/reconciliation authority
+- no SO3 inventory movement/reservation writer
+- no duplicate SO1 catalog/offer/price authority
+- no duplicate SO5 resource identity
+- no duplicate SO10 reservation authority
+- no Restaurant-specific Party/Identity authority
+
+WORLD-RESTAURANT LAW
+WND is a proven production specimen and invariant source, not the Restaurant standard. Tables are optional. The same R1 model must permit dine-in, counter/quick-service, takeaway, delivery, bar, cloud-kitchen and remote-origin profiles by governed configuration.
+
+COMPATIBILITY
+R1 extends the canonical Alembic lineage. PC0 cumulative migration inventory and cumulative release metadata are refreshed; historical PC1-PC5 release manifests and frozen business-authority implementations remain untouched.

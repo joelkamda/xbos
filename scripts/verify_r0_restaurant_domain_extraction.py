@@ -133,10 +133,17 @@ def static_verify() -> dict:
         if not path.is_file() or canonical_sha(path) != expected:
             raise RuntimeError("R0_FROZEN_SOURCE_CHANGED=" + relative)
 
-    # No Restaurant runtime implementation is allowed yet.
-    forbidden_runtime = [ROOT / "restaurant", ROOT / "core/domain/restaurant", ROOT / "shared_operations/restaurant"]
+    # R0 itself added no runtime implementation. A later Restaurant milestone may
+    # consume the frozen R0 boundary, but only as an explicit canonical descendant.
+    forbidden_runtime = [ROOT / "core/domain/restaurant", ROOT / "shared_operations/restaurant"]
     if any(p.exists() for p in forbidden_runtime):
-        raise RuntimeError("R0_RUNTIME_RESTAURANT_SOURCE_PRESENT")
+        raise RuntimeError("R0_RUNTIME_RESTAURANT_SOURCE_MISPLACED")
+    restaurant_runtime = ROOT / "restaurant"
+    if restaurant_runtime.exists():
+        if not (ROOT / "contracts/restaurant/v1/r1_service_operation_authority.json").is_file():
+            raise RuntimeError("R0_UNGOVERNED_RESTAURANT_DESCENDANT")
+        if not (ROOT / "alembic_neutral/versions/r1_restaurant_service_operation_042.py").is_file():
+            raise RuntimeError("R0_RESTAURANT_DESCENDANT_LINEAGE_MISSING")
     if any((ROOT / "alembic_neutral/versions").glob("r0*.py")) or any((ROOT / "alembic_neutral/sql").glob("r0*.sql")):
         raise RuntimeError("R0_MIGRATION_PRESENT")
 

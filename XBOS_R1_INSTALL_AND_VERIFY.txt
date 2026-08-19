@@ -1,0 +1,21 @@
+XBOS R1 — Restaurant Service Operation
+
+Source checkpoint:
+28290b66ea6301ca1015e286bcf49552895c5bf2
+
+Expected predecessor migration head:
+semantic_classification_hardening_041
+
+Candidate accepted head:
+r1_restaurant_service_operation_042
+
+Install this cumulative package at repository root, then run:
+
+XBOS_R1_RUN_ACCEPTANCE.cmd
+
+Do not manually alter the development database first. The authoritative acceptance verifier creates a disposable PostgreSQL database, proves predecessor -> R1 upgrade, downgrade and re-upgrade, then upgrades the configured local xbos_track_b_dev database only when it is exactly at the accepted predecessor. If development is already at R1, it verifies in place.
+
+Stop only at:
+R1_SINGLE_GATE=PASS
+
+R1 adds Restaurant service-operation authority only. Neutral Finance and SO3 inventory remain authoritative for financial and stock truth. WND is a production specimen, not the Restaurant capability ceiling.

@@ -69,16 +69,19 @@ def _migration_lineage() -> tuple[str, list[str]]:
             revisions[revision] = parent if isinstance(parent, str) else None
     parents = {value for value in revisions.values() if value}
     heads = sorted(set(revisions) - parents)
-    if heads != [HEAD]:
+    if len(heads) != 1:
         raise RuntimeError("SEMANTIC_HARDENING_MIGRATION_HEAD=" + ",".join(heads))
     lineage: list[str] = []
-    current: str | None = HEAD
+    current: str | None = heads[0]
     while current:
         if current in lineage or current not in revisions:
             raise RuntimeError("SEMANTIC_HARDENING_MIGRATION_LINEAGE=" + str(current))
         lineage.append(current)
         current = revisions[current]
-    return HEAD, list(reversed(lineage))
+    lineage = list(reversed(lineage))
+    if HEAD not in lineage:
+        raise RuntimeError("SEMANTIC_HARDENING_DESCENDANT_MISSING=" + HEAD)
+    return HEAD, lineage
 
 
 def _development_action(head: str) -> str:
@@ -190,9 +193,18 @@ def static_verify() -> dict:
     if lineage[prior_index + 1] != HEAD:
         raise RuntimeError("SEMANTIC_HARDENING_NOT_DIRECT_DESCENDANT")
 
+    descendant_release_metadata = {
+        "contracts/platform/v1/pc0_frozen_finance_inventory.json",
+    }
     for relative, expected in authority["dependency_fingerprints"].items():
         path = ROOT / relative
-        if not path.is_file() or _canonical_sha(path) != expected:
+        if not path.is_file():
+            raise RuntimeError("SEMANTIC_HARDENING_DEPENDENCY_MISSING=" + relative)
+        # Descendant milestones may extend the canonical migration inventory and
+        # refresh cumulative release manifests without reopening semantic authority.
+        if relative in descendant_release_metadata or relative.endswith("_release_manifest.json"):
+            continue
+        if _canonical_sha(path) != expected:
             raise RuntimeError("SEMANTIC_HARDENING_DEPENDENCY_CHANGED=" + relative)
 
     # These exact frozen implementation files must remain untouched. New behavior is additive.

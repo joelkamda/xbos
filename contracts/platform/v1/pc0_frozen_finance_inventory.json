@@ -479,6 +479,27 @@
       "sha256": "ebb4beab0ae81868ddf1535a14c495bc2e948059971a518a6a9f8e019d065bdf",
       "owner": "PC3",
       "reason": "Pre-R0 PC3 semantic-classification hardening authorized non-Finance canonical descendant; global taxonomy/history/overlay governance only"
+    },
+    {
+      "root": "alembic_neutral",
+      "path": "versions/r1_restaurant_service_operation_042.py",
+      "sha256": "090b702d712d9fd118e20e1a561a07f302403475efd62b9813b64da2cc6b4e6f",
+      "owner": "PK",
+      "reason": "R1 Restaurant pack canonical migration descendant governed through Pack Platform; Restaurant domain authority only, Finance unchanged"
+    },
+    {
+      "root": "alembic_neutral",
+      "path": "sql/r1_restaurant_service_operation_up.sql",
+      "sha256": "fe6e8b6b297bc9ce7278d0d6b9c4261dc7ff80aa23a2f29f8cc5e9d3cdbcb2f0",
+      "owner": "PK",
+      "reason": "R1 Restaurant pack canonical migration descendant governed through Pack Platform; Restaurant domain authority only, Finance unchanged"
+    },
+    {
+      "root": "alembic_neutral",
+      "path": "sql/r1_restaurant_service_operation_down.sql",
+      "sha256": "8792686dd17a7d1c4c46926d19105e06f3d134f3de8b0a03ccf64b58617ff324",
+      "owner": "PK",
+      "reason": "R1 Restaurant pack canonical migration descendant governed through Pack Platform; Restaurant domain authority only, Finance unchanged"
     }
   ],
   "trees": [

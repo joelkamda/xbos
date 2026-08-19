@@ -53,15 +53,15 @@
     },
     {
       "path": "contracts/packs/v1/pk0123_release_manifest.json",
-      "sha256": "ed4b2896196643bf30159466406fd6c7adaf69ea9028334cca4d1d1115334cf1"
+      "sha256": "ccae861653bba2bb3de2c263749d7cec44cf56e00049c54384ff2e1ae5457681"
     },
     {
       "path": "contracts/packs/v1/pk456_release_manifest.json",
-      "sha256": "94b9db1398c57ae208fbdc945ab1291e9bee79e0b1c2170fd94ff95a1eb6de0d"
+      "sha256": "21afe4fbbb4bf613c683b402a98ed4cdf651f4a1c2ca0fb0d11bc7e0e0e7a523"
     },
     {
       "path": "contracts/packs/v1/pk_aggregate_release_manifest.json",
-      "sha256": "859af824e603babeb3c12911fe336ee21624d556c439180537e9812ced00f41c"
+      "sha256": "62eb33b8e45834555b8d49fcfb8293315b7dc83f022af212712018678801df02"
     },
     {
       "path": "contracts/platform/v1/pc0_data_authority_register.json",
@@ -73,7 +73,7 @@
     },
     {
       "path": "contracts/platform/v1/pc0_frozen_finance_inventory.json",
-      "sha256": "15b909119d5f3a76ab89109e1d03fae82a067e993e15f75d549343f45cb45555"
+      "sha256": "6b09dbe9438f9f1d19822bfe70ab662576584be909d373aff729d8c4ebd5ac70"
     },
     {
       "path": "contracts/platform/v1/pc0_module_map.json",
@@ -85,11 +85,11 @@
     },
     {
       "path": "contracts/platform/v1/pc0_release_manifest.json",
-      "sha256": "9b46ef426b18c5e0481a1e0ff58c9aae24e61f57171f6c61e7bc0a2e838b1d3d"
+      "sha256": "eb5e2a18eb897f149edaa7dc3d33101b62aa96f76361121affd745a1a99cd14b"
     },
     {
       "path": "contracts/platform/v1/pc6_release_manifest.json",
-      "sha256": "3218044cfae968756a7b6bb9c8ebb8ebd335be316eba15a5406a2c5a28833f4b"
+      "sha256": "be291f23d736168dc983efc681c444ba5ac503de614cce341ebb30f09e9afee4"
     },
     {
       "path": "contracts/platform_admin/v1/examples/neutral_merchant_plan.json",
@@ -109,47 +109,47 @@
     },
     {
       "path": "contracts/shared_operations/v1/so10_release_manifest.json",
-      "sha256": "e4630769d34c1d007a10401cd76691e6c03929bbf6c2266055c63cac5be3ef4c"
+      "sha256": "f3cd7e2e660bbcf9f175d82178756d2154cc47e2802c62f2012998f2ee2d42a3"
     },
     {
       "path": "contracts/shared_operations/v1/so1_release_manifest.json",
-      "sha256": "395cd260434c1d8865dc73cf0f84cd3cbc89d7a73af0dbd0af748f1f0b470c9f"
+      "sha256": "ae8ddf617124e279d8cf34b6f396fd6be11e84bfc50ac83c8c22c88039d62b44"
     },
     {
       "path": "contracts/shared_operations/v1/so2_release_manifest.json",
-      "sha256": "af220a981ff99c76792adbb00dc87d1087bd21aa238ecb92fedd53a2c37812c5"
+      "sha256": "c1dd766194e150a9803c798b330ac68e895d93cd5dcbcf3165318429cb54eb34"
     },
     {
       "path": "contracts/shared_operations/v1/so3_release_manifest.json",
-      "sha256": "f81c0f784ab4e8c4d7dc64f71f494a7d6942ce486d601d4e2be9b6d681a59dcd"
+      "sha256": "d646c1984a90e7b570b2a5f3876067384e42813ff7e9c7aeffe756eefd2b3928"
     },
     {
       "path": "contracts/shared_operations/v1/so4_release_manifest.json",
-      "sha256": "39c3ed98c2d2242d40dfb1216d902ec90a339cdcaf863836ae52a07dbee38111"
+      "sha256": "9b18dc509f0a49b811ab9176927ba082bd681fa6b10272a817cfa32148519673"
     },
     {
       "path": "contracts/shared_operations/v1/so5_release_manifest.json",
-      "sha256": "36b183a25962f8242a223759030596d4a36247bc7d7a608d1c1f9a0ae7b15de0"
+      "sha256": "8a065c4c52349555e551a1301c09f7f462baac815e4e56a9e66b904a98fff8fa"
     },
     {
       "path": "contracts/shared_operations/v1/so6_release_manifest.json",
-      "sha256": "b134fe9c8a05a863342029697115824d843c7386f3d8e056a09438b7a961a458"
+      "sha256": "bce9532ad07468dd9588d68d08c823b403b1d51077d96af9d7dd52ac60453d5c"
     },
     {
       "path": "contracts/shared_operations/v1/so7_release_manifest.json",
-      "sha256": "70fdb9b46706f94750d3e48e9a9456d451c03c549fe2bd2108bbc3140b75ea8f"
+      "sha256": "ecf4016f052335dc684fc5212ccd42150dd5516675f6fce6d98abd44ab35a903"
     },
     {
       "path": "contracts/shared_operations/v1/so8_release_manifest.json",
-      "sha256": "ac9563474684e6f9c77716f08b71250fc3e18004d6d1e4d59220f37b95e149f5"
+      "sha256": "686c9cc3576e3964cc06a0ce99a5a485627978ff39a9d39bc9619aeb786fce6b"
     },
     {
       "path": "contracts/shared_operations/v1/so9_release_manifest.json",
-      "sha256": "04a2e5dd5287b42f401fdcf2aef764115ce90164512760be7cb54fd5314ae8ae"
+      "sha256": "24695c247577b0798f1564c55b72a208832eb871946175fac646df0dbf918347"
     },
     {
       "path": "contracts/shared_operations/v1/so_aggregate_release_manifest.json",
-      "sha256": "93c591104b000afd5b9a4d7f10f7407793a862672780a96eb0138da89162cdd7"
+      "sha256": "36e98ea07de6b157c7c21fe3eb688ccdc53ce354f20dcd26cb301f6a8ec5303f"
     },
     {
       "path": "core/platform/architecture_contract.py",
