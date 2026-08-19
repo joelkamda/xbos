@@ -24,6 +24,11 @@ class Order(Base):
 
     status = Column(String(50), default="pending_payment")
 
+    # How the customer receives this order. Existing historical rows remain
+    # NULL/unspecified when the Track A field is introduced; new orders
+    # default to DINE_IN at the service layer.
+    fulfillment_mode = Column(String(20), nullable=True, default="DINE_IN")
+
     subtotal = Column(Numeric(12, 2), default=0)
     total = Column(Numeric(12, 2), default=0)
 

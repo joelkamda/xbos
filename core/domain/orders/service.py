@@ -52,6 +52,46 @@ def _clean_modifier_quantity(value) -> int:
     return max(qty, 1)
 
 
+FULFILLMENT_MODES = {"DINE_IN", "TAKEAWAY", "DELIVERY"}
+
+
+def _normalize_fulfillment_mode(
+    value,
+    *,
+    allow_unspecified: bool = False,
+) -> str | None:
+    if value is None:
+        return None if allow_unspecified else "DINE_IN"
+
+    clean = str(value or "").strip().upper().replace("-", "_").replace(" ", "_")
+
+    aliases = {
+        "DINEIN": "DINE_IN",
+        "DINE_IN": "DINE_IN",
+        "TAKEOUT": "TAKEAWAY",
+        "TAKE_OUT": "TAKEAWAY",
+        "TAKE_AWAY": "TAKEAWAY",
+        "TAKEAWAY": "TAKEAWAY",
+        "DELIVERY": "DELIVERY",
+        "UNSPECIFIED": None,
+        "UNKNOWN": None,
+    }
+
+    normalized = aliases.get(clean, clean)
+
+    if normalized is None:
+        if allow_unspecified:
+            return None
+        return "DINE_IN"
+
+    if normalized not in FULFILLMENT_MODES:
+        raise ValueError(
+            "fulfillment_mode must be DINE_IN, TAKEAWAY, or DELIVERY"
+        )
+
+    return normalized
+
+
 def _build_modifiers_for_item(item_payload: Dict[str, Any]) -> List[OrderItemModifier]:
     """
     Build modifier child rows for an order item.
@@ -179,11 +219,16 @@ class OrderService:
         # CREATE ORDER
         # =================================================
 
+        fulfillment_mode = _normalize_fulfillment_mode(
+            payload.get("fulfillment_mode", payload.get("order_type"))
+        )
+
         order = Order(
             tenant_id=tenant_id,
             branch_id=branch_id,
             created_by_user_id=created_by_user_id,
             status="pending_payment",
+            fulfillment_mode=fulfillment_mode,
             subtotal=subtotal,
             total=subtotal,
         )
@@ -356,6 +401,17 @@ class OrderService:
 
             order.subtotal = subtotal
             order.total = subtotal
+
+            if "fulfillment_mode" in payload or "order_type" in payload:
+                raw_mode = (
+                    payload.get("fulfillment_mode")
+                    if "fulfillment_mode" in payload
+                    else payload.get("order_type")
+                )
+                order.fulfillment_mode = _normalize_fulfillment_mode(
+                    raw_mode,
+                    allow_unspecified=True,
+                )
 
             if hasattr(order, "updated_at"):
                 order.updated_at = _utc_now_naive()

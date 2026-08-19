@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session, selectinload
 
 from core.domain.orders.service import OrderService
 from core.domain.orders.repository import OrderRepository
+from core.domain.orders.models import Order
 from core.domain.sales.models import Sale
 from core.domain.taxonomy.models import AtomicUnitTaxonomy, TaxonomyNode
 from core.users.user_model import User
@@ -350,10 +351,15 @@ class OrdersController:
             user_id=created_by_user_id,
         )
 
+        fulfillment_mode = getattr(order, "fulfillment_mode", None)
+
         return {
             "id": order.id,
             "tenant_id": order.tenant_id,
             "branch_id": order.branch_id,
+            "fulfillment_mode": fulfillment_mode,
+            # Compatibility alias for the existing POS payload vocabulary.
+            "order_type": fulfillment_mode,
 
             # Commission-safe author/originator fields.
             "created_by_user_id": created_by_user_id,
@@ -375,6 +381,53 @@ class OrdersController:
                 )
                 for item in (order.items or [])
             ],
+        }
+
+    # =====================================================
+    # ORDER FULFILLMENT MODE LOOKUPS
+    # =====================================================
+
+    async def sale_fulfillment_modes(
+        self,
+        request: Request,
+        *,
+        db: Session,
+        limit: int = 200,
+    ):
+        """
+        Returns order fulfillment mode keyed by sale id.
+
+        This keeps fulfillment as order truth while allowing Sales Archive
+        to display/filter TAKEAWAY without duplicating the field on sales.
+        """
+        ctx = self._ctx(request)
+
+        rows = (
+            db.query(
+                Sale.id,
+                Sale.order_id,
+                Order.fulfillment_mode,
+            )
+            .outerjoin(
+                Order,
+                Order.id == Sale.order_id,
+            )
+            .filter(
+                Sale.tenant_id == ctx["tenant_id"],
+                Sale.branch_id == ctx["branch_id"],
+            )
+            .order_by(Sale.created_at.desc())
+            .limit(max(1, min(int(limit or 200), 500)))
+            .all()
+        )
+
+        return {
+            "modes_by_sale_id": {
+                str(int(sale_id)): fulfillment_mode
+                for sale_id, _order_id, fulfillment_mode in rows
+            },
+            "tracked_values": ["DINE_IN", "TAKEAWAY", "DELIVERY"],
+            "historical_null_means": "UNSPECIFIED",
         }
 
     # =====================================================

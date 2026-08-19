@@ -31,6 +31,20 @@ async def list_orders(
 
 
 
+@router.get("/sale-fulfillment-modes")
+@require_permissions("sale.view")
+async def sale_fulfillment_modes(
+    request: Request,
+    limit: int = Query(200, ge=1, le=500),
+    db: Session = Depends(get_db),
+):
+    return await controller.sale_fulfillment_modes(
+        request,
+        db=db,
+        limit=limit,
+    )
+
+
 @router.get("/kitchen/history")
 @require_permissions("order.view")
 async def kitchen_history(
