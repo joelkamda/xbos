@@ -257,6 +257,99 @@ def sig(order):
     payload={"id":order["order_id"],"status":order.get("status"),"items":[{"id":i.get("order_item_id"),"qty":i.get("quantity"),"name":i.get("name_snapshot"),"modifiers":i.get("modifiers") or []} for i in order["items"]]}
     return hashlib.sha256(json.dumps(payload,sort_keys=True,default=str).encode()).hexdigest()
 
+
+# KITCHEN_INCREMENTAL_STATE_V1
+def kitchen_items_snapshot(items):
+    snapshot={}
+    for item in items or []:
+        item_id=str(item.get("order_item_id") or "")
+        if not item_id:
+            continue
+
+        modifiers_payload=[]
+        for modifier in item.get("modifiers") or []:
+            modifiers_payload.append({
+                "modifier_type":str(
+                    modifier.get("modifier_type")
+                    or modifier.get("type")
+                    or ""
+                ),
+                "name_snapshot":str(
+                    modifier.get("name_snapshot")
+                    or modifier.get("name")
+                    or ""
+                ),
+                "quantity":int(modifier.get("quantity") or 1),
+            })
+
+        modifiers_payload=sorted(
+            modifiers_payload,
+            key=lambda x: (
+                x["modifier_type"],
+                x["name_snapshot"],
+                x["quantity"],
+            ),
+        )
+
+        detail_payload={
+            "name_snapshot":str(item.get("name_snapshot") or ""),
+            "modifiers":modifiers_payload,
+        }
+
+        snapshot[item_id]={
+            "quantity":int(item.get("quantity") or 0),
+            "detail":json.dumps(
+                detail_payload,
+                sort_keys=True,
+                separators=(",",":"),
+                ensure_ascii=False,
+            ),
+        }
+
+    return snapshot
+
+
+def kitchen_addition_delta(order, previous_items):
+    previous_items=previous_items or {}
+    delta=[]
+    reasons=[]
+    current_snapshot=kitchen_items_snapshot(order.get("items") or [])
+
+    for item in order.get("items") or []:
+        item_id=str(item.get("order_item_id") or "")
+        if not item_id:
+            continue
+
+        current=current_snapshot.get(item_id) or {}
+        previous=previous_items.get(item_id)
+
+        if previous is None:
+            delta.append(dict(item))
+            reasons.append(f"new_line:{item_id}")
+            continue
+
+        current_qty=int(current.get("quantity") or 0)
+        previous_qty=int(previous.get("quantity") or 0)
+
+        if current_qty > previous_qty:
+            added=dict(item)
+            added["quantity"]=current_qty-previous_qty
+            delta.append(added)
+            reasons.append(
+                f"qty_increase:{item_id}:{previous_qty}->{current_qty}"
+            )
+            continue
+
+        if (
+            current_qty == previous_qty
+            and current.get("detail") != previous.get("detail")
+        ):
+            delta.append(dict(item))
+            reasons.append(f"detail_change:{item_id}")
+
+    return delta,reasons
+
+
 def modifiers(item):
     out=[]
     for m in getattr(item,"modifiers",None) or []:
@@ -314,18 +407,28 @@ def main():
             if first: log(f"QUEUE_SNAPSHOT orders={len(orders)} database={a.database}")
             for order in orders:
                 key=str(order["order_id"]); signature=sig(order); prev=state["orders"].get(key,{}).get("signature")
+                print_order=order
                 event=None
                 if a.force_current and first: event="CURRENT QUEUE"
                 elif prev is None: event="NEW ORDER"
                 elif prev!=signature:
-                    state["orders"][key]["signature"]=signature
-                    state["orders"][key]["last_seen_at"]=datetime.now(timezone.utc).isoformat()
-                    event=None
-                    log(f"SUPPRESSED_REPRINT order={order['order_id']} reason=already_printed")
+                    previous_items=state["orders"][key].get("kitchen_items") or {}
+                    delta_items,delta_reasons=kitchen_addition_delta(order,previous_items)
+                    if delta_items:
+                        print_order=dict(order)
+                        print_order["items"]=delta_items
+                        event="KITCHEN ADDITION"
+                        log(f"KITCHEN_DELTA order={order['order_id']} items={len(delta_items)} reasons={','.join(delta_reasons)}")
+                    else:
+                        state["orders"][key]["signature"]=signature
+                        state["orders"][key]["kitchen_items"]=kitchen_items_snapshot(order.get("items") or [])
+                        state["orders"][key]["last_seen_at"]=datetime.now(timezone.utc).isoformat()
+                        event=None
+                        log(f"SUPPRESSED_REPRINT order={order['order_id']} reason=no_new_kitchen_lines")
                 if event:
-                    job=raw_spool(p["name"],escpos_bon(order,event),f"WND Kitchen Bon #{order['order_id']}")
-                    log(f"PRINTED order={order['order_id']} event={event} items={len(order['items'])} job={job} printer={p['name']}")
-                    state["orders"][key]={"signature":signature,"printed_at":datetime.now(timezone.utc).isoformat(),"event":event}
+                    job=raw_spool(p["name"],escpos_bon(print_order,event),f"WND Kitchen Bon #{order['order_id']}")
+                    log(f"PRINTED order={order['order_id']} event={event} items={len(print_order['items'])} job={job} printer={p['name']}")
+                    state["orders"][key]={"signature":signature,"printed_at":datetime.now(timezone.utc).isoformat(),"event":event,"kitchen_items":kitchen_items_snapshot(order.get("items") or [])}
                     save_state(state)
             first=False
             if a.once or not a.watch: break
