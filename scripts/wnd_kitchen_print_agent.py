@@ -258,17 +258,74 @@ def sig(order):
     return hashlib.sha256(json.dumps(payload,sort_keys=True,default=str).encode()).hexdigest()
 
 
-# KITCHEN_INCREMENTAL_STATE_V1
-def kitchen_items_snapshot(items):
-    snapshot={}
-    for item in items or []:
-        item_id=str(item.get("order_item_id") or "")
-        if not item_id:
-            continue
+# KITCHEN_SEMANTIC_DELTA_STATE_V2
+def _kitchen_clean_text(value):
+    return " ".join(
+        str(value or "").strip().upper().split()
+    )
 
-        modifiers_payload=[]
-        for modifier in item.get("modifiers") or []:
-            modifiers_payload.append({
+
+def _kitchen_modifier_payload(modifier):
+    return {
+        "modifier_type":_kitchen_clean_text(
+            modifier.get("modifier_type")
+            or modifier.get("type")
+            or ""
+        ),
+        "name_snapshot":_kitchen_clean_text(
+            modifier.get("name_snapshot")
+            or modifier.get("name")
+            or ""
+        ),
+        "quantity":int(modifier.get("quantity") or 1),
+    }
+
+
+def _kitchen_semantic_key(item):
+    modifiers_payload=sorted(
+        [
+            _kitchen_modifier_payload(modifier)
+            for modifier in (item.get("modifiers") or [])
+        ],
+        key=lambda x: (
+            x["modifier_type"],
+            x["name_snapshot"],
+            x["quantity"],
+        ),
+    )
+
+    identity={
+        "atomic_unit_id":(
+            str(item.get("atomic_unit_id"))
+            if item.get("atomic_unit_id") is not None
+            else ""
+        ),
+        "name_snapshot":_kitchen_clean_text(
+            item.get("name_snapshot")
+            or item.get("name")
+            or ""
+        ),
+        "modifiers":modifiers_payload,
+    }
+
+    return json.dumps(
+        identity,
+        sort_keys=True,
+        separators=(",",":"),
+        ensure_ascii=False,
+    )
+
+
+def _kitchen_print_template(item):
+    template={
+        "quantity":1,
+        "name_snapshot":str(
+            item.get("name_snapshot")
+            or item.get("name")
+            or "ITEM"
+        ),
+        "modifiers":[
+            {
                 "modifier_type":str(
                     modifier.get("modifier_type")
                     or modifier.get("type")
@@ -279,75 +336,125 @@ def kitchen_items_snapshot(items):
                     or modifier.get("name")
                     or ""
                 ),
-                "quantity":int(modifier.get("quantity") or 1),
-            })
+                "quantity":int(
+                    modifier.get("quantity") or 1
+                ),
+            }
+            for modifier in (item.get("modifiers") or [])
+        ],
+    }
 
-        modifiers_payload=sorted(
-            modifiers_payload,
-            key=lambda x: (
-                x["modifier_type"],
-                x["name_snapshot"],
-                x["quantity"],
-            ),
+    if item.get("atomic_unit_id") is not None:
+        template["atomic_unit_id"]=item.get(
+            "atomic_unit_id"
         )
 
-        detail_payload={
-            "name_snapshot":str(item.get("name_snapshot") or ""),
-            "modifiers":modifiers_payload,
-        }
+    return template
 
-        snapshot[item_id]={
-            "quantity":int(item.get("quantity") or 0),
-            "detail":json.dumps(
-                detail_payload,
-                sort_keys=True,
-                separators=(",",":"),
-                ensure_ascii=False,
-            ),
-        }
+
+def kitchen_items_snapshot(items):
+    snapshot={}
+
+    for item in items or []:
+        semantic_key=_kitchen_semantic_key(item)
+        quantity=int(item.get("quantity") or 0)
+
+        if quantity <= 0:
+            continue
+
+        row=snapshot.setdefault(
+            semantic_key,
+            {
+                "quantity":0,
+                "item":_kitchen_print_template(item),
+            },
+        )
+        row["quantity"]+=quantity
 
     return snapshot
 
 
-def kitchen_addition_delta(order, previous_items):
+def kitchen_semantic_delta(order, previous_items):
     previous_items=previous_items or {}
-    delta=[]
+    current_items=kitchen_items_snapshot(
+        order.get("items") or []
+    )
+
+    additions=[]
+    cancellations=[]
     reasons=[]
-    current_snapshot=kitchen_items_snapshot(order.get("items") or [])
 
-    for item in order.get("items") or []:
-        item_id=str(item.get("order_item_id") or "")
-        if not item_id:
-            continue
+    keys=set(previous_items) | set(current_items)
 
-        current=current_snapshot.get(item_id) or {}
-        previous=previous_items.get(item_id)
+    for semantic_key in sorted(keys):
+        previous=previous_items.get(semantic_key) or {}
+        current=current_items.get(semantic_key) or {}
 
-        if previous is None:
-            delta.append(dict(item))
-            reasons.append(f"new_line:{item_id}")
-            continue
-
-        current_qty=int(current.get("quantity") or 0)
         previous_qty=int(previous.get("quantity") or 0)
+        current_qty=int(current.get("quantity") or 0)
 
         if current_qty > previous_qty:
-            added=dict(item)
-            added["quantity"]=current_qty-previous_qty
-            delta.append(added)
-            reasons.append(
-                f"qty_increase:{item_id}:{previous_qty}->{current_qty}"
+            item=dict(
+                current.get("item")
+                or previous.get("item")
+                or {}
             )
-            continue
+            item["quantity"]=current_qty-previous_qty
+            additions.append(item)
+            reasons.append(
+                f"add:{current_qty-previous_qty}:"
+                + str(item.get("name_snapshot") or "ITEM")
+            )
 
-        if (
-            current_qty == previous_qty
-            and current.get("detail") != previous.get("detail")
-        ):
-            delta.append(dict(item))
-            reasons.append(f"detail_change:{item_id}")
+        if previous_qty > current_qty:
+            item=dict(
+                previous.get("item")
+                or current.get("item")
+                or {}
+            )
+            item["quantity"]=previous_qty-current_qty
+            cancellations.append(item)
+            reasons.append(
+                f"cancel:{previous_qty-current_qty}:"
+                + str(item.get("name_snapshot") or "ITEM")
+            )
 
-    return delta,reasons
+    if additions and not cancellations:
+        return additions,"KITCHEN ADDITION",reasons
+
+    if cancellations and not additions:
+        return cancellations,"KITCHEN CANCELLATION",reasons
+
+    if additions and cancellations:
+        mixed=[]
+
+        for item in additions:
+            row=dict(item)
+            row["name_snapshot"]=(
+                "ADD: "
+                + str(
+                    row.get("name_snapshot")
+                    or row.get("name")
+                    or "ITEM"
+                )
+            )
+            mixed.append(row)
+
+        for item in cancellations:
+            row=dict(item)
+            row["name_snapshot"]=(
+                "CANCEL: "
+                + str(
+                    row.get("name_snapshot")
+                    or row.get("name")
+                    or "ITEM"
+                )
+            )
+            mixed.append(row)
+
+        return mixed,"KITCHEN CHANGE",reasons
+
+    return [],None,reasons
 
 
 def modifiers(item):
@@ -413,18 +520,18 @@ def main():
                 elif prev is None: event="NEW ORDER"
                 elif prev!=signature:
                     previous_items=state["orders"][key].get("kitchen_items") or {}
-                    delta_items,delta_reasons=kitchen_addition_delta(order,previous_items)
+                    delta_items,delta_event,delta_reasons=kitchen_semantic_delta(order,previous_items)
                     if delta_items:
                         print_order=dict(order)
                         print_order["items"]=delta_items
-                        event="KITCHEN ADDITION"
-                        log(f"KITCHEN_DELTA order={order['order_id']} items={len(delta_items)} reasons={','.join(delta_reasons)}")
+                        event=delta_event
+                        log(f"KITCHEN_SEMANTIC_DELTA order={order['order_id']} event={delta_event} items={len(delta_items)} reasons={','.join(delta_reasons)}")
                     else:
                         state["orders"][key]["signature"]=signature
                         state["orders"][key]["kitchen_items"]=kitchen_items_snapshot(order.get("items") or [])
                         state["orders"][key]["last_seen_at"]=datetime.now(timezone.utc).isoformat()
                         event=None
-                        log(f"SUPPRESSED_REPRINT order={order['order_id']} reason=no_new_kitchen_lines")
+                        log(f"SUPPRESSED_REPRINT order={order['order_id']} reason=no_semantic_kitchen_delta")
                 if event:
                     job=raw_spool(p["name"],escpos_bon(print_order,event),f"WND Kitchen Bon #{order['order_id']}")
                     log(f"PRINTED order={order['order_id']} event={event} items={len(print_order['items'])} job={job} printer={p['name']}")
