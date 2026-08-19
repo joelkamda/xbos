@@ -1,0 +1,18 @@
+XBOS R2 RESTAURANT MENU AND FULFILLMENT
+SOURCE=053fb8a6bbe40c11eeaeef23113ad2888122de65
+SOURCE_ARCHIVE=XBOS_R2_SOURCE_POST_R1.zip
+SOURCE_ARCHIVE_SHA256=7f79057eedad4bac241dc9c2d002666aa49126fb0711761d56b301f83587510c
+SOURCE_ARCHIVE_SIZE=6045731
+PREVIOUS_HEAD=r1_restaurant_service_operation_042
+ACCEPTED_HEAD=r2_restaurant_menu_fulfillment_043
+MIGRATION_COUNT=1
+
+SCOPE:
+- SO1-backed Restaurant menu projection and modifiers
+- SO5-backed preparation station profiles and routing
+- preparation tickets with hold/fire/course and partial readiness
+- recipes/sub-preparations, operational yield and waste
+- deterministic SO3 inventory handoff; no inventory writer
+- deterministic SO8 delivery handoff; no delivery-job writer
+- no Finance writer
+- WND specimen preserved without becoming Restaurant standard

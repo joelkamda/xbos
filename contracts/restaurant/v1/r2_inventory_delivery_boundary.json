@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "contract": "R2_INVENTORY_DELIVERY_BOUNDARY",
+  "inventory": {
+    "authority": "SO3",
+    "restaurant_writes_inventory_movement": false,
+    "restaurant_writes_inventory_position": false,
+    "restaurant_consumption_output": "deterministic intent only",
+    "wnd_exactly_once_sale_stock_effect_preserved": true,
+    "recipe_quantities": "operational stock base units; valuation not owned by Restaurant"
+  },
+  "delivery": {
+    "authority": "SO8",
+    "restaurant_creates_delivery_job": false,
+    "restaurant_owns_printer_device": false,
+    "restaurant_owns_provider_retry": false,
+    "handoff": "ticket payload + channel/destination reference"
+  },
+  "finance": {
+    "authority": "Neutral Finance",
+    "restaurant_posts_journal": false,
+    "restaurant_creates_obligation": false,
+    "modifier_price_snapshot_is_financial_truth": false
+  },
+  "commercial": {
+    "authority": "SO1",
+    "menu_projection_only": true,
+    "modifier_target_and_price_reference_only": true
+  }
+}

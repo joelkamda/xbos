@@ -1,58 +1,59 @@
 {
   "schema_version": 1,
-  "contract": "XBOS_R1_RESTAURANT_SERVICE_OPERATION_RELEASE_MANIFEST",
-  "source_checkpoint": "28290b66ea6301ca1015e286bcf49552895c5bf2",
-  "source_archive_sha256": "7795549f68d01809baca4b12f710a12be4de0f90f402c838c297be6c241b77f3",
-  "source_archive_size": 6013667,
-  "previous_head": "semantic_classification_hardening_041",
-  "accepted_head": "r1_restaurant_service_operation_042",
+  "contract": "XBOS_R2_RESTAURANT_MENU_FULFILLMENT_RELEASE_MANIFEST",
+  "source_checkpoint": "053fb8a6bbe40c11eeaeef23113ad2888122de65",
+  "source_archive_sha256": "7f79057eedad4bac241dc9c2d002666aa49126fb0711761d56b301f83587510c",
+  "source_archive_size": 6045731,
+  "previous_head": "r1_restaurant_service_operation_042",
+  "accepted_head": "r2_restaurant_menu_fulfillment_043",
   "migration_count": 1,
-  "operator_gate": "XBOS_R1_RUN_ACCEPTANCE.cmd",
-  "success_marker": "R1_SINGLE_GATE=PASS",
-  "runtime_change": "RESTAURANT_PACK_R1_ONLY",
-  "database_change": "R1_RESTAURANT_SERVICE_OPERATION_TABLES_ONLY",
+  "operator_gate": "XBOS_R2_RUN_ACCEPTANCE.cmd",
+  "success_marker": "R2_SINGLE_GATE=PASS",
+  "runtime_change": "RESTAURANT_PACK_R2_ONLY",
+  "database_change": "R2_RESTAURANT_MENU_FULFILLMENT_TABLES_ONLY",
   "finance": "UNCHANGED",
-  "shared_operations_authority": "UNCHANGED",
+  "shared_operations_authority": "UNCHANGED; SO1/SO3/SO5/SO8 consumed through governed references/handoffs only",
   "platform_core_business_authority": "UNCHANGED",
   "pack_platform_business_authority": "UNCHANGED",
   "platform_admin_business_authority": "UNCHANGED",
-  "semantic_authority": "UNCHANGED; descendant-verifier/release-metadata compatibility refreshed",
+  "semantic_authority": "UNCHANGED; SC41 classification may be consumed through an injected semantic resolver only",
+  "r1_restaurant_authority": "UNCHANGED",
   "wnd_production": "UNCHANGED",
   "historical_pc1_pc5_release_manifests_rewritten": false,
   "cumulative_release_metadata_refreshed": true,
-  "artifact_count": 43,
+  "artifact_count": 41,
   "hashing": "sha256; text canonicalization CRLF->LF only",
   "self_excluded": true,
   "artifacts": [
     {
-      "path": "R1_INSTALL_MANIFEST.txt",
-      "sha256": "01337c13531c935cf60d03ff911b9c16b0a7c85ae9f469cd5bef597bf11bbf35",
-      "size": 1590
+      "path": "R2_INSTALL_MANIFEST.txt",
+      "sha256": "8306e0f64d052646b9e8b5d94af133cdc87a38fcc9df32b1d77aefb563f3ddea",
+      "size": 802
     },
     {
-      "path": "XBOS_R1_INSTALL_AND_VERIFY.txt",
-      "sha256": "2b2a9c3a94ffb3d663ce0a013ca504b970c81ce43e9d66b6ea7be388ff6c5e13",
-      "size": 960
+      "path": "XBOS_R2_INSTALL_AND_VERIFY.txt",
+      "sha256": "f0410fda0902a9384134310e4675539df42644823cc4fed819b69f59f7224dd7",
+      "size": 700
     },
     {
-      "path": "XBOS_R1_RUN_ACCEPTANCE.cmd",
-      "sha256": "724102a09c6cc6da482bad780e3f856473c5325088b5fd90927d167c331acddc",
-      "size": 2738
+      "path": "XBOS_R2_RUN_ACCEPTANCE.cmd",
+      "sha256": "4644cc6cfb2ca668793acd3b43bcf679de1930b9a0dbdf6f3579436e80a38b71",
+      "size": 2737
     },
     {
-      "path": "alembic_neutral/sql/r1_restaurant_service_operation_down.sql",
-      "sha256": "8792686dd17a7d1c4c46926d19105e06f3d134f3de8b0a03ccf64b58617ff324",
-      "size": 1846
+      "path": "alembic_neutral/sql/r2_restaurant_menu_fulfillment_down.sql",
+      "sha256": "19202aebb1b2605272111c3850ebdfbe138d6fa60d1d5f032ef18e0d719fe49f",
+      "size": 2271
     },
     {
-      "path": "alembic_neutral/sql/r1_restaurant_service_operation_up.sql",
-      "sha256": "fe6e8b6b297bc9ce7278d0d6b9c4261dc7ff80aa23a2f29f8cc5e9d3cdbcb2f0",
-      "size": 15893
+      "path": "alembic_neutral/sql/r2_restaurant_menu_fulfillment_up.sql",
+      "sha256": "6a6d96f5898acb6fd99f5646e03bc496d34160efc40a733d72854544b8c66550",
+      "size": 25653
     },
     {
-      "path": "alembic_neutral/versions/r1_restaurant_service_operation_042.py",
-      "sha256": "090b702d712d9fd118e20e1a561a07f302403475efd62b9813b64da2cc6b4e6f",
-      "size": 581
+      "path": "alembic_neutral/versions/r2_restaurant_menu_fulfillment_043.py",
+      "sha256": "883736b866c4b36bd04eb31c6350a74fdc9a6ad100e295f8fe64dd4263a7cff6",
+      "size": 566
     },
     {
       "path": "contracts/packs/v1/pk0123_release_manifest.json",
@@ -110,24 +111,29 @@
       "size": 3314
     },
     {
-      "path": "contracts/restaurant/v1/r1_finance_inventory_boundary.json",
-      "sha256": "570f4332365ffcd09f03506e40be7550251a7c28ccefa7a3e0c082e07774970c",
-      "size": 563
+      "path": "contracts/restaurant/v1/r1_release_manifest.json",
+      "sha256": "930303ec7d4d226f53abf12fd395a3db456318378b148134f8366e93b422c793",
+      "size": 9099
     },
     {
-      "path": "contracts/restaurant/v1/r1_public_interfaces.json",
-      "sha256": "cb3883cfd97a5e3691cabdd300efa0eacd14dc9a0129b7fbb305a752c7ef6f0c",
-      "size": 552
+      "path": "contracts/restaurant/v1/r2_inventory_delivery_boundary.json",
+      "sha256": "b4f11da4d26e1ac3d4370e9722a4ef0dac4496df6301570fa39720c8add5ad7c",
+      "size": 1011
     },
     {
-      "path": "contracts/restaurant/v1/r1_r2_readiness.json",
-      "sha256": "45f3893b33ae47843f5c23d9d81c15ce79b85e4634ad90ec51aefd8720efb6a7",
-      "size": 563
+      "path": "contracts/restaurant/v1/r2_menu_fulfillment_authority.json",
+      "sha256": "524ba2624cbfb31c826cf8a0e4e5e4158d6b4f4e44bd5c6e809ef809ea1cf081",
+      "size": 2487
     },
     {
-      "path": "contracts/restaurant/v1/r1_service_operation_authority.json",
-      "sha256": "5ac596a90bd94884002efc7c94b4f4dbc48a0e81cbc1278aeddbbc6cddabea0c",
-      "size": 959
+      "path": "contracts/restaurant/v1/r2_public_interfaces.json",
+      "sha256": "681636b5eb419b11f5865a97545fa764e4ac579038951a2d3e8facd4b03bf700",
+      "size": 1016
+    },
+    {
+      "path": "contracts/restaurant/v1/r2_r3_readiness.json",
+      "sha256": "fc32b4d6e6fca8b64f898911b0a088dc0c92d1cb8e7156634bb7d1b7c28f9560",
+      "size": 912
     },
     {
       "path": "contracts/shared_operations/v1/so10_release_manifest.json",
@@ -185,59 +191,44 @@
       "size": 5253
     },
     {
-      "path": "docs/restaurant/R1_RESTAURANT_SERVICE_OPERATION.md",
-      "sha256": "26c78983516f73bb68e4061e397c5910a08cd658245b457adedaa4ba70484a41",
-      "size": 1149
+      "path": "docs/restaurant/R2_RESTAURANT_MENU_AND_FULFILLMENT.md",
+      "sha256": "40c9ed09c5c80aee238d31630a27eb7e549aaf6cadd93768735c43310be0a66a",
+      "size": 2899
     },
     {
-      "path": "docs/restaurant/adr/0002_R1_RESTAURANT_SERVICE_OPERATION_AUTHORITY.md",
-      "sha256": "c6fd817b5d02e6296c5c9d660ec52ee5b8f7c7dcbf9976e7faf12f2db96b97f2",
-      "size": 579
+      "path": "docs/restaurant/adr/0003_R2_RESTAURANT_MENU_FULFILLMENT_AUTHORITY.md",
+      "sha256": "740f667297a666231660a6d73e36d399ee8b6286175a41d03d40f63d2073a177",
+      "size": 851
     },
     {
-      "path": "restaurant/__init__.py",
-      "sha256": "a601421794a7af0a3813904d217dfa8ad3dcc9946115e3d7798e215556d2bd39",
-      "size": 43
+      "path": "restaurant/r2/__init__.py",
+      "sha256": "b3ab059c5c5f32153533283f5cc7f34dfc31123f17bb3083bd225b3c77287af8",
+      "size": 110
     },
     {
-      "path": "restaurant/r1/__init__.py",
-      "sha256": "84af573435be931e1b3d5ed9d237df35363522cedece49461138524e68bc6444",
-      "size": 113
+      "path": "restaurant/r2/contracts.py",
+      "sha256": "4e644c8cc06992127acde7a853eaa49150a9a99db42f812bb5ab32557243bbfc",
+      "size": 9801
     },
     {
-      "path": "restaurant/r1/contracts.py",
-      "sha256": "32fb87a588c7b47f8bb1de63b6a61f65746b5a16270dc2481b77daa2a9af6cc6",
-      "size": 6341
+      "path": "restaurant/r2/service.py",
+      "sha256": "fffe3e246fe3b7afb16fa40b1b575ba944384433174410c3ce14a672701b1971",
+      "size": 28091
     },
     {
-      "path": "restaurant/r1/service.py",
-      "sha256": "ce276cf1b012b9c499f6d9f7a20e4c2c42eeccd157893d21d945593cb737f778",
-      "size": 17134
+      "path": "restaurant/r2/sql_repository.py",
+      "sha256": "46b325b33378e5e9d56d5d3e5c7d2fedb2fda938142f35c6f9aa1254d7f9885d",
+      "size": 42053
     },
     {
-      "path": "restaurant/r1/sql_repository.py",
-      "sha256": "9d9a799d333e78c1bb50bc572843f0cb6ce8b1c21b7fde43e65fb733e3b22b5d",
-      "size": 25883
+      "path": "scripts/verify_r2_restaurant_menu_fulfillment.py",
+      "sha256": "6555dbd211059b6110b5ac6f216c2eb23873db068bd9aadd165e2c72522f6061",
+      "size": 10286
     },
     {
-      "path": "scripts/verify_r0_restaurant_domain_extraction.py",
-      "sha256": "e4d8c4e90ffce7dc9617e7cce76a293c67a4a6ebede80bce5d90ef639cf1d9c9",
-      "size": 10177
-    },
-    {
-      "path": "scripts/verify_r1_restaurant_service_operation.py",
-      "sha256": "e2c539259872086483b99b143a00261388b54361455088ce01fb9d8b57119542",
-      "size": 8274
-    },
-    {
-      "path": "scripts/verify_semantic_classification_hardening.py",
-      "sha256": "c3c938a31d4092adc303455f14d7ca5f270ef5750ed1280d36c8d310aa00c231",
-      "size": 36566
-    },
-    {
-      "path": "tests/contracts/test_r1_restaurant_service_operation.py",
-      "sha256": "23a2d4d6a0e14c73e92a3aa69a8c0557f6ad821ce8e3f5cfb812da02c5f435c3",
-      "size": 10565
+      "path": "tests/contracts/test_r2_restaurant_menu_fulfillment.py",
+      "sha256": "4a062200bc44772d2bf4c45f7fa4f1cec4421420fe77b7091401df48099ec52a",
+      "size": 16563
     }
   ]
 }

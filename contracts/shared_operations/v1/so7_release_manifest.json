@@ -44,7 +44,7 @@
     },
     {
       "path": "contracts/platform/v1/pc0_frozen_finance_inventory.json",
-      "sha256": "6b09dbe9438f9f1d19822bfe70ab662576584be909d373aff729d8c4ebd5ac70"
+      "sha256": "a23a8d36e63884df36985b954b33e37da3d75b0ab39f0fb73e8a229e3706514a"
     },
     {
       "path": "contracts/platform/v1/pc0_module_map.json",
@@ -60,11 +60,11 @@
     },
     {
       "path": "contracts/platform/v1/pc0_release_manifest.json",
-      "sha256": "eb5e2a18eb897f149edaa7dc3d33101b62aa96f76361121affd745a1a99cd14b"
+      "sha256": "656148d0f34b2ea79e0ad8ebac8ded3135b034981e663c788eb14d93515ee0af"
     },
     {
       "path": "contracts/platform/v1/pc6_release_manifest.json",
-      "sha256": "be291f23d736168dc983efc681c444ba5ac503de614cce341ebb30f09e9afee4"
+      "sha256": "c45eebade075fa1aea898afbe138c168e8dba839761e570443e28e827c930de6"
     },
     {
       "path": "contracts/shared_operations/v1/examples/clinical_document_profile.json",
@@ -76,27 +76,27 @@
     },
     {
       "path": "contracts/shared_operations/v1/so1_release_manifest.json",
-      "sha256": "ae8ddf617124e279d8cf34b6f396fd6be11e84bfc50ac83c8c22c88039d62b44"
+      "sha256": "f19d882dc254fd21ed213bacfefcf1b7afb23c21eec0b0b6217d6659e1d92663"
     },
     {
       "path": "contracts/shared_operations/v1/so2_release_manifest.json",
-      "sha256": "c1dd766194e150a9803c798b330ac68e895d93cd5dcbcf3165318429cb54eb34"
+      "sha256": "96ab0c9f5327d385be9867d5fad998e2008f30c9e6fad16d869bda45541a283a"
     },
     {
       "path": "contracts/shared_operations/v1/so3_release_manifest.json",
-      "sha256": "d646c1984a90e7b570b2a5f3876067384e42813ff7e9c7aeffe756eefd2b3928"
+      "sha256": "2fadc9f7d03bfba7c6afa703dec3481722f889bb9131d6355b536bf213b993b5"
     },
     {
       "path": "contracts/shared_operations/v1/so4_release_manifest.json",
-      "sha256": "9b18dc509f0a49b811ab9176927ba082bd681fa6b10272a817cfa32148519673"
+      "sha256": "1620c1ce6df099c32050f4642f3fb25d81022b70e1167915d7cb7e5edda6d57d"
     },
     {
       "path": "contracts/shared_operations/v1/so5_release_manifest.json",
-      "sha256": "8a065c4c52349555e551a1301c09f7f462baac815e4e56a9e66b904a98fff8fa"
+      "sha256": "411267ed83a75a093cc0a916046c9c063f163e9b5e5a716ca2a691a5e6669427"
     },
     {
       "path": "contracts/shared_operations/v1/so6_release_manifest.json",
-      "sha256": "bce9532ad07468dd9588d68d08c823b403b1d51077d96af9d7dd52ac60453d5c"
+      "sha256": "209a9c402e97356ea1fd06f75744b14a3de76bd320b7bd6fc4ae0149df5de746"
     },
     {
       "path": "contracts/shared_operations/v1/so7_authority.json",

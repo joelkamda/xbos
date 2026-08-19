@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "module_code": "R2",
+  "public_package": "restaurant.r2",
+  "private_package": "restaurant.r2.sql_repository",
+  "http_routes_added": [],
+  "commands": [
+    "DefineMenuSection",
+    "PlaceMenuEntry",
+    "DefineModifierGroup",
+    "AddModifierOption",
+    "BindMenuEntryModifierGroup",
+    "SetLineModifiers",
+    "ProfileStation",
+    "DefineRoutingRule",
+    "DefinePreparationSpec",
+    "ReleasePreparation",
+    "FireTicket",
+    "AdvanceTicketItem",
+    "CompleteTicket",
+    "StartPreparationRun",
+    "CompletePreparationRun"
+  ],
+  "reads": [
+    "menu_sections",
+    "modifier_configuration",
+    "modifier_set",
+    "stations",
+    "routing_rules",
+    "preparation_specs",
+    "tickets",
+    "preparation_runs",
+    "inventory_handoff",
+    "delivery_handoff"
+  ],
+  "stable_errors_prefix": "R2_",
+  "cross_module_private_access": "FORBIDDEN",
+  "finance_integration": "handoff only",
+  "inventory_integration": "SO3 intent only",
+  "delivery_integration": "SO8 intent only"
+}

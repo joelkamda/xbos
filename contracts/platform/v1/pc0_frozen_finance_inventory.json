@@ -500,6 +500,27 @@
       "sha256": "8792686dd17a7d1c4c46926d19105e06f3d134f3de8b0a03ccf64b58617ff324",
       "owner": "PK",
       "reason": "R1 Restaurant pack canonical migration descendant governed through Pack Platform; Restaurant domain authority only, Finance unchanged"
+    },
+    {
+      "root": "alembic_neutral",
+      "path": "versions/r2_restaurant_menu_fulfillment_043.py",
+      "sha256": "883736b866c4b36bd04eb31c6350a74fdc9a6ad100e295f8fe64dd4263a7cff6",
+      "owner": "PK",
+      "reason": "R2 Restaurant pack canonical migration descendant governed through Pack Platform; menu/fulfillment authority only, Finance and Shared Operations writers unchanged"
+    },
+    {
+      "root": "alembic_neutral",
+      "path": "sql/r2_restaurant_menu_fulfillment_up.sql",
+      "sha256": "6a6d96f5898acb6fd99f5646e03bc496d34160efc40a733d72854544b8c66550",
+      "owner": "PK",
+      "reason": "R2 Restaurant pack canonical migration descendant governed through Pack Platform; menu/fulfillment authority only, Finance and Shared Operations writers unchanged"
+    },
+    {
+      "root": "alembic_neutral",
+      "path": "sql/r2_restaurant_menu_fulfillment_down.sql",
+      "sha256": "19202aebb1b2605272111c3850ebdfbe138d6fa60d1d5f032ef18e0d719fe49f",
+      "owner": "PK",
+      "reason": "R2 Restaurant pack canonical migration descendant governed through Pack Platform; menu/fulfillment authority only, Finance and Shared Operations writers unchanged"
     }
   ],
   "trees": [

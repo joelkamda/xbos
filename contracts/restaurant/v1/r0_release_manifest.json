@@ -79,7 +79,7 @@
     {
       "path": "scripts/verify_r0_restaurant_domain_extraction.py",
       "sha256": "e4d8c4e90ffce7dc9617e7cce76a293c67a4a6ebede80bce5d90ef639cf1d9c9",
-      "size": 9977
+      "size": 10177
     },
     {
       "path": "tests/contracts/test_r0_restaurant_domain_extraction.py",

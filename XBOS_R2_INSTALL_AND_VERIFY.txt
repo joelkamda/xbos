@@ -1,0 +1,15 @@
+XBOS R2 — Restaurant Menu and Fulfillment
+
+1. Expand this cumulative package over the clean restaurant/r2-menu-and-fulfillment working tree descended from accepted R1 commit 053fb8a6bbe40c11eeaeef23113ad2888122de65.
+2. Do not manually upgrade or downgrade PostgreSQL.
+3. Run:
+
+   XBOS_R2_RUN_ACCEPTANCE.cmd
+
+The gate performs predecessor integrity, R2 contracts, disposable PostgreSQL upgrade/downgrade/re-upgrade, controlled development adoption/verify-in-place, full regression, compilation/JSON/whitespace checks.
+
+Success is only:
+
+   R2_SINGLE_GATE=PASS
+
+R2 changes Restaurant pack authority only. Finance, SO1, SO3, SO5, SO8 and WND production remain authoritative in their existing domains.

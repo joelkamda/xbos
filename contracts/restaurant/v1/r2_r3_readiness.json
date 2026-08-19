@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "contract": "R2_R3_READINESS",
+  "provides": [
+    "SO1-backed menu projection",
+    "modifier operational snapshots",
+    "station-aware preparation tickets",
+    "hold/fire/course semantics",
+    "multi-station fanout",
+    "recipe/preparation definitions",
+    "yield/waste operational evidence",
+    "SO3 consumption/output intents",
+    "SO8 ticket delivery intents"
+  ],
+  "r3_may_add": [
+    "restaurant charge semantics",
+    "modifier financial handoff",
+    "discount/complimentary/service-charge/tip/commission mappings",
+    "delivery/takeaway fees",
+    "refund/cancellation Finance mappings",
+    "restaurant reports over Finance"
+  ],
+  "r3_must_not_add": [
+    "parallel ledger",
+    "parallel payment authority",
+    "parallel inventory ledger",
+    "parallel catalog/price authority",
+    "printer retry subsystem"
+  ],
+  "status": "READY_WHEN_R2_SINGLE_GATE_PASS"
+}
