@@ -1,0 +1,20 @@
+XBOS R0 RESTAURANT DOMAIN EXTRACTION — INSTALL AND VERIFY
+
+Required source:
+64eb3e98135261ef20cd90622c1fd64bf24c99d8
+
+Expected branch:
+restaurant/r0-neutral-restaurant-pack-foundation
+
+1. Confirm a clean source tree at the required checkpoint.
+2. Expand the cumulative R0 package into repository root.
+3. Do not create or run an Alembic migration: R0 is a boundary/extraction checkpoint.
+4. Run:
+
+   XBOS_R0_RUN_ACCEPTANCE.cmd
+
+Stop only at:
+
+   R0_SINGLE_GATE=PASS
+
+R0 consumes the accepted SC41/PC/SO/PK/PA/Finance authorities. It does not modify their semantics. WND evidence is an invariant/specimen input, not a Restaurant capability ceiling.

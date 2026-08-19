@@ -1,0 +1,157 @@
+{
+  "schema_version": 1,
+  "contract": "R0_CURRENT_RESTAURANT_SURFACE_INVENTORY",
+  "source": {
+    "neutral_source_commit": "64eb3e98135261ef20cd90622c1fd64bf24c99d8",
+    "neutral_source_archive": "XBOS_R0_SOURCE_64eb3e9.zip",
+    "neutral_source_archive_sha256": "55cb4fff4e984ab2b298bdc93745b1e1f591c9c201ff27a4dabfc49e2c24d5a3",
+    "neutral_source_archive_size": 5990823,
+    "canonical_migration_head": "semantic_classification_hardening_041",
+    "wnd_final_tag": "wnd-track-a-final-accepted-20260818",
+    "wnd_backend_head": "651e83a40f9a69f496def3a599c94dbd63d97ef3",
+    "wnd_frontend_head": "50583b1a3fcc67e7f817ea92121b94147fbd5984",
+    "wnd_evidence_archive": "WND_R0_PRODUCTION_EVIDENCE_20260818_215140_RECOVERED.zip",
+    "wnd_evidence_archive_sha256": "5df336d8e75efbe850d1de1709e20b755142892276852f4f313683b9c541852e",
+    "wnd_evidence_archive_size": 5166134,
+    "wnd_backend_archive_sha256": "cdc84008b5123196b6df3d5e97a25c75694751fab4f277289b85b2b8f0efe313",
+    "wnd_frontend_archive_sha256": "06c1dc64a842ccdff22e8e5a0dfa1ed5ce9601f107e7a616ea28c2beb3d43dcc",
+    "evidence_law": "WND is a production specimen and invariant source; it is not the restaurant-industry capability ceiling or canonical domain model."
+  },
+  "wnd_production_counts": {
+    "sales": 7526,
+    "sale_items": 16080,
+    "orders": 8171,
+    "order_items": 17359,
+    "atomic_units": 813,
+    "taxonomy_nodes": 249,
+    "atomic_unit_taxonomy": 1008,
+    "inventory_movements": 37534,
+    "inventory_reconciliation_windows": 0,
+    "inventory_reconciliation_lines": 0
+  },
+  "wnd_present_restaurant_adjacent_tables": [
+    "orders",
+    "order_items",
+    "order_item_modifiers",
+    "sales",
+    "sale_items",
+    "accounts_receivable",
+    "accounts_receivable_repayments",
+    "inventory_items",
+    "inventory_movements",
+    "inventory_reconciliation_windows",
+    "inventory_reconciliation_lines",
+    "payment_intents",
+    "payment_attempts",
+    "payments"
+  ],
+  "neutral_legacy_surfaces": [
+    {
+      "paths": [
+        "core/domain/orders/",
+        "core/api/orders/"
+      ],
+      "current_role": "legacy WND order authority embedded in neutral tree",
+      "r0_disposition": "EXTRACT_TO_RESTAURANT_PACK",
+      "notes": [
+        "order/items/modifiers",
+        "created_by_user_id attribution",
+        "pending-payment lifecycle",
+        "direct inventory reservation coupling"
+      ]
+    },
+    {
+      "paths": [
+        "core/domain/sales/",
+        "core/api/sales/"
+      ],
+      "current_role": "legacy checkout/sale orchestration and receipt compatibility",
+      "r0_disposition": "SPLIT_AND_ADAPT",
+      "notes": [
+        "restaurant checkout orchestration moves to pack",
+        "money truth remains Neutral Finance",
+        "legacy sale adapters remain until R6"
+      ]
+    },
+    {
+      "paths": [
+        "core/domain/catalog/",
+        "core/api/catalog/"
+      ],
+      "current_role": "legacy catalog compatibility",
+      "r0_disposition": "CONSUME_SO1_RETIRE_LEGACY"
+    },
+    {
+      "paths": [
+        "core/domain/inventory/",
+        "core/api/inventory/"
+      ],
+      "current_role": "legacy inventory compatibility with WND rules",
+      "r0_disposition": "CONSUME_SO3_ADAPT_INVARIANTS"
+    },
+    {
+      "paths": [
+        "core/domain/payments/",
+        "core/api/payments/"
+      ],
+      "current_role": "legacy payment compatibility",
+      "r0_disposition": "CONSUME_NEUTRAL_FINANCE"
+    },
+    {
+      "paths": [
+        "core/domain/accounting/",
+        "core/api/accounting/"
+      ],
+      "current_role": "legacy accounting compatibility",
+      "r0_disposition": "NOT_RESTAURANT_AUTHORITY"
+    },
+    {
+      "paths": [
+        "core/domain/reports/",
+        "core/api/reports/"
+      ],
+      "current_role": "legacy reports",
+      "r0_disposition": "CONSUME_SO9_FINANCE"
+    },
+    {
+      "paths": [
+        "core/domain/taxonomy/",
+        "core/api/taxonomy/"
+      ],
+      "current_role": "legacy taxonomy compatibility",
+      "r0_disposition": "CONSUME_PC3_SC41"
+    },
+    {
+      "paths": [
+        "scripts/wnd_kitchen_print_agent.py",
+        "WND_KITCHEN_PRINT_AGENT.cmd"
+      ],
+      "current_role": "accepted local WND kitchen-print bridge",
+      "r0_disposition": "LEGACY_ADAPTER_UNTIL_DURABLE_ROUTE"
+    },
+    {
+      "paths": [
+        "frontend:src/modules/sales/",
+        "frontend:src/modules/stock/",
+        "frontend:src/modules/accounting/"
+      ],
+      "current_role": "accepted WND UX specimen",
+      "r0_disposition": "F_AND_R6_EVIDENCE_NOT_BACKEND_AUTHORITY"
+    }
+  ],
+  "missing_or_not_proven_by_wnd_but_required_for_restaurant_pack": [
+    "dining areas and table resources",
+    "table assignment/combinations and guest counts",
+    "configurable service modes",
+    "open tabs/check grouping",
+    "split-bill operational partitioning",
+    "reservation/waitlist composition with SO10",
+    "station-aware kitchen/bar routing",
+    "course/hold/fire preparation control",
+    "multi-station partial fulfillment",
+    "recipe/preparation definitions with yield and waste",
+    "configurable takeaway/delivery/remote release policy",
+    "external order-channel intake",
+    "richer restaurant role/section attribution"
+  ]
+}

@@ -1,0 +1,25 @@
+XBOS R0 — Restaurant Domain Extraction
+
+Source checkpoint:
+64eb3e98135261ef20cd90622c1fd64bf24c99d8
+
+Canonical Alembic head remains:
+semantic_classification_hardening_041
+
+This checkpoint adds NO migration, NO database table, NO runtime Restaurant API/writer, and NO Finance change.
+
+New artifacts:
+- R0_INSTALL_MANIFEST.txt
+- XBOS_R0_INSTALL_AND_VERIFY.txt
+- XBOS_R0_RUN_ACCEPTANCE.cmd
+- contracts/restaurant/v1/r0_restaurant_surface_inventory.json
+- contracts/restaurant/v1/r0_authority_classification.json
+- contracts/restaurant/v1/r0_aggregate_event_catalog.json
+- contracts/restaurant/v1/r0_wnd_production_invariants.json
+- contracts/restaurant/v1/r0_wnd_extraction_plan.json
+- contracts/restaurant/v1/r0_public_interfaces.json
+- contracts/restaurant/v1/r0_release_manifest.json
+- docs/restaurant/R0_RESTAURANT_DOMAIN_EXTRACTION.md
+- docs/restaurant/adr/0001_R0_RESTAURANT_DOMAIN_EXTRACTION_BOUNDARY.md
+- scripts/verify_r0_restaurant_domain_extraction.py
+- tests/contracts/test_r0_restaurant_domain_extraction.py

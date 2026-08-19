@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "contract": "R0_PUBLIC_INTERFACE_DECLARATION",
+  "runtime_interfaces_added": [],
+  "migration_added": false,
+  "database_tables_added": [],
+  "r1_required_interface_families": [
+    "restaurant order command/query contract",
+    "restaurant service-session/table assignment contract",
+    "restaurant tab/partition intent contract",
+    "SO1 menu projection adapter",
+    "SO3 reservation/issue adapter",
+    "Finance obligation handoff adapter",
+    "PC2/PC5 staff participation adapter",
+    "SO10 reservation composition adapter"
+  ],
+  "law": "R0 freezes boundaries only. No runtime Restaurant API, schema, writer, migration, frontend route, or financial behavior is authorized by R0."
+}

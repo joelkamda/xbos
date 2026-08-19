@@ -1,0 +1,196 @@
+{
+  "schema_version": 1,
+  "contract": "R0_RESTAURANT_AGGREGATE_AND_EVENT_CATALOG",
+  "status": "BOUNDARY_FREEZE_ONLY_NO_RUNTIME_IMPLEMENTATION",
+  "aggregate_boundaries": [
+    {
+      "code": "restaurant_order",
+      "phase": "R1",
+      "owns": [
+        "restaurant order identity",
+        "restaurant line intent",
+        "restaurant-specific lifecycle",
+        "service-mode context references",
+        "staff participation references"
+      ],
+      "does_not_own": [
+        "catalog/price",
+        "inventory quantity",
+        "financial obligation/payment",
+        "party identity",
+        "permission"
+      ]
+    },
+    {
+      "code": "restaurant_service_session",
+      "phase": "R1",
+      "optional": true,
+      "owns": [
+        "dine-in/service-session state",
+        "guest count",
+        "table/dining-resource assignment references",
+        "server/section participation"
+      ],
+      "does_not_own": [
+        "SO5 resource identity",
+        "SO10 reservation identity",
+        "Finance balance"
+      ]
+    },
+    {
+      "code": "restaurant_tab",
+      "phase": "R1",
+      "optional": true,
+      "owns": [
+        "operational grouping of orders/lines/guests",
+        "partition intent for billing handoff"
+      ],
+      "does_not_own": [
+        "amount owed",
+        "receivable balance",
+        "allocation",
+        "settlement"
+      ]
+    },
+    {
+      "code": "preparation_ticket",
+      "phase": "R2",
+      "owns": [
+        "kitchen/bar preparation intent",
+        "station routing intent",
+        "item preparation state",
+        "hold/fire/course semantics",
+        "partial readiness"
+      ],
+      "does_not_own": [
+        "SO8 delivery job",
+        "printer/device identity",
+        "inventory movement",
+        "financial state"
+      ]
+    },
+    {
+      "code": "restaurant_preparation_spec",
+      "phase": "R2",
+      "owns": [
+        "recipe/formula semantics",
+        "ingredient requirement refs",
+        "yield/portion/prep dependencies"
+      ],
+      "does_not_own": [
+        "Atomic Unit identity",
+        "stock quantity",
+        "universal costing/valuation"
+      ]
+    }
+  ],
+  "non_aggregates": [
+    {
+      "concept": "menu",
+      "treatment": "SO1 catalog projection with Restaurant semantics"
+    },
+    {
+      "concept": "table/resource identity",
+      "treatment": "SO5 resource + Restaurant profile/state, not duplicate identity"
+    },
+    {
+      "concept": "reservation",
+      "treatment": "SO10 authority composed by Restaurant"
+    },
+    {
+      "concept": "receipt/invoice",
+      "treatment": "SO7/Finance evidence, not Restaurant truth"
+    },
+    {
+      "concept": "cashier/waiter user",
+      "treatment": "PC2/PC5 identity/relationship; Restaurant participation attribution only"
+    }
+  ],
+  "event_catalog": [
+    {
+      "code": "restaurant.order.opened",
+      "aggregate": "restaurant_order",
+      "financial_effect": "NONE"
+    },
+    {
+      "code": "restaurant.order.item_added",
+      "aggregate": "restaurant_order",
+      "financial_effect": "NONE"
+    },
+    {
+      "code": "restaurant.order.item_changed",
+      "aggregate": "restaurant_order",
+      "financial_effect": "NONE"
+    },
+    {
+      "code": "restaurant.order.item_removed",
+      "aggregate": "restaurant_order",
+      "financial_effect": "NONE"
+    },
+    {
+      "code": "restaurant.order.submitted",
+      "aggregate": "restaurant_order",
+      "financial_effect": "NONE",
+      "downstream": "SO3 reservation intent / preparation release policy as configured"
+    },
+    {
+      "code": "restaurant.order.cancelled",
+      "aggregate": "restaurant_order",
+      "financial_effect": "NONE",
+      "downstream": "SO3 compensating/release intent; Finance correction only through Finance APIs when economic fact exists"
+    },
+    {
+      "code": "restaurant.service_session.opened",
+      "aggregate": "restaurant_service_session",
+      "financial_effect": "NONE"
+    },
+    {
+      "code": "restaurant.service_session.resource_assigned",
+      "aggregate": "restaurant_service_session",
+      "financial_effect": "NONE"
+    },
+    {
+      "code": "restaurant.service_session.closed",
+      "aggregate": "restaurant_service_session",
+      "financial_effect": "NONE"
+    },
+    {
+      "code": "restaurant.tab.opened",
+      "aggregate": "restaurant_tab",
+      "financial_effect": "NONE"
+    },
+    {
+      "code": "restaurant.tab.partition_requested",
+      "aggregate": "restaurant_tab",
+      "financial_effect": "NONE",
+      "downstream": "Finance obligation/allocation handoff only via canonical Finance contract"
+    },
+    {
+      "code": "restaurant.preparation.released",
+      "aggregate": "preparation_ticket",
+      "financial_effect": "NONE",
+      "downstream": "SO8 durable delivery may dispatch KDS/printer message"
+    },
+    {
+      "code": "restaurant.preparation.started",
+      "aggregate": "preparation_ticket",
+      "financial_effect": "NONE"
+    },
+    {
+      "code": "restaurant.preparation.item_ready",
+      "aggregate": "preparation_ticket",
+      "financial_effect": "NONE"
+    },
+    {
+      "code": "restaurant.preparation.completed",
+      "aggregate": "preparation_ticket",
+      "financial_effect": "NONE"
+    },
+    {
+      "code": "restaurant.preparation.voided",
+      "aggregate": "preparation_ticket",
+      "financial_effect": "NONE"
+    }
+  ],
+  "financial_handoff_law": "Restaurant events never become journals, settlement, receivables, reconciliation or revenue by themselves. Canonical Finance commands create economic truth."
+}

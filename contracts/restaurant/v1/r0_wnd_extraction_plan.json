@@ -1,0 +1,73 @@
+{
+  "schema_version": 1,
+  "contract": "R0_WND_TENANT_LITERAL_AND_MIGRATION_PLAN",
+  "principles": [
+    "no tenant literal in Restaurant pack source",
+    "no WND terminology in shared/kernel source",
+    "adapters remain until R6 parity/cutover",
+    "history is mapped, not rewritten"
+  ],
+  "moves": [
+    {
+      "current": "tenant_id=2 / WND-specific branching where present",
+      "target": "PC1 tenant context + R5 WND profile",
+      "phase": "R5/R6"
+    },
+    {
+      "current": "Wine&Dine/WND/Logpom branding and terminology",
+      "target": "PC4/PK tenant configuration",
+      "phase": "R5"
+    },
+    {
+      "current": "08:00→08:00 business window and 18:00 attribution",
+      "target": "PC4 business-time/configuration resolved for WND",
+      "phase": "R5"
+    },
+    {
+      "current": "fixed WND payment methods",
+      "target": "tenant payment/configuration composition over Finance",
+      "phase": "R5"
+    },
+    {
+      "current": "WND taxonomy/category assumptions",
+      "target": "SC41 global + Restaurant pack contributions + WND overlay",
+      "phase": "R4/R5"
+    },
+    {
+      "current": "legacy orders/sales tables and routes",
+      "target": "Restaurant R1/R3 authorities with compatibility adapters",
+      "phase": "R1-R6"
+    },
+    {
+      "current": "wnd_kitchen_print_agent local watcher",
+      "target": "Restaurant preparation/release semantics -> SO8 durable delivery -> station/device adapter",
+      "phase": "R2/R4/R6"
+    },
+    {
+      "current": "legacy inventory order reservation coupling",
+      "target": "Restaurant order transition -> SO3 public reservation/issue contract",
+      "phase": "R1/R6"
+    },
+    {
+      "current": "legacy menu pricing from atomic_units.unit_price",
+      "target": "SO1 catalog/offer/price resolver",
+      "phase": "R2/R6"
+    },
+    {
+      "current": "legacy receipt/report presentation",
+      "target": "SO7/SO9/Finance contracts + F experience",
+      "phase": "R3/F/R6"
+    }
+  ],
+  "do_not_infer_from_wnd_absence": [
+    "tables",
+    "dining areas",
+    "reservations",
+    "waitlist",
+    "course firing",
+    "station routing",
+    "tabs/checks",
+    "advanced service modes",
+    "external order aggregators"
+  ]
+}

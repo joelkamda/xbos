@@ -1,0 +1,99 @@
+{
+  "schema_version": 1,
+  "contract": "R0_WND_PRODUCTION_INVARIANT_PRESERVATION",
+  "source_tag": "wnd-track-a-final-accepted-20260818",
+  "invariants": [
+    {
+      "id": "WND-INV-01",
+      "truth": "A/R repayment settles an existing receivable; it is not new income.",
+      "future_owner": "Neutral Finance",
+      "restaurant_obligation": "consume only"
+    },
+    {
+      "id": "WND-INV-02",
+      "truth": "Reconciliation continuity cannot skip an unclosed middle business window.",
+      "future_owner": "Neutral Finance M6",
+      "restaurant_obligation": "must not duplicate or weaken"
+    },
+    {
+      "id": "WND-INV-03",
+      "truth": "Persisted actual close from the immediately preceding business window becomes the next opening.",
+      "future_owner": "Neutral Finance M6",
+      "restaurant_obligation": "none beyond correct context"
+    },
+    {
+      "id": "WND-INV-04",
+      "truth": "Later corrections cascade forward without erasing later actual evidence.",
+      "future_owner": "Neutral Finance M6",
+      "restaurant_obligation": "none"
+    },
+    {
+      "id": "WND-INV-05",
+      "truth": "A reserved sale has exactly one inventory quantity effect.",
+      "future_owner": "SO3 + Restaurant handoff",
+      "restaurant_obligation": "order/payment lifecycle must not double-issue stock"
+    },
+    {
+      "id": "WND-INV-06",
+      "truth": "sale_commit is finalization evidence and must not deduct stock again.",
+      "future_owner": "SO3 compatibility/R6 adapter",
+      "restaurant_obligation": "preserve exactly-once semantics"
+    },
+    {
+      "id": "WND-INV-07",
+      "truth": "Direct-sale fallback deducts once only when no reservation lifecycle exists.",
+      "future_owner": "SO3 compatibility/R6 adapter",
+      "restaurant_obligation": "preserve during migration"
+    },
+    {
+      "id": "WND-INV-08",
+      "truth": "Manual stock mutation remains stockability-gated, atomic, and retry-safe.",
+      "future_owner": "SO3",
+      "restaurant_obligation": "no bypass"
+    },
+    {
+      "id": "WND-INV-09",
+      "truth": "Non-stock charges never touch inventory.",
+      "future_owner": "SO1/SO3",
+      "restaurant_obligation": "classify/handoff correctly"
+    },
+    {
+      "id": "WND-INV-10",
+      "truth": "POS sales quantity is independent control evidence, not another inventory deduction.",
+      "future_owner": "SO9/SO3/R6 evidence",
+      "restaurant_obligation": "do not double-write"
+    },
+    {
+      "id": "WND-INV-11",
+      "truth": "Historical stock cache/ledger mismatches were deliberately not rewritten.",
+      "future_owner": "R6 migration evidence",
+      "restaurant_obligation": "preserve/explain history"
+    },
+    {
+      "id": "WND-INV-12",
+      "truth": "Historical future-dated movement timestamps were deliberately not rewritten.",
+      "future_owner": "R6 migration evidence",
+      "restaurant_obligation": "preserve/explain history"
+    },
+    {
+      "id": "WND-INV-13",
+      "truth": "Closed Stock Reconciliation evidence is immutable; corrections require a new correction cycle.",
+      "future_owner": "Neutral control authority",
+      "restaurant_obligation": "no mutation path"
+    },
+    {
+      "id": "WND-INV-14",
+      "truth": "Track A conservative valuation must not become an invented universal costing model.",
+      "future_owner": "generalized costing/Finance",
+      "restaurant_obligation": "recipes/yield provide operational inputs only"
+    }
+  ],
+  "accepted_operational_evidence": [
+    "80-mm kitchen bon physically accepted",
+    "local kitchen watcher running against xbos",
+    "global Cashier shortcut accepted",
+    "Sales navigation New Sale/Cashier/Kitchen/Sales Archive accepted",
+    "stock forward-truth stabilization accepted"
+  ],
+  "interpretation": "Accepted WND UX/device behavior is migration evidence, not proof of universal Restaurant domain boundaries."
+}

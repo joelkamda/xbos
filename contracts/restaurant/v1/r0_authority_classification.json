@@ -1,0 +1,137 @@
+{
+  "schema_version": 1,
+  "contract": "R0_RESTAURANT_AUTHORITY_CLASSIFICATION",
+  "laws": [
+    "Restaurant owns restaurant-specific operational meaning and workflow only.",
+    "Restaurant does not recreate PC1-PC5, SC41, SO1-SO10, PK, PA, XA or Neutral Finance authority.",
+    "A pack may classify and compose shared objects; it does not absorb their identity or truth.",
+    "WND-specific rules become tenant/template/configuration unless they are proven restaurant-domain behavior."
+  ],
+  "classifications": [
+    {
+      "capability": "tenant/org/location identity",
+      "owner": "PC1",
+      "restaurant_role": "reference/classify only"
+    },
+    {
+      "capability": "party/person/staff relationship identity",
+      "owner": "PC2/SO2",
+      "restaurant_role": "waiter/cashier/server participation semantics only"
+    },
+    {
+      "capability": "taxonomy/semantic identity and overlays",
+      "owner": "PC3+SC41",
+      "restaurant_role": "pack-owned restaurant namespace contributions and references"
+    },
+    {
+      "capability": "business time/localization/configuration",
+      "owner": "PC4",
+      "restaurant_role": "declare configuration requirements/defaults only"
+    },
+    {
+      "capability": "identity/permission/approval/audit",
+      "owner": "PC5",
+      "restaurant_role": "declare permission/workflow needs only"
+    },
+    {
+      "capability": "atomic units/catalog/offers/pricing",
+      "owner": "SO1",
+      "restaurant_role": "menu is projection; modifier/option semantics may constrain SO1 offers"
+    },
+    {
+      "capability": "inventory quantities/reservations/movements",
+      "owner": "SO3",
+      "restaurant_role": "emit/consume operational intent; never maintain parallel stock ledger"
+    },
+    {
+      "capability": "resources/capacity",
+      "owner": "SO5",
+      "restaurant_role": "restaurant profile for dining/table/station resources"
+    },
+    {
+      "capability": "workflow/tasks/operational approvals",
+      "owner": "SO6",
+      "restaurant_role": "restaurant workflow specialization only where needed"
+    },
+    {
+      "capability": "documents/evidence",
+      "owner": "SO7",
+      "restaurant_role": "ticket/receipt/document semantics; document truth remains SO7"
+    },
+    {
+      "capability": "delivery/jobs/offline/integration envelopes",
+      "owner": "SO8",
+      "restaurant_role": "kitchen/bar release destinations and payload semantics"
+    },
+    {
+      "capability": "reports/read models",
+      "owner": "SO9",
+      "restaurant_role": "restaurant projections/groupings only"
+    },
+    {
+      "capability": "scheduling/reservations/service execution",
+      "owner": "SO10",
+      "restaurant_role": "restaurant reservation/waitlist/service semantics via composition"
+    },
+    {
+      "capability": "obligations/payments/allocations/receivables/settlement/journals/reconciliation",
+      "owner": "Neutral Finance",
+      "restaurant_role": "handoff context and mappings only; no new financial authority"
+    },
+    {
+      "capability": "pack manifest/template composition",
+      "owner": "PK",
+      "restaurant_role": "Restaurant pack registers through PK"
+    },
+    {
+      "capability": "merchant lifecycle/readiness/support",
+      "owner": "PA",
+      "restaurant_role": "readiness/conformance input only"
+    },
+    {
+      "capability": "frontend routes/layout/interactions",
+      "owner": "F/XA",
+      "restaurant_role": "declare machine-readable experience metadata; no backend truth"
+    },
+    {
+      "capability": "restaurant order lifecycle",
+      "owner": "Restaurant Pack",
+      "restaurant_role": "canonical pack domain"
+    },
+    {
+      "capability": "dining/service-session semantics",
+      "owner": "Restaurant Pack",
+      "restaurant_role": "canonical pack domain over PC1/SO5 resources"
+    },
+    {
+      "capability": "kitchen/bar preparation ticket semantics",
+      "owner": "Restaurant Pack",
+      "restaurant_role": "canonical pack domain; SO8 owns durable dispatch"
+    },
+    {
+      "capability": "restaurant tab/check operational grouping",
+      "owner": "Restaurant Pack",
+      "restaurant_role": "operational grouping only; Finance owns amounts owed/settled"
+    },
+    {
+      "capability": "recipe/preparation/yield semantics",
+      "owner": "Restaurant Pack",
+      "restaurant_role": "R2 domain; SO1/SO3 references only"
+    },
+    {
+      "capability": "WND 08:00-08:00 calendar and 18:00 attribution",
+      "owner": "WND tenant/template config via PC4/PK",
+      "restaurant_role": "must not be kernel or universal restaurant constant"
+    },
+    {
+      "capability": "WND payment methods/branding/terminology/taxonomy deltas",
+      "owner": "WND tenant/template config",
+      "restaurant_role": "R5 profile proof"
+    },
+    {
+      "capability": "WND local kitchen print watcher",
+      "owner": "Legacy Adapter",
+      "restaurant_role": "retain until Restaurant release semantics + SO8 routing prove replacement"
+    }
+  ]
+}
