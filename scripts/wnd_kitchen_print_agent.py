@@ -25,6 +25,7 @@ STATE_DIR=Path(os.environ.get("LOCALAPPDATA", str(Path.home()))) / "XBOS"
 STATE_PATH=STATE_DIR / os.environ.get("XBOS_KITCHEN_STATE_FILE", "kitchen_print_state.json")
 LOG_PATH=STATE_DIR / os.environ.get("XBOS_KITCHEN_LOG_FILE", "kitchen_print_agent.log")
 HISTORY_PATH=STATE_DIR / os.environ.get("XBOS_KITCHEN_HISTORY_FILE", "kitchen_history_xbos.jsonl")
+# KITCHEN_FULFILLMENT_VISIBILITY_V1
 VIRTUAL=("pdf","onenote","fax","xps","microsoft print")
 THERMAL=("pos-80","pos80","80c","80mm","thermal","receipt")
 
@@ -107,6 +108,7 @@ def append_history(order,event,printer_name,job):
             else str(order.get("created_at") or "")
         ),
         "order_status":str(order.get("status") or ""),
+        "fulfillment_mode":str(order.get("fulfillment_mode") or ""),
         "staff":str(order.get("staff") or ""),
         "printer":str(printer_name or ""),
         "job_id":int(job) if job is not None else None,
@@ -256,6 +258,21 @@ def escpos_bon(order,event):
     out.extend(bytes([0x1D, 0x21, 0x00]))
     out.extend(bytes([0x1B, 0x45, 0x00]))
 
+    fulfillment = clean(
+        order.get("fulfillment_mode")
+        or order.get("order_type")
+        or ""
+    ).replace("_", " ").upper()
+
+    if fulfillment:
+        out.extend(bytes([0x1B, 0x61, 0x01]))
+        out.extend(bytes([0x1B, 0x45, 0x01]))
+        out.extend(bytes([0x1D, 0x21, 0x11]))
+        add(out, f"*** {fulfillment} ***")
+        out.extend(bytes([0x1D, 0x21, 0x00]))
+        out.extend(bytes([0x1B, 0x45, 0x00]))
+        out.extend(bytes([0x1B, 0x61, 0x00]))
+
     created = format_time(order.get("created_at"))
     if created:
         add(out, f"TIME: {created}")
@@ -333,12 +350,19 @@ def escpos_bon(order,event):
         add(out, "")
 
     add(out, separator)
-    add(out, f"KITCHEN LINES: {len(items)}")
 
-    out.extend(bytes([0x1B, 0x61, 0x01]))
-    out.extend(bytes([0x1B, 0x45, 0x01]))
-    add(out, "*** PREPARE NOW ***")
-    out.extend(bytes([0x1B, 0x45, 0x00]))
+    if event_label == "FULFILLMENT CHANGE":
+        out.extend(bytes([0x1B, 0x61, 0x01]))
+        out.extend(bytes([0x1B, 0x45, 0x01]))
+        add(out, "*** UPDATE SERVICE MODE ***")
+        add(out, "NO FOOD REPRINT")
+        out.extend(bytes([0x1B, 0x45, 0x00]))
+    else:
+        add(out, f"KITCHEN LINES: {len(items)}")
+        out.extend(bytes([0x1B, 0x61, 0x01]))
+        out.extend(bytes([0x1B, 0x45, 0x01]))
+        add(out, "*** PREPARE NOW ***")
+        out.extend(bytes([0x1B, 0x45, 0x00]))
 
     # Feed 4 lines, full cut, reset.
     out.extend(bytes([0x1B, 0x64, 0x04]))
@@ -358,8 +382,23 @@ def save_state(x):
     STATE_PATH.write_text(json.dumps(x,indent=2,sort_keys=True),encoding="utf-8")
 
 def sig(order):
-    payload={"id":order["order_id"],"status":order.get("status"),"items":[{"id":i.get("order_item_id"),"qty":i.get("quantity"),"name":i.get("name_snapshot"),"modifiers":i.get("modifiers") or []} for i in order["items"]]}
-    return hashlib.sha256(json.dumps(payload,sort_keys=True,default=str).encode()).hexdigest()
+    payload={
+        "id":order["order_id"],
+        "status":order.get("status"),
+        "fulfillment_mode":str(order.get("fulfillment_mode") or "").strip().upper(),
+        "items":[
+            {
+                "id":i.get("order_item_id"),
+                "qty":i.get("quantity"),
+                "name":i.get("name_snapshot"),
+                "modifiers":i.get("modifiers") or [],
+            }
+            for i in order["items"]
+        ],
+    }
+    return hashlib.sha256(
+        json.dumps(payload,sort_keys=True,default=str).encode()
+    ).hexdigest()
 
 
 # KITCHEN_SEMANTIC_DELTA_STATE_V2
@@ -596,7 +635,17 @@ def queue(session,new_paid_since=None):
             staff=c._user_display_name(session,tenant_id=TENANT_ID,user_id=getattr(order,"created_by_user_id",None)) or ""
         except Exception:
             pass
-        out.append({"order_id":int(order.id),"status":status or "pending_payment","created_at":getattr(order,"created_at",None),"staff":staff,"items":items})
+        fulfillment_mode=str(
+            getattr(order,"fulfillment_mode",None) or ""
+        ).strip().upper()
+        out.append({
+            "order_id":int(order.id),
+            "status":status or "pending_payment",
+            "fulfillment_mode":fulfillment_mode or None,
+            "created_at":getattr(order,"created_at",None),
+            "staff":staff,
+            "items":items,
+        })
     return out
 
 def main():
@@ -623,22 +672,49 @@ def main():
                 if a.force_current and first: event="CURRENT QUEUE"
                 elif prev is None: event="NEW ORDER"
                 elif prev!=signature:
-                    previous_items=state["orders"][key].get("kitchen_items") or {}
+                    previous_state=state["orders"][key]
+                    previous_items=previous_state.get("kitchen_items") or {}
+                    previous_mode=previous_state.get("fulfillment_mode")
+                    current_mode=str(
+                        order.get("fulfillment_mode") or ""
+                    ).strip().upper()
                     delta_items,delta_event,delta_reasons=kitchen_semantic_delta(order,previous_items)
+                    mode_changed=(
+                        previous_mode is not None
+                        and str(previous_mode or "").strip().upper()!=current_mode
+                    )
                     if delta_items:
                         print_order=dict(order)
                         print_order["items"]=delta_items
                         event=delta_event
                         log(f"KITCHEN_SEMANTIC_DELTA order={order['order_id']} event={delta_event} items={len(delta_items)} reasons={','.join(delta_reasons)}")
+                    elif mode_changed:
+                        print_order=dict(order)
+                        print_order["items"]=[]
+                        event="FULFILLMENT CHANGE"
+                        log(
+                            f"KITCHEN_FULFILLMENT_CHANGE order={order['order_id']} "
+                            f"from={str(previous_mode or '').strip().upper() or 'UNSPECIFIED'} "
+                            f"to={current_mode or 'UNSPECIFIED'}"
+                        )
                     else:
                         state["orders"][key]["signature"]=signature
                         state["orders"][key]["kitchen_items"]=kitchen_items_snapshot(order.get("items") or [])
+                        state["orders"][key]["fulfillment_mode"]=current_mode
                         state["orders"][key]["last_seen_at"]=datetime.now(timezone.utc).isoformat()
                         event=None
                         log(f"SUPPRESSED_REPRINT order={order['order_id']} reason=no_semantic_kitchen_delta")
                 if event:
                     job=raw_spool(p["name"],escpos_bon(print_order,event),f"WND Kitchen Bon #{order['order_id']}")
-                    state["orders"][key]={"signature":signature,"printed_at":datetime.now(timezone.utc).isoformat(),"event":event,"kitchen_items":kitchen_items_snapshot(order.get("items") or [])}
+                    state["orders"][key]={
+                        "signature":signature,
+                        "printed_at":datetime.now(timezone.utc).isoformat(),
+                        "event":event,
+                        "fulfillment_mode":str(
+                            order.get("fulfillment_mode") or ""
+                        ).strip().upper(),
+                        "kitchen_items":kitchen_items_snapshot(order.get("items") or []),
+                    }
                     save_state(state)
                     append_history(print_order,event,p["name"],job)
                     log(f"PRINTED order={order['order_id']} event={event} items={len(print_order['items'])} job={job} printer={p['name']}")
