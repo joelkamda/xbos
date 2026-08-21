@@ -91,6 +91,19 @@ def _extract_customer_phone(receipt_meta: Dict[str, Any]) -> str | None:
     )
 
 
+def _extract_customer_id(receipt_meta: Dict[str, Any]) -> int | None:
+    customer = receipt_meta.get("customer")
+    value = None
+    if isinstance(customer, dict):
+        value = customer.get("id") or customer.get("customer_id")
+    if value is None:
+        value = receipt_meta.get("customer_id")
+    try:
+        return int(value) if value is not None and str(value).strip() else None
+    except Exception:
+        return None
+
+
 def _extract_note(receipt_meta: Dict[str, Any], fallback_note: Any = None) -> str | None:
     return _clean_text(
         receipt_meta.get("notes")
@@ -219,6 +232,7 @@ class PaymentsController:
 
         customer_name = _extract_customer_name(receipt_meta)
         customer_phone = _extract_customer_phone(receipt_meta)
+        customer_id = _extract_customer_id(receipt_meta)
 
         # Existing historical unnamed receivables remain operable and can be
         # identified later from Accounting > Accounts. Every NEW A/R account
@@ -245,6 +259,7 @@ class PaymentsController:
             balance_due=balance_due_d,
             customer_name=customer_name,
             customer_phone=customer_phone,
+            customer_id=customer_id,
             note=_extract_note(receipt_meta, note),
             created_by_user_id=user_id,
         )

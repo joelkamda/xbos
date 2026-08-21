@@ -12,6 +12,7 @@ from core.api.catalog.catalog_router import router as catalog_router
 from core.api.accounting.accounting_router import router as accounting_router
 from core.api.reports.reports_router import router as reports_router
 from core.api.inventory.inventory_router import router as inventory_router
+from core.api.customers.customers_router import router as customers_router
 
 # Users / Roles
 from core.users.user_controller import router as users_router
@@ -169,6 +170,13 @@ kernel_router.include_router(
     inventory_router,
     prefix="/inventory",
     tags=["Inventory"],
+)
+
+# Customers → /kernel/customers/*
+kernel_router.include_router(
+    customers_router,
+    prefix="/customers",
+    tags=["Customers"],
 )
 
 # Orders → /kernel/orders/*

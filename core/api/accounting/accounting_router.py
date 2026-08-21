@@ -187,6 +187,7 @@ class ReconClosePayload(BaseModel):
 class AccountsReceivableIdentityPayload(BaseModel):
     customer_name: str = Field(..., min_length=1, max_length=200)
     customer_phone: Optional[str] = Field(default=None, max_length=80)
+    customer_id: Optional[int] = None
 
 
 class AccountsReceivableRepayPayload(BaseModel):
@@ -1222,6 +1223,7 @@ def update_accounts_receivable_identity(
             ar_id=ar_id,
             customer_name=payload.customer_name,
             customer_phone=payload.customer_phone,
+            customer_id=payload.customer_id,
         )
 
         db.commit()

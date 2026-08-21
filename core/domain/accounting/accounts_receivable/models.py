@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 
-from sqlalchemy import Column, Integer, String, Numeric, DateTime, ForeignKey
+from sqlalchemy import Column, Integer, BigInteger, String, Numeric, DateTime, ForeignKey
 
 from database import Base
 
@@ -34,6 +34,7 @@ class AccountsReceivable(Base):
     sale_id = Column(Integer, nullable=True)
     payment_intent_id = Column(String, nullable=True)
 
+    customer_id = Column(BigInteger, nullable=True)
     customer_name = Column(String, nullable=True)
     customer_phone = Column(String, nullable=True)
     note = Column(String, nullable=True)

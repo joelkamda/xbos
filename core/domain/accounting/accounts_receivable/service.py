@@ -5,6 +5,7 @@ from decimal import Decimal
 from datetime import datetime, timezone
 from typing import Any, Dict
 
+from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from core.shared.idempotency import (
@@ -117,6 +118,37 @@ def _clean_text(value: Any) -> str | None:
     return text or None
 
 
+def _resolve_customer_identity(
+    db: Session,
+    *,
+    tenant_id: int,
+    branch_id: int,
+    customer_id: int | None,
+) -> tuple[int | None, str | None, str | None]:
+    if customer_id is None:
+        return None, None, None
+
+    row = db.execute(
+        text(
+            """
+            SELECT id, name, primary_phone
+            FROM customers
+            WHERE id=:customer_id AND tenant_id=:tenant_id AND branch_id=:branch_id
+            """
+        ),
+        {
+            "customer_id": int(customer_id),
+            "tenant_id": int(tenant_id),
+            "branch_id": int(branch_id),
+        },
+    ).mappings().first()
+
+    if not row:
+        raise ValueError("Customer not found in the current tenant/branch")
+
+    return int(row["id"]), _clean_text(row["name"]), _clean_text(row["primary_phone"])
+
+
 def _idempotency_reference_id(existing: Any) -> int | None:
     if not existing:
         return None
@@ -208,6 +240,7 @@ class AccountsReceivableService:
         balance_due: Any,
         customer_name: str | None = None,
         customer_phone: str | None = None,
+        customer_id: int | None = None,
         note: str | None = None,
         created_by_user_id: int | None = None,
     ) -> AccountsReceivable | None:
@@ -238,6 +271,15 @@ class AccountsReceivableService:
 
         clean_customer_name = _clean_text(customer_name)
         clean_customer_phone = _clean_text(customer_phone)
+        resolved_customer_id, resolved_name, resolved_phone = _resolve_customer_identity(
+            db,
+            tenant_id=tenant_id,
+            branch_id=branch_id,
+            customer_id=customer_id,
+        )
+        if resolved_customer_id is not None:
+            clean_customer_name = resolved_name
+            clean_customer_phone = resolved_phone
 
         status = _status_from_amounts(
             paid_amount=paid_d,
@@ -257,6 +299,8 @@ class AccountsReceivableService:
             existing.paid_amount = paid_d
             existing.balance_due = balance_d
             existing.status = status
+            if resolved_customer_id is not None:
+                existing.customer_id = resolved_customer_id
             existing.customer_name = clean_customer_name or existing.customer_name
             existing.customer_phone = clean_customer_phone or existing.customer_phone
             existing.note = note or existing.note
@@ -273,6 +317,7 @@ class AccountsReceivableService:
             order_id=order_id,
             sale_id=sale_id,
             payment_intent_id=payment_intent_id,
+            customer_id=resolved_customer_id,
             customer_name=clean_customer_name,
             customer_phone=clean_customer_phone,
             note=note,
@@ -299,6 +344,7 @@ class AccountsReceivableService:
         ar_id: int,
         customer_name: Any,
         customer_phone: Any = None,
+        customer_id: int | None = None,
     ) -> AccountsReceivable:
         """
         Update debtor identity only.
@@ -319,11 +365,24 @@ class AccountsReceivableService:
             raise ValueError("A/R account not found")
 
         clean_name = _clean_text(customer_name)
+        clean_phone = _clean_text(customer_phone)
+
+        resolved_customer_id, resolved_name, resolved_phone = _resolve_customer_identity(
+            db,
+            tenant_id=tenant_id,
+            branch_id=branch_id,
+            customer_id=customer_id,
+        )
+        if resolved_customer_id is not None:
+            clean_name = resolved_name
+            clean_phone = resolved_phone
+            ar.customer_id = resolved_customer_id
+
         if not clean_name:
             raise ValueError("Debtor name is required")
 
         ar.customer_name = clean_name
-        ar.customer_phone = _clean_text(customer_phone)
+        ar.customer_phone = clean_phone
         ar.updated_at = _utc_now_naive()
 
         db.add(ar)
@@ -780,6 +839,7 @@ class AccountsReceivableService:
             "order_id": ar.order_id,
             "sale_id": ar.sale_id,
             "payment_intent_id": ar.payment_intent_id,
+            "customer_id": ar.customer_id,
             "customer_name": ar.customer_name,
             "customer_phone": ar.customer_phone,
             "note": ar.note,
