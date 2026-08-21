@@ -1,0 +1,56 @@
+R6.2 installation and acceptance — WND production-cutover rehearsal
+
+Prerequisite frozen checkpoint
+------------------------------
+Branch:
+  restaurant/r6-2-wnd-production-cutover-rehearsal
+
+HEAD before extracting this package:
+  0f4c72ff297b580c9a2572fe6a0068d814b22267
+
+R6.1 freeze tag:
+  restaurant-r6-1-wnd-reference-clone-adoption-20260821
+
+Immutable R6.2 source input:
+  XBOS_R6_2_SOURCE_POST_R6_1_0f4c72f.zip
+  SHA256 9c789845bf8f2a68ab0de9d87707eac492e109a8e646c4533e915e181e6a1c94
+  SIZE   6198072
+
+Required WND reference backup in laptop Downloads:
+  WND_R6_0_SERVER_PRODUCTION_SNAPSHOT_20260821_171736.backup
+  SHA256 22c105224f65dec2bc09ef0335748a1db855ee59945c170b69526ee18f39dc16
+  SIZE   3679584
+
+Install
+-------
+From C:\Users\jdkam\XBOS:
+
+  powershell -NoProfile -Command "Expand-Archive -LiteralPath '%USERPROFILE%\Downloads\XBOS_R6_2_WND_PRODUCTION_CUTOVER_REHEARSAL_REVISION_1.zip' -DestinationPath '.' -Force"
+
+Then:
+
+  XBOS_R6_2_RUN_ACCEPTANCE.cmd
+
+R6.2 creates/recreates ONLY:
+  xbos_r6_2_source
+  xbos_r6_2_candidate
+
+It never writes production xbos and never reroutes production writers.
+
+Meaning of R6.2 PASS
+--------------------
+PASS means:
+- the exact WND reference backup can again be restored/adopted/composed;
+- actual WND financial source rows have been passed through frozen M7.1 mapping services where semantics are sufficient;
+- every non-mappable amount is explicitly withheld and reconciled instead of invented;
+- legacy source = canonical mapped shadow + explicit withheld for every M7 control;
+- dual-read variances remain visible;
+- historical cost/document/customer/fulfillment ambiguity is not guessed;
+- writer retirement is prepared but not executed;
+- candidate destruction/restore/re-adoption/replay is deterministic.
+
+PASS does NOT authorize production cutover.
+
+Stop only at:
+  R6_2_SINGLE_GATE=PASS
+or the first concrete failure.

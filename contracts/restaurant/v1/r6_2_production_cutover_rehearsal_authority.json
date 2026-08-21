@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "contract": "R6_2_WND_PRODUCTION_CUTOVER_REHEARSAL",
+  "source_checkpoint": "0f4c72ff297b580c9a2572fe6a0068d814b22267",
+  "source_archive_sha256": "9c789845bf8f2a68ab0de9d87707eac492e109a8e646c4533e915e181e6a1c94",
+  "source_archive_size": 6198072,
+  "source_branch": "restaurant/r6-2-wnd-production-cutover-rehearsal",
+  "reference_release_tag": "wnd-track-a-reference-release-20260821",
+  "r6_1_freeze_tag": "restaurant-r6-1-wnd-reference-clone-adoption-20260821",
+  "production_database": "xbos",
+  "production_write_authorized": false,
+  "writer_routing": "unchanged",
+  "rehearsal_databases": [
+    "xbos_r6_2_source",
+    "xbos_r6_2_candidate"
+  ],
+  "source_snapshot_backup_sha256": "22c105224f65dec2bc09ef0335748a1db855ee59945c170b69526ee18f39dc16",
+  "source_snapshot_backup_size": 3679584,
+  "candidate_head": "r2_restaurant_menu_fulfillment_043",
+  "scope": [
+    "restore exact immutable WND reference backup into disposable source and candidate clones",
+    "repeat proven legacy-to-neutral structural adoption and existing-tenant Restaurant composition",
+    "execute frozen M7.1 mapping services against production-shaped WND sales, settlements and A/R repayment sources",
+    "classify unmappable history as explicit withheld evidence rather than fabricate canonical truth",
+    "preserve M7.2 missing-cost behavior and never invent historical COGS",
+    "compare legacy-primary control totals to canonical-shadow mapped totals with visible withheld variances",
+    "produce advisory M7.4 readiness and reversible non-executing writer-retirement plan",
+    "destroy and restore the candidate from the immutable backup, re-adopt, replay and require deterministic fingerprints"
+  ],
+  "financial_source_authority": {
+    "commercial_revenue": "treasury_logs.SALE_REVENUE_GROSS joined to sales",
+    "customer_allowances": "treasury_logs.DISCOUNT_APPLIED + COMPLIMENTARY_APPLIED",
+    "cash_collections": "treasury_logs.PAYMENT_RECEIVED excluding ar_repayment attempts + accounts_receivable_repayments",
+    "receivables_opened": "accounts_receivable.original_amount",
+    "receivables_satisfied": "accounts_receivable.paid_amount; explicit repayment rows mapped, undocumented historical satisfied amount withheld",
+    "refunds": "treasury refund evidence when present",
+    "fulfillment_cost": "WITHHELD when no reliable exact historical cost basis exists; zero mapped cost is not zero economic cost",
+    "financial_documents": "historical sale receipt identities preserved; original document regeneration withheld without immutable historical content hash"
+  },
+  "exception_policy": [
+    "sale economics that cannot satisfy the canonical commercial equation are withheld whole",
+    "non-cash settlements without external settlement identity are withheld",
+    "historical A/R satisfied amounts without explicit repayment evidence are withheld",
+    "ambiguous customer identity is never synthesized",
+    "historical fulfillment mode is never backfilled",
+    "historical inventory cache/ledger mismatch remains evidence",
+    "missing cost basis never becomes zero-cost canonical COGS"
+  ],
+  "r6_2_pass_meaning": "rehearsal mechanics and source classification are complete, deterministic and recovery-safe; PASS does not authorize live cutover",
+  "next_gate": "R6.3 application compatibility and frontend UAT against the neutral candidate"
+}

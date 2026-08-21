@@ -29,3 +29,13 @@ from .contracts import (
 )
 
 __all__ = [name for name in globals() if name.isupper()]
+
+from .cutover_rehearsal import (
+    CONTROL_NAMES as R6_2_CONTROL_NAMES,
+    WithheldLedger,
+    assert_complete_reconciliation,
+    deterministic_public_id,
+    semantic_hash as r6_2_semantic_hash,
+    wnd_business_date,
+    zero_controls,
+)

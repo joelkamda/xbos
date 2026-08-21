@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "contract": "R6_2_WND_REFERENCE_FINANCIAL_CONTROL_SCOPE",
+  "currency_code": "XAF",
+  "reference_release": "wnd-track-a-reference-release-20260821",
+  "frozen_observed_controls": {
+    "sales_count": 7745,
+    "sales_gross_total": "35193200.00",
+    "ar_count": 240,
+    "ar_original": "736500.00",
+    "ar_paid": "96199.00",
+    "ar_balance": "640301.00",
+    "ar_repayment_count": 13,
+    "ar_repayment_total": "11900.00",
+    "payment_attempt_count": 7807,
+    "treasury_log_count": 17490,
+    "reconciliation_rows": 791,
+    "historical_inventory_mismatch_count": 156,
+    "historical_inventory_delta": "1995833"
+  },
+  "runtime_controls_computed_from_clone": [
+    "commercial_revenue",
+    "customer_allowances",
+    "cash_collections",
+    "receivables_opened",
+    "receivables_satisfied",
+    "refunds",
+    "fulfillment_cost",
+    "financial_documents"
+  ],
+  "required_equation": "legacy_source = canonical_mapped + explicit_withheld for every control",
+  "fulfillment_cost_note": "mapped value zero means no verified historical cost basis was executed; it must never be interpreted as zero economic COGS"
+}

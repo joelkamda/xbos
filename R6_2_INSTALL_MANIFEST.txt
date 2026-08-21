@@ -1,0 +1,6 @@
+XBOS R6.2 WND PRODUCTION CUTOVER REHEARSAL — REVISION 1
+Source checkpoint: 0f4c72ff297b580c9a2572fe6a0068d814b22267
+Production writes: NONE
+Writer routing: UNCHANGED
+Disposable DBs: xbos_r6_2_source, xbos_r6_2_candidate
+Next gate: R6.3 application compatibility/frontend UAT

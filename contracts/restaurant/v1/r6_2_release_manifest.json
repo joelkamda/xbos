@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "contract": "R6_2_RELEASE_MANIFEST",
+  "source_checkpoint": "0f4c72ff297b580c9a2572fe6a0068d814b22267",
+  "artifact_count": 11,
+  "self_excluded": true,
+  "artifacts": [
+    {
+      "path": "R6_2_INSTALL_MANIFEST.txt",
+      "sha256": "d2e46ae6e64c39e81aa844b3b0c01850136b13cc0e4c99b6bfc3c5c4ef0383da",
+      "size": 283
+    },
+    {
+      "path": "XBOS_R6_2_INSTALL_AND_VERIFY.txt",
+      "sha256": "9e856488f794b7bacde95fbf5e4802aa14d04ae0e926fac38e8f3b52bf6f2f1e",
+      "size": 1936
+    },
+    {
+      "path": "XBOS_R6_2_RUN_ACCEPTANCE.cmd",
+      "sha256": "0eca00a8b875032d9a6b934a2349c6f6dd4c82e96618cf602eee66acb40f7bb5",
+      "size": 3759
+    },
+    {
+      "path": "contracts/restaurant/v1/r6_2_production_cutover_rehearsal_authority.json",
+      "sha256": "25ed51c9eb2c35dcff6e162ad39d7fc7794bd52543f0aa0b0f13cd34e18f86fa",
+      "size": 3392
+    },
+    {
+      "path": "contracts/restaurant/v1/r6_2_financial_control_scope.json",
+      "sha256": "0e4fa7f086d9a76110d210ab497d5a32275878c32d07da41e305ae810bafd7c0",
+      "size": 1146
+    },
+    {
+      "path": "restaurant/r6/__init__.py",
+      "sha256": "29b838810e5ca172c2324bc8bf422093bf3cdf09f254cb4df856eabe68e213ae",
+      "size": 1099
+    },
+    {
+      "path": "restaurant/r6/cutover_rehearsal.py",
+      "sha256": "6482c701519bde94e4b5e18c9d29617ad056c263f83c81f6c3fbc59d1773ad93",
+      "size": 4614
+    },
+    {
+      "path": "scripts/verify_r6_2_wnd_production_cutover_rehearsal.py",
+      "sha256": "9687558bfb1cd8ba2c83675a85792979e03399535e0f61b7e3dd45c0d951e4c5",
+      "size": 42914
+    },
+    {
+      "path": "tests/contracts/test_r6_2_wnd_production_cutover_rehearsal.py",
+      "sha256": "04826a9b030585bdc81e7bd2c8c705e665aa0fd4936e705dc0ea95725ce745ed",
+      "size": 5821
+    },
+    {
+      "path": "docs/restaurant/R6_2_WND_PRODUCTION_CUTOVER_REHEARSAL.md",
+      "sha256": "1a5cf1ad4ee1dc9e4ce2130ef9d91c21f6aef450b255dec46cce7f83a97c44c7",
+      "size": 4114
+    },
+    {
+      "path": "docs/restaurant/adr/0008_R6_2_MAPPED_OR_WITHHELD_BEFORE_AUTHORITY_CUTOVER.md",
+      "sha256": "abae9f8f0a16351ceff17055596f044bb21f877583b2e75773bc78f1e1702b16",
+      "size": 1500
+    }
+  ]
+}
