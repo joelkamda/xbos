@@ -1,0 +1,23 @@
+XBOS R6.1 Revision 6 — PK post-composition schema-column repair
+
+Observed failure after the real WND production clone successfully upgraded through
+Restaurant R2 and entered existing-tenant Restaurant composition:
+
+  psycopg2.errors.UndefinedColumn: column v.version does not exist
+
+Cause:
+  R6.1's post-composition evidence probe used generic aliases as physical column names:
+    pk_pack_versions.version
+    pk_template_versions.version
+  The frozen PK schemas correctly define:
+    pk_pack_versions.pack_version
+    pk_template_versions.template_version
+
+Correction:
+  - pack installation probe selects v.pack_version AS version
+  - tenant template probe selects v.template_version AS version
+  - contract test pins both physical PK schema columns and forbids the invalid v.version queries
+
+No database migration, pack lifecycle behavior, template composition behavior, production
+write authority, writer routing, finance, inventory, fulfillment, customer/A-R or kitchen
+semantics changed. This is an R6.1 acceptance-probe repair only.

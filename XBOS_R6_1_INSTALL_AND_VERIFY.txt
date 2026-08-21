@@ -1,0 +1,38 @@
+R6.1 Revision 6 installation:
+1. Extract this package over the clean `restaurant/r6-wnd-cutover` branch at R5 accepted commit.
+2. Copy the exact 21 Aug 2026 R6.0 server backup to the laptop Downloads folder.
+3. Run `XBOS_R6_1_RUN_ACCEPTANCE.cmd`.
+
+Required backup:
+- Filename: WND_R6_0_SERVER_PRODUCTION_SNAPSHOT_20260821_171736.backup
+- SHA256: 22c105224f65dec2bc09ef0335748a1db855ee59945c170b69526ee18f39dc16
+- Size: 3679584 bytes
+
+Frozen WND reference release:
+- Tag: wnd-track-a-reference-release-20260821
+- Backend: b60a71dcc06657bd407fac043f6f3922d5bfe32f
+- Frontend: f47f574f6a2f2e2247ab7c491dc65c7800adbc9d
+
+R6.1 creates/recreates ONLY:
+- xbos_r6_1_source
+- xbos_r6_1_candidate
+
+It does not write production `xbos` or `xbos_track_b_dev`.
+It does not infer historical fulfillment mode or customer identity.
+
+Stop only at R6_1_SINGLE_GATE=PASS or the first concrete failure.
+
+REVISION 4 FIX (21 AUG 2026)
+- Corrects R6.1 predecessor integrity call for frozen M7.5.
+- The previous gate invoked verify_m75_m7_acceptance.py without its required command.
+- R6.1 now validates the frozen M7.5 source/authority contract through its contract test.
+- It intentionally does not replay M7.5's historical development-DB gate, which is pinned to m64_reconciliation_controls_020 while the R6 source lineage has advanced through Restaurant R2.
+- No R6.1 production, migration, control-total, or cutover semantics changed.
+
+REVISION 5 FIX (21 AUG 2026)
+- Corrects the R6.1 composition rehearsal import boundary after Alembic adoption.
+- `r4_evidence_hashes` is not a public export of restaurant.r4; it was verifier-local R5 support.
+- R6.1 now computes the exact frozen R4 evidence hashes locally using the accepted R5 evidence paths and CRLF->LF text canonicalization.
+- No migration, production write, pack composition, financial or WND reference semantics changed.
+
+Revision 6: post-composition pack/template evidence probes use pk_pack_versions.pack_version and pk_template_versions.template_version.

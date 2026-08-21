@@ -1,0 +1,66 @@
+{
+  "schema_version": 2,
+  "contract": "R6_1_WND_PRODUCTION_CLONE_ADOPTION_REHEARSAL",
+  "source_checkpoint": "2f90f1714782bcf54da6d8cac2cc0499d2e82dfc",
+  "source_archive_sha256": "26f21f69e02e7941d37170dd454f59506107ab69d68816c0f295fb064c1ceb76",
+  "source_archive_size": 6165026,
+  "production_baseline_contract": "R6_0_WND_PRODUCTION_BASELINE",
+  "production_database": "xbos",
+  "production_write_authorized": false,
+  "rehearsal_databases": [
+    "xbos_r6_1_source",
+    "xbos_r6_1_candidate"
+  ],
+  "rehearsal_database_name_guard": "only exact hard-coded disposable names may be dropped, created, restored, stamped or upgraded",
+  "source_clone": {
+    "purpose": "immutable restored comparison control",
+    "expected_head": "5c706797029a",
+    "schema_mutation": "NONE after restore"
+  },
+  "candidate_clone": {
+    "restore_from_same_snapshot": true,
+    "lineage_adoption": [
+      "verify exact 21 Aug R6.0 reference-release snapshot controls and legacy reference schema",
+      "Alembic stamp m13_source_state_001 without executing source-state reconstruction",
+      "upgrade canonical lineage to r2_restaurant_menu_fulfillment_043"
+    ],
+    "accepted_head": "r2_restaurant_menu_fulfillment_043",
+    "legacy_business_rows_must_remain": "COUNT_CONTROL_TOTAL_AND_REFERENCE_SCHEMA_STABLE"
+  },
+  "composition_rehearsal": {
+    "existing_production_tenant_id": 2,
+    "existing_production_branch_id": 1,
+    "create_new_wnd_tenant": false,
+    "pc1_legacy_branch_mapping_required": true,
+    "register_certified_pack": "industry.restaurant@1.0.0",
+    "install_activate_pack_on_existing_tenant": true,
+    "template": "restaurant.counter_service@1.0.0",
+    "pc4_wnd_operating_context": true,
+    "production_effect": "NONE"
+  },
+  "explicit_non_actions": [
+    "no connection to production database xbos for writes",
+    "no production Alembic stamp or upgrade",
+    "no legacy writer disablement",
+    "no production writer routing change",
+    "no production pack installation",
+    "no historical inventory normalization",
+    "no historical ambiguous financial transformation",
+    "no frontend cutover",
+    "no kitchen output cutover",
+    "no automatic historical fulfillment-mode backfill",
+    "no automatic customer creation or name-only A/R identity merge"
+  ],
+  "next_gate": "R6.2 production-shaped data adoption/mapping after R6.1 rehearsal succeeds",
+  "production_baseline_generation": "R6_REFERENCE_RELEASE_20260821_171736",
+  "production_snapshot_backup_sha256": "22c105224f65dec2bc09ef0335748a1db855ee59945c170b69526ee18f39dc16",
+  "runtime_backend_head": "b60a71dcc06657bd407fac043f6f3922d5bfe32f",
+  "runtime_frontend_head": "f47f574f6a2f2e2247ab7c491dc65c7800adbc9d",
+  "reference_release_tag": "wnd-track-a-reference-release-20260821",
+  "reference_release_preservation": [
+    "preserve WND behavioral/reference truth without generalizing Track A implementation into Track B authority",
+    "preserve DINE_IN/TAKEAWAY/DELIVERY fulfillment evidence and historical unspecified nullability",
+    "preserve explicit customer-to-A/R links while leaving ambiguous/name-only historical debt unlinked",
+    "preserve full initial kitchen print plus semantic incremental kitchen deltas and suppress non-semantic reprints"
+  ]
+}

@@ -1,0 +1,53 @@
+XBOS R6.1 Revision 6 — WND 21 Aug reference-release snapshot-locked production-clone adoption rehearsal
+
+Source checkpoint:
+  2f90f1714782bcf54da6d8cac2cc0499d2e82dfc
+
+Database migration:
+  NONE in repository.
+  Acceptance creates only disposable local clone databases.
+
+Frozen R6.0 reference release:
+  TAG = wnd-track-a-reference-release-20260821
+  BACKEND = b60a71dcc06657bd407fac043f6f3922d5bfe32f
+  FRONTEND = f47f574f6a2f2e2247ab7c491dc65c7800adbc9d
+  SOURCE_EVIDENCE_SHA256 = fc291ec6c43507a9312d032ce61d5d4aee8db874377481a114d6785456242cc0
+  DB_EVIDENCE_SHA256 = 5476210b011eac716a29dbfae1c9cac05155fd2061927f533729c321e7b7cf75
+  BACKUP_SHA256 = 22c105224f65dec2bc09ef0335748a1db855ee59945c170b69526ee18f39dc16
+  BACKUP_SIZE = 3679584
+
+Reference behaviors frozen for R6:
+  - DINE_IN / TAKEAWAY / DELIVERY fulfillment evidence
+  - historical unspecified fulfillment remains unguessed
+  - explicit customer identity may link to A/R
+  - ambiguous/name-only historical A/R remains unlinked
+  - kitchen initial full print + semantic incremental delta behavior
+  - Track A financial/inventory/reconciliation invariants remain evidence
+
+Production authority:
+  WRITE AUTHORIZATION = NONE
+  WRITER ROUTING = UNCHANGED
+  PRODUCTION PACK INSTALLATION = NONE
+
+Artifacts:
+  contracts/restaurant/v1/r6_0_wnd_production_baseline.json
+  contracts/restaurant/v1/r6_1_rehearsal_adoption_authority.json
+  contracts/restaurant/v1/r6_1_control_totals.json
+  contracts/restaurant/v1/r6_1_release_manifest.json
+  docs/restaurant/R6_0_R6_1_WND_PRODUCTION_BASELINE_AND_REHEARSAL.md
+  docs/restaurant/adr/0007_R6_CLONE_ADOPTION_BEFORE_LIVE_CUTOVER.md
+  restaurant/r6/__init__.py
+  restaurant/r6/contracts.py
+  scripts/verify_r6_1_wnd_rehearsal_adoption.py
+  tests/contracts/test_r6_1_wnd_rehearsal_adoption.py
+  XBOS_R6_1_INSTALL_AND_VERIFY.txt
+  XBOS_R6_1_RUN_ACCEPTANCE.cmd
+
+Success marker:
+  R6_1_SINGLE_GATE=PASS
+
+Revision 5 repair:
+  R4 certification evidence hashing remains verifier-local; no nonexistent Restaurant R4 public helper import.
+
+Revision 6 repair:
+  Post-composition evidence probes use frozen PK physical columns pack_version and template_version (aliased as version); no nonexistent v.version column.

@@ -1,0 +1,20 @@
+XBOS R6.1 Revision 5 — R4 certification evidence helper boundary repair
+
+Observed failure after successful legacy -> neutral Alembic adoption:
+  ImportError: cannot import name 'r4_evidence_hashes' from 'restaurant.r4'
+
+Cause:
+  R6.1 incorrectly treated r4_evidence_hashes as Restaurant R4 public API.
+  That helper is verifier-local in scripts/verify_r5_wnd_tenant_template_proof.py.
+  restaurant.r4 correctly exports build_registration_command and
+  build_certification_command, but not verifier evidence hashing support.
+
+Correction:
+  - R6.1 imports only the actual Restaurant R4 public command builders.
+  - R6.1 reproduces the frozen accepted R4 evidence-path/hash algorithm locally.
+  - Text evidence keeps the accepted CRLF -> LF canonicalization.
+  - A contract test pins all seven accepted R4 evidence hashes and prevents the
+    invalid public-API import from returning.
+
+No production write, migration, financial, inventory, pack-authority, template,
+customer/A-R, fulfillment or kitchen semantics changed.

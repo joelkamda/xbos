@@ -1,0 +1,22 @@
+XBOS R6.1 — REVISION 4 FIX — 21 AUG 2026
+
+Observed laptop failure:
+  verify_m75_m7_acceptance.py: error: the following arguments are required: command
+
+Root cause:
+  R6.1 Revision 3 invoked the frozen M7.5 aggregate verifier without its mandatory
+  positional command (verify or create-and-verify). More importantly, replaying that
+  executable aggregate from R6.1 would be the wrong predecessor check because its
+  development-database assertion is historically pinned to m64_reconciliation_controls_020,
+  while the current R6 source lineage has advanced through Restaurant R2.
+
+Correction:
+  R6.1 predecessor integrity now runs the frozen M7.5 contract test:
+    tests/contracts/test_m75_finance_migration_support_acceptance_and_freeze.py
+
+That test verifies the M7 release manifest, schema-neutral boundary, authority boundaries,
+public artifacts, no M7 migration, no writer rerouting/cutover authority, and R6 ownership
+of live cutover. R6.1's own static verifier separately checks the M7.5 cutover flags.
+
+No production write, schema migration, writer routing, control-total, snapshot, or cutover
+semantics changed.

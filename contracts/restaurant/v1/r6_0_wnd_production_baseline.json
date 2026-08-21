@@ -1,0 +1,146 @@
+{
+  "schema_version": 2,
+  "contract": "R6_0_WND_PRODUCTION_BASELINE",
+  "captured_at_utc": "2026-08-21T16:17:36.767013+00:00",
+  "reference_release": {
+    "release_tag": "wnd-track-a-reference-release-20260821",
+    "backend_release_branch": "track-a/wnd-live-parity-reference-backend",
+    "frontend_release_branch": "track-a/wnd-ui-live-parity-responsive-frontend",
+    "source_evidence_archive": "WND_TRACK_A_REFERENCE_RELEASE_EVIDENCE_20260821_171625.zip",
+    "source_evidence_sha256": "fc291ec6c43507a9312d032ce61d5d4aee8db874377481a114d6785456242cc0",
+    "published_remote_identity": "PASS"
+  },
+  "server_evidence": {
+    "archive": "WND_R6_0_SERVER_PRODUCTION_EVIDENCE_20260821_171736.zip",
+    "sha256": "5476210b011eac716a29dbfae1c9cac05155fd2061927f533729c321e7b7cf75",
+    "database": "xbos",
+    "database_revision": "5c706797029a",
+    "postgresql": "17.5",
+    "database_size_bytes": 84462739,
+    "public_table_count": 30,
+    "snapshot_backup": {
+      "filename": "WND_R6_0_SERVER_PRODUCTION_SNAPSHOT_20260821_171736.backup",
+      "sha256": "22c105224f65dec2bc09ef0335748a1db855ee59945c170b69526ee18f39dc16",
+      "size": 3679584,
+      "pg_restore_list": "PASS",
+      "snapshot_aligned_with_evidence": true
+    }
+  },
+  "runtime_source": {
+    "backend_head": "b60a71dcc06657bd407fac043f6f3922d5bfe32f",
+    "backend_release_branch": "track-a/wnd-live-parity-reference-backend",
+    "backend_production_checkout_branch": "fix/wnd-reconciliation-phase1a-r2",
+    "backend_source_archive": "BACKEND_REFERENCE_RELEASE_b60a71d.zip",
+    "backend_source_archive_sha256": "eb489d820a0319b802cc06bcd0cad6a00727eff9e033e154dc0a2a5a04389838",
+    "backend_source_archive_size": 4146355,
+    "backend_tracked_diff_empty": true,
+    "backend_staged_diff_empty": true,
+    "backend_untracked_files": [
+      "scripts/wnd_taxonomy_tree_export.py"
+    ],
+    "frontend_head": "f47f574f6a2f2e2247ab7c491dc65c7800adbc9d",
+    "frontend_release_branch": "track-a/wnd-ui-live-parity-responsive-frontend",
+    "frontend_production_checkout_branch": "fix/wnd-reconciliation-phase1a-r2",
+    "frontend_source_archive": "FRONTEND_REFERENCE_RELEASE_f47f574.zip",
+    "frontend_source_archive_sha256": "ab896bd6b0f84589f7151df507db80f776aa08c40662fa50c191bf3a9cac102b",
+    "frontend_source_archive_size": 1216216,
+    "frontend_tracked_diff_empty": true,
+    "frontend_staged_diff_empty": true,
+    "frontend_untracked_files": []
+  },
+  "reference_behavior": {
+    "ui": "WND-first responsive reference UI across Home, Sales, Cashier, Stock, Payments, Accounting, Reports and Customers",
+    "fulfillment": "DINE_IN, TAKEAWAY and DELIVERY are explicit current-order fulfillment values; historical unspecified fulfillment remains nullable evidence and must not be guessed",
+    "kitchen": "preserve initial full kitchen bon plus semantic incremental additions/cancellations/mixed changes; suppress non-semantic reprints",
+    "customer_ar": "customer identity may explicitly link to A/R; new A/R may use an existing customer or a manual debtor; ambiguous/name-only historical debt must remain unlinked",
+    "inventory": "historical negative/cache-ledger evidence is not silently normalized",
+    "finance": "A/R repayment remains settlement of an existing receivable, not new income; reconciliation continuity remains authoritative"
+  },
+  "legacy_reference_schema": {
+    "customers_table": {
+      "exists": true,
+      "row_count": 0,
+      "required_indexes": [
+        "customers_pkey",
+        "ix_customers_context_name",
+        "ux_customers_context_normalized_phone"
+      ]
+    },
+    "orders_fulfillment_mode": {
+      "column_exists": true,
+      "nullable": true,
+      "default": "'DINE_IN'::character varying",
+      "constraint": "ck_orders_fulfillment_mode",
+      "allowed_values": [
+        "DINE_IN",
+        "TAKEAWAY",
+        "DELIVERY"
+      ],
+      "index": "ix_orders_tenant_branch_fulfillment_mode"
+    },
+    "accounts_receivable_customer_identity": {
+      "column": "customer_id",
+      "nullable": true,
+      "foreign_key": "fk_accounts_receivable_customer_id",
+      "index": "ix_accounts_receivable_customer_id",
+      "linked_rows_at_capture": 0
+    }
+  },
+  "production_control_counts": {
+    "tenants": 3,
+    "branches": 4,
+    "users": 18,
+    "atomic_units": 813,
+    "taxonomy_nodes": 249,
+    "atomic_unit_taxonomy": 1008,
+    "customers": 0,
+    "orders": 8451,
+    "order_items": 17958,
+    "order_item_modifiers": 4010,
+    "sales": 7745,
+    "sale_items": 16566,
+    "accounts_receivable": 240,
+    "accounts_receivable_repayments": 13,
+    "payment_intents": 8115,
+    "payment_attempts": 7807,
+    "inventory_items": 176,
+    "inventory_movements": 38900,
+    "recon_sheets": 791,
+    "treasury_logs": 17490
+  },
+  "production_control_totals": {
+    "sales_total": "35193200.00",
+    "sales_item_total": "35193200.00",
+    "orders_total": "38083300.00",
+    "order_item_total": "38083300.00",
+    "ar_original_amount": "736500.00",
+    "ar_paid_amount": "96199.00",
+    "ar_balance_due": "640301.00",
+    "ar_equation_mismatches": 0,
+    "ar_orphan_repayments": 0,
+    "inventory_quantity_on_hand_sum": 1997976,
+    "inventory_movement_ledger_sum": "2143",
+    "inventory_historical_cache_ledger_mismatches": 156,
+    "inventory_historical_aggregate_delta": "1995833",
+    "future_dated_inventory_movements": 0,
+    "reconciliation_rows": 791,
+    "reconciliation_closed_rows": 791
+  },
+  "authority_absence_in_production": {
+    "r1_tables": [],
+    "r2_tables": [],
+    "r3_tables": [],
+    "r4_tables": [],
+    "r5_tables": [],
+    "pk_tables": [],
+    "financial_canonical_tables": [],
+    "pc_tables": []
+  },
+  "capture_safety": {
+    "production_writes": "NONE",
+    "writer_routing_changes": "NONE",
+    "cutover": "NONE"
+  },
+  "baseline_generation": "R6_REFERENCE_RELEASE_20260821_171736",
+  "supersedes_server_evidence": "WND_R6_0_SERVER_PRODUCTION_EVIDENCE_20260819_222939.zip"
+}

@@ -1,0 +1,88 @@
+{
+  "schema_version": 2,
+  "contract": "R6_1_REHEARSAL_CONTROL_TOTALS",
+  "source": "R6.0 21 Aug 2026 Track A reference-release snapshot-aligned production evidence",
+  "count_controls": {
+    "tenants": 3,
+    "branches": 4,
+    "users": 18,
+    "atomic_units": 813,
+    "taxonomy_nodes": 249,
+    "atomic_unit_taxonomy": 1008,
+    "customers": 0,
+    "orders": 8451,
+    "order_items": 17958,
+    "order_item_modifiers": 4010,
+    "sales": 7745,
+    "sale_items": 16566,
+    "accounts_receivable": 240,
+    "accounts_receivable_repayments": 13,
+    "payment_intents": 8115,
+    "payment_attempts": 7807,
+    "inventory_items": 176,
+    "inventory_movements": 38900,
+    "recon_sheets": 791,
+    "treasury_logs": 17490
+  },
+  "financial_operational_controls": {
+    "sales_total": "35193200.00",
+    "sales_item_total": "35193200.00",
+    "orders_total": "38083300.00",
+    "order_item_total": "38083300.00",
+    "ar_original_amount": "736500.00",
+    "ar_paid_amount": "96199.00",
+    "ar_balance_due": "640301.00",
+    "ar_equation_mismatches": 0,
+    "ar_orphan_repayments": 0,
+    "inventory_quantity_on_hand_sum": 1997976,
+    "inventory_movement_ledger_sum": "2143",
+    "inventory_historical_cache_ledger_mismatches": 156,
+    "inventory_historical_aggregate_delta": "1995833",
+    "future_dated_inventory_movements": 0,
+    "reconciliation_rows": 791,
+    "reconciliation_closed_rows": 791
+  },
+  "legacy_reference_schema_controls": {
+    "customers_table": {
+      "exists": true,
+      "row_count": 0,
+      "required_indexes": [
+        "customers_pkey",
+        "ix_customers_context_name",
+        "ux_customers_context_normalized_phone"
+      ]
+    },
+    "orders_fulfillment_mode": {
+      "column_exists": true,
+      "nullable": true,
+      "default": "'DINE_IN'::character varying",
+      "constraint": "ck_orders_fulfillment_mode",
+      "allowed_values": [
+        "DINE_IN",
+        "TAKEAWAY",
+        "DELIVERY"
+      ],
+      "index": "ix_orders_tenant_branch_fulfillment_mode"
+    },
+    "accounts_receivable_customer_identity": {
+      "column": "customer_id",
+      "nullable": true,
+      "foreign_key": "fk_accounts_receivable_customer_id",
+      "index": "ix_accounts_receivable_customer_id",
+      "linked_rows_at_capture": 0
+    }
+  },
+  "preservation_rules": [
+    "sales and sale_items counts/totals remain unchanged by lineage adoption and pack/template composition",
+    "orders and order_items counts/totals remain unchanged",
+    "A/R equation remains exact and repayments do not become income",
+    "customers table and explicit A/R customer_id authority remain present without guessing name-only historical identity",
+    "orders.fulfillment_mode schema remains present; nullable historical unspecified values are not backfilled or guessed",
+    "inventory cache/ledger historical mismatch count and aggregate delta are evidence, not an error to normalize",
+    "future-dated movement count remains zero for this frozen snapshot",
+    "reconciliation source rows remain unchanged",
+    "legacy source tables remain present after additive neutral adoption",
+    "existing tenant count remains three and no wnd-r5-proof tenant is provisioned"
+  ],
+  "baseline_generation": "R6_REFERENCE_RELEASE_20260821_171736"
+}

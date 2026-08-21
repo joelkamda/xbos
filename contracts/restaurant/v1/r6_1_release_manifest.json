@@ -1,0 +1,107 @@
+{
+  "schema_version": 2,
+  "contract": "XBOS_R6_1_WND_CLONE_ADOPTION_REHEARSAL_RELEASE_MANIFEST",
+  "source_checkpoint": "2f90f1714782bcf54da6d8cac2cc0499d2e82dfc",
+  "source_archive_sha256": "26f21f69e02e7941d37170dd454f59506107ab69d68816c0f295fb064c1ceb76",
+  "source_archive_size": 6165026,
+  "repository_migration_count": 0,
+  "accepted_repository_head": "r2_restaurant_menu_fulfillment_043",
+  "production_database": "xbos",
+  "production_database_write": "NONE",
+  "production_writer_routing": "UNCHANGED",
+  "rehearsal_databases": [
+    "xbos_r6_1_source",
+    "xbos_r6_1_candidate"
+  ],
+  "server_backup_sha256": "22c105224f65dec2bc09ef0335748a1db855ee59945c170b69526ee18f39dc16",
+  "reference_release_tag": "wnd-track-a-reference-release-20260821",
+  "reference_source_evidence_sha256": "fc291ec6c43507a9312d032ce61d5d4aee8db874377481a114d6785456242cc0",
+  "production_backend_head": "b60a71dcc06657bd407fac043f6f3922d5bfe32f",
+  "production_frontend_head": "f47f574f6a2f2e2247ab7c491dc65c7800adbc9d",
+  "operator_gate": "XBOS_R6_1_RUN_ACCEPTANCE.cmd",
+  "success_marker": "R6_1_SINGLE_GATE=PASS",
+  "next_milestone": "R6.2",
+  "artifact_count": 15,
+  "hashing": "sha256; text canonicalization CRLF->LF only",
+  "self_excluded": true,
+  "artifacts": [
+    {
+      "path": "R6_1_INSTALL_MANIFEST.txt",
+      "sha256": "8a3b3d4f2d8259963bba1c997b670be642b79eb180e5a4f047d520a0c273572d",
+      "size": 2261
+    },
+    {
+      "path": "R6_1_REVISION_4_FIX.txt",
+      "sha256": "22d806cc8c9d2bee12be0454cc9206b0b7cc2fd351a68ecf00f3d3a9a166b447",
+      "size": 1148
+    },
+    {
+      "path": "R6_1_REVISION_5_FIX.txt",
+      "sha256": "c637691e9a7173d082b6ee561cd2a1e3a61cba1d2bc9e52100c7dd52080c73c7",
+      "size": 1021
+    },
+    {
+      "path": "R6_1_REVISION_6_FIX.txt",
+      "sha256": "078ace7d0861ea22244f6a60f705155d795e6a6e38afb07b88b12c59e6ad0f96",
+      "size": 1065
+    },
+    {
+      "path": "XBOS_R6_1_INSTALL_AND_VERIFY.txt",
+      "sha256": "21a48ee0eccaf9daffe2150d096ca6d0127446dfa67b7f6220a724552d78c911",
+      "size": 2034
+    },
+    {
+      "path": "XBOS_R6_1_RUN_ACCEPTANCE.cmd",
+      "sha256": "4cca0d2f01fa60daff0aa2c7e2358a07ef4f1b055d87ceacde3f169787cae6c3",
+      "size": 3886
+    },
+    {
+      "path": "contracts/restaurant/v1/r6_0_wnd_production_baseline.json",
+      "sha256": "81d8e044c5c3424d25854f0268056d5a156a5e712898727b5b42ebd1a6808e94",
+      "size": 5945
+    },
+    {
+      "path": "contracts/restaurant/v1/r6_1_control_totals.json",
+      "sha256": "56f74f321e45ae5c87f1881dc2322538b3081201fb991949dd9fe925ace54f2b",
+      "size": 3253
+    },
+    {
+      "path": "contracts/restaurant/v1/r6_1_rehearsal_adoption_authority.json",
+      "sha256": "d41118aea05f2880c9b31d7b04da9050a71f42edfe07e5fd2725daa9d25427d6",
+      "size": 3257
+    },
+    {
+      "path": "docs/restaurant/R6_0_R6_1_WND_PRODUCTION_BASELINE_AND_REHEARSAL.md",
+      "sha256": "25a4a1f506384890ae152de45756e709633f9308d06f5eba8fb3c80a114258cd",
+      "size": 6689
+    },
+    {
+      "path": "docs/restaurant/adr/0007_R6_CLONE_ADOPTION_BEFORE_LIVE_CUTOVER.md",
+      "sha256": "c1396ec6d0f4117aa9ac4dbe91ecf80c71c9da05316fa0eee9a3604598ea1d67",
+      "size": 1046
+    },
+    {
+      "path": "restaurant/r6/__init__.py",
+      "sha256": "6c160294dfc20335bb95774d420ddf24cc7f12449c685c816e83cfabc0fd337d",
+      "size": 854
+    },
+    {
+      "path": "restaurant/r6/contracts.py",
+      "sha256": "18ddf5996375a6895f2dc98c55da3b256912326953f74061ce16495c8c6dd8f8",
+      "size": 2176
+    },
+    {
+      "path": "scripts/verify_r6_1_wnd_rehearsal_adoption.py",
+      "sha256": "faa26044250f6bbc9da08520deba5acf9942b733b68368b976735118e5bd1366",
+      "size": 37065
+    },
+    {
+      "path": "tests/contracts/test_r6_1_wnd_rehearsal_adoption.py",
+      "sha256": "3d80cce0adf02f9e58575a0ba0f2df6fd5d5c20cac0dad7c2455cca543a07e20",
+      "size": 10069
+    }
+  ],
+  "production_baseline_generation": "R6_REFERENCE_RELEASE_20260821_171736",
+  "revision": 6,
+  "revision_6_fix": "post-composition PK evidence probes use physical schema columns pack_version and template_version, aliased as version; invalid v.version probes removed"
+}
