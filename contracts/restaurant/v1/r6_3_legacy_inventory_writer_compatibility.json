@@ -1,0 +1,41 @@
+{
+  "adapter_rules": [
+    "derive inventory_items.stock_location_id from tenant/legacy branch SO3 location mapping on legacy INSERT",
+    "derive inventory_movements.stock_location_id from the referenced inventory item on legacy INSERT",
+    "derive occurred_at from legacy created_at/now when absent",
+    "derive deterministic reason_code from legacy movement_type when absent",
+    "derive source_reference from legacy reference_id/id when absent",
+    "do not alter quantity_delta, movement_type, legacy reference identity, stock cache semantics, or exact-once reservation/finalization behavior",
+    "fail closed when an SO3 stock-location mapping cannot be resolved"
+  ],
+  "contract": "R6_3_LEGACY_WND_INVENTORY_WRITER_COMPATIBILITY",
+  "down_revision": "r2_restaurant_menu_fulfillment_043",
+  "legacy_writer_retirement": "not_executed",
+  "live_cutover_authorized": false,
+  "problem_proven_by_visual_uat": {
+    "failing_writes": [
+      "restaurant order placement",
+      "order-linked POS bill settlement"
+    ],
+    "shared_legacy_boundary": "inventory reservation/finalization inserts into public.inventory_movements",
+    "working_writes": [
+      "manual accounting income",
+      "manual accounting cash movement",
+      "standalone payment receipt"
+    ]
+  },
+  "production_write_authorized": false,
+  "revision": "r63_legacy_inventory_writer_compat_044",
+  "schema_version": 1,
+  "so3_schema_requirement": {
+    "inventory_items_required_neutral_field": "stock_location_id",
+    "inventory_movements_required_neutral_fields": [
+      "stock_location_id",
+      "occurred_at",
+      "reason_code"
+    ],
+    "legacy_wnd_orm_supplies_inventory_item_stock_location": false,
+    "legacy_wnd_orm_supplies_these_fields": false
+  },
+  "writer_routing": "unchanged"
+}

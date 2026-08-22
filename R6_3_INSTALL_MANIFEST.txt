@@ -1,0 +1,57 @@
+R6.3 INSTALL MANIFEST
+=====================
+
+Milestone: R6.3 WND application compatibility + visual UAT
+Source checkpoint: 9a8c69dfb0caf18fe010d858caceef84b863a4c2
+Source archive SHA256: b09b6f212ed1513b404187ae7e553917769ff7eb38a88c20c167fbf200fd80cd
+
+Static implementation artifacts:
+- scripts/close_r6_3_after_accepted_uat.py
+- XBOS_R6_3_CLOSE_ACCEPTED_UAT.cmd
+- R6_3_REVISION_11_ACCEPTED_UAT_CLOSURE_FIX.txt
+- R6_3_REVISION_10_PRODUCTION_BRANCH_PROBE_FIX.txt
+- R6_3_REVISION_9_MODEL_REGISTRY_PROBE_FIX.txt
+- R6_3_REVISION_8_ALEMBIC_IMPORT_FIX.txt
+- R6_3_REVISION_7_UAT_LAUNCHER_FIX.txt
+- scripts/show_r6_3_uat_errors.py
+- scripts/r6_3_uat_host_template.py
+- XBOS_R6_3_SHOW_UAT_ERRORS.cmd
+- R6_3_REVISION_6_DIAGNOSTIC_FIX.txt
+- contracts/restaurant/v1/r6_3_legacy_inventory_writer_compatibility.json
+- alembic_neutral/versions/r63_legacy_inventory_writer_compat_044.py
+- alembic_neutral/sql/r63_legacy_inventory_writer_compat_down.sql
+- alembic_neutral/sql/r63_legacy_inventory_writer_compat_up.sql
+- R6_3_REVISION_5_FIX.txt
+- R6_3_REVISION_4_FIX.txt
+- R6_3_REVISION_3_FIX.txt
+- R6_3_REVISION_2_FIX.txt
+- R6_3_INSTALL_MANIFEST.txt
+- XBOS_R6_3_INSTALL_AND_VERIFY.txt
+- XBOS_R6_3_RUN_AUTOMATED_ACCEPTANCE.cmd
+- XBOS_R6_3_START_UAT.cmd
+- XBOS_R6_3_RECORD_UAT_PASS.cmd
+- XBOS_R6_3_STOP_UAT.cmd
+- XBOS_R6_3_RUN_ACCEPTANCE.cmd
+- XBOS_R6_3_UAT_CHECKLIST.txt
+- contracts/restaurant/v1/r6_3_application_compatibility_authority.json
+- contracts/restaurant/v1/r6_3_reference_application_contract.json
+- contracts/restaurant/v1/r6_3_uat_matrix.json
+- contracts/restaurant/v1/r6_3_release_manifest.json
+- docs/restaurant/R6_3_WND_APPLICATION_COMPATIBILITY_AND_VISUAL_UAT.md
+- docs/restaurant/adr/0009_R6_3_EXACT_WND_RELEASE_AS_COMPATIBILITY_ORACLE.md
+- restaurant/r6/application_compatibility.py
+- restaurant/r6/__init__.py
+- scripts/verify_r6_3_wnd_application_compatibility.py
+- scripts/run_r6_3_reference_backend.py
+- scripts/start_r6_3_uat_runtime.py
+- scripts/stop_r6_3_uat_runtime.py
+- tests/contracts/test_r6_3_wnd_application_compatibility.py
+
+Generated after explicit operator UAT:
+- contracts/restaurant/v1/r6_3_visual_uat_evidence.json
+
+External immutable input:
+- %USERPROFILE%\Downloads\XBOS_R6_3_WND_REFERENCE_SOURCE_INPUTS.zip
+
+R6.3 authorizes exactly one compatibility migration: r63_legacy_inventory_writer_compat_044. It introduces no new quantity or financial authority.
+No live production writer change is authorized.

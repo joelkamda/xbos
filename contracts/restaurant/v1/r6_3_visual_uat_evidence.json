@@ -1,0 +1,30 @@
+{
+  "accepted_at": "2026-08-22T09:35:03.117339+00:00",
+  "automated_compatibility_fingerprint": "87988ecdecbedbf88c6813c3e3af97c0ef70f7e17bd322c3d8354d05ee735464",
+  "backend_commit": "b60a71dcc06657bd407fac043f6f3922d5bfe32f",
+  "candidate_database": "xbos_r6_3_candidate",
+  "candidate_head": "r63_legacy_inventory_writer_compat_044",
+  "contract": "R6_3_WND_VISUAL_UAT_EVIDENCE",
+  "frontend_commit": "f47f574f6a2f2e2247ab7c491dc65c7800adbc9d",
+  "items": {
+    "accounting": "PASS",
+    "cashier": "PASS",
+    "customers": "PASS",
+    "home": "PASS",
+    "kitchen": "PASS",
+    "login_context": "PASS",
+    "payments": "PASS",
+    "reports": "PASS",
+    "responsive": "PASS",
+    "sales_archive": "PASS",
+    "sales_new": "PASS",
+    "stock": "PASS"
+  },
+  "live_cutover_authorized": false,
+  "operator_confirmation": "ACCEPT-R6.3-WND-UAT",
+  "production_writes": "NONE",
+  "reference_release_tag": "wnd-track-a-reference-release-20260821",
+  "schema_version": 1,
+  "status": "PASS",
+  "writer_routing": "UNCHANGED"
+}

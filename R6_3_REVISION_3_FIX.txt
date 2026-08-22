@@ -1,0 +1,17 @@
+XBOS R6.3 WND APPLICATION COMPATIBILITY + UAT — REVISION 3
+==========================================================
+
+Observed after Revision 2 automated compatibility PASS:
+  R6_3_UAT_READY=PASS
+  R6_3_UAT_RUNTIME=FAIL
+  ports 8002 and 5174 were free after launcher exit.
+
+Revision 3 replaces the opaque START/CMD-window launcher with a supervised
+Python runtime launcher. It starts the exact backend using the same proven
+Popen/uvicorn pattern as the green automated smoke, then starts the frozen
+frontend, waits for both health endpoints, writes PID evidence, and persists
+UTF-8 logs. On failure it terminates both child trees and prints backend and
+frontend log tails directly in the invoking terminal.
+
+No automated compatibility result, application semantics, database controls,
+writer routing, UAT criteria, or cutover authority changed.

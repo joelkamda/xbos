@@ -39,3 +39,11 @@ from .cutover_rehearsal import (
     wnd_business_date,
     zero_controls,
 )
+
+# R6.3 compatibility helpers are intentionally additive; no canonical writer authority is introduced.
+from .application_compatibility import (
+    assert_required_routes,
+    openapi_route_set,
+    schema_fingerprint,
+    validate_uat_evidence,
+)

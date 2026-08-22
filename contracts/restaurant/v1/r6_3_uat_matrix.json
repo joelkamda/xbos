@@ -1,0 +1,72 @@
+{
+  "backend_url": "http://127.0.0.1:8002",
+  "candidate_database": "xbos_r6_3_candidate",
+  "contract": "R6_3_WND_VISUAL_UAT_MATRIX",
+  "evidence_path": "contracts/restaurant/v1/r6_3_visual_uat_evidence.json",
+  "frontend_url": "http://127.0.0.1:5174",
+  "items": [
+    {
+      "acceptance": "Login and context selection render and enter WND without exposing internal codes as the normal business label.",
+      "id": "login_context",
+      "label": "Login + business context"
+    },
+    {
+      "acceptance": "WND Home command center renders correctly with responsive shell and live operational cards.",
+      "id": "home",
+      "label": "Home"
+    },
+    {
+      "acceptance": "Catalog/cart work, Dine In/Takeaway/Delivery are visible and no reference workflow is visually broken.",
+      "id": "sales_new",
+      "label": "Sales / New Sale"
+    },
+    {
+      "acceptance": "Pending orders render in the compact cashier workflow.",
+      "id": "cashier",
+      "label": "Cashier / Pending Orders"
+    },
+    {
+      "acceptance": "Kitchen queue/history render; print-once and semantic-delta reference behavior are not contradicted by the UI.",
+      "id": "kitchen",
+      "label": "Kitchen"
+    },
+    {
+      "acceptance": "Completed sales/archive renders and fulfillment-mode reference information remains visible.",
+      "id": "sales_archive",
+      "label": "Sales Archive"
+    },
+    {
+      "acceptance": "Overview, Products, Movements, Low Stock and Reconciliation render; product browsing remains category/subcategory based.",
+      "id": "stock",
+      "label": "Stock"
+    },
+    {
+      "acceptance": "Money Activity / Payment Records / Money Desk render in the accepted compact layout.",
+      "id": "payments",
+      "label": "Payments"
+    },
+    {
+      "acceptance": "Daily Ledger, Income, Expenses, Cash Moves, Reconciliation and Accounts/A-R render without changing accepted financial semantics.",
+      "id": "accounting",
+      "label": "Accounting"
+    },
+    {
+      "acceptance": "Customers renders even with zero promoted customer identities while historical unlinked A/R remains legitimate.",
+      "id": "customers",
+      "label": "Customers"
+    },
+    {
+      "acceptance": "Monthly, reconciliation, payments, stock and debt reports render.",
+      "id": "reports",
+      "label": "Reports"
+    },
+    {
+      "acceptance": "Desktop layout is accepted and at least one tablet/mobile-width check confirms the reference shell remains usable.",
+      "id": "responsive",
+      "label": "Responsive"
+    }
+  ],
+  "operator_acceptance_token": "ACCEPT-R6.3-WND-UAT",
+  "reference_release_tag": "wnd-track-a-reference-release-20260821",
+  "schema_version": 1
+}

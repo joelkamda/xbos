@@ -1,0 +1,50 @@
+XBOS R6.3 — INSTALL AND VERIFY
+================================
+
+Prerequisites
+-------------
+- Current branch: restaurant/r6-3-wnd-application-compatibility-uat
+- Current HEAD: 9a8c69dfb0caf18fe010d858caceef84b863a4c2
+- Exact production backup remains in Downloads.
+- Put XBOS_R6_3_WND_REFERENCE_SOURCE_INPUTS.zip in Downloads.
+- Python 3.13.3, PostgreSQL tools, Node/npm available.
+
+Candidate Alembic head after automated adoption:
+  r63_legacy_inventory_writer_compat_044
+
+Workflow
+--------
+1. Run automated compatibility:
+     XBOS_R6_3_RUN_AUTOMATED_ACCEPTANCE.cmd
+
+2. Start UAT:
+     XBOS_R6_3_START_UAT.cmd
+
+3. Open http://127.0.0.1:5174 and complete XBOS_R6_3_UAT_CHECKLIST.txt.
+
+4. Record explicit acceptance:
+     XBOS_R6_3_RECORD_UAT_PASS.cmd
+
+5. Stop the local UAT services:
+     XBOS_R6_3_STOP_UAT.cmd
+
+6. Run the final gate:
+     XBOS_R6_3_RUN_ACCEPTANCE.cmd
+
+Final target:
+  R6_3_SINGLE_GATE=PASS
+
+Production writes remain NONE and live cutover remains unauthorized.
+
+If visual UAT returns any HTTP 500:
+  Do not record UAT PASS.
+  Run:
+    XBOS_R6_3_SHOW_UAT_ERRORS.cmd
+  The diagnostic evidence file is written per-record and closed immediately.
+
+Accepted-UAT closure (Revision 11):
+  After the operator has already completed and explicitly accepted every
+  frozen UAT item, run:
+    XBOS_R6_3_CLOSE_ACCEPTED_UAT.cmd
+  The closure result opens in Notepad and is also stored at:
+    %USERPROFILE%\Downloads\XBOS_R6_3_CLOSE_RESULT.txt

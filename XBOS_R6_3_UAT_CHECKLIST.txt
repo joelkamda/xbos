@@ -1,0 +1,35 @@
+XBOS R6.3 WND VISUAL UAT CHECKLIST
+==================================
+
+UAT frontend: http://127.0.0.1:5174
+UAT backend:  http://127.0.0.1:8002
+Database:     xbos_r6_3_candidate (DISPOSABLE)
+
+Use the same WND login/business context you normally use, but verify that the
+browser is on port 5174, not production 5173.
+
+Check:
+[ ] Login + business-context selection
+[ ] Home
+[ ] Sales / New Sale — Dine In / Takeaway / Delivery
+    Order placement must succeed for a stock-tracked item.
+[ ] Cashier / Pending Orders
+[ ] Kitchen queue/history
+[ ] Sales Archive / completed sales
+[ ] Stock — Overview / Products / Movements / Low Stock / Reconciliation
+[ ] Payments — Money Activity / Payment Records / Money Desk
+    Order-linked bill settlement must succeed and remain visible in Money Activity.
+[ ] Accounting — Daily / Income / Expenses / Cash Moves / Recon / Accounts-A/R
+[ ] Customers — zero promoted identities remains legitimate if still shown;
+    historical ambiguous A/R must not be auto-guessed into customers
+[ ] Reports — monthly / recon / payments / stock / debt
+[ ] Responsive — inspect desktop plus at least one tablet/mobile-width viewport
+
+Do NOT perform destructive test transactions merely to prove the screen exists.
+R6.3 is compatibility/UAT, not live cutover.
+
+When every item is accepted, return to the terminal and run:
+    XBOS_R6_3_RECORD_UAT_PASS.cmd
+
+You must explicitly type:
+    ACCEPT-R6.3-WND-UAT

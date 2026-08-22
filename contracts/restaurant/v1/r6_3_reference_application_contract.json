@@ -1,0 +1,247 @@
+{
+  "backend_commit": "b60a71dcc06657bd407fac043f6f3922d5bfe32f",
+  "contract": "R6_3_WND_REFERENCE_APPLICATION_CONTRACT",
+  "frontend_commit": "f47f574f6a2f2e2247ab7c491dc65c7800adbc9d",
+  "frontend_required_routes": [
+    "/login",
+    "/select-context",
+    "/",
+    "/sales/new",
+    "/sales/pending",
+    "/sales/kitchen",
+    "/sales/completed",
+    "/stock/overview",
+    "/stock/products",
+    "/stock/movements",
+    "/stock/low",
+    "/stock/reconciliation",
+    "/payments",
+    "/accounting/daily",
+    "/accounting/income",
+    "/accounting/expenses",
+    "/accounting/cash-movements",
+    "/accounting/reconciliation",
+    "/accounting/accounts",
+    "/reports/monthly",
+    "/reports/reconciliation",
+    "/reports/payments",
+    "/reports/stock",
+    "/reports/debt",
+    "/customers"
+  ],
+  "frontend_source_markers": {
+    "src/api/accounting.ts": [
+      "/accounting/accounts/ar",
+      "/accounting/reconciliation"
+    ],
+    "src/api/customers.ts": [
+      "/customers",
+      "/receivables",
+      "/from-ar/"
+    ],
+    "src/api/stock.ts": [
+      "/inventory/products",
+      "/inventory/reconciliation"
+    ],
+    "src/app/AppShell.tsx": [
+      "Wine & Dine",
+      "Africa/Douala",
+      "Quick access"
+    ],
+    "src/modules/payments/hooks/usePaymentActivity.ts": [
+      "/payments/activity"
+    ],
+    "src/modules/sales/KitchenQueueScreen.tsx": [
+      "/orders/kitchen/history",
+      "/orders/kitchen/item-summary"
+    ],
+    "src/modules/sales/SalesAndCartScreen.tsx": [
+      "DINE_IN",
+      "TAKEAWAY",
+      "DELIVERY"
+    ]
+  },
+  "preservation_invariants": [
+    "historical unspecified fulfillment remains unspecified",
+    "ambiguous historical customer identity is not guessed",
+    "A/R repayment remains settlement rather than income",
+    "historical inventory mismatch remains evidence",
+    "kitchen initial print-once behavior remains reference truth",
+    "kitchen semantic-delta behavior remains reference truth"
+  ],
+  "representative_read_smoke": [
+    "/kernel/catalog/summary",
+    "/kernel/orders/",
+    "/kernel/sales/",
+    "/kernel/inventory/",
+    "/kernel/inventory/products",
+    "/kernel/payments/activity?limit=5",
+    "/kernel/accounting/accounts/ar?limit=5",
+    "/kernel/accounting/daily?limit=5",
+    "/kernel/customers",
+    "/kernel/reports/debt"
+  ],
+  "required_openapi_routes": [
+    {
+      "method": "GET",
+      "path": "/health"
+    },
+    {
+      "method": "POST",
+      "path": "/kernel/auth/login"
+    },
+    {
+      "method": "GET",
+      "path": "/kernel/catalog/summary"
+    },
+    {
+      "method": "GET",
+      "path": "/kernel/catalog/atomic-units"
+    },
+    {
+      "method": "GET",
+      "path": "/kernel/orders/"
+    },
+    {
+      "method": "POST",
+      "path": "/kernel/orders/"
+    },
+    {
+      "method": "GET",
+      "path": "/kernel/orders/sale-fulfillment-modes"
+    },
+    {
+      "method": "GET",
+      "path": "/kernel/orders/kitchen/history"
+    },
+    {
+      "method": "GET",
+      "path": "/kernel/orders/kitchen/item-summary"
+    },
+    {
+      "method": "GET",
+      "path": "/kernel/orders/{order_id}"
+    },
+    {
+      "method": "PATCH",
+      "path": "/kernel/orders/{order_id}"
+    },
+    {
+      "method": "POST",
+      "path": "/kernel/orders/{order_id}/cancel"
+    },
+    {
+      "method": "GET",
+      "path": "/kernel/sales/"
+    },
+    {
+      "method": "GET",
+      "path": "/kernel/payments/"
+    },
+    {
+      "method": "GET",
+      "path": "/kernel/payments/activity"
+    },
+    {
+      "method": "POST",
+      "path": "/kernel/payments/pos/settle"
+    },
+    {
+      "method": "GET",
+      "path": "/kernel/payments/receipts/{sale_id}"
+    },
+    {
+      "method": "GET",
+      "path": "/kernel/inventory/"
+    },
+    {
+      "method": "GET",
+      "path": "/kernel/inventory/products"
+    },
+    {
+      "method": "GET",
+      "path": "/kernel/inventory/movements"
+    },
+    {
+      "method": "GET",
+      "path": "/kernel/inventory/reconciliation"
+    },
+    {
+      "method": "GET",
+      "path": "/kernel/accounting/daily"
+    },
+    {
+      "method": "GET",
+      "path": "/kernel/accounting/income"
+    },
+    {
+      "method": "GET",
+      "path": "/kernel/accounting/expenses"
+    },
+    {
+      "method": "GET",
+      "path": "/kernel/accounting/cash-movements"
+    },
+    {
+      "method": "GET",
+      "path": "/kernel/accounting/reconciliation"
+    },
+    {
+      "method": "GET",
+      "path": "/kernel/accounting/accounts/ar"
+    },
+    {
+      "method": "PATCH",
+      "path": "/kernel/accounting/accounts/ar/{ar_id}/identity"
+    },
+    {
+      "method": "POST",
+      "path": "/kernel/accounting/accounts/ar/{ar_id}/repay"
+    },
+    {
+      "method": "GET",
+      "path": "/kernel/customers"
+    },
+    {
+      "method": "POST",
+      "path": "/kernel/customers"
+    },
+    {
+      "method": "GET",
+      "path": "/kernel/customers/{customer_id}"
+    },
+    {
+      "method": "PATCH",
+      "path": "/kernel/customers/{customer_id}"
+    },
+    {
+      "method": "GET",
+      "path": "/kernel/customers/{customer_id}/receivables"
+    },
+    {
+      "method": "POST",
+      "path": "/kernel/customers/from-ar/{ar_id}"
+    },
+    {
+      "method": "GET",
+      "path": "/kernel/reports/monthly-statement/{yyyymm}"
+    },
+    {
+      "method": "GET",
+      "path": "/kernel/reports/payments"
+    },
+    {
+      "method": "GET",
+      "path": "/kernel/reports/reconciliation"
+    },
+    {
+      "method": "GET",
+      "path": "/kernel/reports/stock"
+    },
+    {
+      "method": "GET",
+      "path": "/kernel/reports/debt"
+    }
+  ],
+  "schema_version": 1
+}

@@ -1,0 +1,19 @@
+XBOS R6.3 WND APPLICATION COMPATIBILITY + UAT — REVISION 8
+==========================================================
+
+Observed Revision 7 acceptance failure:
+  NameError: name 'command' is not defined
+  at _adopt_and_compose() when applying
+  r63_legacy_inventory_writer_compat_044.
+
+Root cause:
+  Revision 5 introduced command.upgrade() for the R6.3 compatibility head,
+  but the verifier package did not import Alembic's command API.
+
+Correction:
+  - add `from alembic import command`;
+  - add a regression contract pinning the import and command.upgrade call.
+
+No migration SQL, business semantics, candidate-data rules, writer routing,
+financial authority, inventory authority, UAT criteria, or cutover authority
+changed. Production writes remain NONE.

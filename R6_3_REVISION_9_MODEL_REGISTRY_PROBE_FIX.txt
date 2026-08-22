@@ -1,0 +1,23 @@
+XBOS R6.3 WND APPLICATION COMPATIBILITY + UAT — REVISION 9
+==========================================================
+
+Observed Revision 8 acceptance failure:
+  The R6.3 compatibility migration itself upgraded successfully to
+  r63_legacy_inventory_writer_compat_044. The subsequent diagnostic ORM
+  probe failed before issuing its inventory INSERT because SQLAlchemy could
+  not resolve InventoryItem.atomic_unit -> 'AtomicUnit'.
+
+Root cause:
+  The isolated probe imported InventoryItem directly, unlike the real WND
+  startup path. Frozen WND startup imports core.models_import first, which
+  registers Tenant/Branch/User/RBAC/Taxonomy/AtomicUnit/Sales/Payments/
+  Inventory/Accounting models in the shared SQLAlchemy registry.
+
+Correction:
+  - the isolated legacy-inventory probe now imports core.models_import before
+    importing/querying InventoryItem and InventoryMovement;
+  - a regression contract pins this exact startup-equivalent registry load.
+
+The migration SQL and all business semantics are unchanged. Production
+writes remain NONE; writer routing remains unchanged; live cutover remains
+NOT AUTHORIZED.

@@ -1,0 +1,206 @@
+{
+  "artifact_count": 39,
+  "artifacts": [
+    {
+      "path": "scripts/close_r6_3_after_accepted_uat.py",
+      "sha256": "52185000d55b590c3c1a5024812df19127f4ea55d81ed0591a6fa71228a01afb",
+      "size": 4388
+    },
+    {
+      "path": "XBOS_R6_3_CLOSE_ACCEPTED_UAT.cmd",
+      "sha256": "867ac72e26d7f919941fbb49d624d53969a65b239cdd299f5100c17ddc9fbf8f",
+      "size": 290
+    },
+    {
+      "path": "R6_3_REVISION_11_ACCEPTED_UAT_CLOSURE_FIX.txt",
+      "sha256": "700ac13135a838130a6b28ace251fdd0a8bf34c5e618484396107a205ce7b6f3",
+      "size": 1429
+    },
+    {
+      "path": "R6_3_REVISION_10_PRODUCTION_BRANCH_PROBE_FIX.txt",
+      "sha256": "6a1772c8e5afc44ccd3f0504addc94621d931b58c922c73393eeb7f7daafa509",
+      "size": 1175
+    },
+    {
+      "path": "R6_3_REVISION_9_MODEL_REGISTRY_PROBE_FIX.txt",
+      "sha256": "c3b427ecacd89cf7514262a8264312d2c345ecf86d1b9ab17203d8be76180015",
+      "size": 1145
+    },
+    {
+      "path": "R6_3_REVISION_8_ALEMBIC_IMPORT_FIX.txt",
+      "sha256": "589038496448654bffcdf837deb90ae19908f916f7a9b17751ab1a3af10ff6ab",
+      "size": 779
+    },
+    {
+      "path": "R6_3_REVISION_7_UAT_LAUNCHER_FIX.txt",
+      "sha256": "6755a686466dede2769b34cf7ccd68ec115d6f95e9095c9b8e799c8f8db365bf",
+      "size": 1097
+    },
+    {
+      "path": "scripts/show_r6_3_uat_errors.py",
+      "sha256": "7f7ed48cdba81ca93ac3c075dc557a7a9968a4aaa0d5ccf2cfcb0e83a77fffb7",
+      "size": 1642
+    },
+    {
+      "path": "scripts/r6_3_uat_host_template.py",
+      "sha256": "549b4e763eb9f57c1ba42a3deca170e0a155c6a62e147691fe31378a8a58353c",
+      "size": 3274
+    },
+    {
+      "path": "XBOS_R6_3_SHOW_UAT_ERRORS.cmd",
+      "sha256": "2f54204e300dc66c19bc1ff99f87b646b64591e486ea877af4db303d27de320f",
+      "size": 98
+    },
+    {
+      "path": "R6_3_REVISION_6_DIAGNOSTIC_FIX.txt",
+      "sha256": "58ae1d4c531c5c6ccd73c7e70accd3883d8084bf362849f6b96648e11482f910",
+      "size": 1098
+    },
+    {
+      "path": "contracts/restaurant/v1/r6_3_legacy_inventory_writer_compatibility.json",
+      "sha256": "53bd4cbc08c941cfaa99f8052b5b320699226f7378796cd22f1cff19b5fe75ba",
+      "size": 1780
+    },
+    {
+      "path": "alembic_neutral/versions/r63_legacy_inventory_writer_compat_044.py",
+      "sha256": "f3fb4365b3e865de8b57b7f5b4508a3c7d5f3133d324792f7b25f1cff3f4e963",
+      "size": 717
+    },
+    {
+      "path": "alembic_neutral/sql/r63_legacy_inventory_writer_compat_down.sql",
+      "sha256": "2e6f787c62b0b927f754284581a3d2cce448d5f9efaf3dd3d086e89443da8b68",
+      "size": 375
+    },
+    {
+      "path": "alembic_neutral/sql/r63_legacy_inventory_writer_compat_up.sql",
+      "sha256": "15654c08d2055541c5a98cc69cbd023d2831a041077559b292edf2fbd3ef9018",
+      "size": 3250
+    },
+    {
+      "path": "R6_3_REVISION_5_FIX.txt",
+      "sha256": "91ea908fb39fc05723845823dbadc215bba7bec5a7d53ecc84df57e844affccf",
+      "size": 1562
+    },
+    {
+      "path": "R6_3_REVISION_4_FIX.txt",
+      "sha256": "c398389d6d4e06e7433b4143bb11e9ef6c878ad8cc5b1e1c45e2007d42e53e93",
+      "size": 917
+    },
+    {
+      "path": "scripts/stop_r6_3_uat_runtime.py",
+      "sha256": "f3a217b8862dd55cf5d539b9944de7cb0218097dd23c82382272d666b1ddafbe",
+      "size": 948
+    },
+    {
+      "path": "scripts/start_r6_3_uat_runtime.py",
+      "sha256": "e0f79b830138e0f2e91b6d7003969c673e11e9dde7bc8274bc60b58514016e6e",
+      "size": 8316
+    },
+    {
+      "path": "R6_3_REVISION_3_FIX.txt",
+      "sha256": "c87c5e2cd74609670bcd25da9b26a9513d4af153ad23798e2f8d2f175c7bb9f0",
+      "size": 865
+    },
+    {
+      "path": "R6_3_REVISION_2_FIX.txt",
+      "sha256": "e704e0705198eb66c4dfcae44e8241bb9424c9f209318447a64aa33f1baf8812",
+      "size": 803
+    },
+    {
+      "path": "R6_3_INSTALL_MANIFEST.txt",
+      "sha256": "27ea945428be89431dc9c8b84c58e8618f29e8305ed4155870f98e015f49087c",
+      "size": 2485
+    },
+    {
+      "path": "XBOS_R6_3_INSTALL_AND_VERIFY.txt",
+      "sha256": "4dc8bafd2199363ef8f29bce457f39ead04f37be080748eef2448afc1f57699f",
+      "size": 1501
+    },
+    {
+      "path": "XBOS_R6_3_RUN_AUTOMATED_ACCEPTANCE.cmd",
+      "sha256": "d00bbe4e8a5e5d1eb8040a5f77535a54d96deb56d7df1ebcd66f747c00876601",
+      "size": 2907
+    },
+    {
+      "path": "XBOS_R6_3_START_UAT.cmd",
+      "sha256": "ce6262b5bc89b205004b7c8b925b2ae81cd536101b594895dfce50af04716a6d",
+      "size": 303
+    },
+    {
+      "path": "XBOS_R6_3_RECORD_UAT_PASS.cmd",
+      "sha256": "7e89a761fc2edf3c9d77d2f00300b6dae46880bd17fba568bbc28bba2f449d59",
+      "size": 202
+    },
+    {
+      "path": "XBOS_R6_3_STOP_UAT.cmd",
+      "sha256": "994dbd175fc603286fab323b95b0547da74c4d8a067582b090edf9a87875fecc",
+      "size": 161
+    },
+    {
+      "path": "XBOS_R6_3_RUN_ACCEPTANCE.cmd",
+      "sha256": "508a954ad079e19bd1449bda43f222d4fbb53c9a6941e875cb76c294c1447052",
+      "size": 1399
+    },
+    {
+      "path": "XBOS_R6_3_UAT_CHECKLIST.txt",
+      "sha256": "e6c3a7d444c6e636a7b5e15ec46a60869a319b9cf0dfd3fcaae24096fd594ebe",
+      "size": 1474
+    },
+    {
+      "path": "contracts/restaurant/v1/r6_3_application_compatibility_authority.json",
+      "sha256": "2a18d400e271c945cc9ad24a88b8080097057c0b65c96f8189173ef1e2fedbdc",
+      "size": 2912
+    },
+    {
+      "path": "contracts/restaurant/v1/r6_3_reference_application_contract.json",
+      "sha256": "ee167d601ec7f389ca838918cd3ade42a0975b972d24b787da72ad9609e4b417",
+      "size": 5599
+    },
+    {
+      "path": "contracts/restaurant/v1/r6_3_uat_matrix.json",
+      "sha256": "a8dcf337e9a6e6516bd77f7f70adb25108decf87034143299d80edcb494698e2",
+      "size": 2690
+    },
+    {
+      "path": "docs/restaurant/R6_3_WND_APPLICATION_COMPATIBILITY_AND_VISUAL_UAT.md",
+      "sha256": "6b92379a6c2f459ec017d0ffe2ee27df37c6e6a9213bcce1d90592a32aa7f925",
+      "size": 3176
+    },
+    {
+      "path": "docs/restaurant/adr/0009_R6_3_EXACT_WND_RELEASE_AS_COMPATIBILITY_ORACLE.md",
+      "sha256": "0016e8784fdd3df061ed8d5a84791504cd86b07482a7fe4d8ae52362deb97506",
+      "size": 1527
+    },
+    {
+      "path": "restaurant/r6/application_compatibility.py",
+      "sha256": "a3aac9da05f4d138957d7cf707e38834bc856b4cf49298b18d049b285b55d17d",
+      "size": 2352
+    },
+    {
+      "path": "restaurant/r6/__init__.py",
+      "sha256": "54b5e1571906626f686460213f1bda646b6110033ee76374cbd9eb6fdd7f0bad",
+      "size": 1387
+    },
+    {
+      "path": "scripts/verify_r6_3_wnd_application_compatibility.py",
+      "sha256": "6b03cf92d51d1d08db27f48a8547af9da7fb0dae26013de4cdeb4f0e57022445",
+      "size": 34768
+    },
+    {
+      "path": "scripts/run_r6_3_reference_backend.py",
+      "sha256": "885adab9bf3d65db8a099ab807bfc331169e6cea0f0f645ba181bea4bad89eba",
+      "size": 758
+    },
+    {
+      "path": "tests/contracts/test_r6_3_wnd_application_compatibility.py",
+      "sha256": "4af0634f3eb5d7303f4c347cffe97f1efefadee98171a509cc280415b353c4e4",
+      "size": 9130
+    }
+  ],
+  "candidate_head": "r63_legacy_inventory_writer_compat_044",
+  "contract": "R6_3_RELEASE_MANIFEST",
+  "schema_version": 1,
+  "self_excluded": true,
+  "source_checkpoint": "9a8c69dfb0caf18fe010d858caceef84b863a4c2",
+  "visual_uat_evidence_generated_later": true
+}

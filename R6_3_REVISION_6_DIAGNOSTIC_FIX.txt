@@ -1,0 +1,20 @@
+XBOS R6.3 WND APPLICATION COMPATIBILITY + UAT — REVISION 6
+==========================================================
+
+Revision 5 automated compatibility passed, including the legacy inventory
+writer compatibility probe, but visual UAT still produced HTTP 500 for
+order placement and order-linked payment. Generic/manual writes remained
+successful. The existing long-lived backend stdout log did not yield usable
+exception evidence and reading it with TYPE/Get-Content was unreliable.
+
+Revision 6 is diagnostic-only:
+  - it does not add or change any database migration;
+  - it does not change WND application source or business semantics;
+  - the exact frozen FastAPI app is wrapped externally for UAT runtime only;
+  - every propagated exception and every HTTP 5xx response is written to a
+    closed-per-record UTF-8 JSONL evidence file;
+  - XBOS_R6_3_SHOW_UAT_ERRORS.cmd prints the captured records using Python,
+    avoiding the long-lived stdout log handle entirely.
+
+Production writes remain NONE. Writer routing remains unchanged. Live
+cutover remains NOT AUTHORIZED.

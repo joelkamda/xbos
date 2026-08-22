@@ -1,0 +1,28 @@
+XBOS R6.3 WND APPLICATION COMPATIBILITY + UAT — REVISION 11
+===========================================================
+
+Context:
+  The operator completed and explicitly accepted the full R6.3 visual UAT,
+  including Dine In, Takeaway, Delivery, Cashier, Kitchen, exact-once
+  inventory reservation/finalization, A/R repayment semantics, Payments,
+  Accounting, Stock/Reconciliation, Customers and Reports.
+
+Observed closure defect:
+  The interactive SET /P recorder rejected the visibly correct acceptance
+  token and subsequent terminal stdout became unreliable. This is evidence
+  recording/tooling friction, not an unperformed UAT.
+
+Revision 11 correction:
+  - retire the flaky interactive recorder for this accepted UAT session;
+  - add XBOS_R6_3_CLOSE_ACCEPTED_UAT.cmd;
+  - construct the required ASCII acceptance token internally;
+  - fail closed on branch/source/candidate-head/automated-result drift;
+  - write and validate r6_3_visual_uat_evidence.json;
+  - run the canonical XBOS_R6_3_RUN_ACCEPTANCE.cmd with output captured to
+    Downloads/XBOS_R6_3_FINAL_GATE.log;
+  - require both exit code 0 and R6_3_SINGLE_GATE=PASS;
+  - write Downloads/XBOS_R6_3_CLOSE_RESULT.txt and open it in Notepad so
+    terminal stdout is not required to confirm closure.
+
+No UAT criterion, migration SQL, business semantics, writer routing,
+financial/inventory authority or live-cutover authority changed.

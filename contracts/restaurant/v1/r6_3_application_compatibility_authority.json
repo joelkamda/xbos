@@ -1,0 +1,49 @@
+{
+  "candidate_database": "xbos_r6_3_candidate",
+  "candidate_head": "r63_legacy_inventory_writer_compat_044",
+  "compatibility_migration": {
+    "new_financial_authority": false,
+    "new_inventory_quantity_authority": false,
+    "purpose": "bridge still-active WND legacy inventory INSERT writers to SO3-required neutral columns until writer cutover",
+    "revision": "r63_legacy_inventory_writer_compat_044",
+    "writer_routing_change": false
+  },
+  "contract": "R6_3_WND_APPLICATION_COMPATIBILITY_AND_VISUAL_UAT",
+  "live_cutover_authorized": false,
+  "next_gate": "R6.4 deterministic final production cutover package and runbook",
+  "pass_meaning": "R6.3 PASS proves the accepted WND reference application is compatible with the neutralized production-shaped candidate and has been visually accepted; it does not authorize live production cutover.",
+  "production_database": "xbos",
+  "production_write_authorized": false,
+  "r6_2_freeze_tag": "restaurant-r6-2-wnd-production-cutover-rehearsal-20260821",
+  "reference_backend_commit": "b60a71dcc06657bd407fac043f6f3922d5bfe32f",
+  "reference_frontend_commit": "f47f574f6a2f2e2247ab7c491dc65c7800adbc9d",
+  "reference_release_tag": "wnd-track-a-reference-release-20260821",
+  "reference_source_input_bundle": {
+    "backend_archive_sha256": "eb489d820a0319b802cc06bcd0cad6a00727eff9e033e154dc0a2a5a04389838",
+    "backend_archive_size": 4146355,
+    "filename": "XBOS_R6_3_WND_REFERENCE_SOURCE_INPUTS.zip",
+    "frontend_archive_sha256": "ab896bd6b0f84589f7151df507db80f776aa08c40662fa50c191bf3a9cac102b",
+    "frontend_archive_size": 1216216,
+    "sha256": "7a5cdb6864527462776b8cae50d305d75f484cab87942c3e9f6484bc77cda40d",
+    "size": 5321303
+  },
+  "schema_version": 1,
+  "scope": [
+    "restore and neutralize the exact 21 Aug WND reference snapshot in disposable R6.3 clones",
+    "run the exact frozen WND backend release source against the neutral candidate database",
+    "require backend startup and OpenAPI generation without schema mutation or business-control drift",
+    "exercise representative authenticated read paths used by Home, Sales, Stock, Payments, Accounting, Reports and Customers",
+    "build the exact frozen WND frontend release source",
+    "serve the frozen frontend against the candidate backend only through an R6.3-local Vite proxy override",
+    "perform operator visual UAT across the accepted WND reference workflows",
+    "record visual UAT as explicit operator evidence rather than infer it from automated tests"
+  ],
+  "source_archive_sha256": "b09b6f212ed1513b404187ae7e553917769ff7eb38a88c20c167fbf200fd80cd",
+  "source_archive_size": 6222837,
+  "source_branch": "restaurant/r6-3-wnd-application-compatibility-uat",
+  "source_checkpoint": "9a8c69dfb0caf18fe010d858caceef84b863a4c2",
+  "source_database": "xbos_r6_3_source",
+  "uat_backend_port": 8002,
+  "uat_frontend_port": 5174,
+  "writer_routing": "unchanged"
+}

@@ -1,0 +1,25 @@
+XBOS R6.3 WND APPLICATION COMPATIBILITY + UAT — REVISION 10
+===========================================================
+
+Observed Revision 9 acceptance result:
+  - neutral lineage upgraded through R2;
+  - r63_legacy_inventory_writer_compat_044 applied successfully;
+  - the isolated legacy inventory writer probe then failed with
+    R6_3_LEGACY_PROBE_INVENTORY_ITEM_MISSING.
+
+Root cause:
+  The probe was incorrectly hard-coded to tenant_id=2, branch_id=3.
+  Frozen WND production identity is tenant_id=2, branch_id=1. Branch 3 was
+  not the production Logpom branch used by the 21 Aug reference snapshot.
+
+Correction:
+  - the probe no longer hard-codes tenant/branch values;
+  - the parent verifier supplies restaurant.r6.PRODUCTION_TENANT_ID and
+    PRODUCTION_BRANCH_ID to the exact-WND child process through dedicated
+    environment variables;
+  - a regression contract pins production tenant=2 / branch=1 and forbids
+    the stale branch=3 probe assumption.
+
+No migration SQL, WND application source, financial semantics, inventory
+quantity semantics, writer routing, UAT criteria or cutover authority
+changed. Production writes remain NONE.

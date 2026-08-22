@@ -1,0 +1,21 @@
+XBOS R6.3 WND APPLICATION COMPATIBILITY + UAT — REVISION 4
+==========================================================
+
+Observed Revision 3 launcher failure:
+  module 'scripts.verify_r6_3_wnd_application_compatibility'
+  has no attribute 'FRONTEND_PORT'
+
+Root cause:
+  The supervised UAT launcher referenced FRONTEND_PORT from the verifier,
+  but Revision 2's verifier exposed BACKEND_PORT only. This was a launcher
+  interface defect; R6_3_UAT_READY had already passed and no service was
+  started.
+
+Correction:
+  - verifier now explicitly exposes FRONTEND_PORT=5174;
+  - supervised launcher also pins BACKEND_PORT=8002 and FRONTEND_PORT=5174
+    locally, eliminating dependence on verifier-private constants;
+  - regression test pins both boundaries.
+
+No application semantics, candidate data, automated compatibility result,
+writer routing, visual-UAT criteria, or cutover authority changed.

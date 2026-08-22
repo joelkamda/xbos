@@ -1,0 +1,29 @@
+XBOS R6.3 WND APPLICATION COMPATIBILITY + UAT — REVISION 5
+==========================================================
+
+Visual UAT finding:
+  PASS: login, Home/read surfaces, manual Accounting income, manual cash
+        movement, and standalone payment receipt.
+  FAIL: restaurant order placement and order-linked POS bill settlement.
+
+Source-level diagnosis:
+  Both failing workflows cross Track A's inventory reservation/finalization
+  writer. SO3 migration 028 added required neutral fields to the legacy
+  public.inventory_movements table (stock_location_id, occurred_at,
+  reason_code) and required inventory_items.stock_location_id. The frozen
+  Track A ORM does not map/supply those columns. Generic Accounting/Treasury
+  writes therefore work while stock-affecting order/payment writes fail.
+
+Revision 5 correction:
+  - new Alembic head r63_legacy_inventory_writer_compat_044;
+  - BEFORE INSERT compatibility adapters derive the SO3-required fields
+    from existing tenant/branch/item mappings and legacy movement identity;
+  - quantity_delta, movement_type, reservations, sale_commit semantics and
+    legacy writer routing are not changed;
+  - unresolved location mappings fail closed;
+  - automated acceptance now uses the exact Track A ORM to flush and roll
+    back a legacy inventory movement against the candidate, proving the
+    compatibility boundary before visual UAT;
+  - backend UAT logging is unbuffered for immediate diagnostic evidence.
+
+Production writes remain NONE. Live cutover remains NOT AUTHORIZED.

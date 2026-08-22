@@ -1,0 +1,17 @@
+XBOS R6.3 WND APPLICATION COMPATIBILITY + UAT — REVISION 2
+==========================================================
+
+Observed Revision 1 failure:
+  UnicodeDecodeError in subprocess._readerthread while Windows cp1252
+  decoded captured child-process output, followed by cp.stdout=None and
+  TypeError while writing the OpenAPI stdout log.
+
+Correction:
+  - every captured subprocess in the R6.3 verifier now uses one _run_text
+    helper pinned to encoding='utf-8', errors='replace', text=True;
+  - the protection covers Git, exact-WND-backend OpenAPI generation,
+    npm ci, and frontend build output;
+  - a contract test pins this boundary.
+
+No WND application semantics, database controls, writer routing, UAT
+criteria, or cutover authority changed. Production writes remain NONE.

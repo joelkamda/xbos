@@ -1,0 +1,23 @@
+XBOS R6.3 WND APPLICATION COMPATIBILITY + UAT — REVISION 7
+==========================================================
+
+Observed Revision 6 behavior:
+  Vite reported `ready` on http://127.0.0.1:5174, then the UAT supervisor
+  tore the runtime down and returned R6_3_UAT_RUNTIME=FAIL. The `^C^C`
+  lines are consistent with supervisor cleanup terminating the Vite child.
+
+Root cause addressed:
+  The UAT supervisor launched the frontend through npm.cmd and tracked that
+  wrapper process. On Windows the command wrapper can hand execution to a
+  Node/Vite child in a way that makes the wrapper process state unreliable
+  for service-health ownership.
+
+Revision 7 correction:
+  - resolve node.exe directly;
+  - launch node_modules/vite/bin/vite.js directly;
+  - track the actual Vite Node process PID;
+  - evaluate HTTP health before early-exit state in both service loops;
+  - preserve the Revision 6 closed-per-record 5xx/exception observer.
+
+No database, application, writer-routing, financial, inventory, UAT, or
+cutover semantics changed. Production writes remain NONE.
