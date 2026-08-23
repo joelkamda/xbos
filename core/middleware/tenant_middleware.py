@@ -29,7 +29,8 @@ class TenantMiddleware(BaseHTTPMiddleware):
         # BYPASS ROUTES
         # =====================================================
         if (
-            path.startswith("/kernel/auth/")
+            path == "/kernel/integrations/xafpay-v2/events"
+            or path.startswith("/kernel/auth/")
             or path.startswith("/auth/")
             or path in ("/kernel/health", "/kernel/db-check")
             or method == "OPTIONS"
