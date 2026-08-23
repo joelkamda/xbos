@@ -1,34 +1,5 @@
 {
-  "schema_version": 1,
-  "release": "PA6_PLATFORM_ADMINISTRATION_AGGREGATE_CONFORMANCE_FREEZE",
-  "source_checkpoint": "03ede10",
-  "source_checkpoint_full": "03ede10255cfb330d3d3e76429c8c9b35d8e45ba",
-  "source_archive_sha256": "aea33ed15d5e004b4e0d5f35e9e9b93e1bee11f07c7f3d04c6a45ba365d9f65a",
-  "source_archive_size": 5919017,
-  "previous_head": "pa45_support_recovery_health_040",
   "accepted_head": "pa45_support_recovery_health_040",
-  "migration_count": 0,
-  "coverage": [
-    "PA0",
-    "PA1",
-    "PA2",
-    "PA3",
-    "PA4",
-    "PA5",
-    "PA6"
-  ],
-  "fingerprint_mode": "sha256_git_canonical_lf",
-  "commit": "NONE",
-  "tag": "NONE",
-  "operator_gate": "XBOS_PA6_RUN_ACCEPTANCE.cmd",
-  "success_marker": "PA6_SINGLE_GATE=PASS",
-  "business_capability_change": "NONE",
-  "finance": "UNCHANGED",
-  "shared_operations": "UNCHANGED",
-  "pack_platform": "UNCHANGED",
-  "production_dependencies": "UNCHANGED",
-  "platform_core": "FROZEN_REUSED",
-  "r0_readiness": "PASS_AFTER_OPERATOR_GATE",
   "artifacts": [
     {
       "path": "PA6_INSTALL_MANIFEST.txt",
@@ -64,19 +35,48 @@
     },
     {
       "path": "contracts/platform_admin/v1/pa0123_release_manifest.json",
-      "sha256": "dfd5b6fe77aa9ed52c889157f4404b359a6ab5deccdffbd7921965e274301ff9"
+      "sha256": "14bea41661d325e5c88bf96ec0fd4419faad290bd57170f1e9f04dc40b169293"
     },
     {
       "path": "contracts/platform_admin/v1/pa45_release_manifest.json",
-      "sha256": "ebdfffa869a2714d54a2892b0851ad73d8a751b11caf8f995a3047bcb20bd152"
+      "sha256": "bbf96db050a4aa43145a457d4eeef004d87ce2f1ddfe9c5a903a6c41a072b667"
     },
     {
       "path": "contracts/packs/v1/pk_aggregate_release_manifest.json",
-      "sha256": "0df725876b9f605e6410cd4bea7e5f62b7e3aa6c28f6c907b0a570468de0ce93"
+      "sha256": "e5924799e9d1edd38d69c8db3bceac0c5cc91f3f9c362ae7c7360c49107cf036"
     },
     {
       "path": "scripts/verify_pa45_platform_support_recovery_health.py",
       "sha256": "926064fc237270b248b6764f9505f39020f0a20f4a3478677587ac546b0cd43d"
     }
-  ]
+  ],
+  "business_capability_change": "NONE",
+  "commit": "NONE",
+  "coverage": [
+    "PA0",
+    "PA1",
+    "PA2",
+    "PA3",
+    "PA4",
+    "PA5",
+    "PA6"
+  ],
+  "finance": "UNCHANGED",
+  "fingerprint_mode": "sha256_git_canonical_lf",
+  "migration_count": 0,
+  "operator_gate": "XBOS_PA6_RUN_ACCEPTANCE.cmd",
+  "pack_platform": "UNCHANGED",
+  "platform_core": "FROZEN_REUSED",
+  "previous_head": "pa45_support_recovery_health_040",
+  "production_dependencies": "UNCHANGED",
+  "r0_readiness": "PASS_AFTER_OPERATOR_GATE",
+  "release": "PA6_PLATFORM_ADMINISTRATION_AGGREGATE_CONFORMANCE_FREEZE",
+  "schema_version": 1,
+  "shared_operations": "UNCHANGED",
+  "source_archive_sha256": "aea33ed15d5e004b4e0d5f35e9e9b93e1bee11f07c7f3d04c6a45ba365d9f65a",
+  "source_archive_size": 5919017,
+  "source_checkpoint": "03ede10",
+  "source_checkpoint_full": "03ede10255cfb330d3d3e76429c8c9b35d8e45ba",
+  "success_marker": "PA6_SINGLE_GATE=PASS",
+  "tag": "NONE"
 }

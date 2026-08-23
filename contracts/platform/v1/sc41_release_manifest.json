@@ -1,12 +1,6 @@
 {
-  "schema_version": 1,
-  "contract": "XBOS_PRE_R0_SEMANTIC_CLASSIFICATION_HARDENING_RELEASE_MANIFEST",
-  "source_checkpoint": "11e7c902475560122794790d3a080a29d65cc972",
-  "previous_head": "pa45_support_recovery_health_040",
   "accepted_head": "semantic_classification_hardening_041",
   "artifact_count": 38,
-  "hashing": "sha256; text canonicalization CRLF->LF only",
-  "self_excluded": true,
   "artifacts": [
     {
       "path": "SEMANTIC_HARDENING_INSTALL_MANIFEST.txt",
@@ -40,32 +34,32 @@
     },
     {
       "path": "contracts/packs/v1/pk0123_release_manifest.json",
-      "sha256": "8c2e6cb9522d91a7f3bb2dd13d9c6789a91614fc075d23baac951ef4f2a8f663",
+      "sha256": "9cc43365e21e87cb3212631f3a17f5e197edfefe912e4bbc051180053fbbefb5",
       "size": 7275
     },
     {
       "path": "contracts/packs/v1/pk456_release_manifest.json",
-      "sha256": "26f41901227af453d0b678e1361ab55a8338ddcfb2644ba66f54cccfaa4a7d12",
+      "sha256": "ff1a845bde18030c9af77b1545327f7e892d13c7dfb6fed3994dd1826864eeec",
       "size": 6894
     },
     {
       "path": "contracts/packs/v1/pk_aggregate_release_manifest.json",
-      "sha256": "0df725876b9f605e6410cd4bea7e5f62b7e3aa6c28f6c907b0a570468de0ce93",
+      "sha256": "e5924799e9d1edd38d69c8db3bceac0c5cc91f3f9c362ae7c7360c49107cf036",
       "size": 2571
     },
     {
       "path": "contracts/platform/v1/pc0_frozen_finance_inventory.json",
-      "sha256": "a23a8d36e63884df36985b954b33e37da3d75b0ab39f0fb73e8a229e3706514a",
+      "sha256": "85f45225fd783244f00dec1c8d3cc290f5885caa5d0e442cd83dd3c40bb843d2",
       "size": 34415
     },
     {
       "path": "contracts/platform/v1/pc0_release_manifest.json",
-      "sha256": "656148d0f34b2ea79e0ad8ebac8ded3135b034981e663c788eb14d93515ee0af",
+      "sha256": "6e335af697bde10dfc2cf847fdd489ea4df12f315e626dfd6fb3a674b64e6a6a",
       "size": 3925
     },
     {
       "path": "contracts/platform/v1/pc6_release_manifest.json",
-      "sha256": "c45eebade075fa1aea898afbe138c168e8dba839761e570443e28e827c930de6",
+      "sha256": "f78330d5e40c8415b9f564ebf04d15a592a325bbeb57098ef9d5c91120317a87",
       "size": 25095
     },
     {
@@ -90,72 +84,72 @@
     },
     {
       "path": "contracts/platform_admin/v1/pa0123_release_manifest.json",
-      "sha256": "dfd5b6fe77aa9ed52c889157f4404b359a6ab5deccdffbd7921965e274301ff9",
+      "sha256": "14bea41661d325e5c88bf96ec0fd4419faad290bd57170f1e9f04dc40b169293",
       "size": 8005
     },
     {
       "path": "contracts/platform_admin/v1/pa45_release_manifest.json",
-      "sha256": "ebdfffa869a2714d54a2892b0851ad73d8a751b11caf8f995a3047bcb20bd152",
+      "sha256": "bbf96db050a4aa43145a457d4eeef004d87ce2f1ddfe9c5a903a6c41a072b667",
       "size": 7115
     },
     {
       "path": "contracts/platform_admin/v1/pa6_release_manifest.json",
-      "sha256": "db5cffadc55eaadb40779820e74b14bc8fe702e431f231002676b5a2c333afd1",
+      "sha256": "602dda053ae4e1bbfa4ff2a99a846c676269feb74f47ef83272bfb3d44dc2e06",
       "size": 3072
     },
     {
       "path": "contracts/shared_operations/v1/so10_release_manifest.json",
-      "sha256": "205890f09fea797b2faa661f9b0a332e19baa44f73c06a1dae2543efbda08138",
+      "sha256": "ab438032e29930dfaeb7af595f513d4b0dff1fe1e8397114b3b139f16a3c9602",
       "size": 6687
     },
     {
       "path": "contracts/shared_operations/v1/so1_release_manifest.json",
-      "sha256": "f19d882dc254fd21ed213bacfefcf1b7afb23c21eec0b0b6217d6659e1d92663",
+      "sha256": "e604f2150f8486547044b82622826e65ad56a941b97d4ea7ec982de0cd339d85",
       "size": 4866
     },
     {
       "path": "contracts/shared_operations/v1/so2_release_manifest.json",
-      "sha256": "96ab0c9f5327d385be9867d5fad998e2008f30c9e6fad16d869bda45541a283a",
+      "sha256": "00a8b6e1a7b4fb79141fef03719648de1beec0264e071421808dbfe65a5959b8",
       "size": 5609
     },
     {
       "path": "contracts/shared_operations/v1/so3_release_manifest.json",
-      "sha256": "2fadc9f7d03bfba7c6afa703dec3481722f889bb9131d6355b536bf213b993b5",
+      "sha256": "d1ea69dfc07f370f2d9e1b4c7a3ff690a84e9ffbcb7ca4ff0ad9a7a43d3d04d3",
       "size": 5722
     },
     {
       "path": "contracts/shared_operations/v1/so4_release_manifest.json",
-      "sha256": "1620c1ce6df099c32050f4642f3fb25d81022b70e1167915d7cb7e5edda6d57d",
+      "sha256": "37596545af1031c8d1998ded09184c52017a2367d329ba72cc67f194a73bb3d0",
       "size": 5955
     },
     {
       "path": "contracts/shared_operations/v1/so5_release_manifest.json",
-      "sha256": "411267ed83a75a093cc0a916046c9c063f163e9b5e5a716ca2a691a5e6669427",
+      "sha256": "94890822915288b91f54baf74223eecfbef4a469b4e64918219a0f169abfe19b",
       "size": 6068
     },
     {
       "path": "contracts/shared_operations/v1/so6_release_manifest.json",
-      "sha256": "209a9c402e97356ea1fd06f75744b14a3de76bd320b7bd6fc4ae0149df5de746",
+      "sha256": "b81a0af8c780ac8e87e0daf55064cd1885b6bcf1fdd2139a1c0d66ba06b34c99",
       "size": 6274
     },
     {
       "path": "contracts/shared_operations/v1/so7_release_manifest.json",
-      "sha256": "c2f205b880b51674eabcf036c77b14035b986ccd58b7b27b7ed09aa76e113c41",
+      "sha256": "e2fca1e8bbad369979b4ae7c288cfc73810a0a23609f6756131ea07042603d77",
       "size": 6383
     },
     {
       "path": "contracts/shared_operations/v1/so8_release_manifest.json",
-      "sha256": "f22178bd9395aa7b238f46f40b6673cffc7481467f50f8db3fb7a971f40e3ffb",
+      "sha256": "6b9ef6b0bfe357abff1273d17ed36753bc46a1df1b11b1a26662d55595284e27",
       "size": 6565
     },
     {
       "path": "contracts/shared_operations/v1/so9_release_manifest.json",
-      "sha256": "b42f7ad5c6851477e1ed74fa46c3b64726acb4058f0207f9b49fa027bae6ba44",
+      "sha256": "761acaea5e129c72274f0a6cc461c735f1432249c33eef7a00977b8d54b14688",
       "size": 6255
     },
     {
       "path": "contracts/shared_operations/v1/so_aggregate_release_manifest.json",
-      "sha256": "79a676f693e6140ea76d7ca4c61f7cb8aff2538eaf1815311f36edcef20aa39b",
+      "sha256": "4d126bad4b6c731ea582233f288a89ce9d92b009fa1056ddbdb40564451c000b",
       "size": 5253
     },
     {
@@ -198,5 +192,11 @@
       "sha256": "c4c55e878a9f701b4c1a28ea78f96fa8f2b55f358664e991ee5e4d69a7366864",
       "size": 11972
     }
-  ]
+  ],
+  "contract": "XBOS_PRE_R0_SEMANTIC_CLASSIFICATION_HARDENING_RELEASE_MANIFEST",
+  "hashing": "sha256; text canonicalization CRLF->LF only",
+  "previous_head": "pa45_support_recovery_health_040",
+  "schema_version": 1,
+  "self_excluded": true,
+  "source_checkpoint": "11e7c902475560122794790d3a080a29d65cc972"
 }

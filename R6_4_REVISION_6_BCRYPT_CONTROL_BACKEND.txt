@@ -1,0 +1,30 @@
+XBOS R6.4 — REVISION 6 BCRYPT CONTROL BACKEND
+================================================
+
+Authoritative WND-server isolated regression after Revision 5:
+
+  R6_4_BYTECODE_CACHE_CLEAN=PASS
+  R6_4_REGRESSION_DATABASE=xbos_track_b_test
+  R6_4_REGRESSION_DATABASE_RESTORE=PASS
+  R6_4_REGRESSION_PRODUCTION_DATABASE_EXCLUDED=PASS
+
+  2075 passed
+  13 errors
+
+All 13 remaining errors were the same control-environment dependency failure:
+
+  passlib.exc.MissingBackendError: bcrypt: no backends available
+
+This confirms that the prior database-missing, generated-bytecode neutrality,
+and frozen-R4-evidence issues were removed.
+
+Revision 6:
+- adds bcrypt==4.2.1 to requirements-r6-4-control.txt;
+- requires Passlib to resolve the bcrypt backend before R6.4 acceptance;
+- records the backend in R6.4 control-runtime authority.
+
+No production `xbos` write.
+No live WND Python environment change.
+No migration or business semantic change.
+No writer-routing change.
+No live-cutover authorization.

@@ -1,0 +1,45 @@
+XBOS R6.4 — REVISION 3 CUMULATIVE PLATFORM INTEGRITY REPAIR
+================================================================
+
+Authoritative WND-server failure:
+  R6_4_CONTROL_RUNTIME=PASS
+  R6_4_STATIC_VERIFY=PASS
+  focused R6.4/R6.3/R6.2 contracts=36 PASS
+  PC3_VERIFY=FAIL
+
+  PC0-FROZEN-FINANCE-INVENTORY:
+  alembic_neutral: unexpected=[
+    sql/r63_legacy_inventory_writer_compat_down.sql,
+    sql/r63_legacy_inventory_writer_compat_up.sql,
+    versions/r63_legacy_inventory_writer_compat_044.py
+  ]
+
+Diagnosis
+---------
+R6.3 legitimately introduced the narrow legacy WND inventory-writer
+compatibility migration, but those three accepted non-Finance descendant
+artifacts were not added to the cumulative PC0 frozen Finance/inventory
+extension registry. R6.3's gate did not execute the historical PC3 static gate,
+so the omission remained latent until R6.4 restored that cumulative check.
+
+Correction
+----------
+1. Register the exact three R6.3 migration artifacts under the existing SO3
+   inventory authority. Their role is compatibility with canonical
+   stock/location requirements; Finance semantics and writer authority remain
+   unchanged.
+2. Re-fingerprint pc0_frozen_finance_inventory.json in the current PC0 release
+   manifest.
+3. Update the latest PC6 historical PC1..PC5 replacement proofs for both changed
+   current descendant contracts.
+4. Update PC6's current artifact hash for pc0_release_manifest.json.
+
+No migration SQL is changed. No schema lineage is changed. No WND production
+database is touched. No writer route or live-cutover authority changes.
+
+Current canonical SHA256:
+  pc0_frozen_finance_inventory.json = 85f45225fd783244f00dec1c8d3cc290f5885caa5d0e442cd83dd3c40bb843d2
+  pc0_release_manifest.json         = 6e335af697bde10dfc2cf847fdd489ea4df12f315e626dfd6fb3a674b64e6a6a
+
+The WND-server failure occurred before full regression and before the fresh
+production cutover rehearsal.

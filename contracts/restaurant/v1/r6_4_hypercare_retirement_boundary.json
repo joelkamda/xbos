@@ -1,0 +1,46 @@
+{
+  "contract": "R6_4_WND_HYPERCARE_AND_RETIREMENT_BOUNDARY",
+  "fresh_wnd_after_f_track": {
+    "allowed": [
+      "tables/dining areas",
+      "commissions",
+      "richer service modes",
+      "reservations/waitlists",
+      "stations/course/hold/fire",
+      "richer kitchen routing",
+      "other approved Restaurant capabilities through packs/templates/configuration"
+    ],
+    "forbidden": [
+      "manual SQL as normal onboarding",
+      "tenant-specific source-code conditionals",
+      "re-migrating the canonical live WND historical ledger"
+    ],
+    "purpose": "admin-tool mastery and proof of clean tenant provisioning, not a second historical migration"
+  },
+  "hypercare_entry": "R6.5 P7 reopen and first post-cutover business write",
+  "minimum_evidence": [
+    "at least seven consecutive clean closed WND business windows",
+    "successful Cash, MTN, Orange and configured payment-channel behavior actually used during the observation period",
+    "A/R creation and repayment with repayment remaining settlement rather than income",
+    "reconciliation continuity and predecessor-close to next-opening behavior",
+    "reserved-sale exact-once inventory lifecycle with no sale_commit double deduction",
+    "kitchen/cashier workflow and semantic print-delta behavior",
+    "successful backup plus restore proof from the cutover-era schema",
+    "successful controlled application restart",
+    "no unexplained writer route outside the frozen legacy-writer compatibility inventory",
+    "at least one meaningful accounting/reporting close cycle"
+  ],
+  "retirement_during_r6_5": false,
+  "retirement_prerequisite": "all hypercare evidence green and a separately approved retirement plan",
+  "schema_version": 1,
+  "sequence": [
+    "R6.5 actual WND production platform/schema cutover",
+    "WND production hypercare",
+    "legacy writer/compatibility retirement",
+    "complete F-track",
+    "fresh WND onboarding through official XBOS administration and templates",
+    "Olympia Lounge & Restaurant onboarding using the same official tools",
+    "other-industry rollout through packs/templates/configuration"
+  ],
+  "time_policy": "gate-driven rather than time-only; target approximately 2-4 weeks, but evidence controls retirement readiness"
+}

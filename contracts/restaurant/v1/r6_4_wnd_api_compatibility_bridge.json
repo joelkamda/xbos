@@ -1,0 +1,127 @@
+{
+  "contract": "R6_4_WND_API_COMPATIBILITY_BRIDGE",
+  "laws": [
+    "neutral main:app remains free of WND-only compatibility routes",
+    "compatibility routes are available only from the explicit WND hypercare entrypoint",
+    "compatibility handlers fail closed for non-WND tenant contexts",
+    "accepted Track A financial/inventory behavior is preserved rather than reinterpreted",
+    "no new schema migration or writer retirement is introduced by the API bridge",
+    "bridge retirement is forbidden until WND hypercare acceptance and separate retirement authorization"
+  ],
+  "mode": "temporary_hypercare_adapter",
+  "neutral_default_entrypoint": "main:app",
+  "reference_backend_head": "b60a71dcc06657bd407fac043f6f3922d5bfe32f",
+  "reference_frontend_head": "f47f574f6a2f2e2247ab7c491dc65c7800adbc9d",
+  "reference_source_bundle_sha256": "7a5cdb6864527462776b8cae50d305d75f484cab87942c3e9f6484bc77cda40d",
+  "retirement": "post_hypercare_separate_approved_legacy_retirement_plan",
+  "schema_version": 1,
+  "track_a_only_route_count": 26,
+  "track_a_only_routes": [
+    {
+      "method": "GET",
+      "path": "/kernel/customers"
+    },
+    {
+      "method": "GET",
+      "path": "/kernel/customers/{customer_id}"
+    },
+    {
+      "method": "GET",
+      "path": "/kernel/customers/{customer_id}/receivables"
+    },
+    {
+      "method": "GET",
+      "path": "/kernel/inventory/reconciliation"
+    },
+    {
+      "method": "GET",
+      "path": "/kernel/orders/kitchen/history"
+    },
+    {
+      "method": "GET",
+      "path": "/kernel/orders/kitchen/item-summary"
+    },
+    {
+      "method": "GET",
+      "path": "/kernel/orders/sale-fulfillment-modes"
+    },
+    {
+      "method": "GET",
+      "path": "/kernel/payments/activity"
+    },
+    {
+      "method": "GET",
+      "path": "/kernel/payments/standalone/expense-taxonomy"
+    },
+    {
+      "method": "GET",
+      "path": "/kernel/payments/standalone/income-taxonomy"
+    },
+    {
+      "method": "GET",
+      "path": "/kernel/payments/standalone/receivables"
+    },
+    {
+      "method": "GET",
+      "path": "/kernel/payments/standalone/receivables/search"
+    },
+    {
+      "method": "GET",
+      "path": "/kernel/payments/standalone/receivables/{ar_id}"
+    },
+    {
+      "method": "GET",
+      "path": "/kernel/reports/debt"
+    },
+    {
+      "method": "GET",
+      "path": "/kernel/reports/payments"
+    },
+    {
+      "method": "GET",
+      "path": "/kernel/reports/reconciliation"
+    },
+    {
+      "method": "GET",
+      "path": "/kernel/reports/stock"
+    },
+    {
+      "method": "PATCH",
+      "path": "/kernel/accounting/accounts/ar/{ar_id}/identity"
+    },
+    {
+      "method": "PATCH",
+      "path": "/kernel/customers/{customer_id}"
+    },
+    {
+      "method": "POST",
+      "path": "/kernel/customers"
+    },
+    {
+      "method": "POST",
+      "path": "/kernel/customers/from-ar/{ar_id}"
+    },
+    {
+      "method": "POST",
+      "path": "/kernel/inventory/reconciliation/close"
+    },
+    {
+      "method": "POST",
+      "path": "/kernel/inventory/waste"
+    },
+    {
+      "method": "POST",
+      "path": "/kernel/payments/standalone/pay-expense"
+    },
+    {
+      "method": "POST",
+      "path": "/kernel/payments/standalone/receive-income"
+    },
+    {
+      "method": "POST",
+      "path": "/kernel/payments/standalone/transfer"
+    }
+  ],
+  "wnd_hypercare_entrypoint": "restaurant.r6.wnd_compat_runtime:app",
+  "wnd_tenant_id": 2
+}

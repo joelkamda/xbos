@@ -1,0 +1,25 @@
+XBOS R6.4 — REVISION 5 ISOLATED FULL REGRESSION
+===================================================
+
+Authoritative WND-server regression reached 2066 passed, 7 failed, 13 errors.
+
+Root causes:
+1. Historical characterization tests target the explicitly disposable
+   `xbos_track_b_test`, which did not exist on the WND server.
+2. SO0/SO1/SO2 neutrality scans encountered generated `__pycache__/*.pyc`
+   bytecode and treated embedded literals as active source/configuration.
+3. R6.1's helper claimed to reproduce frozen R4/R5 certification evidence but
+   re-hashed current cumulative release manifests; R6.4 Rev4 intentionally
+   advanced those release-integrity hashes.
+
+Revision 5:
+- restores the latest hash-verified R6.4 planning backup into ONLY
+  `xbos_track_b_test`;
+- requires legacy-head/count/control parity before pytest starts;
+- supplies only the disposable test DATABASE_URL to pytest;
+- removes stale bytecode and enforces PYTHONDONTWRITEBYTECODE=1;
+- makes R6.1 return the immutable seven R4/R5 certification evidence hashes.
+
+No production xbos write, schema migration, migration-SQL change,
+Finance/inventory semantic change, writer-routing change, legacy-writer
+retirement, or live-cutover authorization is introduced.

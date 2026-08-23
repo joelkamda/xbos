@@ -1,0 +1,34 @@
+XBOS R6.4 — REVISION 7 COLLISION-SAFE DIAGNOSTIC PORTS
+=========================================================
+
+Observed on the WND production server after full regression passed:
+  2089 passed
+  R6_4_FULL_REGRESSION=PASS
+
+Fresh production rehearsal then migrated the disposable candidate through:
+  r2_restaurant_menu_fulfillment_043
+    -> r63_legacy_inventory_writer_compat_044
+
+and stopped at:
+  RuntimeError: R6_3_BACKEND_PORT_8002_IN_USE
+
+Port 8002 is only the frozen R6.3 local diagnostic default. R6.4 must not stop,
+kill, or disturb an unknown process merely to reclaim a diagnostic port.
+
+Revision 7 keeps frozen R6.3 unchanged and makes the R6.4 acceptance harness
+select the first free localhost-only diagnostic port from:
+
+  Track A reference: 8002, 18002, 28002, 38002
+  Track B runtime:   8004, 18004, 28004, 38004
+
+The temporary R6.3 BACKEND_PORT override exists only inside the current R6.4
+acceptance Python process and is restored afterward.
+
+Occupied ports are left untouched. No production service is stopped. No live
+WND port is modified.
+
+Production writes: NONE
+Live schema migration: NO
+Writer routing: UNCHANGED
+Legacy writer retirement: NO
+Live cutover authorized: NO

@@ -47,3 +47,9 @@ from .application_compatibility import (
     schema_fingerprint,
     validate_uat_evidence,
 )
+
+from .production_cutover import (
+    CutoverFingerprint,
+    assert_legacy_truth_preserved,
+    rollback_mode,
+)
