@@ -32,6 +32,20 @@ async def list_payments(
 
 
 # -------------------------------------------------
+# Unified read-only Money Activity projection
+# -------------------------------------------------
+
+@router.get("/activity")
+@require_permissions("payments.view")
+async def payments_activity(
+    request: Request,
+    db: Session = Depends(get_db),
+    limit: int = 100,
+):
+    return await controller.list_activity(request=request, db=db, limit=limit)
+
+
+# -------------------------------------------------
 # Get single payment
 # -------------------------------------------------
 

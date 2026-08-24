@@ -471,6 +471,54 @@ def _serialize_log(log) -> Dict[str, Any]:
     }
 
 
+def _confirmed_xafpay_settlement_rows(
+    db: Session, *, tenant_id: int, branch_id: int,
+    start: Optional[datetime] = None, end: Optional[datetime] = None,
+) -> List[Dict[str, Any]]:
+    """Project canonical confirmed settlements without rewriting Finance history."""
+    rows = db.execute(text("""
+        SELECT s.id,s.public_id,s.gross_amount,s.currency_code,s.occurred_at,
+               s.payment_method_code,s.payment_rail_code,a.orchestrator_code,
+               a.external_attempt_reference,a.metadata
+          FROM payment_settlements s
+          JOIN canonical_payment_attempts a
+            ON a.tenant_id=s.tenant_id AND a.id=s.payment_attempt_id
+         WHERE s.tenant_id=:tenant_id AND s.organization_unit_id=:branch_id
+           AND a.orchestrator_code='xafpay'
+           AND s.settlement_state IN ('confirmed','partially_reversed')
+           AND (:start_at IS NULL OR s.occurred_at >= :start_at)
+           AND (:end_at IS NULL OR s.occurred_at < :end_at)
+         ORDER BY s.occurred_at DESC,s.id DESC
+    """), {"tenant_id": tenant_id, "branch_id": branch_id,
+             "start_at": start, "end_at": end}).mappings().all()
+    return [dict(row) for row in rows]
+
+
+def _serialize_xafpay_settlement(row: Dict[str, Any]) -> Dict[str, Any]:
+    metadata = dict(row.get("metadata") or {})
+    sale_id = metadata.get("sale_id")
+    occurred_at = row.get("occurred_at")
+    metadata.update({"settlement_public_id": str(row.get("public_id")),
+                     "payment_method": row.get("payment_method_code"),
+                     "payment_rail": row.get("payment_rail_code"),
+                     "orchestrator": row.get("orchestrator_code"),
+                     "canonical_settlement": True})
+    return {
+        "id": f"xafpay-settlement:{row.get('public_id')}",
+        "time": _time_str(occurred_at), "occurred_at": _iso_utc(occurred_at),
+        "created_at": _iso_utc(occurred_at), "date": _iso_utc(occurred_at),
+        "occurred_at_business": _iso_business(occurred_at),
+        "created_at_business": _iso_business(occurred_at),
+        "business_timezone": BUSINESS_TIMEZONE_NAME,
+        "type": _event_row_type("PAYMENT_RECEIVED"),
+        "entry": "XafPay Payment", "event_type": "PAYMENT_RECEIVED",
+        "direction": "credit", "amount": _f(row.get("gross_amount")),
+        "currency": row.get("currency_code") or "XAF", "channel": "xafpay",
+        "reference_type": "sale" if sale_id else "payment_settlement",
+        "reference_id": sale_id, "taxonomy_node_id": None, "details": metadata,
+    }
+
+
 def _serialize_repayment(repayment) -> Dict[str, Any]:
     return {
         "id": repayment.id,
@@ -1595,6 +1643,10 @@ def accounting_daily(
     )
 
     rows = [_serialize_log(log) for log in logs]
+    rows.extend(_serialize_xafpay_settlement(row) for row in
+                _confirmed_xafpay_settlement_rows(
+                    db, tenant_id=ctx["tenant_id"], branch_id=ctx["branch_id"],
+                    start=start_dt, end=end_dt))
 
     income = sum(
         abs(_f(row.get("amount")))
@@ -1791,6 +1843,28 @@ def get_reconciliation(
     )
 
     rows = _build_reconciliation_rows(logs)
+    confirmed_xafpay = _confirmed_xafpay_settlement_rows(
+        db, tenant_id=ctx["tenant_id"], branch_id=ctx["branch_id"],
+        start=start_dt, end=end_dt)
+    xafpay_amount = sum(_f(row.get("gross_amount")) for row in confirmed_xafpay)
+    for row in rows:
+        if row.get("channel") == "xafpay":
+            row["income"] = _f(row.get("income")) + xafpay_amount
+            row.update(_recompute_recon_row(row))
+            row["payment_method"] = "mobile_money"
+            row["rails"] = sorted({str(item.get("payment_rail_code") or "").lower()
+                                  for item in confirmed_xafpay if item.get("payment_rail_code")})
+            row["orchestrator"] = "xafpay"
+            row["confirmed_settlement_count"] = len(confirmed_xafpay)
+            row["confirmed_settlements"] = [
+                {"settlement_id": str(item.get("public_id")),
+                 "sale_id": (item.get("metadata") or {}).get("sale_id"),
+                 "amount": _f(item.get("gross_amount")),
+                 "currency": item.get("currency_code") or "XAF",
+                 "rail": str(item.get("payment_rail_code") or "").lower() or None}
+                for item in confirmed_xafpay
+            ]
+            break
     commercial_summary = _build_commercial_summary(logs)
 
     previous_closing = _load_previous_closing_map(

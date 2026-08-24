@@ -23,6 +23,7 @@ from core.api.payments.receipts_router import router as receipts_router
 
 # XAFPay Webhook Router
 from core.api.xafpay_webhook import router as xafpay_webhook_router
+from core.integrations.xafpay_v2.router import router as xafpay_v2_router
 
 
 # ====================================================
@@ -134,6 +135,14 @@ kernel_router.include_router(
     xafpay_webhook_router,
     prefix="/payments",
     tags=["XafPay"],
+)
+
+# XafPay Gateway V2 signed internal-consumer endpoint.
+# Authentication is the Gateway event signature; XBOS tenant/location is resolved from the bound attempt.
+kernel_router.include_router(
+    xafpay_v2_router,
+    prefix="/integrations/xafpay-v2",
+    tags=["XafPay V2"],
 )
 
 # Taxonomy → /kernel/taxonomy/*
