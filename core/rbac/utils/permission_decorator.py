@@ -64,6 +64,11 @@ def _check_permissions(request: Request, required_permissions: tuple[str, ...]):
     if "*" in permission_set:
         return True
 
+    # The canonical admin role is the platform superuser and retains all
+    # ordinary application permissions, including newly added leaf codes.
+    if str(user.get("role", "")).strip().lower() == "admin":
+        return True
+
     # If decorator has no required permissions, only authentication is required.
     if not required_permissions:
         return True

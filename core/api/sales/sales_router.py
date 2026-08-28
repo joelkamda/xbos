@@ -50,7 +50,7 @@ async def list_sales(
         )
 
     return [
-        SalesController._sale_response(sale)
+        SalesController._sale_response(sale, db)
         for sale in sales
     ]
 

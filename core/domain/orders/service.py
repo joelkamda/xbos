@@ -179,6 +179,9 @@ class OrderService:
         # CREATE ORDER
         # =================================================
 
+        fulfillment_mode = str(payload.get("fulfillment_mode") or "").strip().upper() or None
+        if fulfillment_mode not in {None, "DINE_IN", "TAKEAWAY", "DELIVERY"}:
+            raise ValueError("Invalid fulfillment_mode")
         order = Order(
             tenant_id=tenant_id,
             branch_id=branch_id,
@@ -186,6 +189,7 @@ class OrderService:
             status="pending_payment",
             subtotal=subtotal,
             total=subtotal,
+            fulfillment_mode=fulfillment_mode,
         )
 
         order.items = order_items
@@ -356,6 +360,11 @@ class OrderService:
 
             order.subtotal = subtotal
             order.total = subtotal
+            if "fulfillment_mode" in payload:
+                fulfillment_mode = str(payload.get("fulfillment_mode") or "").strip().upper() or None
+                if fulfillment_mode not in {None, "DINE_IN", "TAKEAWAY", "DELIVERY"}:
+                    raise ValueError("Invalid fulfillment_mode")
+                order.fulfillment_mode = fulfillment_mode
 
             if hasattr(order, "updated_at"):
                 order.updated_at = _utc_now_naive()

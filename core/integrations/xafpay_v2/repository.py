@@ -96,25 +96,50 @@ class XafPayV2Repository:
         sale_id = attempt.metadata.get("sale_id")
         if not isinstance(order_id, int) or not isinstance(sale_id, int):
             return False
-        order = session.execute(text("""
-            UPDATE orders SET status='paid',paid_at=:confirmed_at
-             WHERE id=:order_id AND tenant_id=:tenant_id
-               AND status IN ('pending_payment','receivable')
-             RETURNING id
-        """), {"confirmed_at": confirmed_at, "order_id": order_id, "tenant_id": attempt.tenant_id}).scalar_one_or_none()
-        session.execute(text("""
-            UPDATE sales SET status='paid',payment_method='xafpay',paid_at=:confirmed_at,
-                   unpaid_amount=0
-             WHERE id=:sale_id AND tenant_id=:tenant_id AND status<>'paid'
-        """), {"confirmed_at": confirmed_at, "sale_id": sale_id, "tenant_id": attempt.tenant_id})
-        session.execute(text("""
-            UPDATE payment_intents SET status='succeeded',total_paid=amount,balance_due=0,
+        projection = session.execute(text("""
+            UPDATE payment_intents
+               SET total_paid=LEAST(amount,total_paid+:confirmed_amount),
+                   balance_due=GREATEST(0,amount-(total_paid+:confirmed_amount)),
+                   status=CASE WHEN amount-(total_paid+:confirmed_amount)<=0
+                               THEN 'succeeded' ELSE 'processing' END,
                    gateway_intent_id=:gateway_payment_id,updated_at=:confirmed_at
              WHERE payable_type='sale' AND payable_id=:sale_id AND tenant_id=:tenant_id
-               AND status<>'succeeded'
-        """), {"confirmed_at": confirmed_at, "gateway_payment_id": attempt.external_attempt_reference,
-                 "sale_id": sale_id, "tenant_id": attempt.tenant_id})
-        return order is not None
+             RETURNING balance_due
+        """), {"confirmed_at": confirmed_at, "confirmed_amount": attempt.attempted_amount,
+                 "gateway_payment_id": attempt.external_attempt_reference,
+                 "sale_id": sale_id, "tenant_id": attempt.tenant_id}).mappings().one_or_none()
+        if projection is None:
+            return False
+        remaining = Decimal(projection["balance_due"])
+        if remaining <= 0:
+            session.execute(text("""
+                UPDATE orders SET status='paid',paid_at=:confirmed_at
+                 WHERE id=:order_id AND tenant_id=:tenant_id AND status<>'paid'
+            """), {"confirmed_at": confirmed_at, "order_id": order_id,
+                     "tenant_id": attempt.tenant_id})
+            session.execute(text("""
+                UPDATE sales SET status='paid',payment_method='split',paid_at=:confirmed_at,
+                       unpaid_amount=0
+                 WHERE id=:sale_id AND tenant_id=:tenant_id AND status<>'paid'
+            """), {"confirmed_at": confirmed_at, "sale_id": sale_id,
+                     "tenant_id": attempt.tenant_id})
+            return True
+        has_ar = session.execute(text("""
+            SELECT 1 FROM accounts_receivable
+             WHERE tenant_id=:tenant_id AND sale_id=:sale_id AND status IN ('open','partial')
+             LIMIT 1
+        """), {"tenant_id": attempt.tenant_id, "sale_id": sale_id}).scalar_one_or_none()
+        session.execute(text("""
+            UPDATE orders SET status=:status
+             WHERE id=:order_id AND tenant_id=:tenant_id AND status<>'paid'
+        """), {"status": "receivable" if has_ar else "pending_payment",
+                 "order_id": order_id, "tenant_id": attempt.tenant_id})
+        session.execute(text("""
+            UPDATE sales SET status='pending_payment',unpaid_amount=:remaining
+             WHERE id=:sale_id AND tenant_id=:tenant_id AND status<>'paid'
+        """), {"remaining": remaining, "sale_id": sale_id,
+                 "tenant_id": attempt.tenant_id})
+        return False
 
     @staticmethod
     def reserve_event(session, *, tenant_id: int, event_id: str, fingerprint: str) -> EventReservation:

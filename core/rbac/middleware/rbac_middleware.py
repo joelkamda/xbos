@@ -51,6 +51,11 @@ class RBACMiddleware(BaseHTTPMiddleware):
         # Attach to request for downstream policies
         request.state.permissions = permissions
 
+        # Admin is the canonical superuser; do not require enumerating every
+        # newly introduced leaf permission in role/JWT projections.
+        if str(user.get("role", "")).strip().lower() == "admin":
+            return await call_next(request)
+
         # ---------------------------------------------------------
         # ENFORCEMENT USING PERMISSION REGISTRY
         # ---------------------------------------------------------

@@ -42,6 +42,7 @@ class AuthMiddleware(BaseHTTPMiddleware):
         # =====================================================
         bypass = (
             path == "/kernel/integrations/xafpay-v2/events"
+            or (method == "POST" and path == "/api/auth/login")
             or path.startswith("/kernel/auth/")
             or path.startswith("/auth/")
             or path == "/kernel/health"

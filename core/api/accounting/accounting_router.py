@@ -1647,6 +1647,47 @@ def accounting_daily(
                 _confirmed_xafpay_settlement_rows(
                     db, tenant_id=ctx["tenant_id"], branch_id=ctx["branch_id"],
                     start=start_dt, end=end_dt))
+    collection_controls = db.execute(text("""
+        SELECT a.public_id,a.attempt_state,a.attempted_amount,a.payment_rail_code,
+               a.occurred_at,(a.metadata->>'sale_id')::int sale_id,
+               pi.amount commercial_total,pi.total_paid confirmed_total,
+               pi.balance_due outstanding,
+               coalesce((SELECT sum(ar.balance_due) FROM accounts_receivable ar
+                          WHERE ar.tenant_id=a.tenant_id
+                            AND ar.sale_id=(a.metadata->>'sale_id')::int
+                            AND ar.status IN ('open','partial')),0) approved_ar
+          FROM canonical_payment_attempts a
+          JOIN payment_intents pi ON pi.tenant_id=a.tenant_id
+           AND pi.payable_type='sale' AND pi.payable_id=(a.metadata->>'sale_id')::int
+         WHERE a.tenant_id=:tenant AND a.organization_unit_id=:branch
+           AND a.orchestrator_code='xafpay'
+           AND a.attempt_state IN ('pending','processing','unknown','failed','cancelled','expired')
+           AND (:start IS NULL OR a.occurred_at>=:start)
+           AND (:end IS NULL OR a.occurred_at<:end)
+         ORDER BY a.occurred_at,a.id
+    """), {"tenant": ctx["tenant_id"], "branch": ctx["branch_id"],
+             "start": start_dt, "end": end_dt}).mappings().all()
+    rows.extend({
+        "id": -index,
+        "type": "movement",
+        "entry": f"XafPay {str(row['attempt_state']).upper()} collection control",
+        "event_type": "XAFPAY_COLLECTION_CONTROL",
+        "channel": "xafpay",
+        "amount": _f(row["outstanding"]),
+        "currency": "XAF",
+        "occurred_at": _iso_utc(row["occurred_at"]),
+        "occurred_at_business": _iso_business(row["occurred_at"]),
+        "reference_type": "sale",
+        "reference_id": row["sale_id"],
+        "details": {
+            "financial_effect": "NONE",
+            "attempt_state": str(row["attempt_state"]).upper(),
+            "attempted_amount": _f(row["attempted_amount"]),
+            "outstanding": _f(row["outstanding"]),
+            "approved_ar": _f(row["approved_ar"]),
+            "collectible_now": max(0, _f(row["outstanding"]) - _f(row["approved_ar"])),
+        },
+    } for index, row in enumerate(collection_controls, start=1))
 
     income = sum(
         abs(_f(row.get("amount")))
@@ -1669,6 +1710,18 @@ def accounting_daily(
             "events": len(rows),
         },
         "rows": rows,
+        "collection_controls": [{
+            "attempt_id": str(row["public_id"]), "sale_id": row["sale_id"],
+            "orchestrator": "xafpay", "rail": row["payment_rail_code"],
+            "attempt_state": str(row["attempt_state"]).upper(),
+            "attempted_amount": _f(row["attempted_amount"]),
+            "commercial_total": _f(row["commercial_total"]),
+            "confirmed_total": _f(row["confirmed_total"]),
+            "outstanding": _f(row["outstanding"]),
+            "approved_ar": _f(row["approved_ar"]),
+            "collectible_now": max(0, _f(row["outstanding"]) - _f(row["approved_ar"])),
+            "financial_effect": "NONE",
+        } for row in collection_controls],
         "window_start": _iso_utc(start_dt),
         "window_end": _iso_utc(end_dt),
         "window_start_business": _iso_business(start_dt),
@@ -1891,9 +1944,53 @@ def get_reconciliation(
 
     window_status = _resolve_reconciliation_window_status(existing_recon)
 
+    open_controls = db.execute(text("""
+        SELECT a.public_id,a.attempt_state,a.attempted_amount,a.payment_rail_code,
+               (a.metadata->>'sale_id')::int sale_id,pi.amount commercial_total,
+               pi.total_paid confirmed_total,pi.balance_due outstanding,
+               coalesce((SELECT sum(ar.balance_due) FROM accounts_receivable ar
+                          WHERE ar.tenant_id=a.tenant_id
+                            AND ar.sale_id=(a.metadata->>'sale_id')::int
+                            AND ar.status IN ('open','partial')),0) approved_ar
+          FROM canonical_payment_attempts a
+          JOIN payment_intents pi ON pi.tenant_id=a.tenant_id
+           AND pi.payable_type='sale' AND pi.payable_id=(a.metadata->>'sale_id')::int
+         WHERE a.tenant_id=:tenant AND a.organization_unit_id=:branch
+           AND a.orchestrator_code='xafpay'
+           AND a.attempt_state IN ('pending','processing','unknown','failed','cancelled','expired')
+           AND (:start IS NULL OR a.occurred_at>=:start)
+           AND (:end IS NULL OR a.occurred_at<:end)
+         ORDER BY a.occurred_at,a.id
+    """), {"tenant": ctx["tenant_id"], "branch": ctx["branch_id"],
+             "start": start_dt, "end": end_dt}).mappings().all()
+    for recon_row in rows:
+        if recon_row.get("channel") == "xafpay":
+            recon_row.setdefault("meta", {})["open_balance_controls"] = [{
+                "sale_id": row["sale_id"],
+                "attempt_state": str(row["attempt_state"]).upper(),
+                "attempted_amount": _f(row["attempted_amount"]),
+                "outstanding": _f(row["outstanding"]),
+                "approved_ar": _f(row["approved_ar"]),
+                "collectible_now": max(0, _f(row["outstanding"]) - _f(row["approved_ar"])),
+                "confirmed_money": 0,
+            } for row in open_controls]
+            break
+
     return {
         "rows": rows,
         "commercial_summary": commercial_summary,
+        "open_balance_controls": [{
+            "attempt_id": str(row["public_id"]), "sale_id": row["sale_id"],
+            "orchestrator": "xafpay", "rail": row["payment_rail_code"],
+            "attempt_state": str(row["attempt_state"]).upper(),
+            "attempted_amount": _f(row["attempted_amount"]),
+            "commercial_total": _f(row["commercial_total"]),
+            "confirmed_total": _f(row["confirmed_total"]),
+            "outstanding": _f(row["outstanding"]),
+            "approved_ar": _f(row["approved_ar"]),
+            "collectible_now": max(0, _f(row["outstanding"]) - _f(row["approved_ar"])),
+            "confirmed_money": 0,
+        } for row in open_controls],
         "status": window_status,
         "shift": shift,
         "window_start": _iso_utc(start_dt),

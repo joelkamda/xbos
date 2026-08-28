@@ -1,6 +1,7 @@
 from typing import Dict, Any, List
 
 from fastapi import Request, HTTPException, status
+from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from core.domain.sales.service import SaleService
@@ -60,7 +61,7 @@ class SalesController:
         unique_sales = list(unique_map.values())
 
         return [
-            SalesController._sale_response(sale)
+            SalesController._sale_response(sale, db)
             for sale in unique_sales
         ]
 
@@ -95,7 +96,7 @@ class SalesController:
                 detail="Sale not found",
             )
 
-        return SalesController._sale_response(sale)
+        return SalesController._sale_response(sale, db)
 
     # -------------------------------------------------
     # POST /sales
@@ -125,7 +126,7 @@ class SalesController:
                 payload=payload,
             )
 
-            return SalesController._sale_response(sale)
+            return SalesController._sale_response(sale, db)
 
         except ValueError as e:
             raise HTTPException(
@@ -141,7 +142,69 @@ class SalesController:
     # -------------------------------------------------
 
     @staticmethod
-    def _sale_response(sale: Sale) -> Dict[str, Any]:
+    def _sale_response(sale: Sale, db: Session) -> Dict[str, Any]:
+
+        projection = db.execute(text("""
+            SELECT amount,total_paid,balance_due,status
+              FROM payment_intents
+             WHERE tenant_id=:tenant AND payable_type='sale' AND payable_id=:sale
+             ORDER BY id DESC LIMIT 1
+        """), {"tenant": sale.tenant_id, "sale": sale.id}).mappings().one_or_none()
+        total = float((projection or {}).get("amount") or sale.total or 0)
+        confirmed_local = db.execute(text("""
+            SELECT amount
+              FROM payment_attempts
+             WHERE payment_intent_id=(SELECT id FROM payment_intents
+                                       WHERE tenant_id=:tenant AND payable_type='sale'
+                                         AND payable_id=:sale ORDER BY id DESC LIMIT 1)
+               AND lower(status) IN ('succeeded','success','completed','complete','paid')
+               AND lower(coalesce(method,'')) <> 'xafpay'
+             ORDER BY created_at,id
+        """), {"tenant": sale.tenant_id, "sale": sale.id}).scalars().all()
+        paid = 0.0
+        for confirmed_amount in confirmed_local:
+            amount = float(confirmed_amount or 0)
+            # A confirmed local leg may satisfy only the then-current balance.
+            # Ignore malformed/duplicate rows that exceed it; do not let a stale
+            # PaymentIntent summary manufacture a fully-paid archive state.
+            if amount > 0 and amount <= total - paid:
+                paid += amount
+        canonical = db.execute(text("""
+            SELECT a.attempt_state,a.attempted_amount,a.payment_rail_code,
+                   EXISTS(SELECT 1 FROM payment_settlements s
+                           WHERE s.tenant_id=a.tenant_id AND s.payment_attempt_id=a.id
+                             AND s.settlement_state='confirmed') settled
+              FROM canonical_payment_attempts a
+             WHERE a.tenant_id=:tenant AND a.metadata->>'sale_id'=:sale
+               AND a.orchestrator_code='xafpay'
+             ORDER BY a.occurred_at DESC,a.id DESC LIMIT 1
+        """), {"tenant": sale.tenant_id, "sale": str(sale.id)}).mappings().one_or_none()
+        confirmed_xafpay = db.execute(text("""
+            SELECT coalesce(sum(s.gross_amount),0)
+              FROM payment_settlements s
+              JOIN canonical_payment_attempts a
+                ON a.tenant_id=s.tenant_id AND a.id=s.payment_attempt_id
+             WHERE s.tenant_id=:tenant AND a.metadata->>'sale_id'=:sale
+               AND a.orchestrator_code='xafpay'
+               AND s.settlement_state IN ('confirmed','partially_reversed')
+        """), {"tenant": sale.tenant_id, "sale": str(sale.id)}).scalar_one()
+        paid = min(total, paid + float(confirmed_xafpay or 0))
+        due = max(0.0, total - paid)
+        attempt_state = str((canonical or {}).get("attempt_state") or "").upper() or None
+        ar = db.execute(text("""
+            SELECT coalesce(sum(balance_due),0) FROM accounts_receivable
+             WHERE tenant_id=:tenant AND sale_id=:sale AND status IN ('open','partial')
+        """), {"tenant": sale.tenant_id, "sale": sale.id}).scalar_one()
+        if due <= 0:
+            payment_state = "PAID"
+        elif float(ar or 0) > 0:
+            payment_state = "RECEIVABLE"
+        elif attempt_state in {"PENDING", "PROCESSING", "UNKNOWN"}:
+            payment_state = "PAYMENT_PENDING"
+        elif paid > 0:
+            payment_state = "PARTIAL"
+        else:
+            payment_state = "UNPAID"
 
         return {
             "id": sale.id,
@@ -152,6 +215,19 @@ class SalesController:
             "total": float(sale.total or 0),
             "created_at": sale.created_at.isoformat(),
             "paid_at": sale.paid_at.isoformat() if sale.paid_at else None,
+            "paid_amount": paid,
+            "unpaid_amount": due,
+            "payment_state": payment_state,
+            "payment_summary": {
+                "commercial_total": total,
+                "total_paid": paid,
+                "balance_due": due,
+                "approved_ar": float(ar or 0),
+                "collectible_now": max(0.0, due - float(ar or 0)),
+                "latest_xafpay_attempt_state": attempt_state,
+                "latest_xafpay_rail": (canonical or {}).get("payment_rail_code"),
+                "latest_xafpay_settled": bool((canonical or {}).get("settled")),
+            },
 
             # ✅ SAFE ITEMS HANDLING
             "items": [

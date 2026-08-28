@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from typing import Any
+from uuid import uuid4
 
 import httpx
 
@@ -56,11 +57,28 @@ class XafPayV2Client:
         payload = self._post("/v2/refunds", request.idempotency_key, request.body(), "gateway_refund_rejected")
         return XafPayV2CreateRefundResponse.parse(payload, request)
 
+    def payment_execution_status(self, payment_id: str) -> dict[str, Any]:
+        try:
+            response = httpx.get(
+                f"{self.base_url}/v2/payments/{payment_id}/execution-status",
+                headers={"Authorization": f"Bearer {self.service_credential}"},
+                timeout=self.timeout_seconds,
+                follow_redirects=False,
+            )
+        except httpx.HTTPError as exc:
+            raise XafPayV2IntegrationError("gateway_transport_error", str(exc)) from exc
+        if response.status_code < 200 or response.status_code > 299:
+            raise XafPayV2IntegrationError(
+                "gateway_execution_status_rejected",
+                f"HTTP {response.status_code}: {response.text[:500]}",
+            )
+        payload = response.json()
+        if str(payload.get("paymentId")) != payment_id:
+            raise XafPayV2IntegrationError("gateway_execution_status_mismatch", "Gateway payment identity mismatch")
+        return payload
+
     def create_checkout(self, request: XafPayV2CreatePaymentRequest, payment_id: str) -> dict[str, Any]:
-        payload = self._post(
-            "/v2/checkout-sessions",
-            f"{request.idempotency_key}-checkout",
-            {
+        body = {
                 "external_reference": request.external_reference,
                 "amount": {"minor": int(request.amount), "currency": request.currency_code},
                 "permitted_options": [
@@ -70,10 +88,38 @@ class XafPayV2Client:
                 "branding": {"profile": "default"},
                 "expires_in_seconds": 1800,
                 "channel": "xbos",
-                "metadata": {"xbos_attempt": str(request.payment_attempt_public_id)},
-            },
-            "gateway_checkout_rejected",
-        )
+                # The attached canonical Payment is the correlation authority.
+                # Do not copy UUID-like identifiers into public Checkout metadata;
+                # digit-heavy opaque IDs can resemble prohibited card payloads.
+                "metadata": {"source": "xbos_xafpay_v2"},
+            }
+        checkout_key = f"{request.idempotency_key}-checkout"
+        try:
+            payload = self._post(
+                "/v2/checkout-sessions", checkout_key, body, "gateway_checkout_rejected"
+            )
+        except XafPayV2IntegrationError as exc:
+            # An expired presentation revision must not block recovery of the
+            # same canonical Payment/PaymentAttempt.  Mint a new presentation
+            # revision only; provider execution is never retried here.
+            if exc.code != "gateway_checkout_rejected" or "CHECKOUT_SESSION_EXPIRED" not in str(exc):
+                raise
+            payload = self._post(
+                "/v2/checkout-sessions",
+                f"{checkout_key}-recovery-{uuid4().hex}",
+                body,
+                "gateway_checkout_rejected",
+            )
+        if str(payload.get("status", "")).upper() == "EXPIRED":
+            # Idempotent replay can return an expired presentation revision
+            # with HTTP 200; issue a new presentation revision for the same
+            # already-created Gateway Payment/PaymentAttempt.
+            payload = self._post(
+                "/v2/checkout-sessions",
+                f"{checkout_key}-recovery-{uuid4().hex}",
+                body,
+                "gateway_checkout_rejected",
+            )
         session_id = str(payload.get("checkout_session_id", ""))
         token = str(payload.get("public_token", ""))
         if not session_id.startswith("chk_") or not token.startswith("chkpub_"):

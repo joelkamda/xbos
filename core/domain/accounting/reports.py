@@ -1,9 +1,13 @@
 from typing import Dict, List, Optional, Any
-from datetime import datetime
+from datetime import datetime, timezone
+from zoneinfo import ZoneInfo
 
 from sqlalchemy.orm import Session
 
 from core.domain.accounting.repository import TreasuryRepository
+
+
+BUSINESS_TZ = ZoneInfo("Africa/Douala")
 
 
 def _f(v) -> float:
@@ -90,7 +94,11 @@ class AccountingReportsService:
     def _time_str(dt: Optional[datetime]) -> str:
         if not dt:
             return ""
-        return dt.strftime("%I:%M %p")
+        # Treasury timestamps are instants; report them in the canonical
+        # business timezone, matching the Accounting API and Money Activity.
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=timezone.utc)
+        return dt.astimezone(BUSINESS_TZ).strftime("%I:%M %p")
 
     @staticmethod
     def _entry_label(log) -> str:

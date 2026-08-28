@@ -1,6 +1,10 @@
 # core/api/kernel_router.py
 
-from fastapi import APIRouter, Request, Depends, HTTPException
+from fastapi import APIRouter, Request, Depends, HTTPException, status
+from sqlalchemy import text
+from sqlalchemy.exc import SQLAlchemyError
+
+from database import get_db
 
 # Subsystems
 from core.auth.auth_controller import auth_router
@@ -41,7 +45,15 @@ def kernel_health():
 
 
 @kernel_router.get("/db-check", tags=["Kernel"])
-def kernel_db_check():
+def kernel_db_check(db=Depends(get_db)):
+    """Perform a lightweight probe through the application's DB authority."""
+    try:
+        db.execute(text("SELECT 1"))
+    except SQLAlchemyError:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail={"database": "unavailable"},
+        )
     return {"database": "connected"}
 
 

@@ -356,6 +356,7 @@ class OrdersController:
             "served_by_name": created_by_name,
 
             "status": order.status,
+            "fulfillment_mode": getattr(order, "fulfillment_mode", None),
             "subtotal": float(order.subtotal or 0),
             "total": float(order.total or 0),
             "created_at": order.created_at.isoformat()

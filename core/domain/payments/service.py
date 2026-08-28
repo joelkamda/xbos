@@ -373,6 +373,7 @@ class PaymentService:
         complimentary_items: Any,
         total_paid: Decimal,
         balance_due: Decimal,
+        accounts_receivable_amount: Decimal,
         store_credit: Decimal,
         tip_amount: Decimal,
         change_given_now: Decimal,
@@ -468,13 +469,13 @@ class PaymentService:
         # -------------------------------------------------
         # Debt / A-R
         # -------------------------------------------------
-        if payable_type == "sale" and sale_id and balance_due > 0:
+        if payable_type == "sale" and sale_id and accounts_receivable_amount > 0:
             FinancialEventEmitter.debt_created(
                 db,
                 tenant_id=tenant_id,
                 branch_id=branch_id,
                 sale_id=sale_id,
-                amount=balance_due,
+                amount=accounts_receivable_amount,
                 currency=currency,
                 occurred_at=occurred_at,
                 meta={
@@ -940,9 +941,10 @@ class PaymentService:
             # Same-moment cash change is local cashier settlement.
             # It should not create expense, A/P, or a separate CHANGE_RETURNED row.
             # Instead, only the retained cash amount is posted as PAYMENT_RECEIVED.
-            if method == "cash" and change_given_remaining > 0:
-                retained_adjustment = min(ledger_amount, change_given_remaining)
-                ledger_amount = ledger_amount - retained_adjustment
+            if method == "cash":
+                cash_given = max(attempt.amount, _d(meta.get("tendered")))
+                retained_adjustment = min(cash_given, change_given_remaining)
+                ledger_amount = cash_given - retained_adjustment
                 change_given_remaining = change_given_remaining - retained_adjustment
 
             if ledger_amount > 0:
@@ -1011,9 +1013,12 @@ class PaymentService:
             )
             or 0
         )
-
-        if cumulative_tendered_total <= 0 and current_tendered_total > 0:
-            cumulative_tendered_total = current_tendered_total
+        # Attempt amount is the amount applied to the obligation. For physical
+        # cash it can be lower than the gross cash handed over when change,
+        # tip, or change-owed is allocated. Preserve both truths.
+        cumulative_tendered_total = max(
+            cumulative_tendered_total, current_tendered_total
+        )
 
         total_paid = min(net_total, cumulative_tendered_total)
 
@@ -1081,6 +1086,7 @@ class PaymentService:
             complimentary_items=complimentary_items,
             total_paid=total_paid,
             balance_due=balance_due,
+            accounts_receivable_amount=max(Decimal("0"), _d(unpaid_amount)),
             store_credit=store_credit,
             tip_amount=safe_tip_d,
             change_given_now=safe_given_d,

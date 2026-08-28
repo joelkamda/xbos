@@ -36,6 +36,14 @@ def _d(v: Any) -> Decimal:
         return Decimal("0")
 
 
+def _gateway_execution_status(payment_id: str) -> Dict[str, Any]:
+    base_url = os.environ.get("XAFPAY_V2_GATEWAY_BASE_URL", "").strip()
+    credential = os.environ.get("XAFPAY_V2_SERVICE_CREDENTIAL", "").strip()
+    if not base_url or not credential:
+        raise XafPayV2IntegrationError("gateway_status_config_missing", "Gateway execution status unavailable")
+    return XafPayV2Client(base_url, credential).payment_execution_status(payment_id)
+
+
 def _status_ui(value: Any) -> str:
     raw = getattr(value, "value", value)
     raw = str(raw or "").lower()
@@ -61,27 +69,107 @@ def _canonical_xafpay_attempts(
     rows = db.execute(text("""
         SELECT a.public_id,a.attempt_state,a.attempted_amount,a.payment_method_code,
                a.payment_rail_code,a.orchestrator_code,a.underlying_provider_code,
-               a.occurred_at,a.external_attempt_reference,a.metadata
+               a.occurred_at,a.external_attempt_reference,a.metadata,
+               (SELECT count(*) FROM payment_settlements s
+                 WHERE s.tenant_id=a.tenant_id AND s.payment_attempt_id=a.id
+                   AND s.settlement_state='confirmed') AS confirmed_settlements
           FROM canonical_payment_attempts a
          WHERE a.tenant_id=:tenant_id
            AND a.metadata->>'sale_id'=:sale_id
            AND a.orchestrator_code='xafpay'
          ORDER BY a.occurred_at,a.id
     """), {"tenant_id": tenant_id, "sale_id": str(sale_id)}).mappings().all()
-    return [{
-        "id": str(row["public_id"]),
-        "provider": row["underlying_provider_code"] or "xafpay",
-        "orchestrator": row["orchestrator_code"],
-        "method": str(row["payment_method_code"] or "mobile_money").lower(),
-        "rail": str(row["payment_rail_code"] or "").lower() or None,
-        "origin_channel": "pos",
-        "settlement_mode": "async_gateway",
-        "amount": float(row["attempted_amount"] or 0),
-        "status": _status_ui(row["attempt_state"]),
-        "created_at": row["occurred_at"].isoformat() if row["occurred_at"] else None,
-        "gateway_reference": row["external_attempt_reference"],
-        "meta": {**(row["metadata"] or {}), "financial_effect": "NONE_UNTIL_CANONICAL_SUCCESS"},
-    } for row in rows]
+    projected = []
+    for row in rows:
+        status_value = _status_ui(row["attempt_state"])
+        # This list projection is deliberately local-only. Canonical attempts
+        # are created at provider-execution initiation; checkout proposals do
+        # not enter this table. Live Gateway interrogation belongs exclusively
+        # to explicit recovery/status operations.
+        # A locally persisted external reference is the durable execution
+        # boundary. Proposal/draft rows have no Gateway reference and remain
+        # outside Payment Records; no live lookup is needed to decide this.
+        provider_submitted = bool(row["external_attempt_reference"])
+        if not provider_submitted:
+            continue
+        projected.append({
+            "id": str(row["public_id"]),
+            "provider": row["underlying_provider_code"] or "xafpay",
+            "orchestrator": row["orchestrator_code"],
+            "method": str(row["payment_method_code"] or "mobile_money").lower(),
+            "rail": str(row["payment_rail_code"] or "").lower() or None,
+            "origin_channel": "pos",
+            "settlement_mode": "async_gateway",
+            "amount": float(row["attempted_amount"] or 0),
+            "status": status_value,
+            "provider_submitted": provider_submitted,
+            "confirmed_settlements": int(row["confirmed_settlements"] or 0),
+            "created_at": row["occurred_at"].isoformat() if row["occurred_at"] else None,
+            "gateway_reference": row["external_attempt_reference"],
+            "meta": {**(row["metadata"] or {}), "financial_effect": "NONE_UNTIL_CANONICAL_SUCCESS"},
+        })
+    return projected
+
+
+def _payment_record_summary(
+    db: Session, intent: Any, attempts: List[Any], canonical_attempts: List[Dict[str, Any]]
+) -> Dict[str, Any]:
+    successful_local = [
+        attempt for attempt in attempts
+        if _status_ui(getattr(attempt, "status", None)) == "COMPLETED"
+    ]
+    local_methods = {
+        str(attempt.method).lower() for attempt in successful_local
+        if getattr(attempt, "method", None)
+    }
+    successful_canonical = [
+        attempt for attempt in canonical_attempts
+        if attempt["status"] == "COMPLETED"
+        and int(attempt.get("confirmed_settlements") or 0) > 0
+    ]
+    active_pending = sum(
+        1 for attempt in attempts
+        if _status_ui(getattr(attempt, "status", None)) == "PENDING"
+    ) + sum(1 for attempt in canonical_attempts if attempt["status"] == "PENDING")
+    approved_ar = 0.0
+    if intent.payable_type == "sale":
+        approved_ar = float(db.execute(text("""
+            SELECT coalesce(sum(balance_due),0) FROM accounts_receivable
+             WHERE tenant_id=:tenant AND sale_id=:sale AND status IN ('open','partial')
+        """), {"tenant": intent.tenant_id, "sale": int(intent.payable_id)}).scalar_one() or 0)
+
+    has_mixed_authority = bool(local_methods and successful_canonical)
+    if has_mixed_authority or len(local_methods) > 1:
+        method, provider, orchestrator, rail = "split", None, None, None
+    elif successful_canonical:
+        latest = successful_canonical[-1]
+        method, provider = latest["method"], latest["provider"]
+        orchestrator, rail = latest["orchestrator"], latest["rail"]
+    elif local_methods:
+        method = next(iter(local_methods))
+        latest_local = successful_local[-1]
+        provider = getattr(latest_local, "provider", None)
+        orchestrator, rail = None, None
+    else:
+        method, provider = intent.channel, None
+        orchestrator, rail = None, None
+
+    paid, due = float(intent.total_paid or 0), float(intent.balance_due or 0)
+    if due <= 0:
+        aggregate_state = "COMPLETED"
+    elif approved_ar > 0:
+        aggregate_state = "RECEIVABLE"
+    elif active_pending > 0:
+        aggregate_state = "PENDING"
+    elif paid > 0:
+        aggregate_state = "PARTIAL"
+    else:
+        aggregate_state = "PAYMENT_REQUIRED"
+    return {
+        "method": method, "provider": provider, "orchestrator": orchestrator,
+        "rail": rail, "status": aggregate_state, "approved_ar": approved_ar,
+        "active_pending_attempts": active_pending,
+    }
 
 
 def _extract_customer_name(receipt_meta: Dict[str, Any]) -> str | None:
@@ -196,6 +284,8 @@ class PaymentsController:
         intent,
         receipt_meta: Dict[str, Any],
         note: Any = None,
+        external_pending_amount: Decimal = Decimal("0"),
+        accounts_receivable_amount: Decimal = Decimal("0"),
     ):
         """
         Finalizes order destination after settlement.
@@ -227,6 +317,12 @@ class PaymentsController:
             db.add(order)
             return None
 
+        if accounts_receivable_amount <= 0:
+            if external_pending_amount > 0:
+                order.status = "pending_payment"
+                db.add(order)
+            return None
+
         ar = AccountsReceivableService.create_or_update_from_settlement(
             db,
             tenant_id=tenant_id,
@@ -236,14 +332,17 @@ class PaymentsController:
             payment_intent_id=str(getattr(intent, "id", "") or ""),
             original_amount=original_amount_d,
             paid_amount=total_paid_d,
-            balance_due=balance_due_d,
+            balance_due=accounts_receivable_amount,
             customer_name=_extract_customer_name(receipt_meta),
             customer_phone=_extract_customer_phone(receipt_meta),
             note=_extract_note(receipt_meta, note),
             created_by_user_id=user_id,
         )
 
-        OrderRepository.mark_receivable(order)
+        if external_pending_amount > 0:
+            order.status = "pending_payment"
+        else:
+            OrderRepository.mark_receivable(order)
         db.add(order)
 
         return ar
@@ -275,37 +374,11 @@ class PaymentsController:
                 intent_id=intent.id,
             )
 
-            last_attempt = attempts[-1] if attempts else None
             canonical_attempts = (
                 _canonical_xafpay_attempts(db, tenant_id, int(intent.payable_id))
                 if intent.payable_type == "sale" else []
             )
-            successful_attempts = [
-                a
-                for a in attempts
-                if str(getattr(a.status, "value", a.status)).lower()
-                in {"succeeded", "success", "completed", "complete", "paid"}
-            ]
-
-            methods = {
-                str(a.method).lower()
-                for a in successful_attempts
-                if getattr(a, "method", None)
-            }
-
-            if canonical_attempts:
-                method = canonical_attempts[-1]["method"]
-            elif len(methods) > 1:
-                method = "split"
-            elif last_attempt and last_attempt.method:
-                method = str(last_attempt.method).lower()
-            else:
-                method = intent.channel
-
-            provider = (
-                canonical_attempts[-1]["orchestrator"]
-                if canonical_attempts else (last_attempt.provider if last_attempt else None)
-            )
+            summary = _payment_record_summary(db, intent, attempts, canonical_attempts)
 
             enriched_meta = {
                 **meta,
@@ -333,12 +406,14 @@ class PaymentsController:
                     "amount": float(intent.amount or 0),
                     "total_paid": float(intent.total_paid or 0),
                     "balance_due": float(intent.balance_due or 0),
-                    "method": method,
-                    "provider": provider,
+                    "method": summary["method"],
+                    "provider": summary["provider"],
                     "origin_channel": "pos" if canonical_attempts else intent.channel,
-                    "orchestrator": canonical_attempts[-1]["orchestrator"] if canonical_attempts else None,
-                    "rail": canonical_attempts[-1]["rail"] if canonical_attempts else None,
-                    "status": _status_ui(intent.status),
+                    "orchestrator": summary["orchestrator"],
+                    "rail": summary["rail"],
+                    "status": summary["status"],
+                    "approved_ar": summary["approved_ar"],
+                    "active_pending_attempts": summary["active_pending_attempts"],
                     "created_at": intent.created_at.isoformat()
                     if intent.created_at
                     else None,
@@ -384,6 +459,7 @@ class PaymentsController:
             "created_at": a.created_at.isoformat() if a.created_at else None,
             "meta": a.meta or {},
         } for a in attempts] + canonical_attempts
+        summary = _payment_record_summary(db, intent, attempts, canonical_attempts)
 
         return {
             "id": str(intent.id),
@@ -394,12 +470,14 @@ class PaymentsController:
             "payable_id": intent.payable_id,
             "amount": float(intent.amount or 0),
             "currency": intent.currency,
-            "method": canonical_attempts[-1]["method"] if canonical_attempts else intent.channel,
+            "method": summary["method"],
             "origin_channel": "pos" if canonical_attempts else intent.channel,
-            "orchestrator": canonical_attempts[-1]["orchestrator"] if canonical_attempts else None,
-            "rail": canonical_attempts[-1]["rail"] if canonical_attempts else None,
-            "provider": canonical_attempts[-1]["provider"] if canonical_attempts else None,
-            "status": _status_ui(intent.status),
+            "orchestrator": summary["orchestrator"],
+            "rail": summary["rail"],
+            "provider": summary["provider"],
+            "status": summary["status"],
+            "approved_ar": summary["approved_ar"],
+            "active_pending_attempts": summary["active_pending_attempts"],
             "total_paid": float(intent.total_paid or 0),
             "balance_due": float(intent.balance_due or 0),
             "created_at": intent.created_at.isoformat()
@@ -411,6 +489,180 @@ class PaymentsController:
                 "balance_due": float(intent.balance_due or 0),
             },
             "attempts": projected_attempts,
+        }
+
+    async def xafpay_attempt_status(
+        self, request: Request, attempt_public_id: str, db: Session
+    ):
+        """Project status only from XBOS canonical attempt/settlement truth."""
+        ctx = self._get_ctx(request)
+        row = db.execute(text("""
+            SELECT a.public_id,a.attempt_state,a.attempted_amount,a.currency_code,
+                   a.payment_rail_code,a.external_attempt_reference,a.metadata,
+                   (SELECT pi.id FROM payment_intents pi
+                     WHERE pi.tenant_id=a.tenant_id AND pi.payable_type='sale'
+                       AND pi.payable_id=(a.metadata->>'sale_id')::int
+                     ORDER BY pi.id DESC LIMIT 1) AS payment_record_id,
+                   (SELECT count(*) FROM payment_settlements s
+                     WHERE s.tenant_id=a.tenant_id AND s.payment_attempt_id=a.id
+                       AND s.settlement_state='confirmed') AS confirmed_settlements,
+                   (SELECT pi.amount FROM payment_intents pi
+                     WHERE pi.tenant_id=a.tenant_id AND pi.payable_type='sale'
+                       AND pi.payable_id=(a.metadata->>'sale_id')::int
+                     ORDER BY pi.id DESC LIMIT 1) AS commercial_total,
+                   (SELECT pi.total_paid FROM payment_intents pi
+                     WHERE pi.tenant_id=a.tenant_id AND pi.payable_type='sale'
+                       AND pi.payable_id=(a.metadata->>'sale_id')::int
+                     ORDER BY pi.id DESC LIMIT 1) AS total_paid,
+                   (SELECT pi.balance_due FROM payment_intents pi
+                     WHERE pi.tenant_id=a.tenant_id AND pi.payable_type='sale'
+                       AND pi.payable_id=(a.metadata->>'sale_id')::int
+                     ORDER BY pi.id DESC LIMIT 1) AS balance_due,
+                   (SELECT coalesce(sum(ar.balance_due),0) FROM accounts_receivable ar
+                     WHERE ar.tenant_id=a.tenant_id
+                       AND ar.sale_id=(a.metadata->>'sale_id')::int
+                       AND ar.status IN ('open','partial')) AS approved_ar
+              FROM canonical_payment_attempts a
+             WHERE a.tenant_id=:tenant_id AND a.public_id::text=:attempt_id
+               AND a.orchestrator_code='xafpay'
+        """), {"tenant_id": ctx["tenant_id"], "attempt_id": attempt_public_id}).mappings().one_or_none()
+        if row is None:
+            raise HTTPException(status_code=404, detail="XafPay attempt not found")
+        state = str(row["attempt_state"] or "pending").lower()
+        execution = _gateway_execution_status(str(row["external_attempt_reference"]))
+        provider_submitted = bool(execution.get("providerSubmitted"))
+        projected_state = state.upper() if provider_submitted else "CHECKOUT_OPEN"
+        settlements = int(row["confirmed_settlements"] or 0)
+        commercial_total = float(row["commercial_total"] or 0)
+        sale_id = int((row["metadata"] or {}).get("sale_id"))
+        confirmed_local = db.execute(text("""
+            SELECT amount FROM payment_attempts
+             WHERE payment_intent_id=(SELECT id FROM payment_intents
+                                       WHERE tenant_id=:tenant AND payable_type='sale'
+                                         AND payable_id=:sale ORDER BY id DESC LIMIT 1)
+               AND lower(status) IN ('succeeded','success','completed','complete','paid')
+               AND lower(coalesce(method,'')) <> 'xafpay'
+             ORDER BY created_at,id
+        """), {"tenant": ctx["tenant_id"], "sale": sale_id}).scalars().all()
+        total_paid = 0.0
+        for confirmed_amount in confirmed_local:
+            amount = float(confirmed_amount or 0)
+            if amount > 0 and amount <= commercial_total - total_paid:
+                total_paid += amount
+        confirmed_xafpay = db.execute(text("""
+            SELECT coalesce(sum(s.gross_amount),0)
+              FROM payment_settlements s
+              JOIN canonical_payment_attempts a
+                ON a.tenant_id=s.tenant_id AND a.id=s.payment_attempt_id
+             WHERE s.tenant_id=:tenant AND a.metadata->>'sale_id'=:sale
+               AND a.orchestrator_code='xafpay'
+               AND s.settlement_state IN ('confirmed','partially_reversed')
+        """), {"tenant": ctx["tenant_id"], "sale": str(sale_id)}).scalar_one()
+        total_paid = min(commercial_total, total_paid + float(confirmed_xafpay or 0))
+        balance_due = max(0.0, commercial_total - total_paid)
+        approved_ar = float(row["approved_ar"] or 0)
+        return {
+            "attempt_public_id": str(row["public_id"]),
+            "attempt_state": projected_state,
+            "provider_submitted": provider_submitted,
+            "gateway_attempt_id": execution.get("attemptId"),
+            "gateway_attempt_state": execution.get("attemptStatus"),
+            "amount": float(row["attempted_amount"]),
+            "currency": row["currency_code"],
+            "rail": row["payment_rail_code"],
+            "gateway_payment_id": row["external_attempt_reference"],
+            "order_id": (row["metadata"] or {}).get("order_id"),
+            "sale_id": (row["metadata"] or {}).get("sale_id"),
+            "payment_record_id": str(row["payment_record_id"]),
+            "confirmed_settlements": settlements,
+            "financially_confirmed": state == "succeeded" and settlements == 1,
+            "commercial_total": commercial_total,
+            "total_paid": total_paid,
+            "balance_due": balance_due,
+            "approved_ar": approved_ar,
+            "collectible_now": max(0.0, balance_due - approved_ar),
+        }
+
+    async def xafpay_order_recovery(
+        self, request: Request, order_id: int, db: Session
+    ):
+        """Return only the latest XafPay state for this exact WND obligation."""
+        ctx = self._get_ctx(request)
+        row = db.execute(text("""
+            SELECT a.public_id,a.attempt_state,a.attempted_amount,
+                   a.payment_rail_code,a.external_attempt_reference,a.metadata,
+                   (SELECT pi.id FROM payment_intents pi
+                     WHERE pi.tenant_id=a.tenant_id AND pi.payable_type='sale'
+                       AND pi.payable_id=(a.metadata->>'sale_id')::int
+                     ORDER BY pi.id DESC LIMIT 1) AS payment_record_id,
+                   (SELECT count(*) FROM payment_settlements s
+                     WHERE s.tenant_id=a.tenant_id AND s.payment_attempt_id=a.id
+                       AND s.settlement_state='confirmed') confirmed_settlements
+              FROM canonical_payment_attempts a
+             WHERE a.tenant_id=:tenant AND a.organization_unit_id=:branch
+               AND a.metadata->>'order_id'=:order_id
+               AND a.orchestrator_code='xafpay'
+             ORDER BY a.occurred_at DESC,a.id DESC LIMIT 1
+        """), {"tenant": ctx["tenant_id"], "branch": ctx["branch_id"],
+                 "order_id": str(order_id)}).mappings().one_or_none()
+        if row is None:
+            return {"order_id": order_id, "has_xafpay_attempt": False,
+                    "unresolved": False}
+        state = str(row["attempt_state"] or "pending").lower()
+        execution = _gateway_execution_status(str(row["external_attempt_reference"]))
+        provider_submitted = bool(execution.get("providerSubmitted"))
+        unresolved = provider_submitted and state in {"pending", "processing", "unknown"}
+        return {
+            "order_id": order_id,
+            "sale_id": (row["metadata"] or {}).get("sale_id"),
+            "payment_record_id": str(row["payment_record_id"]),
+            "has_xafpay_attempt": provider_submitted,
+            "has_checkout_proposal": not provider_submitted,
+            "unresolved": unresolved,
+            "attempt_public_id": str(row["public_id"]),
+            "attempt_state": state.upper() if provider_submitted else "CHECKOUT_OPEN",
+            "provider_submitted": provider_submitted,
+            "gateway_attempt_id": execution.get("attemptId"),
+            "gateway_attempt_state": execution.get("attemptStatus"),
+            "amount": float(row["attempted_amount"]),
+            "rail": row["payment_rail_code"],
+            "gateway_payment_id": row["external_attempt_reference"],
+            "confirmed_settlements": int(row["confirmed_settlements"] or 0),
+        }
+
+    async def request_xafpay_cancellation(
+        self, request: Request, attempt_public_id: str, db: Session
+    ):
+        """Fail closed unless canonical evidence already makes replacement safe.
+
+        Tranzak's current adapter has query/refresh operations but no verified
+        in-flight cancellation operation. An operator request therefore never
+        mutates attempt or financial state.
+        """
+        projection = await self.xafpay_attempt_status(
+            request=request, attempt_public_id=attempt_public_id, db=db
+        )
+        state = str(projection["attempt_state"]).upper()
+        settlements = int(projection["confirmed_settlements"] or 0)
+        if state == "SUCCEEDED" or settlements > 0:
+            return {
+                **projection,
+                "cancellation_state": "UNAVAILABLE_SUCCEEDED",
+                "replacement_tender_allowed": False,
+                "message": "Payment is already confirmed. Cancellation is unavailable.",
+            }
+        if state in {"FAILED", "EXPIRED", "CANCELLED", "CANCELED"}:
+            return {
+                **projection,
+                "cancellation_state": "TERMINAL_CONFIRMED",
+                "replacement_tender_allowed": True,
+                "message": "The prior attempt is terminal. No money was collected; choose another payment method.",
+            }
+        return {
+            **projection,
+            "cancellation_state": "UNCONFIRMED",
+            "replacement_tender_allowed": False,
+            "message": "Cancellation is not yet confirmed. This payment may still complete. Do not collect another payment yet.",
         }
 
     # =====================================================
@@ -494,6 +746,22 @@ class PaymentsController:
             })
         for intent in unresolved:
             raw_status = str(getattr(intent.status, "value", intent.status) or "pending").lower()
+            recovery = None
+            if intent.payable_type == "sale":
+                xafpay_attempts = _canonical_xafpay_attempts(
+                    db, tenant_id, int(intent.payable_id)
+                )
+                if xafpay_attempts:
+                    latest = xafpay_attempts[-1]
+                    if latest["status"] == "PENDING":
+                        recovery = {
+                            "attempt_public_id": latest["id"],
+                            "order_id": latest["meta"].get("order_id"),
+                            "sale_id": int(intent.payable_id),
+                            "payment_record_id": str(intent.id),
+                            "rail": latest["rail"],
+                            "orchestrator": latest["orchestrator"],
+                        }
             rows.append({
                 "id": f"intent:{intent.id}", "source": "payment_intent", "source_id": intent.id,
                 "activity_type": "Outstanding payment", "event_type": "PAYMENT_INTENT",
@@ -502,7 +770,8 @@ class PaymentsController:
                 "currency": str(intent.currency or "XAF"), "channel": clean(intent.channel) or "—",
                 "reference": f"{str(intent.payable_type).title()} #{intent.payable_id}", "detail": None,
                 "occurred_at": intent.created_at.isoformat() if intent.created_at else None,
-                "document_type": None, "_sort_at": intent.created_at,
+                "document_type": None, "recovery": recovery,
+                "_sort_at": intent.created_at,
             })
         rows.sort(key=lambda row: (row["_sort_at"] is not None, row["_sort_at"], row["id"]), reverse=True)
         rows = rows[:safe_limit]
@@ -546,6 +815,33 @@ class PaymentsController:
         client_reference = payload.get("client_reference")
         lines: List[Dict[str, Any]] = payload.get("lines") or []
 
+        if order_id:
+            unresolved = db.execute(text("""
+                SELECT a.public_id,a.attempt_state,a.attempted_amount,a.external_attempt_reference
+                  FROM canonical_payment_attempts a
+                 WHERE a.tenant_id=:tenant AND a.organization_unit_id=:branch
+                   AND a.metadata->>'order_id'=:order_id
+                   AND a.orchestrator_code='xafpay'
+                   AND a.attempt_state IN ('pending','processing','unknown')
+                 ORDER BY a.occurred_at DESC,a.id DESC LIMIT 1
+            """), {"tenant": tenant_id, "branch": branch_id,
+                     "order_id": str(order_id)}).mappings().one_or_none()
+            if unresolved is not None:
+                try:
+                    execution = _gateway_execution_status(str(unresolved["external_attempt_reference"]))
+                except XafPayV2IntegrationError:
+                    execution = {"providerSubmitted": True}  # fail closed on status loss
+                if bool(execution.get("providerSubmitted")):
+                    raise HTTPException(
+                        status_code=status.HTTP_409_CONFLICT,
+                        detail={
+                            "code": "XAFPAY_UNRESOLVED_OBLIGATION",
+                            "attempt_public_id": str(unresolved["public_id"]),
+                            "attempt_state": str(unresolved["attempt_state"]).upper(),
+                            "amount": float(unresolved["attempted_amount"]),
+                        },
+                    )
+
         if any(
             str(line.get("method") or "").strip().lower() == "xafpay"
             or str(line.get("settlement_mode") or "").strip().lower() == "async_gateway"
@@ -584,6 +880,7 @@ class PaymentsController:
         change_given_now = payload.get("change_given_now")
         tip_amount = payload.get("tip_amount")
         unpaid_amount = payload.get("unpaid_amount")
+        external_pending_amount = _d(payload.get("external_pending_amount"))
         note = payload.get("note")
 
         change_amount_d = _d(change_amount)
@@ -709,6 +1006,8 @@ class PaymentsController:
                 intent=intent,
                 receipt_meta=receipt_meta,
                 note=note,
+                external_pending_amount=external_pending_amount,
+                accounts_receivable_amount=_d(unpaid_amount),
             )
 
         # =====================================================
@@ -797,6 +1096,7 @@ class PaymentsController:
 
         order_id = payload.get("order_id")
         rail = payload.get("provider")
+        requested_amount = _d(payload.get("amount"))
 
         if not order_id or not rail:
             raise HTTPException(
@@ -828,7 +1128,7 @@ class PaymentsController:
                 payable_id=sale.id,
                 currency="XAF",
                 amount=Decimal(str(sale.total or 0)),
-                channel="xafpay",
+                channel="pos",
                 created_by_user_id=user_id,
                 client_reference=str(uuid.uuid4()),
                 meta={
@@ -839,6 +1139,15 @@ class PaymentsController:
             )
             db.flush()
 
+        available_balance = _d(getattr(intent, "balance_due", None) or getattr(intent, "amount", 0))
+        if requested_amount <= 0:
+            requested_amount = available_balance
+        if requested_amount <= 0 or requested_amount > available_balance:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="XafPay allocation must be positive and no greater than the XBOS balance due",
+            )
+
         base_url = os.environ.get("XAFPAY_V2_GATEWAY_BASE_URL", "").strip()
         credential = os.environ.get("XAFPAY_V2_SERVICE_CREDENTIAL", "").strip()
         presentation_url = os.environ.get("XAFPAY_V2_CHECKOUT_PRESENTATION_URL", "").strip()
@@ -847,6 +1156,7 @@ class PaymentsController:
         if not presentation_url.startswith("http://127.0.0.1:5174/xafpay-checkout"):
             raise HTTPException(status_code=503, detail="XafPay Checkout presentation origin unavailable")
         client_reference = str(payload.get("client_reference") or f"wnd-order-{order_id}")
+        gateway_client = XafPayV2Client(base_url, credential)
         try:
             result = WndXafPayV2Service.initiate_order(
                 db,
@@ -854,11 +1164,12 @@ class PaymentsController:
                 organization_unit_id=branch_id,
                 order_id=int(order_id),
                 sale_id=int(sale.id),
-                amount=Decimal(str(sale.total or 0)),
+                amount=requested_amount,
                 rail=str(rail),
                 client_reference=client_reference,
-                client=XafPayV2Client(base_url, credential),
+                client=gateway_client,
             )
+            execution = gateway_client.payment_execution_status(result["gateway_payment_id"])
             db.commit()
         except XafPayV2IntegrationError as exc:
             db.rollback()
@@ -874,5 +1185,12 @@ class PaymentsController:
             raise HTTPException(status_code=502, detail=f"XafPay V2 initiation failed: {type(exc).__name__}") from exc
         return {
             **result,
+            "status": (
+                str(execution.get("attemptStatus") or "PENDING").upper()
+                if execution.get("providerSubmitted") else "CHECKOUT_OPEN"
+            ),
+            "provider_submitted": bool(execution.get("providerSubmitted")),
+            "gateway_attempt_id": execution.get("attemptId"),
+            "payment_record_id": str(intent.id),
             "paymentUrl": f"{presentation_url}#token={result['checkout_token']}",
         }

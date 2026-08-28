@@ -93,8 +93,17 @@ def register_middlewares(app: FastAPI):
 # 5) REGISTER API ROUTES
 # ============================================================
 def register_routes(app: FastAPI):
+    from core.auth.auth_controller import login
+    from core.auth.schemas import TokenResponse
     from core.api.kernel_router import kernel_router
     app.include_router(kernel_router)
+    app.add_api_route(
+        "/api/auth/login",
+        login,
+        methods=["POST"],
+        response_model=TokenResponse,
+        tags=["Auth"],
+    )
 
 
 # ============================================================

@@ -23,6 +23,7 @@ class Order(Base):
     )
 
     status = Column(String(50), default="pending_payment")
+    fulfillment_mode = Column(String(32), nullable=True)
 
     subtotal = Column(Numeric(12, 2), default=0)
     total = Column(Numeric(12, 2), default=0)

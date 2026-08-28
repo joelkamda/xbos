@@ -45,6 +45,43 @@ async def payments_activity(
     return await controller.list_activity(request=request, db=db, limit=limit)
 
 
+@router.get("/xafpay/attempts/{attempt_public_id}/status")
+@require_permissions("payments.view")
+async def xafpay_attempt_status(
+    attempt_public_id: str,
+    request: Request,
+    db: Session = Depends(get_db),
+):
+    """Read XBOS-owned attempt and settlement projection for modal recovery."""
+    return await controller.xafpay_attempt_status(
+        attempt_public_id=attempt_public_id, request=request, db=db
+    )
+
+
+@router.get("/xafpay/orders/{order_id}/recovery")
+@require_permissions("payments.view")
+async def xafpay_order_recovery(
+    order_id: int,
+    request: Request,
+    db: Session = Depends(get_db),
+):
+    return await controller.xafpay_order_recovery(
+        order_id=order_id, request=request, db=db
+    )
+
+
+@router.post("/xafpay/attempts/{attempt_public_id}/cancel-request")
+@require_permissions("payments.receive")
+async def request_xafpay_cancellation(
+    attempt_public_id: str,
+    request: Request,
+    db: Session = Depends(get_db),
+):
+    return await controller.request_xafpay_cancellation(
+        attempt_public_id=attempt_public_id, request=request, db=db
+    )
+
+
 # -------------------------------------------------
 # Get single payment
 # -------------------------------------------------

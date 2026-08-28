@@ -412,6 +412,8 @@ class ReceiptsController:
                 "method": str(a.method),
                 "provider": str(a.provider) if a.provider else None,
                 "amount": float(_d(a.amount)),
+                "cash_given": float(_d((a.meta or {}).get("tendered")))
+                if str(a.method).lower() == "cash" else None,
                 "settlement_mode": str(a.settlement_mode)
                 if getattr(a, "settlement_mode", None)
                 else None,
