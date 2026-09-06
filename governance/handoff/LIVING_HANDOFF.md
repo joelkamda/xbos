@@ -2,9 +2,7 @@
 
 ## Purpose
 
-This file is the moving succession-state authority for the XBOS lane. It is installed in the canonical XBOS source repository and must be read completely before a fresh lane instance proposes implementation, repository mutation, deployment work, architecture change, A0 work, F-series work, R6.4 repair, or WND production action.
-
-`XBOS_START_HERE.md` is the stable front door once present. This living handoff owns moving state.
+This file is the moving succession-state authority for the XBOS lane. A fresh XBOS lane instance enters through `XBOS_START_HERE.md`, reads this file completely first, verifies current repository evidence, and reports authority state before taking action.
 
 ## Lane and Baseline
 
@@ -18,11 +16,11 @@ DOMAIN_BASELINE_COMMIT=b97d3850b120aff92261ad9edcb3bf3151ebbcb3
 
 DOMAIN_BASELINE_TAG=restaurant-r6-3-wnd-application-compatibility-uat-20260822
 
-ACTIVE_TRANCHE=XBOS_SUCCESSION_INSTALLATION
+ACTIVE_TRANCHE=XBOS_SUCCESSION_COLD_START_ACCEPTANCE
 
 CURRENT_REPOSITORY_HEAD=VERIFY_LIVE
 
-CURRENT_STATE=SUCCESSION_FOUNDATION_INSTALLED_PENDING_START_HERE
+CURRENT_STATE=SUCCESSION_INSTALLED_COLD_START_TEST_PENDING_R6_4_UNCOMMITTED_CONTINUITY_R6_5_NOT_PROVEN
 
 ## Current Authority State
 
@@ -30,7 +28,7 @@ IMPLEMENTATION_AUTHORIZED=NO
 
 FREEZE_AUTHORIZED=NO
 
-REPOSITORY_MUTATION_AUTHORIZED=SUCCESSION_INSTALLER_COMMIT_CHAIN_ONLY
+REPOSITORY_MUTATION_AUTHORIZED=NO_UNLESS_EXPLICIT_CURRENT_AUTHORITY
 
 R6_4_REPAIR_AUTHORIZED=NO
 
@@ -70,19 +68,23 @@ WND_LIVE_RUNTIME_STATE=VERIFY_REQUIRED_EXTERNAL_ENVIRONMENT
 
 ## Succession State
 
-SUCCESSION_FOUNDATION=INSTALLED_PENDING_START_HERE
+SUCCESSION_FOUNDATION=INSTALLED
 
-XBOS_START_HERE_PRESENT=NO
+XBOS_START_HERE_PRESENT=YES
 
-XBOS_START_HERE_STATE=ABSENT_PENDING_COMMIT_B
+XBOS_START_HERE_STATE=INSTALLED_ACCEPTED_PENDING_COLD_START_TEST
 
-SUCCESSION_STATE=INSTALLATION_IN_PROGRESS
+XBOS_START_HERE_COMMIT=4678757e80c9313b6fb04cf5711f99dc9dc56d29
+
+SUCCESSION_STATE=COLD_START_TEST_PENDING
 
 SUCCESSION_FOUNDATION_PARENT=b97d3850b120aff92261ad9edcb3bf3151ebbcb3
 
-KNOWN_R6_4_CONTINUITY=PRESERVE_EXACTLY
+SUCCESSION_FOUNDATION_COMMIT=416f6cbf19a2fbd28859a98a03ca6004bc930cc5
 
-NEXT_AUTHORIZED_ACTION=COMPLETE_AUTHORIZED_SUCCESSION_COMMIT_CHAIN_OR_FAIL_CLOSED_AND_RETURN_TO_PCR
+KNOWN_R6_4_CONTINUITY=PRESERVED_EXACTLY_AT_INSTALLER_COMPLETION
+
+NEXT_AUTHORIZED_ACTION=RUN_FRESH_XBOS_COLD_START_SUCCESSION_TEST_AND_RETURN_RESULT_TO_PCR
 
 ## Permanent Topology
 
@@ -119,6 +121,16 @@ LIVE_RUNTIME != SOURCE_REPOSITORY
 NEUTRAL_XBOS_KERNEL + INDUSTRY_PACK + TENANT_CONFIGURATION = DEPLOYED_BUSINESS_SYSTEM
 
 WND is a proving tenant and production specimen. It is not the definition of the neutral XBOS kernel or the Restaurant industry pack.
+
+## Immutable Domain Baseline Versus Succession Head
+
+The succession commits advance Git HEAD for governance continuity only.
+
+DOMAIN_BASELINE != SUCCESSION_CONTINUITY_HEAD
+
+R6.3 accepted UAT remains the immutable domain baseline at `b97d3850b120aff92261ad9edcb3bf3151ebbcb3`.
+
+The preserved R6.4 working tree does not become accepted, frozen, or authorized because governance succession commits exist above the domain baseline.
 
 ## R6.4 Continuity Boundary
 
