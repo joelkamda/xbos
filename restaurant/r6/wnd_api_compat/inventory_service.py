@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime, timezone
 from decimal import Decimal
 from typing import Any, Dict, List, Optional
 
@@ -297,6 +297,38 @@ class InventoryService:
         return bool(profile.get("stock_tracked"))
 
     @staticmethod
+    def require_stock_tracked_profile(
+        db: Session,
+        *,
+        tenant_id: int,
+        atomic_unit_id: int,
+        operation: str,
+    ) -> Dict[str, Any]:
+        """
+        Fail closed for manual stock mutations on non-inventory atomic units.
+
+        Sales reservation/finalization already skips non-stock-tracked units.
+        Manual stock operations must be equally strict so services, fees,
+        subscriptions, or other non-inventory atomic units cannot acquire new
+        InventoryMovement history by accident.
+        """
+
+        profile = InventoryService.get_inventory_profile(
+            db,
+            tenant_id=tenant_id,
+            atomic_unit_id=atomic_unit_id,
+        )
+
+        if not InventoryService.is_stock_tracked_profile(profile):
+            name = str(profile.get("atomic_unit_name") or atomic_unit_id)
+            raise ValueError(
+                f"{operation} is not allowed for non-stock-tracked atomic unit "
+                f"{name} (atomic_unit_id={atomic_unit_id})"
+            )
+
+        return profile
+
+    @staticmethod
     def allow_negative_from_profile(
         profile: Optional[Dict[str, Any]],
         *,
@@ -366,7 +398,7 @@ class InventoryService:
             stock_location_id=canonical_stock_location_id,
             quantity_on_hand=0,
             reorder_level=_int(reorder_level) if reorder_level is not None else None,
-            created_at=datetime.utcnow(),
+            created_at=datetime.now(timezone.utc),
         )
 
         InventoryRepository.create_item(
@@ -575,6 +607,55 @@ class InventoryService:
 
         return movement
 
+    @staticmethod
+    def _existing_manual_movement(
+        db: Session,
+        *,
+        tenant_id: int,
+        branch_id: int,
+        atomic_unit_id: int,
+        movement_type: str,
+        quantity_delta: int,
+        reference_type: str,
+        reference_id: Optional[int],
+    ) -> Optional[InventoryMovement]:
+        # Idempotency guard for referenced manual stock mutations.
+        # Same reference + same delta returns the original movement.
+        # Same reference + different delta is a conflict.
+
+        if reference_id is None:
+            return None
+
+        existing = InventoryRepository.list_movements_for_reference(
+            db,
+            tenant_id=tenant_id,
+            branch_id=branch_id,
+            reference_type=reference_type,
+            reference_id=reference_id,
+            movement_type=movement_type,
+            atomic_unit_id=atomic_unit_id,
+            limit=10,
+        )
+
+        if not existing:
+            return None
+
+        if len(existing) != 1:
+            raise ValueError(
+                "Inventory idempotency conflict: multiple movements already "
+                f"exist for {reference_type}:{reference_id}"
+            )
+
+        movement = existing[0]
+
+        if int(movement.quantity_delta or 0) != int(quantity_delta):
+            raise ValueError(
+                "Inventory idempotency conflict: reference already exists "
+                "with a different quantity delta"
+            )
+
+        return movement
+
     # ========================================================
     # Manual stock operations
     # ========================================================
@@ -619,6 +700,27 @@ class InventoryService:
 
         if not unit:
             raise ValueError(f"Atomic unit not found: {atomic_unit_id}")
+
+        InventoryService.require_stock_tracked_profile(
+            db,
+            tenant_id=tenant_id,
+            atomic_unit_id=atomic_unit_id,
+            operation="stock_in",
+        )
+
+        existing = InventoryService._existing_manual_movement(
+            db,
+            tenant_id=tenant_id,
+            branch_id=branch_id,
+            atomic_unit_id=atomic_unit_id,
+            movement_type=MOVEMENT_STOCK_IN,
+            quantity_delta=quantity,
+            reference_type=reference_type,
+            reference_id=reference_id,
+        )
+
+        if existing is not None:
+            return existing
 
         if update_cost_price and unit_cost is not None:
             cost = _decimal(unit_cost)
@@ -687,6 +789,27 @@ class InventoryService:
         if not unit:
             raise ValueError(f"Atomic unit not found: {atomic_unit_id}")
 
+        InventoryService.require_stock_tracked_profile(
+            db,
+            tenant_id=tenant_id,
+            atomic_unit_id=atomic_unit_id,
+            operation="adjust_inventory",
+        )
+
+        existing = InventoryService._existing_manual_movement(
+            db,
+            tenant_id=tenant_id,
+            branch_id=branch_id,
+            atomic_unit_id=atomic_unit_id,
+            movement_type=MOVEMENT_ADJUSTMENT,
+            quantity_delta=quantity_delta,
+            reference_type=reference_type,
+            reference_id=reference_id,
+        )
+
+        if existing is not None:
+            return existing
+
         return InventoryService._apply_quantity_movement(
             db,
             tenant_id=tenant_id,
@@ -729,6 +852,27 @@ class InventoryService:
 
         if quantity <= 0:
             raise ValueError("quantity must be greater than zero")
+
+        InventoryService.require_stock_tracked_profile(
+            db,
+            tenant_id=tenant_id,
+            atomic_unit_id=atomic_unit_id,
+            operation=movement_type,
+        )
+
+        existing = InventoryService._existing_manual_movement(
+            db,
+            tenant_id=tenant_id,
+            branch_id=branch_id,
+            atomic_unit_id=atomic_unit_id,
+            movement_type=movement_type,
+            quantity_delta=-abs(quantity),
+            reference_type=reference_type,
+            reference_id=reference_id,
+        )
+
+        if existing is not None:
+            return existing
 
         return InventoryService._apply_quantity_movement(
             db,
@@ -1143,14 +1287,18 @@ class InventoryService:
         movements: List[InventoryMovement] = []
 
         if getattr(sale, "order_id", None):
-            order_commit_movements = InventoryService.commit_order_reservation(
+            # Order-linked sales must never fall through to direct-sale
+            # deduction. The order reservation already owns the stock effect.
+            #
+            # commit_order_reservation() is replay-safe: on a retry it returns
+            # no new markers when sale_commit already exists. Returning that
+            # result unconditionally prevents a payment/finalization retry from
+            # being misinterpreted as a direct sale and deducting stock again.
+            return InventoryService.commit_order_reservation(
                 db,
                 order_id=sale.order_id,
                 sale=sale,
             )
-
-            if order_commit_movements:
-                return order_commit_movements
 
         existing_sale_holds = InventoryService._active_reserved_qty_by_atomic(
             db,

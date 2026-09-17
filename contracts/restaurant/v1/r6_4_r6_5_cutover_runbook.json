@@ -1,0 +1,91 @@
+{
+  "contract": "R6_4_R6_5_DETERMINISTIC_CUTOVER_RUNBOOK",
+  "legacy_head": "5c706797029a",
+  "neutral_default_runtime_entrypoint": "main:app",
+  "phases": [
+    {
+      "action": "explicitly authorize R6.5 execution and name the maintenance window",
+      "id": "P0_AUTHORIZATION",
+      "stop_on_failure": true,
+      "writes_allowed": false
+    },
+    {
+      "action": "block new WND business writes and stop application writer processes; verify no application writer session remains",
+      "id": "P1_MAINTENANCE_ENTRY",
+      "stop_on_failure": true,
+      "writes_allowed": false
+    },
+    {
+      "action": "capture final custom-format xbos backup, SHA256, size, pg_restore list, legacy head, and stopped-state controls",
+      "id": "P2_FINAL_BACKUP",
+      "stop_on_failure": true,
+      "writes_allowed": false
+    },
+    {
+      "action": "restore the exact final backup into a disposable recovery database and require control parity before touching live schema",
+      "id": "P3_RESTORE_PROOF",
+      "stop_on_failure": true,
+      "writes_allowed": false
+    },
+    {
+      "action": "stamp the legacy source into the frozen neutral lineage, upgrade live xbos to r63_legacy_inventory_writer_compat_044, and apply WND Restaurant composition",
+      "id": "P4_LIVE_SCHEMA_ADOPTION",
+      "scope": "approved schema/composition writes only while maintenance remains closed",
+      "stop_on_failure": true,
+      "writes_allowed": true
+    },
+    {
+      "action": "start restaurant.r6.wnd_compat_runtime:app from the exact R6.4-frozen Track B source on the neutralized live database; this explicit temporary WND API bridge preserves the accepted frontend contract while legacy writer compatibility remains active",
+      "id": "P5_TRACK_B_RUNTIME",
+      "stop_on_failure": true,
+      "writes_allowed": false
+    },
+    {
+      "action": "health/OpenAPI/read compatibility including all 26 frozen Track-A-only WND routes, legacy control parity, Restaurant pack/template/PC4 proof, compatibility-trigger proof, non-WND fail-closed proof, and no writer-retirement proof",
+      "id": "P6_MAINTENANCE_VALIDATION",
+      "stop_on_failure": true,
+      "writes_allowed": "diagnostic transactions only when explicitly rollback-safe"
+    },
+    {
+      "action": "reopen WND business operations and mark the first post-cutover business write as the operational commit boundary",
+      "id": "P7_REOPEN",
+      "stop_on_failure": true,
+      "writes_allowed": true
+    },
+    {
+      "action": "begin governed WND production hypercare; retain the legacy writer compatibility inventory and all rollback anchors",
+      "id": "P8_HYPERCARE_ENTRY",
+      "stop_on_failure": false,
+      "writes_allowed": true
+    }
+  ],
+  "point_of_operational_commit": "first successful business write after P7 reopen",
+  "production_database": "xbos",
+  "r6_5_live_cutover_authorized_by_r6_4": false,
+  "rollback_boundaries": [
+    {
+      "rollback": "no database rollback required; restore prior application availability",
+      "state": "before P4 live schema adoption"
+    },
+    {
+      "rollback": "full restore from the exact P2 final backup is permitted because business writes remain stopped; restore prior application source",
+      "state": "after P4 but before P7 reopen"
+    },
+    {
+      "rollback": "full backup restore remains permissible only after re-entering maintenance and proving no post-cutover write occurred",
+      "state": "after P7 reopen but before first post-cutover business write"
+    },
+    {
+      "rollback": "NO blind database restore. Preserve live database. Application rollback may return to frozen Track A backend b60a71d against the neutral r63 schema, a compatibility path proven in R6.3. Incident recovery must preserve all post-cutover transactions.",
+      "state": "after first post-cutover business write"
+    }
+  ],
+  "schema_version": 1,
+  "target_head": "r63_legacy_inventory_writer_compat_044",
+  "track_b_source_anchor": "R6.4 freeze commit to be produced only after R6_4_SINGLE_GATE=PASS",
+  "wnd_api_compatibility_retirement": "forbidden until post-hypercare separate retirement approval",
+  "wnd_frontend_anchor": "f47f574f6a2f2e2247ab7c491dc65c7800adbc9d",
+  "wnd_hypercare_runtime_entrypoint": "restaurant.r6.wnd_compat_runtime:app",
+  "wnd_reference_backend_rollback_anchor": "b60a71dcc06657bd407fac043f6f3922d5bfe32f",
+  "writer_retirement": "deferred until post-cutover hypercare acceptance"
+}

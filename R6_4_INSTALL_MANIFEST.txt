@@ -1,0 +1,75 @@
+R6.4 INSTALL MANIFEST
+=====================
+
+Static artifacts:
+- R6_4_REVISION_9_WND_COMPAT_OPENAPI_BINDING.txt
+- R6_4_REVISION_8_WND_API_COMPATIBILITY_BRIDGE.txt
+- contracts/restaurant/v1/r6_4_wnd_api_compatibility_bridge.json
+- restaurant/r6/wnd_compat_runtime.py
+- restaurant/r6/wnd_api_compat/__init__.py
+- restaurant/r6/wnd_api_compat/router.py
+- restaurant/r6/wnd_api_compat/ar_compat.py
+- restaurant/r6/wnd_api_compat/customers_router.py
+- restaurant/r6/wnd_api_compat/payments_controller.py
+- restaurant/r6/wnd_api_compat/orders_controller.py
+- restaurant/r6/wnd_api_compat/operational_reports_service.py
+- restaurant/r6/wnd_api_compat/stock_report_service.py
+- restaurant/r6/wnd_api_compat/inventory_service.py
+- restaurant/r6/wnd_api_compat/stock_reconciliation_service.py
+- R6_4_REVISION_7_COLLISION_SAFE_DIAGNOSTIC_PORTS.txt
+- R6_4_REVISION_6_BCRYPT_CONTROL_BACKEND.txt
+- R6_4_REVISION_5_ISOLATED_FULL_REGRESSION.txt
+- scripts/run_r6_4_isolated_full_regression.py
+- scripts/verify_r6_1_wnd_rehearsal_adoption.py
+- R6_4_REVISION_4_DOWNSTREAM_RELEASE_INTEGRITY_CHAIN.txt
+- contracts/shared_operations/v1/so1_release_manifest.json
+- contracts/shared_operations/v1/so2_release_manifest.json
+- contracts/shared_operations/v1/so3_release_manifest.json
+- contracts/shared_operations/v1/so4_release_manifest.json
+- contracts/shared_operations/v1/so5_release_manifest.json
+- contracts/shared_operations/v1/so6_release_manifest.json
+- contracts/shared_operations/v1/so7_release_manifest.json
+- contracts/shared_operations/v1/so8_release_manifest.json
+- contracts/shared_operations/v1/so9_release_manifest.json
+- contracts/shared_operations/v1/so10_release_manifest.json
+- contracts/shared_operations/v1/so_aggregate_release_manifest.json
+- contracts/packs/v1/pk0123_release_manifest.json
+- contracts/packs/v1/pk456_release_manifest.json
+- contracts/packs/v1/pk_aggregate_release_manifest.json
+- contracts/platform_admin/v1/pa0123_release_manifest.json
+- contracts/platform_admin/v1/pa45_release_manifest.json
+- contracts/platform_admin/v1/pa6_release_manifest.json
+- contracts/platform/v1/sc41_release_manifest.json
+- contracts/restaurant/v1/r1_release_manifest.json
+- contracts/restaurant/v1/r2_release_manifest.json
+- R6_4_REVISION_3_CUMULATIVE_PLATFORM_INTEGRITY.txt
+- contracts/platform/v1/pc0_frozen_finance_inventory.json
+- contracts/platform/v1/pc0_release_manifest.json
+- contracts/platform/v1/pc6_release_manifest.json
+- R6_4_REVISION_2_WND_SERVER_RUNTIME.txt
+- requirements-r6-4-control.txt
+- R6_4_INSTALL_MANIFEST.txt
+- XBOS_R6_4_INSTALL_AND_VERIFY.txt
+- XBOS_R6_4_CAPTURE_PLANNING_BASELINE.cmd
+- XBOS_R6_4_RUN_ACCEPTANCE.cmd
+- contracts/restaurant/v1/r6_4_production_cutover_package_authority.json
+- contracts/restaurant/v1/r6_4_r6_5_cutover_runbook.json
+- contracts/restaurant/v1/r6_4_hypercare_retirement_boundary.json
+- contracts/restaurant/v1/r6_4_release_manifest.json
+- docs/restaurant/R6_4_WND_PRODUCTION_CUTOVER_PACKAGE_AND_RUNBOOK.md
+- docs/restaurant/adr/0010_R6_4_CUTOVER_BEFORE_LEGACY_WRITER_RETIREMENT.md
+- restaurant/r6/production_cutover.py
+- restaurant/r6/__init__.py
+- scripts/capture_r6_4_wnd_planning_baseline.py
+- scripts/verify_r6_4_wnd_production_cutover_package.py
+- tests/contracts/test_r6_4_wnd_production_cutover_package.py
+
+Runtime evidence generated under Downloads:
+- WND_R6_4_PLANNING_BASELINE_<timestamp>.backup
+- WND_R6_4_PLANNING_BASELINE_<timestamp>.json
+- XBOS_R6_4_LATEST_PLANNING_BASELINE.txt
+- XBOS_R6_4_ACCEPTANCE_RESULT.json
+
+R6.4 introduces no new Alembic migration.
+R6.5 target remains r63_legacy_inventory_writer_compat_044.
+R6.4 performs no live cutover and no writer retirement.

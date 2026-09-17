@@ -1,14 +1,5 @@
 {
-  "schema_version": 1,
-  "release": "XBOS_SO1_ATOMIC_UNITS_CATALOG_OFFERS_PRICING",
-  "source_checkpoint": "f72f4b5",
-  "source_checkpoint_full": "f72f4b5d8ad8e576212347615458fcd801e9f7bd",
-  "previous_head": "pc5_identity_policy_audit_025",
   "accepted_head": "so1_atomic_catalog_offer_pricing_026",
-  "migration_count": 1,
-  "fingerprint_mode": "sha256_crlf_to_lf_only",
-  "commit": "NOT_CREATED",
-  "tag": "NOT_CREATED",
   "artifacts": [
     {
       "path": "SO1_INSTALL_MANIFEST.txt",
@@ -36,15 +27,15 @@
     },
     {
       "path": "contracts/platform/v1/pc0_frozen_finance_inventory.json",
-      "sha256": "a23a8d36e63884df36985b954b33e37da3d75b0ab39f0fb73e8a229e3706514a"
+      "sha256": "85f45225fd783244f00dec1c8d3cc290f5885caa5d0e442cd83dd3c40bb843d2"
     },
     {
       "path": "contracts/platform/v1/pc0_release_manifest.json",
-      "sha256": "656148d0f34b2ea79e0ad8ebac8ded3135b034981e663c788eb14d93515ee0af"
+      "sha256": "6e335af697bde10dfc2cf847fdd489ea4df12f315e626dfd6fb3a674b64e6a6a"
     },
     {
       "path": "contracts/platform/v1/pc6_release_manifest.json",
-      "sha256": "c45eebade075fa1aea898afbe138c168e8dba839761e570443e28e827c930de6"
+      "sha256": "f78330d5e40c8415b9f564ebf04d15a592a325bbeb57098ef9d5c91120317a87"
     },
     {
       "path": "contracts/shared_operations/v1/examples/professional_service_profile.json",
@@ -118,5 +109,14 @@
       "path": "tests/contracts/test_so1_atomic_catalog_pricing.py",
       "sha256": "ab7072608093fd4361e9a56d145b7c76598c2b24f2f283bd66f1db1bf1055032"
     }
-  ]
+  ],
+  "commit": "NOT_CREATED",
+  "fingerprint_mode": "sha256_crlf_to_lf_only",
+  "migration_count": 1,
+  "previous_head": "pc5_identity_policy_audit_025",
+  "release": "XBOS_SO1_ATOMIC_UNITS_CATALOG_OFFERS_PRICING",
+  "schema_version": 1,
+  "source_checkpoint": "f72f4b5",
+  "source_checkpoint_full": "f72f4b5d8ad8e576212347615458fcd801e9f7bd",
+  "tag": "NOT_CREATED"
 }

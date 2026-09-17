@@ -1,534 +1,551 @@
 {
-  "schema_version": 1,
+  "authorized_non_finance_extensions": [
+    {
+      "owner": "PA",
+      "path": "sql/pa0123_merchant_lifecycle_subscriptions_onboarding_down.sql",
+      "reason": "PA0123 authorized non-Finance canonical descendant; merchant administration/commercial subscription/usage/onboarding only",
+      "root": "alembic_neutral",
+      "sha256": "f6317b39e00ffe124fa940c920c5a3581cc92d7690b3f09786612a3815c073b3"
+    },
+    {
+      "owner": "PA",
+      "path": "sql/pa0123_merchant_lifecycle_subscriptions_onboarding_up.sql",
+      "reason": "PA0123 authorized non-Finance canonical descendant; merchant administration/commercial subscription/usage/onboarding only",
+      "root": "alembic_neutral",
+      "sha256": "fef9156887f21f102d0cc3fae2e02183b83207635c7596b01a7f78497642c88a"
+    },
+    {
+      "owner": "PA",
+      "path": "sql/pa45_support_recovery_health_down.sql",
+      "reason": "PA45 authorized non-Finance canonical descendant; bounded support/recovery/health evidence only",
+      "root": "alembic_neutral",
+      "sha256": "c54324d6a0124ef95273877ad4b07b512e4c1c04c01d249d1cf04ab7b3cdba6b"
+    },
+    {
+      "owner": "PA",
+      "path": "sql/pa45_support_recovery_health_up.sql",
+      "reason": "PA45 authorized non-Finance canonical descendant; bounded support/recovery/health evidence only",
+      "root": "alembic_neutral",
+      "sha256": "444f4de9c0b351ee6cd24eaf9de63960140f2f7c80f029d3db5fa4ae755baf3e"
+    },
+    {
+      "owner": "PC1",
+      "path": "sql/pc1_structural_context_down.sql",
+      "root": "alembic_neutral",
+      "sha256": "c20ce1980591af505e03e71a09f665b558922721a529ed5c72db9211bbae77c8"
+    },
+    {
+      "owner": "PC1",
+      "path": "sql/pc1_structural_context_up.sql",
+      "root": "alembic_neutral",
+      "sha256": "727400217b5624c37f5f0a4de9ba7ae8f0e9c26cca1f1c3659ae9ac8a1ca3d66"
+    },
+    {
+      "owner": "PC1",
+      "path": "sql/pc2_party_authority_down.sql",
+      "reason": "PC2 canonical lineage descendant",
+      "root": "alembic_neutral",
+      "sha256": "73e7ca0e3b688fcdf025820419ffbf978242e819b76f653d182796e8030ece80"
+    },
+    {
+      "owner": "PC1",
+      "path": "sql/pc2_party_authority_up.sql",
+      "reason": "PC2 canonical lineage descendant",
+      "root": "alembic_neutral",
+      "sha256": "610371d25b07cab18ba5cc9ed48490ba1852579661ed783f309ca828a5b7f58c"
+    },
+    {
+      "owner": "PC1",
+      "path": "sql/pc3_semantic_authority_down.sql",
+      "reason": "PC3 canonical lineage descendant",
+      "root": "alembic_neutral",
+      "sha256": "590f0453d90305a6a3a76c09db6541d3f62084c876f7bae09813bd214bc9ac71"
+    },
+    {
+      "owner": "PC1",
+      "path": "sql/pc3_semantic_authority_up.sql",
+      "reason": "PC3 canonical lineage descendant",
+      "root": "alembic_neutral",
+      "sha256": "2235f4edb3935df39707523373fb6c0b61a52a4ca1b3a205c658881d411a9719"
+    },
+    {
+      "owner": "PC1",
+      "path": "sql/pc4_operating_context_down.sql",
+      "reason": "PC4 canonical lineage descendant",
+      "root": "alembic_neutral",
+      "sha256": "09248770d7a0a8d03808ffe0c88270c3432c34a3939f9b5a5617e207df7e787b"
+    },
+    {
+      "owner": "PC1",
+      "path": "sql/pc4_operating_context_up.sql",
+      "reason": "PC4 canonical lineage descendant",
+      "root": "alembic_neutral",
+      "sha256": "8ed296e754ee471003f47e6300c08cecaeccb838cdcc0780878e5b72f0c4147f"
+    },
+    {
+      "owner": "PC1",
+      "path": "sql/pc5_identity_policy_audit_down.sql",
+      "reason": "PC5 canonical lineage descendant",
+      "root": "alembic_neutral",
+      "sha256": "b76df91f9d0f63106e4acb3ec02dabacb08cd819e254b5a19de12d5a4cb7ca08"
+    },
+    {
+      "owner": "PC1",
+      "path": "sql/pc5_identity_policy_audit_up.sql",
+      "reason": "PC5 canonical lineage descendant",
+      "root": "alembic_neutral",
+      "sha256": "8e63fa97749ab66b577d93f28df3db744c802348260ea4f80e5ab27f7033c831"
+    },
+    {
+      "owner": "PK",
+      "path": "sql/pk0123_pack_manifest_lifecycle_down.sql",
+      "reason": "PK0123 authorized non-Finance canonical descendant; pack composition/lifecycle only",
+      "root": "alembic_neutral",
+      "sha256": "2cfd8952806b18eea6c8c9647e012355a5ccf85295193374f0fe769c1736da41"
+    },
+    {
+      "owner": "PK",
+      "path": "sql/pk0123_pack_manifest_lifecycle_up.sql",
+      "reason": "PK0123 authorized non-Finance canonical descendant; pack composition/lifecycle only",
+      "root": "alembic_neutral",
+      "sha256": "e939c0c2038f999f1689ae9bb29111bb1f11d53cec22d24eab59b3e8dcdc6595"
+    },
+    {
+      "owner": "PK456",
+      "path": "sql/pk456_pack_conformance_templates_down.sql",
+      "reason": "PK456 authorized non-Finance canonical descendant; pack conformance/template composition only",
+      "root": "alembic_neutral",
+      "sha256": "56c25331ef6f7930bf759eef78d2829f97b55740a5ef0add0ba4de251abf4a71"
+    },
+    {
+      "owner": "PK456",
+      "path": "sql/pk456_pack_conformance_templates_up.sql",
+      "reason": "PK456 authorized non-Finance canonical descendant; pack conformance/template composition only",
+      "root": "alembic_neutral",
+      "sha256": "155caffbd9df4430fb51e4d1dd49bfd9d44e74d24911e295268fe5f71aeef962"
+    },
+    {
+      "owner": "PK",
+      "path": "sql/r1_restaurant_service_operation_down.sql",
+      "reason": "R1 Restaurant pack canonical migration descendant governed through Pack Platform; Restaurant domain authority only, Finance unchanged",
+      "root": "alembic_neutral",
+      "sha256": "8792686dd17a7d1c4c46926d19105e06f3d134f3de8b0a03ccf64b58617ff324"
+    },
+    {
+      "owner": "PK",
+      "path": "sql/r1_restaurant_service_operation_up.sql",
+      "reason": "R1 Restaurant pack canonical migration descendant governed through Pack Platform; Restaurant domain authority only, Finance unchanged",
+      "root": "alembic_neutral",
+      "sha256": "fe6e8b6b297bc9ce7278d0d6b9c4261dc7ff80aa23a2f29f8cc5e9d3cdbcb2f0"
+    },
+    {
+      "owner": "PK",
+      "path": "sql/r2_restaurant_menu_fulfillment_down.sql",
+      "reason": "R2 Restaurant pack canonical migration descendant governed through Pack Platform; menu/fulfillment authority only, Finance and Shared Operations writers unchanged",
+      "root": "alembic_neutral",
+      "sha256": "19202aebb1b2605272111c3850ebdfbe138d6fa60d1d5f032ef18e0d719fe49f"
+    },
+    {
+      "owner": "PK",
+      "path": "sql/r2_restaurant_menu_fulfillment_up.sql",
+      "reason": "R2 Restaurant pack canonical migration descendant governed through Pack Platform; menu/fulfillment authority only, Finance and Shared Operations writers unchanged",
+      "root": "alembic_neutral",
+      "sha256": "6a6d96f5898acb6fd99f5646e03bc496d34160efc40a733d72854544b8c66550"
+    },
+    {
+      "owner": "SO3",
+      "path": "sql/r63_legacy_inventory_writer_compat_down.sql",
+      "reason": "R6.3 WND legacy inventory-writer compatibility bridge against SO3 canonical stock/location requirements; Finance semantics and writer authority unchanged",
+      "root": "alembic_neutral",
+      "sha256": "2e6f787c62b0b927f754284581a3d2cce448d5f9efaf3dd3d086e89443da8b68"
+    },
+    {
+      "owner": "SO3",
+      "path": "sql/r63_legacy_inventory_writer_compat_up.sql",
+      "reason": "R6.3 WND legacy inventory-writer compatibility bridge against SO3 canonical stock/location requirements; Finance semantics and writer authority unchanged",
+      "root": "alembic_neutral",
+      "sha256": "15654c08d2055541c5a98cc69cbd023d2831a041077559b292edf2fbd3ef9018"
+    },
+    {
+      "owner": "PC3",
+      "path": "sql/semantic_classification_hardening_down.sql",
+      "reason": "Pre-R0 PC3 semantic-classification hardening authorized non-Finance canonical descendant; global taxonomy/history/overlay governance only",
+      "root": "alembic_neutral",
+      "sha256": "ebb4beab0ae81868ddf1535a14c495bc2e948059971a518a6a9f8e019d065bdf"
+    },
+    {
+      "owner": "PC3",
+      "path": "sql/semantic_classification_hardening_up.sql",
+      "reason": "Pre-R0 PC3 semantic-classification hardening authorized non-Finance canonical descendant; global taxonomy/history/overlay governance only",
+      "root": "alembic_neutral",
+      "sha256": "9c839bcd344ce84e9dccababfa8e378b6393c81f09f484d8a785ed0ed76b97a5"
+    },
+    {
+      "owner": "SO10",
+      "path": "sql/so10_scheduling_reservations_service_execution_down.sql",
+      "reason": "SO10 authorized non-Finance canonical descendant",
+      "root": "alembic_neutral",
+      "sha256": "61b6a1ae4756379cbd713788ffc304443521cc398ccdc5897900d0bee1564be6"
+    },
+    {
+      "owner": "SO10",
+      "path": "sql/so10_scheduling_reservations_service_execution_up.sql",
+      "reason": "SO10 authorized non-Finance canonical descendant",
+      "root": "alembic_neutral",
+      "sha256": "d351a07c904991601415cd4c44268da9e1e6b48b83a17e07c9aebf698e5ff26b"
+    },
+    {
+      "owner": "SO1",
+      "path": "sql/so1_atomic_catalog_offer_pricing_down.sql",
+      "reason": "SO1 authorized non-Finance canonical descendant",
+      "root": "alembic_neutral",
+      "sha256": "6144be7149bc737acea42b55dc34f807fc86fda1aa73c27a45a48ad9d1dea1f6"
+    },
+    {
+      "owner": "SO1",
+      "path": "sql/so1_atomic_catalog_offer_pricing_up.sql",
+      "reason": "SO1 authorized non-Finance canonical descendant",
+      "root": "alembic_neutral",
+      "sha256": "0db43a255d884fa0ada5fcea30b659557c06e1b6a7eaa4bf2956bf584246cd5f"
+    },
+    {
+      "owner": "SO2",
+      "path": "sql/so2_operational_party_relationships_down.sql",
+      "reason": "SO2 authorized non-Finance canonical descendant",
+      "root": "alembic_neutral",
+      "sha256": "06967091a1c45046afe510a2499bf1a753ae0de7c38e35e6c3bc4115e1ed8995"
+    },
+    {
+      "owner": "SO2",
+      "path": "sql/so2_operational_party_relationships_up.sql",
+      "reason": "SO2 authorized non-Finance canonical descendant",
+      "root": "alembic_neutral",
+      "sha256": "d8f8e51e3052b582c1dfb2b4ffd56093eb205d4b5811610fb333500a191476ea"
+    },
+    {
+      "owner": "SO3",
+      "path": "sql/so3_inventory_stock_movement_down.sql",
+      "reason": "SO3 authorized non-Finance canonical descendant",
+      "root": "alembic_neutral",
+      "sha256": "c4a8c6de1fbb03a72f8b2196cd4083d6391af29ca11a381c05758c94972c71fc"
+    },
+    {
+      "owner": "SO3",
+      "path": "sql/so3_inventory_stock_movement_up.sql",
+      "reason": "SO3 authorized non-Finance canonical descendant",
+      "root": "alembic_neutral",
+      "sha256": "7a424feae3f6bb0baddd537fafdf81a8d8f6ef08877862ae83b058dd488d6aab"
+    },
+    {
+      "owner": "SO4",
+      "path": "sql/so4_procurement_supplier_operations_down.sql",
+      "reason": "SO4 authorized non-Finance canonical descendant",
+      "root": "alembic_neutral",
+      "sha256": "d49dab24a6797def6ad5c56cd31c355952758e176df56ce4c2e8b6af870257af"
+    },
+    {
+      "owner": "SO4",
+      "path": "sql/so4_procurement_supplier_operations_up.sql",
+      "reason": "SO4 authorized non-Finance canonical descendant",
+      "root": "alembic_neutral",
+      "sha256": "a5ee264104ce5284bb5cba00ae37b005e904a4ec89bca8b3848476baae9e085e"
+    },
+    {
+      "owner": "SO5",
+      "path": "sql/so5_resources_operational_assignment_down.sql",
+      "reason": "SO5 authorized non-Finance canonical descendant",
+      "root": "alembic_neutral",
+      "sha256": "b4d84269a50e5dc2b1a3da2bfd886db92367d2fc135dd39a0b5afbfc936edfd6"
+    },
+    {
+      "owner": "SO5",
+      "path": "sql/so5_resources_operational_assignment_up.sql",
+      "reason": "SO5 authorized non-Finance canonical descendant",
+      "root": "alembic_neutral",
+      "sha256": "5b3ff5ef8a746537f2c1067a4e902faff82a1f40f879a04edb2c4e966c0c04fb"
+    },
+    {
+      "owner": "SO6",
+      "path": "sql/so6_workflows_tasks_operational_approvals_down.sql",
+      "reason": "SO6 authorized non-Finance canonical descendant",
+      "root": "alembic_neutral",
+      "sha256": "fe0ec96767f34425ae07ff9c45b5bdbd188c6ce67560274e8858cce827f2b69d"
+    },
+    {
+      "owner": "SO6",
+      "path": "sql/so6_workflows_tasks_operational_approvals_up.sql",
+      "reason": "SO6 authorized non-Finance canonical descendant",
+      "root": "alembic_neutral",
+      "sha256": "6c9eed5a2383eef1ea21ec5e9b67e14b266466b068e661ba7b6213dd91e797c6"
+    },
+    {
+      "owner": "SO7",
+      "path": "sql/so7_documents_files_evidence_search_down.sql",
+      "reason": "SO7 authorized non-Finance canonical descendant",
+      "root": "alembic_neutral",
+      "sha256": "f9ced48f5983dd6909fba246e4c17bd6c9990afce98f46b0adbfb7f6929bc5e5"
+    },
+    {
+      "owner": "SO7",
+      "path": "sql/so7_documents_files_evidence_search_up.sql",
+      "reason": "SO7 authorized non-Finance canonical descendant",
+      "root": "alembic_neutral",
+      "sha256": "5deca3abe2d4f60970d4e2cd11b2b0a0c4ba6926198c95fdee3c89484897b0bb"
+    },
+    {
+      "owner": "SO8",
+      "path": "sql/so8_communications_delivery_offline_down.sql",
+      "reason": "SO8 authorized non-Finance canonical descendant",
+      "root": "alembic_neutral",
+      "sha256": "f5ca8858b076054684639d73bb4542a5ef83d1d3382c48cec1d943b4629e9cd5"
+    },
+    {
+      "owner": "SO8",
+      "path": "sql/so8_communications_delivery_offline_up.sql",
+      "reason": "SO8 authorized non-Finance canonical descendant",
+      "root": "alembic_neutral",
+      "sha256": "2274d92a2acb2badc054f9305c6c54af2d3ea8e52bcee9bb44c1e5896cf58bbf"
+    },
+    {
+      "owner": "SO9",
+      "path": "sql/so9_reporting_read_models_automation_down.sql",
+      "reason": "SO9 authorized non-Finance canonical descendant",
+      "root": "alembic_neutral",
+      "sha256": "f311a11fea1edf596e7e37943865c865ba452ca86d30210362f5972cb4e9415b"
+    },
+    {
+      "owner": "SO9",
+      "path": "sql/so9_reporting_read_models_automation_up.sql",
+      "reason": "SO9 authorized non-Finance canonical descendant",
+      "root": "alembic_neutral",
+      "sha256": "64e793e9c20f35ab37003d84ce6479de768a919119b6a293b1055029803832bd"
+    },
+    {
+      "owner": "SO2",
+      "path": "sql/so_aggregate_conformance_hardening_down.sql",
+      "reason": "Shared Operations aggregate conformance hardening of SO2 tenant-scoped idempotency; no Finance semantics",
+      "root": "alembic_neutral",
+      "sha256": "fad91b1f5fc815a47c210842bf80b7b291746d9911c1b65a6dcebea4ad98dd66"
+    },
+    {
+      "owner": "SO2",
+      "path": "sql/so_aggregate_conformance_hardening_up.sql",
+      "reason": "Shared Operations aggregate conformance hardening of SO2 tenant-scoped idempotency; no Finance semantics",
+      "root": "alembic_neutral",
+      "sha256": "5f23d3341626c373eba5c811684bda3d07e6fe21fa67daf652d4ebb8e12e52d9"
+    },
+    {
+      "owner": "PA",
+      "path": "versions/pa0123_merchant_lifecycle_subscriptions_onboarding_039.py",
+      "reason": "PA0123 authorized non-Finance canonical descendant; merchant administration/commercial subscription/usage/onboarding only",
+      "root": "alembic_neutral",
+      "sha256": "8c4ebe1b284a619e754e05ae77a1e186fdc31c7b9606b10b3fe15f4a7ea87f6d"
+    },
+    {
+      "owner": "PA",
+      "path": "versions/pa45_support_recovery_health_040.py",
+      "reason": "PA45 authorized non-Finance canonical descendant; bounded support/recovery/health evidence only",
+      "root": "alembic_neutral",
+      "sha256": "1092ab64bd0d541f08bc934ab30d480d085a5a15e9f09e4f67dc434fd3517616"
+    },
+    {
+      "owner": "PC1",
+      "path": "versions/pc1_structural_context_021_tenant_organization_legal_location.py",
+      "root": "alembic_neutral",
+      "sha256": "686eca52c5e9d9d1ac282400c584c947fe267b0deead18fcc8876e01650fde11"
+    },
+    {
+      "owner": "PC1",
+      "path": "versions/pc2_party_authority_022_party_person_organization_roles_relationships.py",
+      "reason": "PC2 canonical lineage descendant",
+      "root": "alembic_neutral",
+      "sha256": "e5494c2b58361888f868cf666f7f43dedf260af541f8072568367a9e34d27834"
+    },
+    {
+      "owner": "PC1",
+      "path": "versions/pc3_semantic_authority_023_namespaces_taxonomy_mapping_classification.py",
+      "reason": "PC3 canonical lineage descendant",
+      "root": "alembic_neutral",
+      "sha256": "c3b4d975073a6c7aeaf4b0c57f157dff808bd147a5604bc60706e017d9fe24ab"
+    },
+    {
+      "owner": "PC1",
+      "path": "versions/pc4_operating_context_024_typed_configuration_modules_time.py",
+      "reason": "PC4 canonical lineage descendant",
+      "root": "alembic_neutral",
+      "sha256": "a7317487bf800e2852cbb85c9d2cf1941c2b88876bb12e03ca353f82b8ce8348"
+    },
+    {
+      "owner": "PC1",
+      "path": "versions/pc5_identity_policy_audit_025_canonical_security_authority.py",
+      "reason": "PC5 canonical lineage descendant",
+      "root": "alembic_neutral",
+      "sha256": "55242e039b9de43ea2cbfecc0eb8c3e122576ae22c44fa4b65687afd9d6b69f6"
+    },
+    {
+      "owner": "PK",
+      "path": "versions/pk0123_pack_manifest_lifecycle_037.py",
+      "reason": "PK0123 authorized non-Finance canonical descendant; pack composition/lifecycle only",
+      "root": "alembic_neutral",
+      "sha256": "b4939eb4da2965c67117a8f9a9b294cb4a6eb4a300538b4c9d0208a0556d5a27"
+    },
+    {
+      "owner": "PK456",
+      "path": "versions/pk456_pack_conformance_templates_038.py",
+      "reason": "PK456 authorized non-Finance canonical descendant; pack conformance/template composition only",
+      "root": "alembic_neutral",
+      "sha256": "fe7c6a8f5c13c6a7119dc82921205439f8e4093fb861268edca259e6d79f3807"
+    },
+    {
+      "owner": "PK",
+      "path": "versions/r1_restaurant_service_operation_042.py",
+      "reason": "R1 Restaurant pack canonical migration descendant governed through Pack Platform; Restaurant domain authority only, Finance unchanged",
+      "root": "alembic_neutral",
+      "sha256": "090b702d712d9fd118e20e1a561a07f302403475efd62b9813b64da2cc6b4e6f"
+    },
+    {
+      "owner": "PK",
+      "path": "versions/r2_restaurant_menu_fulfillment_043.py",
+      "reason": "R2 Restaurant pack canonical migration descendant governed through Pack Platform; menu/fulfillment authority only, Finance and Shared Operations writers unchanged",
+      "root": "alembic_neutral",
+      "sha256": "883736b866c4b36bd04eb31c6350a74fdc9a6ad100e295f8fe64dd4263a7cff6"
+    },
+    {
+      "owner": "SO3",
+      "path": "versions/r63_legacy_inventory_writer_compat_044.py",
+      "reason": "R6.3 WND legacy inventory-writer compatibility bridge against SO3 canonical stock/location requirements; Finance semantics and writer authority unchanged",
+      "root": "alembic_neutral",
+      "sha256": "f3fb4365b3e865de8b57b7f5b4508a3c7d5f3133d324792f7b25f1cff3f4e963"
+    },
+    {
+      "owner": "PC3",
+      "path": "versions/semantic_classification_hardening_041.py",
+      "reason": "Pre-R0 PC3 semantic-classification hardening authorized non-Finance canonical descendant; global taxonomy/history/overlay governance only",
+      "root": "alembic_neutral",
+      "sha256": "0f08ed83493cbe3660fdd91b9f16f10ad2e68c22ef5396be9c4640682ff19813"
+    },
+    {
+      "owner": "SO10",
+      "path": "versions/so10_scheduling_reservations_service_execution_035.py",
+      "reason": "SO10 authorized non-Finance canonical descendant",
+      "root": "alembic_neutral",
+      "sha256": "c0ce80b5c4388582d2077aad6bb293b4bd5e183870deed9285a5e114802a26dd"
+    },
+    {
+      "owner": "SO1",
+      "path": "versions/so1_atomic_catalog_offer_pricing_026.py",
+      "reason": "SO1 authorized non-Finance canonical descendant",
+      "root": "alembic_neutral",
+      "sha256": "ea1b72b027f0ca4bd22462f614b8a63192135f24313a32c5434d9769564f3768"
+    },
+    {
+      "owner": "SO2",
+      "path": "versions/so2_operational_party_relationships_027.py",
+      "reason": "SO2 authorized non-Finance canonical descendant",
+      "root": "alembic_neutral",
+      "sha256": "8eb7fec3a65f0ebf071fb2ae860dc13b8164c74b4e53f6ca3ba254ae830420da"
+    },
+    {
+      "owner": "SO3",
+      "path": "versions/so3_inventory_stock_movement_028.py",
+      "reason": "SO3 authorized non-Finance canonical descendant",
+      "root": "alembic_neutral",
+      "sha256": "52180629c0fa39e492e21b71a5cce4bbbcc9b7f8abbc45a100fd5da6d538191a"
+    },
+    {
+      "owner": "SO4",
+      "path": "versions/so4_procurement_supplier_operations_029.py",
+      "reason": "SO4 authorized non-Finance canonical descendant",
+      "root": "alembic_neutral",
+      "sha256": "0e08d52c186c076e12aac696f04aa64ad69eaf0870e17f6fba528f163beae2d2"
+    },
+    {
+      "owner": "SO5",
+      "path": "versions/so5_resources_operational_assignment_030.py",
+      "reason": "SO5 authorized non-Finance canonical descendant",
+      "root": "alembic_neutral",
+      "sha256": "5b8ca7609095b5d864130eadf4d166227016d2e27b196e91d653847895affdac"
+    },
+    {
+      "owner": "SO6",
+      "path": "versions/so6_workflows_tasks_operational_approvals_031.py",
+      "reason": "SO6 authorized non-Finance canonical descendant",
+      "root": "alembic_neutral",
+      "sha256": "2bc7d7c249b2ee1ea5a9d98d902e962ec39b1876922c53f9e4f03b92cb97a804"
+    },
+    {
+      "owner": "SO7",
+      "path": "versions/so7_documents_files_evidence_search_032.py",
+      "reason": "SO7 authorized non-Finance canonical descendant",
+      "root": "alembic_neutral",
+      "sha256": "1de573011b3969069393d7baca88132da090f1b2c517e1050651b85ef8bc9404"
+    },
+    {
+      "owner": "SO8",
+      "path": "versions/so8_communications_delivery_offline_033.py",
+      "reason": "SO8 authorized non-Finance canonical descendant",
+      "root": "alembic_neutral",
+      "sha256": "f2b87de1c923cf3db4f1de13d8003a456517cab07e7b26ba2a2cb47d770ae084"
+    },
+    {
+      "owner": "SO9",
+      "path": "versions/so9_reporting_read_models_automation_034.py",
+      "reason": "SO9 authorized non-Finance canonical descendant",
+      "root": "alembic_neutral",
+      "sha256": "86c845d4b957b0eca82df01a12a116debef2ec05d8b61b8b10ad3141f6b87fd0"
+    },
+    {
+      "owner": "SO2",
+      "path": "versions/so_aggregate_conformance_hardening_036.py",
+      "reason": "Shared Operations aggregate conformance hardening of SO2 tenant-scoped idempotency; no Finance semantics",
+      "root": "alembic_neutral",
+      "sha256": "9d8f505e0827b4db0687ab4de43871602a2260b4f2dfd7a4341627cff37dc37a"
+    },
+    {
+      "owner": "PC1",
+      "path": "m4_acceptance.py",
+      "reason": "historical-release descendant compatibility",
+      "root": "core/domain/finance",
+      "sha256": "6d0ed40d9d8496fd0ddd5eec115796a4bbeae90ce6742a9f3a25cff0f59f2cde"
+    },
+    {
+      "owner": "PC1",
+      "path": "m5_acceptance.py",
+      "reason": "historical-release descendant compatibility",
+      "root": "core/domain/finance",
+      "sha256": "c2d06c6e0c0cafbf590072fa4a57adc38b5b69e17b4a825094b61d4dfb7d46cb"
+    },
+    {
+      "owner": "PC1",
+      "path": "m6_acceptance.py",
+      "reason": "historical-release descendant compatibility",
+      "root": "core/domain/finance",
+      "sha256": "ed5ddfa3bc6bf223ed5dd40e1c051ea8b987e0a8002c3a99113a09e4d05b7c3d"
+    },
+    {
+      "owner": "PC1",
+      "path": "m7_acceptance.py",
+      "reason": "historical-release descendant compatibility",
+      "root": "core/domain/finance",
+      "sha256": "5323d1c9780eda5f5bc6265c5ff493cc1b6b31da3f9ab80ac5ff4c65d57d68a3"
+    },
+    {
+      "owner": "PC1",
+      "path": "track_b_acceptance.py",
+      "reason": "historical-release descendant compatibility",
+      "root": "core/domain/finance",
+      "sha256": "e841139a56063d6d20d18535d166034b3bb66d680d67e9ad4a81f1eded457827"
+    }
+  ],
   "freeze_commit": "fa9b17e473105c7c70b8faa3a0a946ee9117d37e",
+  "schema_version": 1,
   "transient_artifact_rules": [
     "path_component=__pycache__ AND suffix in [.pyc,.pyo]",
     "suffix in [.pyc,.pyo]",
     "path_component in [.pytest_cache,.mypy_cache,.ruff_cache,.hypothesis]"
   ],
-  "authorized_non_finance_extensions": [
-    {
-      "root": "core/domain/finance",
-      "path": "m4_acceptance.py",
-      "sha256": "6d0ed40d9d8496fd0ddd5eec115796a4bbeae90ce6742a9f3a25cff0f59f2cde",
-      "owner": "PC1",
-      "reason": "historical-release descendant compatibility"
-    },
-    {
-      "root": "core/domain/finance",
-      "path": "m5_acceptance.py",
-      "sha256": "c2d06c6e0c0cafbf590072fa4a57adc38b5b69e17b4a825094b61d4dfb7d46cb",
-      "owner": "PC1",
-      "reason": "historical-release descendant compatibility"
-    },
-    {
-      "root": "core/domain/finance",
-      "path": "m6_acceptance.py",
-      "sha256": "ed5ddfa3bc6bf223ed5dd40e1c051ea8b987e0a8002c3a99113a09e4d05b7c3d",
-      "owner": "PC1",
-      "reason": "historical-release descendant compatibility"
-    },
-    {
-      "root": "core/domain/finance",
-      "path": "m7_acceptance.py",
-      "sha256": "5323d1c9780eda5f5bc6265c5ff493cc1b6b31da3f9ab80ac5ff4c65d57d68a3",
-      "owner": "PC1",
-      "reason": "historical-release descendant compatibility"
-    },
-    {
-      "root": "core/domain/finance",
-      "path": "track_b_acceptance.py",
-      "sha256": "e841139a56063d6d20d18535d166034b3bb66d680d67e9ad4a81f1eded457827",
-      "owner": "PC1",
-      "reason": "historical-release descendant compatibility"
-    },
-    {
-      "root": "alembic_neutral",
-      "path": "versions/pc1_structural_context_021_tenant_organization_legal_location.py",
-      "sha256": "686eca52c5e9d9d1ac282400c584c947fe267b0deead18fcc8876e01650fde11",
-      "owner": "PC1"
-    },
-    {
-      "root": "alembic_neutral",
-      "path": "sql/pc1_structural_context_up.sql",
-      "sha256": "727400217b5624c37f5f0a4de9ba7ae8f0e9c26cca1f1c3659ae9ac8a1ca3d66",
-      "owner": "PC1"
-    },
-    {
-      "root": "alembic_neutral",
-      "path": "sql/pc1_structural_context_down.sql",
-      "sha256": "c20ce1980591af505e03e71a09f665b558922721a529ed5c72db9211bbae77c8",
-      "owner": "PC1"
-    },
-    {
-      "root": "alembic_neutral",
-      "path": "versions/pc2_party_authority_022_party_person_organization_roles_relationships.py",
-      "sha256": "e5494c2b58361888f868cf666f7f43dedf260af541f8072568367a9e34d27834",
-      "owner": "PC1",
-      "reason": "PC2 canonical lineage descendant"
-    },
-    {
-      "root": "alembic_neutral",
-      "path": "sql/pc2_party_authority_up.sql",
-      "sha256": "610371d25b07cab18ba5cc9ed48490ba1852579661ed783f309ca828a5b7f58c",
-      "owner": "PC1",
-      "reason": "PC2 canonical lineage descendant"
-    },
-    {
-      "root": "alembic_neutral",
-      "path": "sql/pc2_party_authority_down.sql",
-      "sha256": "73e7ca0e3b688fcdf025820419ffbf978242e819b76f653d182796e8030ece80",
-      "owner": "PC1",
-      "reason": "PC2 canonical lineage descendant"
-    },
-    {
-      "root": "alembic_neutral",
-      "path": "versions/pc3_semantic_authority_023_namespaces_taxonomy_mapping_classification.py",
-      "sha256": "c3b4d975073a6c7aeaf4b0c57f157dff808bd147a5604bc60706e017d9fe24ab",
-      "owner": "PC1",
-      "reason": "PC3 canonical lineage descendant"
-    },
-    {
-      "root": "alembic_neutral",
-      "path": "sql/pc3_semantic_authority_up.sql",
-      "sha256": "2235f4edb3935df39707523373fb6c0b61a52a4ca1b3a205c658881d411a9719",
-      "owner": "PC1",
-      "reason": "PC3 canonical lineage descendant"
-    },
-    {
-      "root": "alembic_neutral",
-      "path": "sql/pc3_semantic_authority_down.sql",
-      "sha256": "590f0453d90305a6a3a76c09db6541d3f62084c876f7bae09813bd214bc9ac71",
-      "owner": "PC1",
-      "reason": "PC3 canonical lineage descendant"
-    },
-    {
-      "root": "alembic_neutral",
-      "path": "versions/pc4_operating_context_024_typed_configuration_modules_time.py",
-      "sha256": "a7317487bf800e2852cbb85c9d2cf1941c2b88876bb12e03ca353f82b8ce8348",
-      "owner": "PC1",
-      "reason": "PC4 canonical lineage descendant"
-    },
-    {
-      "root": "alembic_neutral",
-      "path": "sql/pc4_operating_context_up.sql",
-      "sha256": "8ed296e754ee471003f47e6300c08cecaeccb838cdcc0780878e5b72f0c4147f",
-      "owner": "PC1",
-      "reason": "PC4 canonical lineage descendant"
-    },
-    {
-      "root": "alembic_neutral",
-      "path": "sql/pc4_operating_context_down.sql",
-      "sha256": "09248770d7a0a8d03808ffe0c88270c3432c34a3939f9b5a5617e207df7e787b",
-      "owner": "PC1",
-      "reason": "PC4 canonical lineage descendant"
-    },
-    {
-      "root": "alembic_neutral",
-      "path": "versions/pc5_identity_policy_audit_025_canonical_security_authority.py",
-      "sha256": "55242e039b9de43ea2cbfecc0eb8c3e122576ae22c44fa4b65687afd9d6b69f6",
-      "owner": "PC1",
-      "reason": "PC5 canonical lineage descendant"
-    },
-    {
-      "root": "alembic_neutral",
-      "path": "sql/pc5_identity_policy_audit_up.sql",
-      "sha256": "8e63fa97749ab66b577d93f28df3db744c802348260ea4f80e5ab27f7033c831",
-      "owner": "PC1",
-      "reason": "PC5 canonical lineage descendant"
-    },
-    {
-      "root": "alembic_neutral",
-      "path": "sql/pc5_identity_policy_audit_down.sql",
-      "sha256": "b76df91f9d0f63106e4acb3ec02dabacb08cd819e254b5a19de12d5a4cb7ca08",
-      "owner": "PC1",
-      "reason": "PC5 canonical lineage descendant"
-    },
-    {
-      "root": "alembic_neutral",
-      "path": "versions/so1_atomic_catalog_offer_pricing_026.py",
-      "sha256": "ea1b72b027f0ca4bd22462f614b8a63192135f24313a32c5434d9769564f3768",
-      "owner": "SO1",
-      "reason": "SO1 authorized non-Finance canonical descendant"
-    },
-    {
-      "root": "alembic_neutral",
-      "path": "sql/so1_atomic_catalog_offer_pricing_up.sql",
-      "sha256": "0db43a255d884fa0ada5fcea30b659557c06e1b6a7eaa4bf2956bf584246cd5f",
-      "owner": "SO1",
-      "reason": "SO1 authorized non-Finance canonical descendant"
-    },
-    {
-      "root": "alembic_neutral",
-      "path": "sql/so1_atomic_catalog_offer_pricing_down.sql",
-      "sha256": "6144be7149bc737acea42b55dc34f807fc86fda1aa73c27a45a48ad9d1dea1f6",
-      "owner": "SO1",
-      "reason": "SO1 authorized non-Finance canonical descendant"
-    },
-    {
-      "root": "alembic_neutral",
-      "path": "versions/so2_operational_party_relationships_027.py",
-      "sha256": "8eb7fec3a65f0ebf071fb2ae860dc13b8164c74b4e53f6ca3ba254ae830420da",
-      "owner": "SO2",
-      "reason": "SO2 authorized non-Finance canonical descendant"
-    },
-    {
-      "root": "alembic_neutral",
-      "path": "sql/so2_operational_party_relationships_up.sql",
-      "sha256": "d8f8e51e3052b582c1dfb2b4ffd56093eb205d4b5811610fb333500a191476ea",
-      "owner": "SO2",
-      "reason": "SO2 authorized non-Finance canonical descendant"
-    },
-    {
-      "root": "alembic_neutral",
-      "path": "sql/so2_operational_party_relationships_down.sql",
-      "sha256": "06967091a1c45046afe510a2499bf1a753ae0de7c38e35e6c3bc4115e1ed8995",
-      "owner": "SO2",
-      "reason": "SO2 authorized non-Finance canonical descendant"
-    },
-    {
-      "root": "alembic_neutral",
-      "path": "versions/so3_inventory_stock_movement_028.py",
-      "sha256": "52180629c0fa39e492e21b71a5cce4bbbcc9b7f8abbc45a100fd5da6d538191a",
-      "owner": "SO3",
-      "reason": "SO3 authorized non-Finance canonical descendant"
-    },
-    {
-      "root": "alembic_neutral",
-      "path": "sql/so3_inventory_stock_movement_up.sql",
-      "sha256": "7a424feae3f6bb0baddd537fafdf81a8d8f6ef08877862ae83b058dd488d6aab",
-      "owner": "SO3",
-      "reason": "SO3 authorized non-Finance canonical descendant"
-    },
-    {
-      "root": "alembic_neutral",
-      "path": "sql/so3_inventory_stock_movement_down.sql",
-      "sha256": "c4a8c6de1fbb03a72f8b2196cd4083d6391af29ca11a381c05758c94972c71fc",
-      "owner": "SO3",
-      "reason": "SO3 authorized non-Finance canonical descendant"
-    },
-    {
-      "root": "alembic_neutral",
-      "path": "versions/so4_procurement_supplier_operations_029.py",
-      "sha256": "0e08d52c186c076e12aac696f04aa64ad69eaf0870e17f6fba528f163beae2d2",
-      "owner": "SO4",
-      "reason": "SO4 authorized non-Finance canonical descendant"
-    },
-    {
-      "root": "alembic_neutral",
-      "path": "sql/so4_procurement_supplier_operations_up.sql",
-      "sha256": "a5ee264104ce5284bb5cba00ae37b005e904a4ec89bca8b3848476baae9e085e",
-      "owner": "SO4",
-      "reason": "SO4 authorized non-Finance canonical descendant"
-    },
-    {
-      "root": "alembic_neutral",
-      "path": "sql/so4_procurement_supplier_operations_down.sql",
-      "sha256": "d49dab24a6797def6ad5c56cd31c355952758e176df56ce4c2e8b6af870257af",
-      "owner": "SO4",
-      "reason": "SO4 authorized non-Finance canonical descendant"
-    },
-    {
-      "root": "alembic_neutral",
-      "path": "versions/so5_resources_operational_assignment_030.py",
-      "sha256": "5b8ca7609095b5d864130eadf4d166227016d2e27b196e91d653847895affdac",
-      "owner": "SO5",
-      "reason": "SO5 authorized non-Finance canonical descendant"
-    },
-    {
-      "root": "alembic_neutral",
-      "path": "sql/so5_resources_operational_assignment_up.sql",
-      "sha256": "5b3ff5ef8a746537f2c1067a4e902faff82a1f40f879a04edb2c4e966c0c04fb",
-      "owner": "SO5",
-      "reason": "SO5 authorized non-Finance canonical descendant"
-    },
-    {
-      "root": "alembic_neutral",
-      "path": "sql/so5_resources_operational_assignment_down.sql",
-      "sha256": "b4d84269a50e5dc2b1a3da2bfd886db92367d2fc135dd39a0b5afbfc936edfd6",
-      "owner": "SO5",
-      "reason": "SO5 authorized non-Finance canonical descendant"
-    },
-    {
-      "root": "alembic_neutral",
-      "path": "versions/so6_workflows_tasks_operational_approvals_031.py",
-      "sha256": "2bc7d7c249b2ee1ea5a9d98d902e962ec39b1876922c53f9e4f03b92cb97a804",
-      "owner": "SO6",
-      "reason": "SO6 authorized non-Finance canonical descendant"
-    },
-    {
-      "root": "alembic_neutral",
-      "path": "sql/so6_workflows_tasks_operational_approvals_up.sql",
-      "sha256": "6c9eed5a2383eef1ea21ec5e9b67e14b266466b068e661ba7b6213dd91e797c6",
-      "owner": "SO6",
-      "reason": "SO6 authorized non-Finance canonical descendant"
-    },
-    {
-      "root": "alembic_neutral",
-      "path": "sql/so6_workflows_tasks_operational_approvals_down.sql",
-      "sha256": "fe0ec96767f34425ae07ff9c45b5bdbd188c6ce67560274e8858cce827f2b69d",
-      "owner": "SO6",
-      "reason": "SO6 authorized non-Finance canonical descendant"
-    },
-    {
-      "root": "alembic_neutral",
-      "path": "versions/so7_documents_files_evidence_search_032.py",
-      "sha256": "1de573011b3969069393d7baca88132da090f1b2c517e1050651b85ef8bc9404",
-      "owner": "SO7",
-      "reason": "SO7 authorized non-Finance canonical descendant"
-    },
-    {
-      "root": "alembic_neutral",
-      "path": "sql/so7_documents_files_evidence_search_up.sql",
-      "sha256": "5deca3abe2d4f60970d4e2cd11b2b0a0c4ba6926198c95fdee3c89484897b0bb",
-      "owner": "SO7",
-      "reason": "SO7 authorized non-Finance canonical descendant"
-    },
-    {
-      "root": "alembic_neutral",
-      "path": "sql/so7_documents_files_evidence_search_down.sql",
-      "sha256": "f9ced48f5983dd6909fba246e4c17bd6c9990afce98f46b0adbfb7f6929bc5e5",
-      "owner": "SO7",
-      "reason": "SO7 authorized non-Finance canonical descendant"
-    },
-    {
-      "root": "alembic_neutral",
-      "path": "versions/so8_communications_delivery_offline_033.py",
-      "sha256": "f2b87de1c923cf3db4f1de13d8003a456517cab07e7b26ba2a2cb47d770ae084",
-      "owner": "SO8",
-      "reason": "SO8 authorized non-Finance canonical descendant"
-    },
-    {
-      "root": "alembic_neutral",
-      "path": "sql/so8_communications_delivery_offline_up.sql",
-      "sha256": "2274d92a2acb2badc054f9305c6c54af2d3ea8e52bcee9bb44c1e5896cf58bbf",
-      "owner": "SO8",
-      "reason": "SO8 authorized non-Finance canonical descendant"
-    },
-    {
-      "root": "alembic_neutral",
-      "path": "sql/so8_communications_delivery_offline_down.sql",
-      "sha256": "f5ca8858b076054684639d73bb4542a5ef83d1d3382c48cec1d943b4629e9cd5",
-      "owner": "SO8",
-      "reason": "SO8 authorized non-Finance canonical descendant"
-    },
-    {
-      "root": "alembic_neutral",
-      "path": "versions/so9_reporting_read_models_automation_034.py",
-      "sha256": "86c845d4b957b0eca82df01a12a116debef2ec05d8b61b8b10ad3141f6b87fd0",
-      "owner": "SO9",
-      "reason": "SO9 authorized non-Finance canonical descendant"
-    },
-    {
-      "root": "alembic_neutral",
-      "path": "sql/so9_reporting_read_models_automation_up.sql",
-      "sha256": "64e793e9c20f35ab37003d84ce6479de768a919119b6a293b1055029803832bd",
-      "owner": "SO9",
-      "reason": "SO9 authorized non-Finance canonical descendant"
-    },
-    {
-      "root": "alembic_neutral",
-      "path": "sql/so9_reporting_read_models_automation_down.sql",
-      "sha256": "f311a11fea1edf596e7e37943865c865ba452ca86d30210362f5972cb4e9415b",
-      "owner": "SO9",
-      "reason": "SO9 authorized non-Finance canonical descendant"
-    },
-    {
-      "root": "alembic_neutral",
-      "path": "versions/so10_scheduling_reservations_service_execution_035.py",
-      "sha256": "c0ce80b5c4388582d2077aad6bb293b4bd5e183870deed9285a5e114802a26dd",
-      "owner": "SO10",
-      "reason": "SO10 authorized non-Finance canonical descendant"
-    },
-    {
-      "root": "alembic_neutral",
-      "path": "sql/so10_scheduling_reservations_service_execution_up.sql",
-      "sha256": "d351a07c904991601415cd4c44268da9e1e6b48b83a17e07c9aebf698e5ff26b",
-      "owner": "SO10",
-      "reason": "SO10 authorized non-Finance canonical descendant"
-    },
-    {
-      "root": "alembic_neutral",
-      "path": "sql/so10_scheduling_reservations_service_execution_down.sql",
-      "sha256": "61b6a1ae4756379cbd713788ffc304443521cc398ccdc5897900d0bee1564be6",
-      "owner": "SO10",
-      "reason": "SO10 authorized non-Finance canonical descendant"
-    },
-    {
-      "root": "alembic_neutral",
-      "path": "versions/so_aggregate_conformance_hardening_036.py",
-      "sha256": "9d8f505e0827b4db0687ab4de43871602a2260b4f2dfd7a4341627cff37dc37a",
-      "owner": "SO2",
-      "reason": "Shared Operations aggregate conformance hardening of SO2 tenant-scoped idempotency; no Finance semantics"
-    },
-    {
-      "root": "alembic_neutral",
-      "path": "sql/so_aggregate_conformance_hardening_up.sql",
-      "sha256": "5f23d3341626c373eba5c811684bda3d07e6fe21fa67daf652d4ebb8e12e52d9",
-      "owner": "SO2",
-      "reason": "Shared Operations aggregate conformance hardening of SO2 tenant-scoped idempotency; no Finance semantics"
-    },
-    {
-      "root": "alembic_neutral",
-      "path": "sql/so_aggregate_conformance_hardening_down.sql",
-      "sha256": "fad91b1f5fc815a47c210842bf80b7b291746d9911c1b65a6dcebea4ad98dd66",
-      "owner": "SO2",
-      "reason": "Shared Operations aggregate conformance hardening of SO2 tenant-scoped idempotency; no Finance semantics"
-    },
-    {
-      "root": "alembic_neutral",
-      "path": "versions/pk0123_pack_manifest_lifecycle_037.py",
-      "sha256": "b4939eb4da2965c67117a8f9a9b294cb4a6eb4a300538b4c9d0208a0556d5a27",
-      "owner": "PK",
-      "reason": "PK0123 authorized non-Finance canonical descendant; pack composition/lifecycle only"
-    },
-    {
-      "root": "alembic_neutral",
-      "path": "sql/pk0123_pack_manifest_lifecycle_up.sql",
-      "sha256": "e939c0c2038f999f1689ae9bb29111bb1f11d53cec22d24eab59b3e8dcdc6595",
-      "owner": "PK",
-      "reason": "PK0123 authorized non-Finance canonical descendant; pack composition/lifecycle only"
-    },
-    {
-      "root": "alembic_neutral",
-      "path": "sql/pk0123_pack_manifest_lifecycle_down.sql",
-      "sha256": "2cfd8952806b18eea6c8c9647e012355a5ccf85295193374f0fe769c1736da41",
-      "owner": "PK",
-      "reason": "PK0123 authorized non-Finance canonical descendant; pack composition/lifecycle only"
-    },
-    {
-      "root": "alembic_neutral",
-      "path": "versions/pk456_pack_conformance_templates_038.py",
-      "sha256": "fe7c6a8f5c13c6a7119dc82921205439f8e4093fb861268edca259e6d79f3807",
-      "owner": "PK456",
-      "reason": "PK456 authorized non-Finance canonical descendant; pack conformance/template composition only"
-    },
-    {
-      "root": "alembic_neutral",
-      "path": "sql/pk456_pack_conformance_templates_up.sql",
-      "sha256": "155caffbd9df4430fb51e4d1dd49bfd9d44e74d24911e295268fe5f71aeef962",
-      "owner": "PK456",
-      "reason": "PK456 authorized non-Finance canonical descendant; pack conformance/template composition only"
-    },
-    {
-      "root": "alembic_neutral",
-      "path": "sql/pk456_pack_conformance_templates_down.sql",
-      "sha256": "56c25331ef6f7930bf759eef78d2829f97b55740a5ef0add0ba4de251abf4a71",
-      "owner": "PK456",
-      "reason": "PK456 authorized non-Finance canonical descendant; pack conformance/template composition only"
-    },
-    {
-      "root": "alembic_neutral",
-      "path": "versions/pa0123_merchant_lifecycle_subscriptions_onboarding_039.py",
-      "sha256": "8c4ebe1b284a619e754e05ae77a1e186fdc31c7b9606b10b3fe15f4a7ea87f6d",
-      "owner": "PA",
-      "reason": "PA0123 authorized non-Finance canonical descendant; merchant administration/commercial subscription/usage/onboarding only"
-    },
-    {
-      "root": "alembic_neutral",
-      "path": "sql/pa0123_merchant_lifecycle_subscriptions_onboarding_up.sql",
-      "sha256": "fef9156887f21f102d0cc3fae2e02183b83207635c7596b01a7f78497642c88a",
-      "owner": "PA",
-      "reason": "PA0123 authorized non-Finance canonical descendant; merchant administration/commercial subscription/usage/onboarding only"
-    },
-    {
-      "root": "alembic_neutral",
-      "path": "sql/pa0123_merchant_lifecycle_subscriptions_onboarding_down.sql",
-      "sha256": "f6317b39e00ffe124fa940c920c5a3581cc92d7690b3f09786612a3815c073b3",
-      "owner": "PA",
-      "reason": "PA0123 authorized non-Finance canonical descendant; merchant administration/commercial subscription/usage/onboarding only"
-    },
-    {
-      "root": "alembic_neutral",
-      "path": "versions/pa45_support_recovery_health_040.py",
-      "sha256": "1092ab64bd0d541f08bc934ab30d480d085a5a15e9f09e4f67dc434fd3517616",
-      "owner": "PA",
-      "reason": "PA45 authorized non-Finance canonical descendant; bounded support/recovery/health evidence only"
-    },
-    {
-      "root": "alembic_neutral",
-      "path": "sql/pa45_support_recovery_health_up.sql",
-      "sha256": "444f4de9c0b351ee6cd24eaf9de63960140f2f7c80f029d3db5fa4ae755baf3e",
-      "owner": "PA",
-      "reason": "PA45 authorized non-Finance canonical descendant; bounded support/recovery/health evidence only"
-    },
-    {
-      "root": "alembic_neutral",
-      "path": "sql/pa45_support_recovery_health_down.sql",
-      "sha256": "c54324d6a0124ef95273877ad4b07b512e4c1c04c01d249d1cf04ab7b3cdba6b",
-      "owner": "PA",
-      "reason": "PA45 authorized non-Finance canonical descendant; bounded support/recovery/health evidence only"
-    },
-    {
-      "root": "alembic_neutral",
-      "path": "versions/semantic_classification_hardening_041.py",
-      "sha256": "0f08ed83493cbe3660fdd91b9f16f10ad2e68c22ef5396be9c4640682ff19813",
-      "owner": "PC3",
-      "reason": "Pre-R0 PC3 semantic-classification hardening authorized non-Finance canonical descendant; global taxonomy/history/overlay governance only"
-    },
-    {
-      "root": "alembic_neutral",
-      "path": "sql/semantic_classification_hardening_up.sql",
-      "sha256": "9c839bcd344ce84e9dccababfa8e378b6393c81f09f484d8a785ed0ed76b97a5",
-      "owner": "PC3",
-      "reason": "Pre-R0 PC3 semantic-classification hardening authorized non-Finance canonical descendant; global taxonomy/history/overlay governance only"
-    },
-    {
-      "root": "alembic_neutral",
-      "path": "sql/semantic_classification_hardening_down.sql",
-      "sha256": "ebb4beab0ae81868ddf1535a14c495bc2e948059971a518a6a9f8e019d065bdf",
-      "owner": "PC3",
-      "reason": "Pre-R0 PC3 semantic-classification hardening authorized non-Finance canonical descendant; global taxonomy/history/overlay governance only"
-    },
-    {
-      "root": "alembic_neutral",
-      "path": "versions/r1_restaurant_service_operation_042.py",
-      "sha256": "090b702d712d9fd118e20e1a561a07f302403475efd62b9813b64da2cc6b4e6f",
-      "owner": "PK",
-      "reason": "R1 Restaurant pack canonical migration descendant governed through Pack Platform; Restaurant domain authority only, Finance unchanged"
-    },
-    {
-      "root": "alembic_neutral",
-      "path": "sql/r1_restaurant_service_operation_up.sql",
-      "sha256": "fe6e8b6b297bc9ce7278d0d6b9c4261dc7ff80aa23a2f29f8cc5e9d3cdbcb2f0",
-      "owner": "PK",
-      "reason": "R1 Restaurant pack canonical migration descendant governed through Pack Platform; Restaurant domain authority only, Finance unchanged"
-    },
-    {
-      "root": "alembic_neutral",
-      "path": "sql/r1_restaurant_service_operation_down.sql",
-      "sha256": "8792686dd17a7d1c4c46926d19105e06f3d134f3de8b0a03ccf64b58617ff324",
-      "owner": "PK",
-      "reason": "R1 Restaurant pack canonical migration descendant governed through Pack Platform; Restaurant domain authority only, Finance unchanged"
-    },
-    {
-      "root": "alembic_neutral",
-      "path": "versions/r2_restaurant_menu_fulfillment_043.py",
-      "sha256": "883736b866c4b36bd04eb31c6350a74fdc9a6ad100e295f8fe64dd4263a7cff6",
-      "owner": "PK",
-      "reason": "R2 Restaurant pack canonical migration descendant governed through Pack Platform; menu/fulfillment authority only, Finance and Shared Operations writers unchanged"
-    },
-    {
-      "root": "alembic_neutral",
-      "path": "sql/r2_restaurant_menu_fulfillment_up.sql",
-      "sha256": "6a6d96f5898acb6fd99f5646e03bc496d34160efc40a733d72854544b8c66550",
-      "owner": "PK",
-      "reason": "R2 Restaurant pack canonical migration descendant governed through Pack Platform; menu/fulfillment authority only, Finance and Shared Operations writers unchanged"
-    },
-    {
-      "root": "alembic_neutral",
-      "path": "sql/r2_restaurant_menu_fulfillment_down.sql",
-      "sha256": "19202aebb1b2605272111c3850ebdfbe138d6fa60d1d5f032ef18e0d719fe49f",
-      "owner": "PK",
-      "reason": "R2 Restaurant pack canonical migration descendant governed through Pack Platform; menu/fulfillment authority only, Finance and Shared Operations writers unchanged"
-    }
-  ],
   "trees": [
     {
-      "root": "core/domain/finance",
-      "protected_suffixes": [
-        ".py"
-      ],
       "files": [
         "__init__.py",
         "adversarial_ordering_contract.py",
@@ -645,14 +662,13 @@
         "wnd_pack_conformance_profile.py",
         "wnd_shadow_rehearsal_contract.py",
         "wnd_shadow_rehearsal_service.py"
-      ]
+      ],
+      "protected_suffixes": [
+        ".py"
+      ],
+      "root": "core/domain/finance"
     },
     {
-      "root": "contracts/finance",
-      "protected_suffixes": [
-        ".json",
-        ".md"
-      ],
       "files": [
         "v1/ENTITY_AND_LIFECYCLE_CONTRACTS.md",
         "v1/M0_NEUTRAL_FINANCIAL_CONTRACT_BASELINE.md",
@@ -720,14 +736,14 @@
         "v1/reliability_contracts.json",
         "v1/track_b_financial_approved_exit_manifest.json",
         "v1/workflow_contracts.json"
-      ]
+      ],
+      "protected_suffixes": [
+        ".json",
+        ".md"
+      ],
+      "root": "contracts/finance"
     },
     {
-      "root": "alembic_neutral",
-      "protected_suffixes": [
-        ".py",
-        ".sql"
-      ],
       "files": [
         "env.py",
         "sql/m13_financial_foundation_down.sql",
@@ -786,7 +802,12 @@
         "versions/m62_reconciliation_windows_018_continuity_calendar_and_cascades.py",
         "versions/m63_reconciliation_close_019_formal_close_reopen_and_period_protection.py",
         "versions/m64_reconciliation_controls_020_bank_ar_ap_evidence_and_reports.py"
-      ]
+      ],
+      "protected_suffixes": [
+        ".py",
+        ".sql"
+      ],
+      "root": "alembic_neutral"
     }
   ]
 }

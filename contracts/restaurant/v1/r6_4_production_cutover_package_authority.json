@@ -1,0 +1,102 @@
+{
+  "contract": "R6_4_WND_PRODUCTION_CUTOVER_PACKAGE_AND_RUNBOOK",
+  "diagnostic_runtime_ports": {
+    "binding": "127.0.0.1 only",
+    "occupied_port_action": "LEAVE_UNTOUCHED",
+    "production_ports_touched": [],
+    "production_services_stopped": false,
+    "reference_candidates": [
+      8002,
+      18002,
+      28002,
+      38002
+    ],
+    "selection": "first free candidate",
+    "track_b_candidates": [
+      8004,
+      18004,
+      28004,
+      38004
+    ]
+  },
+  "full_regression_safety": {
+    "bytecode_cache_excluded_from_neutrality_scans": true,
+    "database_restore_allowed": [
+      "xbos_track_b_test"
+    ],
+    "disposable_regression_database": "xbos_track_b_test",
+    "production_database": "xbos",
+    "production_database_supplied_to_pytest": false,
+    "python_dont_write_bytecode": true,
+    "source": "latest hash-verified R6.4 production planning backup"
+  },
+  "legacy_writer_retirement_allowed": false,
+  "live_cutover_authorized": false,
+  "next_gate": "R6.5 actual WND production cutover under compatibility-mode hypercare boundary",
+  "pass_meaning": "R6.4 PASS freezes a deterministic, rehearsed production cutover plan and fresh planning baseline. It does not perform or authorize the live WND cutover.",
+  "planning_baseline": {
+    "may_create_pg_dump": true,
+    "may_migrate_disposable_clones": true,
+    "may_read_production": true,
+    "may_restore_disposable_clones": true,
+    "may_write_production_database": false,
+    "purpose": "fresh production-shaped proof and R6.5 planning; not the final stopped-production backup"
+  },
+  "production_database": "xbos",
+  "production_schema_migration_authorized": false,
+  "production_source_head_required_before_r6_5": "5c706797029a",
+  "production_write_authorized": false,
+  "r6_3_freeze_tag": "restaurant-r6-3-wnd-application-compatibility-uat-20260822",
+  "r6_4_control_runtime": {
+    "passlib": "1.7.4",
+    "password_hash_backend": "bcrypt==4.2.1",
+    "password_hash_backend_required_for_characterization_suite": true,
+    "platform": "Windows",
+    "purpose": "isolated R6.4 control/rehearsal environment; does not modify the live WND backend interpreter",
+    "python": "3.13.5",
+    "timezone_database": "tzdata==2025.2",
+    "timezone_required": "Africa/Douala"
+  },
+  "r6_5_may": [
+    "enter an approved WND maintenance window",
+    "stop WND application writers before the final backup",
+    "capture and verify a final production backup under maintenance",
+    "migrate live xbos from the frozen WND legacy head through the neutral lineage to r63_legacy_inventory_writer_compat_044",
+    "install/activate the existing WND Restaurant pack/template composition and PC4 operating context",
+    "deploy the exact R6.4-frozen Track B WND compatibility runtime entrypoint while keeping the accepted WND frontend contract",
+    "run maintenance-mode post-migration verification before business reopening",
+    "reopen WND into governed hypercare only after all R6.5 gates pass"
+  ],
+  "r6_5_must_not": [
+    "retire, disable, or reroute the legacy WND writer inventory",
+    "fabricate historical customer identity, fulfillment mode, cost basis, documents, or financial truth",
+    "silently normalize historical inventory cache-ledger mismatch",
+    "activate a new canonical financial writer merely because neutral schema is present",
+    "perform blind database restore after post-cutover business writes have resumed",
+    "onboard another tenant as part of the WND cutover"
+  ],
+  "r6_5_operating_mode": "neutral_schema_and_track_b_runtime_with_explicit_wnd_api_and_legacy_writer_compatibility",
+  "r6_5_target_head": "r63_legacy_inventory_writer_compat_044",
+  "r6_5_wnd_api_compatibility_bridge": {
+    "contract": "contracts/restaurant/v1/r6_4_wnd_api_compatibility_bridge.json",
+    "neutral_main_runtime_changed": false,
+    "retirement": "FORBIDDEN_BEFORE_POST_HYPERCARE_RETIREMENT_GATE",
+    "route_count": 26,
+    "status": "TEMPORARY_THROUGH_HYPERCARE",
+    "tenant_scope": "WND tenant_id=2 only"
+  },
+  "r6_5_wnd_runtime_entrypoint": "restaurant.r6.wnd_compat_runtime:app",
+  "schema_version": 1,
+  "source_archive_sha256": "891dd822b0430a197d4e1dada026aff69b2cc50b06a7c568c6738f9dc4eb40a1",
+  "source_archive_size": 6272632,
+  "source_branch": "restaurant/r6-4-wnd-production-cutover-package-runbook",
+  "source_checkpoint": "b97d3850b120aff92261ad9edcb3bf3151ebbcb3",
+  "wnd_api_bridge_openapi_binding": {
+    "compatibility_router_annotations": "EAGER_RUNTIME_TYPES",
+    "future_annotations_in_compatibility_route_module": false,
+    "neutral_core_decorator_changed": false,
+    "neutral_main_changed": false,
+    "reason": "RBAC decorator uses functools.wraps; FastAPI/Pydantic 2.11 must receive concrete payload classes rather than unresolved ForwardRef strings"
+  },
+  "writer_routing": "unchanged"
+}

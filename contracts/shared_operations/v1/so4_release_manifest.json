@@ -1,14 +1,5 @@
 {
-  "schema_version": 1,
-  "release": "XBOS_SO4_PROCUREMENT_SUPPLIER_OPERATIONS",
-  "source_checkpoint": "903e0e9",
-  "source_checkpoint_full": "903e0e945b3659cffb03b1cdeaded38de2e7ce1d",
-  "previous_head": "so3_inventory_stock_movement_028",
   "accepted_head": "so4_procurement_supplier_operations_029",
-  "migration_count": 1,
-  "fingerprint_mode": "sha256_crlf_to_lf_only",
-  "commit": "NOT_CREATED",
-  "tag": "NOT_CREATED",
   "artifacts": [
     {
       "path": "SO4_INSTALL_MANIFEST.txt",
@@ -44,7 +35,7 @@
     },
     {
       "path": "contracts/platform/v1/pc0_frozen_finance_inventory.json",
-      "sha256": "a23a8d36e63884df36985b954b33e37da3d75b0ab39f0fb73e8a229e3706514a"
+      "sha256": "85f45225fd783244f00dec1c8d3cc290f5885caa5d0e442cd83dd3c40bb843d2"
     },
     {
       "path": "contracts/platform/v1/pc0_module_map.json",
@@ -60,11 +51,11 @@
     },
     {
       "path": "contracts/platform/v1/pc0_release_manifest.json",
-      "sha256": "656148d0f34b2ea79e0ad8ebac8ded3135b034981e663c788eb14d93515ee0af"
+      "sha256": "6e335af697bde10dfc2cf847fdd489ea4df12f315e626dfd6fb3a674b64e6a6a"
     },
     {
       "path": "contracts/platform/v1/pc6_release_manifest.json",
-      "sha256": "c45eebade075fa1aea898afbe138c168e8dba839761e570443e28e827c930de6"
+      "sha256": "f78330d5e40c8415b9f564ebf04d15a592a325bbeb57098ef9d5c91120317a87"
     },
     {
       "path": "contracts/shared_operations/v1/examples/clinical_service_supply_procurement_profile.json",
@@ -76,15 +67,15 @@
     },
     {
       "path": "contracts/shared_operations/v1/so1_release_manifest.json",
-      "sha256": "f19d882dc254fd21ed213bacfefcf1b7afb23c21eec0b0b6217d6659e1d92663"
+      "sha256": "e604f2150f8486547044b82622826e65ad56a941b97d4ea7ec982de0cd339d85"
     },
     {
       "path": "contracts/shared_operations/v1/so2_release_manifest.json",
-      "sha256": "96ab0c9f5327d385be9867d5fad998e2008f30c9e6fad16d869bda45541a283a"
+      "sha256": "00a8b6e1a7b4fb79141fef03719648de1beec0264e071421808dbfe65a5959b8"
     },
     {
       "path": "contracts/shared_operations/v1/so3_release_manifest.json",
-      "sha256": "2fadc9f7d03bfba7c6afa703dec3481722f889bb9131d6355b536bf213b993b5"
+      "sha256": "d1ea69dfc07f370f2d9e1b4c7a3ff690a84e9ffbcb7ca4ff0ad9a7a43d3d04d3"
     },
     {
       "path": "contracts/shared_operations/v1/so4_authority.json",
@@ -142,5 +133,14 @@
       "path": "tests/contracts/test_so4_procurement_supplier_operations.py",
       "sha256": "f89c59f28016678d5a4324fcd57b3e725935b465a6db6716c0135b98648f4040"
     }
-  ]
+  ],
+  "commit": "NOT_CREATED",
+  "fingerprint_mode": "sha256_crlf_to_lf_only",
+  "migration_count": 1,
+  "previous_head": "so3_inventory_stock_movement_028",
+  "release": "XBOS_SO4_PROCUREMENT_SUPPLIER_OPERATIONS",
+  "schema_version": 1,
+  "source_checkpoint": "903e0e9",
+  "source_checkpoint_full": "903e0e945b3659cffb03b1cdeaded38de2e7ce1d",
+  "tag": "NOT_CREATED"
 }

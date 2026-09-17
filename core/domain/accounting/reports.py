@@ -345,7 +345,7 @@ class AccountingReportsService:
             db,
             tenant_id=tenant_id,
             branch_id=branch_id,
-            event_types=list(AccountingReportsService.CASH_MOVE_EVENTS),
+            event_types=["CASH_MOVE"],
             start=start,
             end=end,
             limit=limit,
@@ -547,7 +547,7 @@ class AccountingReportsService:
             persisted = existing_recon.get(channel)
 
             if persisted:
-                row["opening"] = _f(persisted.opening_amount)
+                row["opening"] = _f(previous_closing.get(channel, persisted.opening_amount))
                 row["actual"] = _f(persisted.actual_closing_amount)
                 row["note"] = persisted.note or ""
                 row["status"] = persisted.status or "closed"
@@ -774,6 +774,7 @@ class AccountingReportsService:
             db,
             tenant_id=tenant_id,
             branch_id=branch_id,
+            shift=shift,
             before=start,
         )
 

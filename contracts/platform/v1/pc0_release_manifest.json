@@ -1,13 +1,4 @@
 {
-  "schema_version": 1,
-  "release": "XBOS_PLATFORM_CORE_PC0",
-  "base_checkpoint": "fa9b17e473105c7c70b8faa3a0a946ee9117d37e",
-  "schema_neutral": true,
-  "migration": "NONE",
-  "canonical_migration_head": "m64_reconciliation_controls_020",
-  "commit": "NOT_CREATED",
-  "tag": "NOT_CREATED",
-  "success_marker": "PC0_SINGLE_GATE=PASS",
   "artifacts": [
     {
       "path": "PC0_INSTALL_MANIFEST.txt",
@@ -47,7 +38,7 @@
     },
     {
       "path": "contracts/platform/v1/pc0_frozen_finance_inventory.json",
-      "sha256": "a23a8d36e63884df36985b954b33e37da3d75b0ab39f0fb73e8a229e3706514a"
+      "sha256": "85f45225fd783244f00dec1c8d3cc290f5885caa5d0e442cd83dd3c40bb843d2"
     },
     {
       "path": "contracts/platform/v1/pc0_kernel_boundaries.json",
@@ -97,5 +88,14 @@
       "path": "XBOS_PC0_RUN_ACCEPTANCE.cmd",
       "sha256": "bca73508d6a47dc7b05463ecd070b9af678b025e3dad6eb041840a0f308942a7"
     }
-  ]
+  ],
+  "base_checkpoint": "fa9b17e473105c7c70b8faa3a0a946ee9117d37e",
+  "canonical_migration_head": "m64_reconciliation_controls_020",
+  "commit": "NOT_CREATED",
+  "migration": "NONE",
+  "release": "XBOS_PLATFORM_CORE_PC0",
+  "schema_neutral": true,
+  "schema_version": 1,
+  "success_marker": "PC0_SINGLE_GATE=PASS",
+  "tag": "NOT_CREATED"
 }

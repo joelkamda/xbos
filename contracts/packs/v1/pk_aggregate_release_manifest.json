@@ -1,33 +1,5 @@
 {
-  "schema_version": 1,
-  "release": "PK_AGGREGATE_CONFORMANCE_FREEZE",
-  "source_checkpoint": "97c6c75",
-  "source_checkpoint_full": "97c6c751259649ef0a90a63f11fa78d8b1b1d599",
-  "source_archive_sha256": "3568b3ba7094b990514c2662613624ff03ddfe6136d44a214457ee9a9e3442a7",
-  "source_archive_size": 5840802,
-  "previous_head": "pk456_pack_conformance_templates_038",
   "accepted_head": "pk456_pack_conformance_templates_038",
-  "migration_count": 0,
-  "coverage": [
-    "PK0",
-    "PK1",
-    "PK2",
-    "PK3",
-    "PK4",
-    "PK5",
-    "PK6"
-  ],
-  "fingerprint_mode": "sha256_git_canonical_lf",
-  "commit": "NONE",
-  "tag": "NONE",
-  "operator_gate": "XBOS_PK_AGG_RUN_ACCEPTANCE.cmd",
-  "success_marker": "PK_AGG_SINGLE_GATE=PASS",
-  "business_capability_change": "NONE",
-  "finance": "UNCHANGED",
-  "shared_operations": "UNCHANGED",
-  "production_dependencies": "UNCHANGED",
-  "xa": "FROZEN_CONSUMED",
-  "pa_readiness": "PASS_AFTER_OPERATOR_GATE",
   "artifacts": [
     {
       "path": "PK_AGG_INSTALL_MANIFEST.txt",
@@ -63,11 +35,39 @@
     },
     {
       "path": "contracts/packs/v1/pk0123_release_manifest.json",
-      "sha256": "8c2e6cb9522d91a7f3bb2dd13d9c6789a91614fc075d23baac951ef4f2a8f663"
+      "sha256": "9cc43365e21e87cb3212631f3a17f5e197edfefe912e4bbc051180053fbbefb5"
     },
     {
       "path": "contracts/packs/v1/pk456_release_manifest.json",
-      "sha256": "26f41901227af453d0b678e1361ab55a8338ddcfb2644ba66f54cccfaa4a7d12"
+      "sha256": "ff1a845bde18030c9af77b1545327f7e892d13c7dfb6fed3994dd1826864eeec"
     }
-  ]
+  ],
+  "business_capability_change": "NONE",
+  "commit": "NONE",
+  "coverage": [
+    "PK0",
+    "PK1",
+    "PK2",
+    "PK3",
+    "PK4",
+    "PK5",
+    "PK6"
+  ],
+  "finance": "UNCHANGED",
+  "fingerprint_mode": "sha256_git_canonical_lf",
+  "migration_count": 0,
+  "operator_gate": "XBOS_PK_AGG_RUN_ACCEPTANCE.cmd",
+  "pa_readiness": "PASS_AFTER_OPERATOR_GATE",
+  "previous_head": "pk456_pack_conformance_templates_038",
+  "production_dependencies": "UNCHANGED",
+  "release": "PK_AGGREGATE_CONFORMANCE_FREEZE",
+  "schema_version": 1,
+  "shared_operations": "UNCHANGED",
+  "source_archive_sha256": "3568b3ba7094b990514c2662613624ff03ddfe6136d44a214457ee9a9e3442a7",
+  "source_archive_size": 5840802,
+  "source_checkpoint": "97c6c75",
+  "source_checkpoint_full": "97c6c751259649ef0a90a63f11fa78d8b1b1d599",
+  "success_marker": "PK_AGG_SINGLE_GATE=PASS",
+  "tag": "NONE",
+  "xa": "FROZEN_CONSUMED"
 }
