@@ -373,6 +373,7 @@ class PaymentService:
         complimentary_items: Any,
         total_paid: Decimal,
         balance_due: Decimal,
+        accounts_receivable_amount: Decimal,
         store_credit: Decimal,
         tip_amount: Decimal,
         change_given_now: Decimal,
@@ -409,6 +410,7 @@ class PaymentService:
                 "complimentary_items": complimentary_items,
                 "total_paid": total_paid,
                 "balance_due": balance_due,
+                "accounts_receivable_amount": accounts_receivable_amount,
                 "store_credit_amount": store_credit,
                 "tip_amount": tip_amount,
                 "change_given_now": change_given_now,
@@ -468,13 +470,13 @@ class PaymentService:
         # -------------------------------------------------
         # Debt / A-R
         # -------------------------------------------------
-        if payable_type == "sale" and sale_id and balance_due > 0:
+        if payable_type == "sale" and sale_id and accounts_receivable_amount > 0:
             FinancialEventEmitter.debt_created(
                 db,
                 tenant_id=tenant_id,
                 branch_id=branch_id,
                 sale_id=sale_id,
-                amount=balance_due,
+                amount=accounts_receivable_amount,
                 currency=currency,
                 occurred_at=occurred_at,
                 meta={
@@ -898,6 +900,15 @@ class PaymentService:
             amount = _d(line.get("amount"))
             meta = line.get("meta") or {}
 
+            if (
+                method == "xafpay"
+                or str(line.get("settlement_mode") or "").strip().lower() == "async_gateway"
+                or str(meta.get("orchestrator") or "").strip().lower() == "xafpay"
+            ):
+                raise ValueError(
+                    "XafPay external payment cannot enter the local manual-success path"
+                )
+
             if amount <= 0:
                 continue
 
@@ -1081,6 +1092,7 @@ class PaymentService:
             complimentary_items=complimentary_items,
             total_paid=total_paid,
             balance_due=balance_due,
+            accounts_receivable_amount=max(Decimal("0"), _d(unpaid_amount)),
             store_credit=store_credit,
             tip_amount=safe_tip_d,
             change_given_now=safe_given_d,

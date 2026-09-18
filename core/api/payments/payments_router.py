@@ -32,6 +32,38 @@ async def list_payments(
 
 
 # -------------------------------------------------
+# Current XafPay server-side recovery projections
+# -------------------------------------------------
+
+@router.get("/xafpay/attempts/{attempt_public_id}/status")
+@require_permissions("payments.view")
+async def xafpay_attempt_status(
+    attempt_public_id: str,
+    request: Request,
+    db: Session = Depends(get_db),
+):
+    return await controller.xafpay_attempt_status(
+        attempt_public_id=attempt_public_id,
+        request=request,
+        db=db,
+    )
+
+
+@router.get("/xafpay/orders/{order_id}/recovery")
+@require_permissions("payments.view")
+async def xafpay_order_recovery(
+    order_id: int,
+    request: Request,
+    db: Session = Depends(get_db),
+):
+    return await controller.xafpay_order_recovery(
+        order_id=order_id,
+        request=request,
+        db=db,
+    )
+
+
+# -------------------------------------------------
 # Get single payment
 # -------------------------------------------------
 

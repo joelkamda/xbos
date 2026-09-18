@@ -1,12 +1,10 @@
-import uuid
+import os
 from decimal import Decimal
 from typing import Any, Dict, List
 
-import httpx
 from fastapi import HTTPException, Request, status
+from sqlalchemy import text
 from sqlalchemy.orm import Session
-
-from settings import settings
 
 from core.domain.payments.service import PaymentService
 from core.domain.payments.repository import (
@@ -19,6 +17,9 @@ from core.domain.orders.repository import OrderRepository
 from core.domain.accounting.accounts_receivable.service import (
     AccountsReceivableService,
 )
+from core.integrations.xafpay_v2.client import XafPayV2Client
+from core.integrations.xafpay_v2.contract import XafPayV2IntegrationError
+from core.integrations.xafpay_v2.wnd_service import WndXafPayV2Service
 
 
 def _d(v: Any) -> Decimal:
@@ -160,6 +161,8 @@ class PaymentsController:
         intent,
         receipt_meta: Dict[str, Any],
         note: Any = None,
+        external_pending_amount: Decimal = Decimal("0"),
+        accounts_receivable_amount: Decimal = Decimal("0"),
     ):
         """
         Finalizes order destination after settlement.
@@ -191,6 +194,12 @@ class PaymentsController:
             db.add(order)
             return None
 
+        if accounts_receivable_amount <= 0:
+            if external_pending_amount > 0:
+                order.status = "pending_payment"
+                db.add(order)
+            return None
+
         ar = AccountsReceivableService.create_or_update_from_settlement(
             db,
             tenant_id=tenant_id,
@@ -200,14 +209,17 @@ class PaymentsController:
             payment_intent_id=str(getattr(intent, "id", "") or ""),
             original_amount=original_amount_d,
             paid_amount=total_paid_d,
-            balance_due=balance_due_d,
+            balance_due=accounts_receivable_amount,
             customer_name=_extract_customer_name(receipt_meta),
             customer_phone=_extract_customer_phone(receipt_meta),
             note=_extract_note(receipt_meta, note),
             created_by_user_id=user_id,
         )
 
-        OrderRepository.mark_receivable(order)
+        if external_pending_amount > 0:
+            order.status = "pending_payment"
+        else:
+            OrderRepository.mark_receivable(order)
         db.add(order)
 
         return ar
@@ -365,6 +377,115 @@ class PaymentsController:
         }
 
     # =====================================================
+    # XAFPAY CURRENT CANONICAL STATUS / RECOVERY
+    # =====================================================
+
+    async def xafpay_attempt_status(
+        self, request: Request, attempt_public_id: str, db: Session
+    ):
+        """Read only XBOS canonical attempt/settlement projection. No external calls."""
+        ctx = self._get_ctx(request)
+        row = db.execute(text("""
+            SELECT a.public_id,a.attempt_state,a.attempted_amount,a.currency_code,
+                   a.payment_rail_code,a.external_attempt_reference,a.metadata,
+                   (SELECT count(*) FROM payment_settlements ps
+                     WHERE ps.tenant_id=a.tenant_id AND ps.payment_attempt_id=a.id
+                       AND ps.settlement_state IN ('confirmed','partially_reversed'))
+                       AS confirmed_settlements,
+                   (SELECT pi.id FROM payment_intents pi
+                     WHERE pi.tenant_id=a.tenant_id AND pi.payable_type='sale'
+                       AND pi.payable_id=(a.metadata->>'sale_id')::int
+                     ORDER BY pi.id DESC LIMIT 1) AS payment_record_id,
+                   (SELECT pi.total_paid FROM payment_intents pi
+                     WHERE pi.tenant_id=a.tenant_id AND pi.payable_type='sale'
+                       AND pi.payable_id=(a.metadata->>'sale_id')::int
+                     ORDER BY pi.id DESC LIMIT 1) AS total_paid,
+                   (SELECT pi.balance_due FROM payment_intents pi
+                     WHERE pi.tenant_id=a.tenant_id AND pi.payable_type='sale'
+                       AND pi.payable_id=(a.metadata->>'sale_id')::int
+                     ORDER BY pi.id DESC LIMIT 1) AS balance_due
+              FROM canonical_payment_attempts a
+             WHERE a.tenant_id=:tenant_id
+               AND a.organization_unit_id=:branch_id
+               AND a.public_id::text=:attempt_id
+               AND a.orchestrator_code='xafpay'
+        """), {
+            "tenant_id": ctx["tenant_id"],
+            "branch_id": ctx["branch_id"],
+            "attempt_id": attempt_public_id,
+        }).mappings().one_or_none()
+        if row is None:
+            raise HTTPException(status_code=404, detail="XafPay attempt not found")
+
+        state_value = str(row["attempt_state"] or "pending").lower()
+        metadata = dict(row["metadata"] or {})
+        unresolved = state_value in {
+            "pending", "processing", "requires_action", "authorized"
+        }
+        settlements = int(row["confirmed_settlements"] or 0)
+        return {
+            "attempt_public_id": str(row["public_id"]),
+            "attempt_state": state_value.upper(),
+            "unresolved": unresolved,
+            "amount": float(row["attempted_amount"] or 0),
+            "currency": str(row["currency_code"] or "").upper(),
+            "rail": str(row["payment_rail_code"] or "").upper(),
+            "gateway_payment_id": row["external_attempt_reference"],
+            "checkout_session_id": metadata.get("checkout_session_id"),
+            "checkout_status": metadata.get("checkout_status"),
+            "presentation_state": (
+                "PRESENTATION_EXPIRED"
+                if metadata.get("checkout_status") == "EXPIRED"
+                else "PRESENTABLE" if metadata.get("checkout_session_id") else None
+            ),
+            "order_id": metadata.get("order_id"),
+            "sale_id": metadata.get("sale_id"),
+            "payment_record_id": (
+                str(row["payment_record_id"]) if row["payment_record_id"] is not None else None
+            ),
+            "confirmed_settlements": settlements,
+            "financially_confirmed": state_value == "succeeded" and settlements == 1,
+            "total_paid": float(row["total_paid"] or 0),
+            "balance_due": float(row["balance_due"] or 0),
+        }
+
+    async def xafpay_order_recovery(
+        self, request: Request, order_id: int, db: Session
+    ):
+        """Resolve the latest XafPay attempt for this WND obligation from XBOS only."""
+        ctx = self._get_ctx(request)
+        attempt_id = db.execute(text("""
+            SELECT public_id
+              FROM canonical_payment_attempts
+             WHERE tenant_id=:tenant_id
+               AND organization_unit_id=:branch_id
+               AND metadata->>'order_id'=:order_id
+               AND orchestrator_code='xafpay'
+             ORDER BY occurred_at DESC,id DESC
+             LIMIT 1
+        """), {
+            "tenant_id": ctx["tenant_id"],
+            "branch_id": ctx["branch_id"],
+            "order_id": str(order_id),
+        }).scalar_one_or_none()
+        if attempt_id is None:
+            return {
+                "order_id": order_id,
+                "has_xafpay_attempt": False,
+                "unresolved": False,
+            }
+        projection = await self.xafpay_attempt_status(
+            request=request,
+            attempt_public_id=str(attempt_id),
+            db=db,
+        )
+        return {
+            **projection,
+            "has_xafpay_attempt": True,
+            "resume_uses_same_attempt": bool(projection["unresolved"]),
+        }
+
+    # =====================================================
     # POS SETTLEMENT (ORDER-DRIVEN / MANUAL / BALANCE)
     # =====================================================
 
@@ -383,6 +504,47 @@ class PaymentsController:
         order_id = payload.get("order_id")
         client_reference = payload.get("client_reference")
         lines: List[Dict[str, Any]] = payload.get("lines") or []
+
+        if any(
+            isinstance(line, dict)
+            and (
+                str(line.get("method") or "").strip().lower() == "xafpay"
+                or str(line.get("settlement_mode") or "").strip().lower() == "async_gateway"
+                or str((line.get("meta") or {}).get("orchestrator") or "").strip().lower() == "xafpay"
+            )
+            for line in lines
+        ):
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="XafPay external value requires canonical Gateway settlement",
+            )
+
+        if order_id:
+            unresolved = db.execute(text("""
+                SELECT public_id,attempt_state,attempted_amount
+                  FROM canonical_payment_attempts
+                 WHERE tenant_id=:tenant_id
+                   AND organization_unit_id=:branch_id
+                   AND metadata->>'order_id'=:order_id
+                   AND orchestrator_code='xafpay'
+                   AND attempt_state IN ('pending','processing','requires_action','authorized')
+                 ORDER BY occurred_at DESC,id DESC
+                 LIMIT 1
+            """), {
+                "tenant_id": tenant_id,
+                "branch_id": branch_id,
+                "order_id": str(order_id),
+            }).mappings().one_or_none()
+            if unresolved is not None:
+                raise HTTPException(
+                    status_code=status.HTTP_409_CONFLICT,
+                    detail={
+                        "code": "XAFPAY_UNRESOLVED_OBLIGATION",
+                        "attempt_public_id": str(unresolved["public_id"]),
+                        "attempt_state": str(unresolved["attempt_state"]).upper(),
+                        "amount": float(unresolved["attempted_amount"] or 0),
+                    },
+                )
 
         receipt_meta = payload.get("receipt_meta") or {}
 
@@ -411,6 +573,7 @@ class PaymentsController:
         change_given_now = payload.get("change_given_now")
         tip_amount = payload.get("tip_amount")
         unpaid_amount = payload.get("unpaid_amount")
+        external_pending_amount = _d(payload.get("external_pending_amount"))
         note = payload.get("note")
 
         change_amount_d = _d(change_amount)
@@ -442,6 +605,7 @@ class PaymentsController:
             "unpaid_amount": float(_d(unpaid_amount))
             if unpaid_amount is not None
             else float(_d(receipt_meta.get("unpaid_amount"))),
+            "external_pending_amount": float(external_pending_amount),
             "existing_intent_id": existing_intent_id,
             "parent_intent_id": existing_intent_id,
             "complete_balance": complete_balance or None,
@@ -536,6 +700,8 @@ class PaymentsController:
                 intent=intent,
                 receipt_meta=receipt_meta,
                 note=note,
+                external_pending_amount=external_pending_amount,
+                accounts_receivable_amount=_d(unpaid_amount),
             )
 
         # =====================================================
@@ -616,19 +782,19 @@ class PaymentsController:
         payload: Dict[str, Any],
         db: Session,
     ):
+        """Create/replay one current Gateway CheckoutSession for one XBOS XafPay attempt."""
         ctx = self._get_ctx(request)
-
         tenant_id = ctx["tenant_id"]
         branch_id = ctx["branch_id"]
         user_id = ctx["user_id"]
 
         order_id = payload.get("order_id")
-        rail = payload.get("provider")
-
+        rail = payload.get("rail") or payload.get("provider")
+        requested_amount = _d(payload.get("amount"))
         if not order_id or not rail:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="order_id and provider required",
+                detail="order_id and XafPay rail required",
             )
 
         sale = self._resolve_sale_from_order(
@@ -638,14 +804,12 @@ class PaymentsController:
             user_id=user_id,
             order_id=int(order_id),
         )
-
         intent = PaymentIntentRepository.get_by_payable(
             db,
             tenant_id=tenant_id,
             payable_type="sale",
             payable_id=sale.id,
         )
-
         if not intent:
             intent = PaymentService.init_intent(
                 db=db,
@@ -655,9 +819,9 @@ class PaymentsController:
                 payable_id=sale.id,
                 currency="XAF",
                 amount=Decimal(str(sale.total or 0)),
-                channel="xafpay",
+                channel="pos",
                 created_by_user_id=user_id,
-                client_reference=str(uuid.uuid4()),
+                client_reference=f"wnd-xafpay-commercial:{tenant_id}:{order_id}:{sale.id}",
                 meta={
                     "sale_id": sale.id,
                     "order_id": int(order_id),
@@ -666,66 +830,63 @@ class PaymentsController:
             )
             db.flush()
 
-        web_base = settings.WEB_BASE_URL.rstrip("/")
-
-        return_url = (
-            payload.get("returnUrl")
-            or f"{web_base}/result?status=success&orderId={order_id}&saleId={sale.id}&intentId={intent.id}"
+        available_balance = _d(
+            getattr(intent, "balance_due", None) or getattr(intent, "amount", 0)
         )
-
-        cancel_url = (
-            payload.get("cancelUrl")
-            or f"{web_base}/result?status=failure&orderId={order_id}&saleId={sale.id}"
-        )
-
-        try:
-            async with httpx.AsyncClient(timeout=20) as client:
-                response = await client.post(
-                    f"{settings.GATEWAY_BASE_URL}/api/v1/payment-intents",
-                    headers={
-                        "Content-Type": "application/json",
-                        "x-api-key": settings.GATEWAY_API_KEY,
-                        "Idempotency-Key": str(uuid.uuid4()),
-                    },
-                    json={
-                        "amount": float(intent.amount or 0),
-                        "currency": intent.currency,
-                        "provider": "tranzak",
-                        "requestedRail": rail,
-                        "externalId": str(intent.id),
-                        "returnUrl": return_url,
-                        "cancelUrl": cancel_url,
-                    },
-                )
-
-            if response.status_code not in (200, 201):
-                raise HTTPException(
-                    status_code=status.HTTP_502_BAD_GATEWAY,
-                    detail=response.text,
-                )
-
-            gateway_data = response.json()
-
-        except httpx.RequestError:
+        if requested_amount <= 0:
+            requested_amount = available_balance
+        if requested_amount <= 0 or requested_amount > available_balance:
             raise HTTPException(
-                status_code=status.HTTP_502_BAD_GATEWAY,
-                detail="Gateway connection failed",
+                status_code=status.HTTP_409_CONFLICT,
+                detail="XafPay allocation must be positive and no greater than balance due",
             )
 
-        gateway_intent_id = gateway_data.get("id")
-        payment_url = gateway_data.get("paymentUrl")
+        base_url = os.environ.get("XAFPAY_V2_GATEWAY_BASE_URL", "").strip()
+        credential = os.environ.get("XAFPAY_V2_SERVICE_CREDENTIAL", "").strip()
+        presentation_url = os.environ.get(
+            "XAFPAY_V2_CHECKOUT_PRESENTATION_URL", ""
+        ).strip()
+        if not base_url or not credential or not presentation_url:
+            raise HTTPException(
+                status_code=503,
+                detail="XafPay V2 checkout configuration unavailable",
+            )
 
-        PaymentIntentRepository.set_gateway_id(
-            intent=intent,
-            gateway_intent_id=gateway_intent_id,
+        try:
+            result = WndXafPayV2Service.initiate_order(
+                db,
+                tenant_id=tenant_id,
+                organization_unit_id=branch_id,
+                order_id=int(order_id),
+                sale_id=int(sale.id),
+                amount=requested_amount,
+                rail=str(rail),
+                client=XafPayV2Client(base_url, credential),
+            )
+            db.commit()
+        except XafPayV2IntegrationError as exc:
+            db.rollback()
+            diagnostic = str(exc)[:500]
+            raise HTTPException(
+                status_code=502,
+                detail=f"XafPay V2 checkout failed: {exc.code}: {diagnostic}",
+            ) from exc
+        except (ValueError, RuntimeError) as exc:
+            db.rollback()
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail=str(exc),
+            ) from exc
+
+        token = result.get("checkout_token")
+        payment_url = (
+            f"{presentation_url.rstrip('/')}#token={token}"
+            if token and result.get("presentation_state") == "PRESENTABLE"
+            else None
         )
-
-        db.commit()
-
         return {
+            **result,
             "intent_id": intent.id,
-            "order_id": int(order_id),
-            "sale_id": sale.id,
-            "gateway_intent_id": gateway_intent_id,
+            "payment_record_id": str(intent.id),
             "paymentUrl": payment_url,
         }

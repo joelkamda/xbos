@@ -2,6 +2,7 @@ from typing import Dict, Any
 from decimal import Decimal
 
 from fastapi import Request, HTTPException
+from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from core.domain.sales.repository import SaleRepository
@@ -261,6 +262,26 @@ class ReceiptsController:
             if _is_success_status(a.status)
         ]
 
+        canonical_xafpay = []
+        if sale:
+            canonical_xafpay = db.execute(text("""
+                SELECT s.public_id,s.gross_amount,s.reversed_amount,s.occurred_at,
+                       s.payment_method_code,s.payment_rail_code,a.orchestrator_code
+                  FROM payment_settlements s
+                  JOIN canonical_payment_attempts a
+                    ON a.tenant_id=s.tenant_id AND a.id=s.payment_attempt_id
+                 WHERE s.tenant_id=:tenant_id
+                   AND s.organization_unit_id=:branch_id
+                   AND a.orchestrator_code='xafpay'
+                   AND s.settlement_state IN ('confirmed','partially_reversed')
+                   AND a.metadata->>'sale_id'=:sale_id
+                 ORDER BY s.occurred_at,s.id
+            """), {
+                "tenant_id": ctx["tenant_id"],
+                "branch_id": ctx["branch_id"],
+                "sale_id": str(sale.id),
+            }).mappings().all()
+
         meta = dict(intent.meta or {})
 
         # =====================================================
@@ -406,6 +427,21 @@ class ReceiptsController:
             }
             for a in successful_attempts
         ]
+        payments_payload.extend(
+            {
+                "method": str(row["payment_method_code"] or "mobile_money").lower(),
+                "rail": str(row["payment_rail_code"] or "").upper() or None,
+                "orchestrator": str(row["orchestrator_code"] or "xafpay").lower(),
+                "provider": None,
+                "amount": float(_d(row["gross_amount"])),
+                "settlement_mode": "canonical_external",
+                "status": "succeeded",
+                "created_at": (
+                    row["occurred_at"].isoformat() if row["occurred_at"] else None
+                ),
+            }
+            for row in canonical_xafpay
+        )
 
         if not payments_payload and total_paid > 0:
             payments_payload = [
