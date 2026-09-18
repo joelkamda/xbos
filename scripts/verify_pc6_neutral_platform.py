@@ -25,7 +25,7 @@ from core.platform.architecture_contract import validate_pc0
 from core.platform.neutral_proof import deterministic_export, load_profile, restore_export
 from core.platform.neutral_proof.dependency_authority import verify_dependency_authority
 from core.platform.neutral_proof.leakage import scan_wnd_leakage
-from core.platform.release_integrity import verify_historical_release, verify_latest_release
+from core.platform.release_integrity import release_chain, verify_historical_release, verify_latest_release
 from scripts.bootstrap_pc6_tenant import _facades
 
 
@@ -128,12 +128,26 @@ def static_verify():
         raise RuntimeError("PC6 public-contract inventory incomplete")
     if "sql_repository" in json.dumps(inventory):
         raise RuntimeError("PC6 public-contract proof exposes private repository")
-    for number in range(1, 6):
-        verify_historical_release(ROOT, number)
-    latest = verify_latest_release(ROOT)
-    if latest["latest"] != 6:
-        raise RuntimeError("PC6 is not latest cumulative Platform Core descendant")
-    pc0 = validate_pc0(ROOT)
+    chain = release_chain(ROOT)
+    current_latest = chain[-1][0]
+    if current_latest < 6:
+        raise RuntimeError("PC6 historical milestone missing from current Platform Core release chain")
+    pc7_release_present = (CONTRACTS / "pc7_release_manifest.json").is_file()
+    if current_latest == 6:
+        if pc7_release_present:
+            raise RuntimeError("PC7 release manifest exists but Platform release chain did not advance")
+        pc6_bytes = (CONTRACTS / "pc6_release_manifest.json").read_bytes().replace(b"\r\n", b"\n")
+        if hashlib.sha256(pc6_bytes).hexdigest() != "cb384cc1d1c79f7874e240ecdc85ff6cb8f9d069e5f28c7f8a9d96dda05e6d5d":
+            raise RuntimeError("immutable historical PC6 release manifest changed")
+        latest = {"latest": 6, "artifact_count": len(_json("pc6_release_manifest.json")["artifacts"])}
+        pc0 = validate_pc0(ROOT, validate_release=False)
+    else:
+        latest = verify_latest_release(ROOT)
+        for number in range(1, 7):
+            report = verify_historical_release(ROOT, number)
+            if report["latest"] != latest["latest"]:
+                raise RuntimeError(f"PC6 historical descendant resolution mismatch=PC{number}")
+        pc0 = validate_pc0(ROOT)
     baseline = _json("pc0_frozen_finance_baseline.json")
     if baseline["canonical_head"] != "m64_reconciliation_controls_020" or baseline["lineage"][-1] != baseline["canonical_head"]:
         raise RuntimeError("frozen Finance lineage changed")

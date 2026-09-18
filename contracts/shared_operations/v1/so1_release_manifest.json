@@ -31,11 +31,11 @@
     },
     {
       "path": "contracts/platform/v1/pc0_release_manifest.json",
-      "sha256": "84b18a78630bea3657e07c044e4488bb588f1e2d3a7b0c64b38c2a7054301244"
+      "sha256": "0ba51c63cd41fb0366d7c7a6562af26693493ddb8b22ab63fb6065c06e4c8ee7"
     },
     {
-      "path": "contracts/platform/v1/pc6_release_manifest.json",
-      "sha256": "cb384cc1d1c79f7874e240ecdc85ff6cb8f9d069e5f28c7f8a9d96dda05e6d5d"
+      "path": "contracts/platform/v1/pc7_release_manifest.json",
+      "sha256": "2ee1ad77ec5ea7e724087f493817c5809453fd49c0c8e6b8b367374225e99779"
     },
     {
       "path": "contracts/shared_operations/v1/examples/professional_service_profile.json",
@@ -79,11 +79,11 @@
     },
     {
       "path": "scripts/verify_so0_shared_operations.py",
-      "sha256": "9d6f13c5fdfba1fa84f78b94828b0d17c02a841ddfc677a59f67d7f9fce6a4bd"
+      "sha256": "15be22825b64c0f2e33de54ae710a3aa554de6780335c41b9dd382f0bbaa1ae9"
     },
     {
       "path": "scripts/verify_so1_atomic_catalog_pricing.py",
-      "sha256": "72adade18b1be25292d1bba520c9759bb64f942a68b2a794e4ba756ac3f2f498"
+      "sha256": "1835d16fffe36f56eeee633dac4b92e85928bdddb5ae1d32ebeb80dfbd025491"
     },
     {
       "path": "shared_operations/so1/__init__.py",
@@ -118,5 +118,12 @@
   "schema_version": 1,
   "source_checkpoint": "f72f4b5",
   "source_checkpoint_full": "f72f4b5d8ad8e576212347615458fcd801e9f7bd",
-  "tag": "NOT_CREATED"
+  "tag": "NOT_CREATED",
+  "historical_xa_replacements": [
+    {
+      "path": "scripts/verify_xa_frontend_experience_architecture.py",
+      "historical_sha256": "623041f48a8bb8798cb00062f5108f791edbf2879a3028b95f6a295e2259409f",
+      "descendant_sha256": "c76f49296ff17458afc20ca55ba2fc6c363ed26d4d0aa470cf2efc4cadbad140"
+    }
+  ]
 }
