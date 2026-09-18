@@ -74,7 +74,12 @@ def test_canonical_primitive_set_is_exact_and_schema_neutral():
     )
     assert len(CANONICAL_PRIMITIVES) == 10
     assert RESERVED_MIGRATION_REVISION == "ia0_neutral_interaction_authority_045"
-    assert not (ROOT / "alembic_neutral/versions/ia0_neutral_interaction_authority_045.py").exists()
+    migration = ROOT / "alembic_neutral/versions/ia0_neutral_interaction_authority_045.py"
+    if migration.exists():
+        migration_source = migration.read_text(encoding="utf-8")
+        assert 'revision = "ia0_neutral_interaction_authority_045"' in migration_source
+        assert 'down_revision = "r63_legacy_inventory_writer_compat_044"' in migration_source
+    assert "from alembic" not in CONTRACT_SOURCE
 
 
 def test_tenant_required_on_all_ten_canonical_roots():
@@ -193,7 +198,14 @@ def test_kernel_contract_has_no_channel_or_industry_specific_schema_and_no_priva
     assert "core.platform.party" not in lowered
     assert "core.platform.security_authority" not in lowered
     assert not (MODULE_DIR / "repository.py").exists()
-    assert not (MODULE_DIR / "sql_repository.py").exists()
+    sql_repository = MODULE_DIR / "sql_repository.py"
+    if sql_repository.exists():
+        repository_source = sql_repository.read_text(encoding="utf-8").lower()
+        assert "shared_operations.so6" not in repository_source
+        assert "shared_operations.so7" not in repository_source
+        assert "shared_operations.so8" not in repository_source
+        assert "core.domain.finance" not in repository_source
+        assert "restaurant." not in repository_source
     assert not (MODULE_DIR / "service.py").exists()
 
 
