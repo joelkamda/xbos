@@ -35,7 +35,7 @@
     },
     {
       "path": "contracts/platform/v1/pc0_frozen_finance_inventory.json",
-      "sha256": "85f45225fd783244f00dec1c8d3cc290f5885caa5d0e442cd83dd3c40bb843d2"
+      "sha256": "18d8cdbdfcdc0edf8d566bbd27d353a1a61ff0fa33189efe48773b91f9de0e6d"
     },
     {
       "path": "contracts/platform/v1/pc0_module_map.json",
@@ -51,11 +51,11 @@
     },
     {
       "path": "contracts/platform/v1/pc0_release_manifest.json",
-      "sha256": "6e335af697bde10dfc2cf847fdd489ea4df12f315e626dfd6fb3a674b64e6a6a"
+      "sha256": "84b18a78630bea3657e07c044e4488bb588f1e2d3a7b0c64b38c2a7054301244"
     },
     {
       "path": "contracts/platform/v1/pc6_release_manifest.json",
-      "sha256": "f78330d5e40c8415b9f564ebf04d15a592a325bbeb57098ef9d5c91120317a87"
+      "sha256": "cb384cc1d1c79f7874e240ecdc85ff6cb8f9d069e5f28c7f8a9d96dda05e6d5d"
     },
     {
       "path": "contracts/shared_operations/v1/examples/professional_service_crm_profile.json",
@@ -67,7 +67,7 @@
     },
     {
       "path": "contracts/shared_operations/v1/so1_release_manifest.json",
-      "sha256": "e604f2150f8486547044b82622826e65ad56a941b97d4ea7ec982de0cd339d85"
+      "sha256": "2cae5a8ee4cdcd69df988a88c89845b5d3a65598adaaf055482eb1d8f02d9c23"
     },
     {
       "path": "contracts/shared_operations/v1/so2_authority.json",
