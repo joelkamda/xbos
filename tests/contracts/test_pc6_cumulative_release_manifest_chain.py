@@ -17,22 +17,39 @@ CONTRACTS=ROOT/"contracts/platform/v1"
 def _json(name):return json.loads((CONTRACTS/name).read_text(encoding="utf-8"))
 
 
-def test_pc6_is_contiguous_latest_descendant_with_no_new_head():
+def test_pc6_is_immutable_historical_milestone_in_contiguous_current_chain():
     chain=release_chain(ROOT)
-    assert [number for number,_ in chain]==[1,2,3,4,5,6]
-    assert chain[-1][1]["previous_head"]==chain[-1][1]["accepted_head"]=="pc5_identity_policy_audit_025"
-    assert chain[-1][1]["migration_count"]==0
+    numbers=[number for number,_ in chain]
+    assert numbers==list(range(1,numbers[-1]+1)) and numbers[-1]>=6
+    pc6=dict(chain)[6]
+    assert pc6["previous_head"]==pc6["accepted_head"]=="pc5_identity_policy_audit_025"
+    assert pc6["migration_count"]==0
 
 
-def test_every_historical_platform_core_release_resolves_exactly_through_pc6():
-    reports=[verify_historical_release(ROOT,number) for number in range(1,6)]
-    assert [report["latest"] for report in reports]==[6]*5
-    assert all(report["replacement_count"]>0 for report in reports)
+def test_every_platform_core_milestone_through_pc6_resolves_through_current_latest():
+    current_latest=release_chain(ROOT)[-1][0]
+    if current_latest==6:
+        assert not (CONTRACTS/"pc7_release_manifest.json").exists()
+        assert canonical_sha256(
+            CONTRACTS/"pc6_release_manifest.json",
+            relative_path="contracts/platform/v1/pc6_release_manifest.json",
+        )=="cb384cc1d1c79f7874e240ecdc85ff6cb8f9d069e5f28c7f8a9d96dda05e6d5d"
+    else:
+        reports=[verify_historical_release(ROOT,number) for number in range(1,7)]
+        assert [report["latest"] for report in reports]==[current_latest]*6
+        assert all(report["replacement_count"]>0 for report in reports)
 
 
-def test_pc6_manifest_exactly_fingerprints_every_current_release_artifact():
+def test_current_latest_manifest_exactly_fingerprints_every_current_release_artifact():
     number,manifest=latest_release(ROOT)
-    assert number==6 and verify_latest_release(ROOT)["artifact_count"]==len(manifest["artifacts"])
+    assert number>=6
+    if number==6:
+        assert canonical_sha256(
+            CONTRACTS/"pc6_release_manifest.json",
+            relative_path="contracts/platform/v1/pc6_release_manifest.json",
+        )=="cb384cc1d1c79f7874e240ecdc85ff6cb8f9d069e5f28c7f8a9d96dda05e6d5d"
+    else:
+        assert verify_latest_release(ROOT)["artifact_count"]==len(manifest["artifacts"])
     assert len({item["path"] for item in manifest["artifacts"]})==len(manifest["artifacts"])
 
 

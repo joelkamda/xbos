@@ -303,6 +303,13 @@
       "owner": "PA",
       "current_store": "append-only pa_health_snapshots and pa_health_checks",
       "boundary": "derived merchant/platform health observation only; never operational, authorization or financial truth"
+    },
+    {
+      "code": "neutral_interaction",
+      "owner": "PC7",
+      "module": "interaction",
+      "current_store": "ia0_external_channel_identities, ia0_conversations, ia0_conversation_participants, ia0_interaction_sessions, ia0_interaction_messages, ia0_interaction_intents, ia0_interaction_handoffs, ia0_interaction_capability_grants, ia0_interaction_context_bindings, ia0_interaction_events, ia0_commands",
+      "boundary": "neutral interaction truth only; Party remains PC2; authentication and employee membership remain PC5; workflow/task remains SO6; document/file remains SO7; transport/delivery remains SO8; payment economic truth remains Neutral Finance; provider execution remains XafPay Gateway; domain business truth remains the domain owner; frontend business truth is none"
     }
   ],
   "rules": [
@@ -357,6 +364,7 @@
     "merchant_onboarding_readiness",
     "platform_support_session",
     "merchant_recovery_case",
-    "merchant_platform_health"
+    "merchant_platform_health",
+    "neutral_interaction"
   ]
 }

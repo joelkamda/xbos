@@ -129,15 +129,35 @@ def static_verify():
     dependency=verify_dependency_authority(ROOT,json.loads((ROOT/"contracts/platform/v1/pc6_dependency_authority.json").read_text()))
     if dependency["pin_count"]!=14 or dependency["python"]!="3.13.3":raise RuntimeError("SO1_DEPENDENCY_AUTHORITY")
     pc0=validate_pc0(ROOT)
-    for number in range(1,6):verify_historical_release(ROOT,number)
-    if verify_latest_release(ROOT)["latest"]!=6:raise RuntimeError("SO1_PLATFORM_RELEASE_CHAIN")
+    latest=verify_latest_release(ROOT)
+    for number in range(1,latest["latest"]):verify_historical_release(ROOT,number)
+    if latest["latest"]<6:raise RuntimeError("SO1_PLATFORM_RELEASE_CHAIN")
     if verify_xa()["status"]!="PASS" or verify_so0()["status"]!="PASS":raise RuntimeError("SO1_FROZEN_PREDECESSOR")
     manifest=_json("so1_release_manifest.json")
     install_lines=(ROOT/"SO1_INSTALL_MANIFEST.txt").read_text(encoding="utf-8").splitlines()
     inventory_start=install_lines.index("SO1_INSTALL_MANIFEST.txt")
     package_inventory=[line for line in install_lines[inventory_start:] if line]
     expected_inventory=[item["path"] for item in manifest["artifacts"]]+["contracts/shared_operations/v1/so1_release_manifest.json"]
-    if len(package_inventory)!=len(set(package_inventory)) or set(package_inventory)!=set(expected_inventory):
+    if len(package_inventory)!=len(set(package_inventory)):
+        raise RuntimeError("SO1_PACKAGE_INVENTORY_MISMATCH")
+    current_platform=verify_latest_release(ROOT)["latest"]
+    normalized_package_inventory=list(package_inventory)
+    if current_platform>6:
+        historical_platform_slot="contracts/platform/v1/pc6_release_manifest.json"
+        current_platform_slot=f"contracts/platform/v1/pc{current_platform}_release_manifest.json"
+        if package_inventory.count(historical_platform_slot)!=1:
+            raise RuntimeError("SO1_PACKAGE_PLATFORM_HISTORICAL_SLOT")
+        if current_platform_slot in package_inventory:
+            raise RuntimeError("SO1_PACKAGE_PLATFORM_SLOT_DUPLICATE")
+        if historical_platform_slot in expected_inventory:
+            raise RuntimeError("SO1_PACKAGE_PLATFORM_DESCENDANT_EXPECTED")
+        if expected_inventory.count(current_platform_slot)!=1:
+            raise RuntimeError("SO1_PACKAGE_PLATFORM_DESCENDANT_PIN")
+        normalized_package_inventory=[
+            current_platform_slot if path==historical_platform_slot else path
+            for path in package_inventory
+        ]
+    if set(normalized_package_inventory)!=set(expected_inventory):
         raise RuntimeError("SO1_PACKAGE_INVENTORY_MISMATCH")
     for item in manifest["artifacts"]:
         path=ROOT/item["path"]
