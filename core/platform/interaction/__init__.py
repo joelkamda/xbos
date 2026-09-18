@@ -2,5 +2,9 @@
 
 from .contracts import *
 from .contracts import __all__ as _contracts_all
+from .sql_repository import IA0RepositoryError, SQLInteractionRepository
 
-__all__ = list(_contracts_all)
+__all__ = list(_contracts_all) + [
+    "IA0RepositoryError",
+    "SQLInteractionRepository",
+]
