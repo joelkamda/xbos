@@ -535,6 +535,27 @@
       "reason": "historical-release descendant compatibility",
       "root": "core/domain/finance",
       "sha256": "e841139a56063d6d20d18535d166034b3bb66d680d67e9ad4a81f1eded457827"
+    },
+    {
+      "owner": "PC7",
+      "path": "sql/ia0_neutral_interaction_authority_down.sql",
+      "reason": "PC7 IA0 authorized non-Finance canonical descendant; neutral interaction persistence only; PC2 PC5 SO6 SO7 SO8 Restaurant and Neutral Finance authorities unchanged",
+      "root": "alembic_neutral",
+      "sha256": "ee09c224815105b77225b7bf08e9b0167beb77a50f021e9615b1f8f6a9c3c3c9"
+    },
+    {
+      "owner": "PC7",
+      "path": "sql/ia0_neutral_interaction_authority_up.sql",
+      "reason": "PC7 IA0 authorized non-Finance canonical descendant; neutral interaction persistence only; PC2 PC5 SO6 SO7 SO8 Restaurant and Neutral Finance authorities unchanged",
+      "root": "alembic_neutral",
+      "sha256": "06216457750089f12ab40ed9cfeda24114b795457ed1aeb8c08fe30e7e60642c"
+    },
+    {
+      "owner": "PC7",
+      "path": "versions/ia0_neutral_interaction_authority_045.py",
+      "reason": "PC7 IA0 authorized non-Finance canonical descendant; neutral interaction migration lineage only; PC2 PC5 SO6 SO7 SO8 Restaurant and Neutral Finance authorities unchanged",
+      "root": "alembic_neutral",
+      "sha256": "6f969e236c9a8b9d382a272369a317ed53f887a2aeb89e6d20534157fe10836d"
     }
   ],
   "freeze_commit": "fa9b17e473105c7c70b8faa3a0a946ee9117d37e",
