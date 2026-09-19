@@ -67,7 +67,7 @@
     },
     {
       "path": "contracts/shared_operations/v1/so1_release_manifest.json",
-      "sha256": "0c8d13e0fbd46b92c2217c1a8ace467e6870af81fa06818d04539f3bc4d955ce"
+      "sha256": "d0178a0425d7ab5793174e52d502c70713029b74d0c5ff54553288163b21ab45"
     },
     {
       "path": "contracts/shared_operations/v1/so2_authority.json",
@@ -99,7 +99,7 @@
     },
     {
       "path": "scripts/verify_so2_operational_party_relationships.py",
-      "sha256": "d3e7870140f68a1deabb1bc8810100ea2c29b32d4d4cd3dd75957afbfc968656"
+      "sha256": "22db7bc6b728a511dd51c6a7bfc2d291d5dc98bd70277ca86e4325a07bc5847f"
     },
     {
       "path": "shared_operations/so2/__init__.py",

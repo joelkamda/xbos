@@ -1,11 +1,6 @@
 {
-  "artifact_count": 60,
+  "artifact_count": 53,
   "artifacts": [
-    {
-      "path": "R6_4_REVISION_9_WND_COMPAT_OPENAPI_BINDING.txt",
-      "sha256": "0860f93386e915c236564370d9437b128ab0ec40e85b546e12418dbdd7436fd6",
-      "size": 1670
-    },
     {
       "path": "restaurant/r6/wnd_api_compat/stock_reconciliation_service.py",
       "sha256": "cab364fd544799eab2e8dde10235c923a78bd3eae9a46810441a6524e23ed092",
@@ -13,28 +8,28 @@
     },
     {
       "path": "restaurant/r6/wnd_api_compat/inventory_service.py",
-      "sha256": "329e9ddc1c5e8d1798ad270caaa5c777067ad3d2f365ee565d8ceb92fd673e3f",
-      "size": 54552
+      "sha256": "2000f54f377d01748b1c01a353eec8000af86905fdae37daa103b53ef07e1ece",
+      "size": 53723
     },
     {
       "path": "restaurant/r6/wnd_api_compat/stock_report_service.py",
       "sha256": "aadff1f75b5c1d790ee26b2866ea8738c39a4b4fdeda59ac15afcb8123d5eba2",
-      "size": 20190
+      "size": 19641
     },
     {
       "path": "restaurant/r6/wnd_api_compat/operational_reports_service.py",
       "sha256": "06573e58f8cf790db768b15a25b4fb02e5b69d74405c4b7a9e3da8f519d4c6f7",
-      "size": 24128
+      "size": 23463
     },
     {
       "path": "restaurant/r6/wnd_api_compat/orders_controller.py",
       "sha256": "7180057a47a6a8752977bfb28ea367f2b5141f6e78ed35a1b8e9ce93cf264904",
-      "size": 29446
+      "size": 28465
     },
     {
       "path": "restaurant/r6/wnd_api_compat/payments_controller.py",
       "sha256": "3ea9b57d990a0696c5571b003221e5f2bddc55c69e6060ba0f177b7fae329974",
-      "size": 40663
+      "size": 39484
     },
     {
       "path": "restaurant/r6/wnd_api_compat/customers_router.py",
@@ -67,21 +62,6 @@
       "size": 3431
     },
     {
-      "path": "R6_4_REVISION_8_WND_API_COMPATIBILITY_BRIDGE.txt",
-      "sha256": "317363db4ad8f904197555cd72465da2ac0a79ade51059f9048812fffb5f9139",
-      "size": 2220
-    },
-    {
-      "path": "R6_4_REVISION_7_COLLISION_SAFE_DIAGNOSTIC_PORTS.txt",
-      "sha256": "ea45e8ebb8e9439da29fb2ee8aa5beb52198faef9f013d843b952e93a6ec9d9c",
-      "size": 1233
-    },
-    {
-      "path": "R6_4_REVISION_6_BCRYPT_CONTROL_BACKEND.txt",
-      "sha256": "d6b7b063d6253d87687412d49e220523e0c3d01a5d2db884cb6adf88bccec935",
-      "size": 1022
-    },
-    {
       "path": "scripts/verify_r6_1_wnd_rehearsal_adoption.py",
       "sha256": "36aa28b3d718299bb32895c2234efe7d57fee9459bd27372d73a0724d5a68430",
       "size": 37481
@@ -92,114 +72,104 @@
       "size": 7638
     },
     {
-      "path": "R6_4_REVISION_5_ISOLATED_FULL_REGRESSION.txt",
-      "sha256": "14f2798384f36d2308d584b356bb801315be0f848bcf67db32eafe098608d8b2",
-      "size": 1265
-    },
-    {
       "path": "contracts/restaurant/v1/r2_release_manifest.json",
-      "sha256": "67b70456635715b451f7773e8150037eef9b1c79458056f2fbe3690d9df51f80",
+      "sha256": "d8c0bf6f644e20acf8cab10c866ce657575bf643eee168eaa14b733753c291b4",
       "size": 8880
     },
     {
       "path": "contracts/restaurant/v1/r1_release_manifest.json",
-      "sha256": "92fedb8b3268fc5301c79cfae754ad39b5400dcc42f812ee1d83b176e71720bb",
+      "sha256": "9c582c7c25bc66e80d313c018523e8b75d341921ea4067456d0d1ba37035bcfe",
       "size": 9099
     },
     {
       "path": "contracts/platform/v1/sc41_release_manifest.json",
-      "sha256": "3b104c50749ac2a9123ab8b2047d985774fd1b143d9a0232a29d53909d2faa8d",
+      "sha256": "216988bcf947810cca99af3dcbb580046246109f6340ff7de5e45bb5e9af5bbe",
       "size": 7637
     },
     {
       "path": "contracts/platform_admin/v1/pa6_release_manifest.json",
-      "sha256": "5447fc5793e767188ac976e6514fc5fbca6620ddfd65e1233aab1ff2d921b039",
+      "sha256": "edeabcafcbb73fc7a51bc5ae050c0d0d63b449489cf2a014e4c8e9895db8028f",
       "size": 3072
     },
     {
       "path": "contracts/platform_admin/v1/pa45_release_manifest.json",
-      "sha256": "a15e5fe4d0be0d20a6fcc4d49d028937b746b3bbb9a07860d03ab82656395aad",
+      "sha256": "1b1d55658dab458c8ae756e0045e82ead762902d5ee6bec2c55077324808b52c",
       "size": 7115
     },
     {
       "path": "contracts/platform_admin/v1/pa0123_release_manifest.json",
-      "sha256": "d6a114e5d6ccaf0a33f694d2e02f5051f9ecffa9c2b3703ee1cf51b33082000f",
+      "sha256": "11f19fa9627255663c665a4a01f46b9f1199dd19bded5283bd5db8e36ce13af4",
       "size": 8005
     },
     {
       "path": "contracts/packs/v1/pk_aggregate_release_manifest.json",
-      "sha256": "f76002b250fe5c4df8bd9973d29150e704dc23f1c97bf075127c4dabc34f441c",
+      "sha256": "57ca7b7135294734772490e68d4f61333ae50aaafacc1631ce590a9a56761b86",
       "size": 2571
     },
     {
       "path": "contracts/packs/v1/pk456_release_manifest.json",
-      "sha256": "0200f52a2df213c7cb0bb243c146aba5f642d3e8d87741cbf06ad58b0ae8fcd3",
+      "sha256": "28d4b84fa3dfd869612cc414f21ba649ca81403598c85bc79500860e4f5259c3",
       "size": 6894
     },
     {
       "path": "contracts/packs/v1/pk0123_release_manifest.json",
-      "sha256": "616e233af9f96c287fe9eca9502f57d23ee3dcb928d3c523093f7b68b9bccd7d",
+      "sha256": "085c84aff80d9a395a15d9efaf7bdadf7c8e2c0c798c45d4a877379b2361ef33",
       "size": 7275
     },
     {
       "path": "contracts/shared_operations/v1/so_aggregate_release_manifest.json",
-      "sha256": "84fe2ba67d8896f088914452d8f11331643d212a41bf3696860c7f32dc0d2975",
+      "sha256": "fcdbef8feacc067c9a9dc4b283054e6b6ddba8b900ee9b70681fd3876bfea2b3",
       "size": 5253
     },
     {
       "path": "contracts/shared_operations/v1/so10_release_manifest.json",
-      "sha256": "1c46437abe2498b1a0a34fa84627ec1f61591f90b59b7bdfd5f2e2bef2f87fd9",
+      "sha256": "45e56df30562e98a0696471c6ed03bc9e070a805b7078eded178272995d00c48",
       "size": 6687
     },
     {
       "path": "contracts/shared_operations/v1/so9_release_manifest.json",
-      "sha256": "853f57c34f8fc5d279ef046ea258c39d766aaf6b968af6dee9a93d1966990fc0",
+      "sha256": "591efd9e38ab64f00413c031617194d5898357d074953c716c9b6f9820ea6b2a",
       "size": 6255
     },
     {
       "path": "contracts/shared_operations/v1/so8_release_manifest.json",
-      "sha256": "8dd36ada923dab55a161f2acbe6035c1e91a3ce47360ee5e6f3f89eb707d1bb7",
+      "sha256": "e284020089409ad3186e92f1ba6c76e8457874e7d958dd8ca4dbdf2605b26c2a",
       "size": 6565
     },
     {
       "path": "contracts/shared_operations/v1/so7_release_manifest.json",
-      "sha256": "b79e506fd31502d40a813f2cbfc3b405add6ae0dbc36252d2975ee7b0d025e30",
+      "sha256": "dd80eb9d357318d4261653778231c8d308b4747ab9a89add09ca2c4605c7e99a",
       "size": 6383
     },
     {
       "path": "contracts/shared_operations/v1/so6_release_manifest.json",
-      "sha256": "c3b30b0a47edc8685c42c1a0186e23f2d9b834067614efff3b1850a14c7a8198",
+      "sha256": "6535a20bd3cf41a1c11b3640fc4962fbde2a24862955c52217fd89ab3d95603e",
       "size": 6274
     },
     {
       "path": "contracts/shared_operations/v1/so5_release_manifest.json",
-      "sha256": "884d152029e265b21df48d63b5edce3f040739569d214d88f4bec8cef2c925f4",
+      "sha256": "e015fa6d53337e1ca64c05940494cc042b7322b072b965a0725b578483cb14b7",
       "size": 6068
     },
     {
       "path": "contracts/shared_operations/v1/so4_release_manifest.json",
-      "sha256": "b4de8cb9ee86731d70db01ea54b908b2d82411f2c793fa425af13aa4e23261fa",
+      "sha256": "9a0664b12023bf4281443ce8db5d409c6605f55f8509a772a877cf39dfd3473b",
       "size": 5955
     },
     {
       "path": "contracts/shared_operations/v1/so3_release_manifest.json",
-      "sha256": "596d249f782fba2a7c04e025a18f8608deb518461d0573125fb7fdf62a1fb45c",
+      "sha256": "c9b91682a5aa7fad07ae1e7ecaee4fbff0c6ff393164f1a8b1f6d69570d9c750",
       "size": 5722
     },
     {
       "path": "contracts/shared_operations/v1/so2_release_manifest.json",
-      "sha256": "b7ab7f281eb387c976ad0e5cab9a91baa6b5579d6892b074110fd5f6a2c6b498",
+      "sha256": "6938427a83e5d6525b3ae38ab80a5a60fcd5f41fc19fae86a3e05531c44f566a",
       "size": 5609
     },
     {
       "path": "contracts/shared_operations/v1/so1_release_manifest.json",
-      "sha256": "0c8d13e0fbd46b92c2217c1a8ace467e6870af81fa06818d04539f3bc4d955ce",
+      "sha256": "d0178a0425d7ab5793174e52d502c70713029b74d0c5ff54553288163b21ab45",
       "size": 5177
-    },
-    {
-      "path": "R6_4_REVISION_4_DOWNSTREAM_RELEASE_INTEGRITY_CHAIN.txt",
-      "sha256": "2fd61835d14cac9dfb8199ad0e6b0d1cd40bb5b07c11ad2d87a3264a451aeff3",
-      "size": 1743
     },
     {
       "path": "contracts/platform/v1/pc7_release_manifest.json",
@@ -214,42 +184,32 @@
     {
       "path": "contracts/platform/v1/pc0_frozen_finance_inventory.json",
       "sha256": "18d8cdbdfcdc0edf8d566bbd27d353a1a61ff0fa33189efe48773b91f9de0e6d",
-      "size": 37618
-    },
-    {
-      "path": "R6_4_REVISION_3_CUMULATIVE_PLATFORM_INTEGRITY.txt",
-      "sha256": "7149ba7d9cc3660f467f30f0cc53d0711d7e592f25ac51cdfc13ec59a4969283",
-      "size": 1962
+      "size": 36784
     },
     {
       "path": "requirements-r6-4-control.txt",
       "sha256": "b45b7c1a905f582642bfb667444e6c20f83f3b059a5344e9c9d91710d2409b43",
-      "size": 31
-    },
-    {
-      "path": "R6_4_REVISION_2_WND_SERVER_RUNTIME.txt",
-      "sha256": "2e379014e41dc43ba24ca66fa864f544a3efe9afbfaed5bed6995f9fbfc37b0a",
-      "size": 1034
+      "size": 29
     },
     {
       "path": "R6_4_INSTALL_MANIFEST.txt",
       "sha256": "3ff1cf7cba91cd6391bd8d6f2a9d951c262379f8bc03c5799ff3991d78df09e0",
-      "size": 3713
+      "size": 3638
     },
     {
       "path": "XBOS_R6_4_INSTALL_AND_VERIFY.txt",
       "sha256": "b4e98002bb25700adb684fafd1705e74768b328de07c27069b0c450a173fc042",
-      "size": 5588
+      "size": 5448
     },
     {
       "path": "XBOS_R6_4_CAPTURE_PLANNING_BASELINE.cmd",
       "sha256": "78e5982bd100f0a16c565dbdbb1307f088c5ba6be2ba9245e6fdc2929c62bb39",
-      "size": 172
+      "size": 163
     },
     {
       "path": "XBOS_R6_4_RUN_ACCEPTANCE.cmd",
       "sha256": "b99791b0f2a02528e11a9735bffbc2123e4f500746c208df4144beb1c99bd174",
-      "size": 2841
+      "size": 2788
     },
     {
       "path": "contracts/restaurant/v1/r6_4_production_cutover_package_authority.json",
@@ -284,7 +244,7 @@
     {
       "path": "restaurant/r6/__init__.py",
       "sha256": "95c5b897baa68787d6c68f3d84da2d4179e5a1b8904209d70e7cb29f5f1bdb38",
-      "size": 1510
+      "size": 1462
     },
     {
       "path": "scripts/capture_r6_4_wnd_planning_baseline.py",
@@ -293,13 +253,18 @@
     },
     {
       "path": "scripts/verify_r6_4_wnd_production_cutover_package.py",
-      "sha256": "0c79610f6f75176ba2bde3092ead7926dd34575b3c4e94793c2cda7648e1a3d7",
-      "size": 20507
+      "sha256": "26689e785150b00d9fe91ce8ceadcccb91560a0502606b1107fd181aeeba1e44",
+      "size": 32651
     },
     {
       "path": "tests/contracts/test_r6_4_wnd_production_cutover_package.py",
-      "sha256": "adeedba080219ee9451a4fdf04900f9d6e1679092d562cb166dd5c8a48aaa8db",
-      "size": 28066
+      "sha256": "5b2a829e4d102651ca8528501136287157049d9672cb13d06b796c9e2edc3313",
+      "size": 38100
+    },
+    {
+      "path": "contracts/restaurant/v1/r6_4_freeze_integrity_correction.json",
+      "sha256": "a1a582e5f8f658de1fd35932f7b4424a103143979364db8d14a0f4bba0d1e9d8",
+      "size": 7920
     }
   ],
   "contract": "R6_4_RELEASE_MANIFEST",

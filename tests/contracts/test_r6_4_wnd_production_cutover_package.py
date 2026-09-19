@@ -1,7 +1,11 @@
 from __future__ import annotations
 
+import hashlib
 import json
+import subprocess
 from pathlib import Path
+
+import pytest
 
 from restaurant.r6.production_cutover import (
     CutoverFingerprint,
@@ -304,3 +308,188 @@ def test_r6_4_wnd_compat_openapi_payload_annotations_are_eager():
     assert binding["future_annotations_in_compatibility_route_module"] is False
     assert binding["neutral_core_decorator_changed"] is False
     assert binding["neutral_main_changed"] is False
+
+
+HISTORICAL_R6_4_OMISSIONS = {
+    "R6_4_REVISION_9_WND_COMPAT_OPENAPI_BINDING.txt": (1670, "0860f93386e915c236564370d9437b128ab0ec40e85b546e12418dbdd7436fd6"),
+    "R6_4_REVISION_8_WND_API_COMPATIBILITY_BRIDGE.txt": (2220, "317363db4ad8f904197555cd72465da2ac0a79ade51059f9048812fffb5f9139"),
+    "R6_4_REVISION_7_COLLISION_SAFE_DIAGNOSTIC_PORTS.txt": (1233, "ea45e8ebb8e9439da29fb2ee8aa5beb52198faef9f013d843b952e93a6ec9d9c"),
+    "R6_4_REVISION_6_BCRYPT_CONTROL_BACKEND.txt": (1022, "d6b7b063d6253d87687412d49e220523e0c3d01a5d2db884cb6adf88bccec935"),
+    "R6_4_REVISION_5_ISOLATED_FULL_REGRESSION.txt": (1265, "14f2798384f36d2308d584b356bb801315be0f848bcf67db32eafe098608d8b2"),
+    "R6_4_REVISION_4_DOWNSTREAM_RELEASE_INTEGRITY_CHAIN.txt": (1743, "2fd61835d14cac9dfb8199ad0e6b0d1cd40bb5b07c11ad2d87a3264a451aeff3"),
+    "R6_4_REVISION_3_CUMULATIVE_PLATFORM_INTEGRITY.txt": (1962, "7149ba7d9cc3660f467f30f0cc53d0711d7e592f25ac51cdfc13ec59a4969283"),
+    "R6_4_REVISION_2_WND_SERVER_RUNTIME.txt": (1034, "2e379014e41dc43ba24ca66fa864f544a3efe9afbfaed5bed6995f9fbfc37b0a"),
+}
+
+
+def canonical_sha(path: Path) -> str:
+    return hashlib.sha256(path.read_bytes().replace(bytes((13, 10)), b"\n")).hexdigest()
+
+
+def git_show_bytes(commit: str, path: str) -> bytes:
+    return subprocess.run(
+        ["git", "show", f"{commit}:{path}"],
+        cwd=ROOT,
+        capture_output=True,
+        check=True,
+    ).stdout
+
+
+def test_r6_4_descendant_correction_contract_records_exact_historical_omissions():
+    correction = load("contracts/restaurant/v1/r6_4_freeze_integrity_correction.json")
+    assert correction["correction_class"] == "DESCENDANT_FREEZE_INTEGRITY_CORRECTION"
+    assert correction["original_freeze_commit"] == "330694145cb1d06ea915c3c484451f664ebd75f3"
+    assert correction["original_freeze_tag"] == "restaurant-r6-5-production-forward-baseline-v1-20260917"
+    assert correction["original_install_manifest_sha256"] == "3ff1cf7cba91cd6391bd8d6f2a9d951c262379f8bc03c5799ff3991d78df09e0"
+    assert correction["original_release_manifest_sha256"] == "cc0850be82e13c2ff3c4f8944eaf17ac3b58b733f8381ebcfd8a2423afb4e2ca"
+    assert correction["historical_omission_count"] == 8
+    rows = {row["path"]: row for row in correction["historical_omissions"]}
+    assert set(rows) == set(HISTORICAL_R6_4_OMISSIONS)
+    for path, (size, sha256) in HISTORICAL_R6_4_OMISSIONS.items():
+        assert rows[path]["size"] == size
+        assert rows[path]["sha256"] == sha256
+        assert rows[path]["semantic_evidence"] == "COMPLETE"
+        assert rows[path]["historical_artifact_byte_identity"] == "UNRECOVERABLE"
+        assert rows[path]["underlying_semantics"] == "INDEPENDENTLY_PROVEN"
+        assert rows[path]["supporting_paths"]
+
+
+def test_r6_4_descendant_correction_preserves_original_freeze_identity_and_manifests():
+    correction = load("contracts/restaurant/v1/r6_4_freeze_integrity_correction.json")
+    commit = correction["original_freeze_commit"]
+    tag_target = subprocess.run(
+        ["git", "rev-parse", correction["original_freeze_tag"] + "^{}"],
+        cwd=ROOT,
+        text=True,
+        capture_output=True,
+        check=True,
+    ).stdout.strip()
+    assert tag_target == commit
+    assert canonical_sha(ROOT / "R6_4_INSTALL_MANIFEST.txt") == correction["original_install_manifest_sha256"]
+    install = git_show_bytes(commit, "R6_4_INSTALL_MANIFEST.txt")
+    release = git_show_bytes(commit, "contracts/restaurant/v1/r6_4_release_manifest.json")
+    assert hashlib.sha256(install.replace(bytes((13, 10)), b"\n")).hexdigest() == correction["original_install_manifest_sha256"]
+    assert hashlib.sha256(release.replace(bytes((13, 10)), b"\n")).hexdigest() == correction["original_release_manifest_sha256"]
+
+
+def test_r6_4_descendant_correction_has_zero_recovery_and_no_authority_expansion():
+    correction = load("contracts/restaurant/v1/r6_4_freeze_integrity_correction.json")
+    assert correction["byte_identical_recovery_count"] == 0
+    assert correction["deterministic_regeneration_count"] == 0
+    assert correction["historical_artifact_byte_identity"] == "UNRECOVERABLE"
+    assert correction["underlying_semantics"] == "INDEPENDENTLY_PROVEN"
+    assert correction["historical_rewrite"] == "NO"
+    assert correction["artifact_fabrication"] == "NO"
+    assert set(correction["authority_changes"].values()) == {"NO"}
+
+
+def test_r6_4_corrected_release_inventory_is_strict_and_contains_no_missing_historical_file():
+    import scripts.verify_r6_4_wnd_production_cutover_package as verifier
+    release = load("contracts/restaurant/v1/r6_4_release_manifest.json")
+    paths = {row["path"] for row in release["artifacts"]}
+    assert release["self_excluded"] is True
+    assert release["source_checkpoint"] == "b97d3850b120aff92261ad9edcb3bf3151ebbcb3"
+    assert release["artifact_count"] == len(release["artifacts"]) == 53
+    assert not (set(HISTORICAL_R6_4_OMISSIONS) & paths)
+    assert "contracts/restaurant/v1/r6_4_freeze_integrity_correction.json" in paths
+    assert "R6_4_INSTALL_MANIFEST.txt" in paths
+    assert verifier._verify_release_manifest(canonical_lf_identity=True) == 53
+
+
+def test_r6_4_default_historical_branch_head_guards_remain_fail_closed_on_descendant_branch():
+    import scripts.verify_r6_4_wnd_production_cutover_package as verifier
+    source = (ROOT / "scripts/verify_r6_4_wnd_production_cutover_package.py").read_text(encoding="utf-8")
+    assert 'EXPECTED_BRANCH = "restaurant/r6-4-wnd-production-cutover-package-runbook"' in source
+    assert 'EXPECTED_HEAD = "b97d3850b120aff92261ad9edcb3bf3151ebbcb3"' in source
+    with pytest.raises(RuntimeError, match="R6_4_WRONG_BRANCH"):
+        verifier._static()
+
+
+def test_r6_4_descendant_mode_requires_ancestor_tag_and_exact_correction_contract():
+    import scripts.verify_r6_4_wnd_production_cutover_package as verifier
+    head = subprocess.run(
+        ["git", "rev-parse", "HEAD"], cwd=ROOT, text=True, capture_output=True, check=True
+    ).stdout.strip()
+    result = verifier._verify_descendant_freeze_integrity_correction(head)
+    assert result["status"] == "PASS"
+    assert result["original_freeze_tag_target"] == result["original_freeze_commit"]
+    assert result["historical_omission_count"] == 8
+    assert result["byte_identical_recovery_count"] == 0
+    assert result["deterministic_regeneration_count"] == 0
+    assert result["semantic_evidence_complete_count"] == 8
+
+
+def test_r6_4_descendant_static_mode_preserves_all_other_r6_4_safety_laws():
+    import scripts.verify_r6_4_wnd_production_cutover_package as verifier
+    result = verifier._static(descendant_freeze_integrity_correction=True)
+    assert result["status"] == "PASS"
+    assert result["release_artifacts"] == 53
+    assert result["production_writes"] == "NONE"
+    assert result["writer_routing"] == "UNCHANGED"
+    assert result["live_cutover_authorized"] is False
+    assert result["descendant_freeze_integrity_correction"]["status"] == "PASS"
+
+
+def historical_blob_identities(path: str) -> set[tuple[int, str]]:
+    commits = subprocess.run(
+        ["git", "log", "--all", "--format=%H", "--", path],
+        cwd=ROOT,
+        text=True,
+        capture_output=True,
+        check=True,
+    ).stdout.splitlines()
+    identities: set[tuple[int, str]] = set()
+    for commit in commits:
+        cp = subprocess.run(["git", "show", f"{commit}:{path}"], cwd=ROOT, capture_output=True)
+        if cp.returncode != 0:
+            continue
+        canonical = cp.stdout.replace(bytes((13, 10)), bytes((10,)))
+        identities.add((len(canonical), hashlib.sha256(canonical).hexdigest()))
+    return identities
+
+
+def test_r6_4_c1_records_exact_inventory_service_manifest_identity_defect():
+    correction = load("contracts/restaurant/v1/r6_4_freeze_integrity_correction.json")
+    assert correction["additional_manifest_identity_defect_count"] == 1
+    assert correction["descendant_artifact_size_basis"] == "CANONICAL_LF_BYTES"
+    assert correction["descendant_artifact_hash_basis"] == "CANONICAL_LF_SHA256"
+    assert correction["manifest_identity_defects"] == [{
+        "path": "restaurant/r6/wnd_api_compat/inventory_service.py",
+        "original_manifest_size": 54552,
+        "original_manifest_sha256": "329e9ddc1c5e8d1798ad270caaa5c777067ad3d2f365ee565d8ceb92fd673e3f",
+        "actual_frozen_git_blob_canonical_lf_size": 53723,
+        "actual_frozen_git_blob_canonical_lf_sha256": "2000f54f377d01748b1c01a353eec8000af86905fdae37daa103b53ef07e1ece",
+        "source_drift": "NO",
+        "historical_blob_count": 1,
+        "original_manifest_hash_matching_blob_count": 0,
+    }]
+
+
+def test_r6_4_c1_inventory_service_source_is_unchanged_and_bad_manifest_hash_matches_no_history():
+    path = "restaurant/r6/wnd_api_compat/inventory_service.py"
+    current = (ROOT / path).read_bytes().replace(bytes((13, 10)), bytes((10,)))
+    assert len(current) == 53723
+    assert hashlib.sha256(current).hexdigest() == "2000f54f377d01748b1c01a353eec8000af86905fdae37daa103b53ef07e1ece"
+    frozen = git_show_bytes("330694145cb1d06ea915c3c484451f664ebd75f3", path).replace(
+        bytes((13, 10)), bytes((10,))
+    )
+    assert current == frozen
+    identities = historical_blob_identities(path)
+    assert identities == {
+        (53723, "2000f54f377d01748b1c01a353eec8000af86905fdae37daa103b53ef07e1ece")
+    }
+    assert all(
+        sha != "329e9ddc1c5e8d1798ad270caaa5c777067ad3d2f365ee565d8ceb92fd673e3f"
+        for _, sha in identities
+    )
+
+
+def test_r6_4_c1_all_53_descendant_rows_use_exact_canonical_lf_identity():
+    release = load("contracts/restaurant/v1/r6_4_release_manifest.json")
+    assert release["artifact_count"] == len(release["artifacts"]) == 53
+    for row in release["artifacts"]:
+        p = ROOT / row["path"]
+        assert p.is_file(), row["path"]
+        canonical = p.read_bytes().replace(bytes((13, 10)), bytes((10,)))
+        assert row["size"] == len(canonical), row["path"]
+        assert row["sha256"] == hashlib.sha256(canonical).hexdigest(), row["path"]

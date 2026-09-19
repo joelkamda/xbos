@@ -59,7 +59,7 @@
     },
     {
       "path": "contracts/shared_operations/v1/so1_public_interfaces.json",
-      "sha256": "01e4833455258962230c5e7145e30de33043ae953e95167ffd3acc82781d5ff7"
+      "sha256": "ddd6444cf14fae44a016f7a2a0127024e0a3001161d64dee32a45188eafb722f"
     },
     {
       "path": "contracts/shared_operations/v1/so1_xa_metadata.json",
@@ -91,15 +91,15 @@
     },
     {
       "path": "shared_operations/so1/contracts.py",
-      "sha256": "84d827ba6bfc52945cd45c91fd67d10024f6cf6065573df1260125a2acb937b1"
+      "sha256": "f20ddcbde49511132c591339e1c78acec76dfb9b4d1ca006252843d8137e9405"
     },
     {
       "path": "shared_operations/so1/service.py",
-      "sha256": "5ede283f303f0e05f107de699e351fe5ef875b472ba81c407e873a4508fd19da"
+      "sha256": "21505d81d241e2ee44c5ebba478d069672decd75f335c032e5509e1747275ae5"
     },
     {
       "path": "shared_operations/so1/sql_repository.py",
-      "sha256": "2c9f816d0a4b898e1ecc40c6d9a3ac57c576db478bc97905e0a40aaf4abd5e8a"
+      "sha256": "b6b7299b67f045fbe0cf161c9c0df3a7abfde46620f44db60e89963b76418ecc"
     },
     {
       "path": "tests/contracts/test_pc0_kernel_boundaries.py",
@@ -107,7 +107,7 @@
     },
     {
       "path": "tests/contracts/test_so1_atomic_catalog_pricing.py",
-      "sha256": "ab7072608093fd4361e9a56d145b7c76598c2b24f2f283bd66f1db1bf1055032"
+      "sha256": "64655f14b81cbf94ce7ffecd143dbaf01e164e91d7c4bb4c685a6afe0541a33d"
     }
   ],
   "commit": "NOT_CREATED",

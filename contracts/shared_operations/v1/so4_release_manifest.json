@@ -67,15 +67,15 @@
     },
     {
       "path": "contracts/shared_operations/v1/so1_release_manifest.json",
-      "sha256": "0c8d13e0fbd46b92c2217c1a8ace467e6870af81fa06818d04539f3bc4d955ce"
+      "sha256": "d0178a0425d7ab5793174e52d502c70713029b74d0c5ff54553288163b21ab45"
     },
     {
       "path": "contracts/shared_operations/v1/so2_release_manifest.json",
-      "sha256": "b7ab7f281eb387c976ad0e5cab9a91baa6b5579d6892b074110fd5f6a2c6b498"
+      "sha256": "6938427a83e5d6525b3ae38ab80a5a60fcd5f41fc19fae86a3e05531c44f566a"
     },
     {
       "path": "contracts/shared_operations/v1/so3_release_manifest.json",
-      "sha256": "596d249f782fba2a7c04e025a18f8608deb518461d0573125fb7fdf62a1fb45c"
+      "sha256": "c9b91682a5aa7fad07ae1e7ecaee4fbff0c6ff393164f1a8b1f6d69570d9c750"
     },
     {
       "path": "contracts/shared_operations/v1/so4_authority.json",
