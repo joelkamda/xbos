@@ -46,6 +46,12 @@ class SQLR2Repository:
         r=self.db_session.execute(text('''SELECT s.*,cat.public_id catalog_public_id FROM r2_restaurant_menu_sections s JOIN so1_catalogs cat ON (cat.tenant_id,cat.id)=(s.tenant_id,s.catalog_id) WHERE s.tenant_id=:t AND s.public_id=:p'''),{'t':c.tenant_id,'p':str(p)}).first();return self._section(r)
     def section(self,t,p):
         r=self.db_session.execute(text('''SELECT s.*,cat.public_id catalog_public_id FROM r2_restaurant_menu_sections s JOIN so1_catalogs cat ON (cat.tenant_id,cat.id)=(s.tenant_id,s.catalog_id) WHERE s.tenant_id=:t AND s.public_id=:p'''),{'t':t,'p':str(p)}).first();return self._section(r)
+    def menu_sections(self,t,catalog_public_id,at):
+        rows=self.db_session.execute(text('''SELECT s.*,cat.public_id catalog_public_id FROM r2_restaurant_menu_sections s JOIN so1_catalogs cat ON (cat.tenant_id,cat.id)=(s.tenant_id,s.catalog_id) WHERE s.tenant_id=:t AND cat.public_id=:catalog AND s.active=true AND s.effective_from<=:at AND (s.effective_to IS NULL OR :at<s.effective_to) ORDER BY s.sort_order,s.section_code,s.public_id'''),{'t':t,'catalog':str(catalog_public_id),'at':at}).all()
+        return tuple(self._section(x) for x in rows)
+    def menu_section_entries(self,t,section_public_id,at):
+        rows=self.db_session.execute(text('''SELECT e.tenant_id,s.public_id section_public_id,e.catalog_entry_public_id,e.sort_order,e.effective_from,e.effective_to FROM r2_restaurant_menu_section_entries e JOIN r2_restaurant_menu_sections s ON (s.tenant_id,s.id)=(e.tenant_id,e.section_id) WHERE e.tenant_id=:t AND s.public_id=:section AND e.effective_from<=:at AND (e.effective_to IS NULL OR :at<e.effective_to) ORDER BY e.sort_order,e.catalog_entry_public_id'''),{'t':t,'section':str(section_public_id),'at':at}).all()
+        return tuple(MenuSectionEntry(x.tenant_id,UUID(str(x.section_public_id)),UUID(str(x.catalog_entry_public_id)),x.sort_order,x.effective_from,x.effective_to) for x in rows)
     def place_menu_entry(self,c,fp):
         replay=self._command(c.tenant_id,c.command_key,fp,'place_menu_entry')
         if not replay.completed_at:
@@ -87,6 +93,14 @@ class SQLR2Repository:
         self._done(c.tenant_id,c.command_key,'modifier_option',p);return self.modifier_option(c.tenant_id,p)
     def modifier_option(self,t,p):
         r=self.db_session.execute(text('''SELECT o.*,g.public_id group_public_id,a.public_id atomic_public_id,off.public_id offer_public_id,price.public_id price_public_id FROM r2_restaurant_modifier_options o JOIN r2_restaurant_modifier_groups g ON (g.tenant_id,g.id)=(o.tenant_id,o.modifier_group_id) LEFT JOIN atomic_units a ON (a.tenant_id,a.id)=(o.tenant_id,o.atomic_unit_id) LEFT JOIN so1_offers off ON (off.tenant_id,off.id)=(o.tenant_id,o.offer_id) LEFT JOIN so1_prices price ON price.id=o.price_id WHERE o.tenant_id=:t AND o.public_id=:p'''),{'t':t,'p':str(p)}).first();return self._option(r)
+    def modifier_configuration(self,t,catalog_entry_public_id,at):
+        bindings=self.db_session.execute(text('''SELECT m.sequence,g.public_id group_public_id FROM r2_restaurant_menu_entry_modifier_groups m JOIN r2_restaurant_modifier_groups g ON (g.tenant_id,g.id)=(m.tenant_id,m.modifier_group_id) WHERE m.tenant_id=:t AND m.catalog_entry_public_id=:entry AND m.effective_from<=:at AND (m.effective_to IS NULL OR :at<m.effective_to) AND g.active=true AND g.effective_from<=:at AND (g.effective_to IS NULL OR :at<g.effective_to) ORDER BY m.sequence,g.group_code,g.public_id'''),{'t':t,'entry':str(catalog_entry_public_id),'at':at}).all()
+        out=[]
+        for binding in bindings:
+            group=self.modifier_group(t,UUID(str(binding.group_public_id)))
+            option_ids=self.db_session.execute(text('''SELECT o.public_id FROM r2_restaurant_modifier_options o JOIN r2_restaurant_modifier_groups g ON (g.tenant_id,g.id)=(o.tenant_id,o.modifier_group_id) WHERE o.tenant_id=:t AND g.public_id=:g AND o.active=true ORDER BY o.sort_order,o.option_code,o.public_id'''),{'t':t,'g':str(binding.group_public_id)}).scalars().all()
+            out.append(ModifierConfiguration(binding.sequence,group,tuple(self.modifier_option(t,UUID(str(p))) for p in option_ids)))
+        return tuple(out)
     def allowed_modifier_groups_for_line(self,t,line_public_id,at):
         row=self.db_session.execute(text('''SELECT l.id,l.target_type,l.atomic_unit_id,l.offer_id FROM r1_restaurant_order_lines l WHERE l.tenant_id=:t AND l.public_id=:p'''),{'t':t,'p':str(line_public_id)}).first()
         if not row:return ()

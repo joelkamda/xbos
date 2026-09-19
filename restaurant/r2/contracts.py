@@ -30,6 +30,28 @@ class ModifierGroup:
 class ModifierOption:
     public_id:UUID;tenant_id:int;group_public_id:UUID;option_code:str;display_name:str;effect_type:ModifierEffect;target_type:TargetType|None;target_public_id:UUID|None;price_public_id:UUID|None;default_quantity:Decimal;preparation_instruction:str|None;active:bool=True;sort_order:int=0;metadata:dict[str,Any]=field(default_factory=dict)
 @dataclass(frozen=True)
+class MenuPricingContext:
+    price_code:str;currency:str;scope_type:str;scope_id:int|None
+@dataclass(frozen=True)
+class ModifierConfiguration:
+    sequence:int;group:ModifierGroup;options:tuple[ModifierOption,...]
+@dataclass(frozen=True)
+class MenuModifierOptionProjection:
+    option_public_id:UUID;option_code:str;display_name:str;effect_type:ModifierEffect;target_type:TargetType|None;target_public_id:UUID|None;default_quantity:Decimal;preparation_instruction:str|None;price_effect:Any|None;sort_order:int
+@dataclass(frozen=True)
+class MenuModifierGroupProjection:
+    group_public_id:UUID;group_code:str;display_name:str;selection_mode:SelectionMode;minimum_selections:int;maximum_selections:int;sequence:int;options:tuple[MenuModifierOptionProjection,...]
+@dataclass(frozen=True)
+class MenuEntryProjection:
+    catalog_entry_public_id:UUID;target_type:TargetType;target_public_id:UUID;target_presentation:Any;resolved_price:Any;modifier_configuration:tuple[MenuModifierGroupProjection,...];sort_order:int
+@dataclass(frozen=True)
+class MenuSectionProjection:
+    section_public_id:UUID;section_code:str;display_name:str;sort_order:int;entries:tuple[MenuEntryProjection,...]
+@dataclass(frozen=True)
+class MenuProjection:
+    tenant_id:int;catalog_reference:Any;effective_at:datetime;pricing_context:MenuPricingContext;sections:tuple[MenuSectionProjection,...];creates_financial_truth:bool=False
+
+@dataclass(frozen=True)
 class ModifierSelection:
     group_public_id:UUID;option_public_id:UUID;quantity:Decimal=Decimal('1');price_amount_snapshot:Decimal=Decimal('0');currency:str|None=None;instruction_snapshot:str|None=None
 @dataclass(frozen=True)
