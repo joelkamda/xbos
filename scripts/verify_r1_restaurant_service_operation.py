@@ -30,6 +30,13 @@ def static_verify():
  if b['finance']['restaurant_creates_obligation'] or b['finance']['restaurant_posts_journal'] or b['inventory']['restaurant_writes_stock']:raise RuntimeError('R1_AUTHORITY_LEAK')
  if not b['inventory']['wnd_exactly_once_stock_effect_preserved']:raise RuntimeError('R1_WND_STOCK_INVARIANT')
  if i['http_routes_added'] or 'obligation_handoff' not in i['reads']:raise RuntimeError('R1_PUBLIC_BOUNDARY')
+ if not {'mode','modes'}.issubset(set(i['reads'])):raise RuntimeError('R1_SERVICE_MODE_PUBLIC_READ_DECLARATION')
+ if i.get('read_permissions')!={'mode':'restaurant.service_mode.read','modes':'restaurant.service_mode.read'}:raise RuntimeError('R1_SERVICE_MODE_READ_PERMISSION')
+ public_read=i.get('service_mode_public_read') or {}
+ if public_read!={'application_interface_completed':True,'tenant_scoped':True,'authorization_before_result':True,'cross_tenant_disclosure':False,'read_side_effects':False}:raise RuntimeError('R1_SERVICE_MODE_PUBLIC_READ_BOUNDARY')
+ service=(ROOT/'restaurant/r1/service.py').read_text(encoding='utf-8')
+ if "def mode(self,t:int,mode_code:str):" not in service or "def modes(self,t:int):" not in service:raise RuntimeError('R1_SERVICE_MODE_APPLICATION_READ_MISSING')
+ if service.count("restaurant.service_mode.read")<2:raise RuntimeError('R1_SERVICE_MODE_READ_PERMISSION_MISSING')
  if ready['status']!='READY_WHEN_R1_SINGLE_GATE_PASS':raise RuntimeError('R1_R2_READINESS')
  up=(ROOT/'alembic_neutral/sql/r1_restaurant_service_operation_up.sql').read_text()
  forbidden=['INSERT INTO financial_events','INSERT INTO obligations','INSERT INTO inventory_movements','INSERT INTO journals','INSERT INTO payment_']
@@ -44,7 +51,7 @@ def static_verify():
  if 'FOREIGN KEY(tenant_id,partition_id) REFERENCES public.r1_restaurant_tab_partitions(tenant_id,id)' not in up:
   raise RuntimeError('R1_PARTITION_LINE_FK_MISSING')
  release_count=verify_manifest()
- return {'status':'PASS','source_checkpoint':SOURCE[:7],'previous_head':PREVIOUS,'accepted_head':HEAD,'service_modes':'PASS','tables_optional':'PASS','orders':'PASS','staff_attribution':'PASS','tabs_split_bills':'PASS','reservation_composition':'PASS','finance':'UNCHANGED','inventory':'UNCHANGED','wnd_specimen_not_standard':'PASS','r2_readiness':'PASS','release_artifacts':release_count}
+ return {'status':'PASS','source_checkpoint':SOURCE[:7],'previous_head':PREVIOUS,'accepted_head':HEAD,'service_modes':'PASS','service_mode_public_read':'PASS','service_mode_read_permission':'restaurant.service_mode.read','http_routes_added':False,'tables_optional':'PASS','orders':'PASS','staff_attribution':'PASS','tabs_split_bills':'PASS','reservation_composition':'PASS','finance':'UNCHANGED','inventory':'UNCHANGED','wnd_specimen_not_standard':'PASS','r2_readiness':'PASS','release_artifacts':release_count}
 def _tables(conn):
  from sqlalchemy import text
  return set(conn.execute(text("SELECT table_name FROM information_schema.tables WHERE table_schema='public'")).scalars())

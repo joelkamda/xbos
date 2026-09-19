@@ -3,6 +3,7 @@ from decimal import Decimal
 from types import SimpleNamespace
 from uuid import uuid4
 from pathlib import Path
+import json
 import pytest
 
 from restaurant.r1.contracts import *
@@ -10,12 +11,13 @@ from restaurant.r1.service import R1Authority,R1Error
 
 class FakeRepo:
     def __init__(self):
-        self.modes={};self.profiles={};self.sessions={};self.orders={};self.tabs={};self.line_qty={}
+        self.mode_rows={};self.profiles={};self.sessions={};self.orders={};self.tabs={};self.line_qty={}
     def define_mode(self,c,p,fp):
-        if c.mode_code in self.modes:return self.modes[c.mode_code]
-        x=ServiceMode(p,c.tenant_id,c.mode_code,c.display_name,c.requires_session,c.requires_resource,c.supports_tabs,c.supports_reservations,c.allows_remote_origin,True,c.metadata,1);self.modes[c.mode_code]=x;return x
-    def mode(self,t,c):return self.modes.get(c)
-    def modes(self,t):return tuple(self.modes.values())
+        key=(c.tenant_id,c.mode_code)
+        if key in self.mode_rows:return self.mode_rows[key]
+        x=ServiceMode(p,c.tenant_id,c.mode_code,c.display_name,c.requires_session,c.requires_resource,c.supports_tabs,c.supports_reservations,c.allows_remote_origin,True,c.metadata,1);self.mode_rows[key]=x;return x
+    def mode(self,t,c):return self.mode_rows.get((t,c))
+    def modes(self,t):return tuple(x for (tenant,_),x in self.mode_rows.items() if tenant==t)
     def profile_resource(self,c,fp):
         x=ResourceProfile(c.tenant_id,c.resource_public_id,c.role,c.parent_resource_public_id,c.service_mode_codes,c.metadata);self.profiles[c.resource_public_id]=x;return x
     def resource_profile(self,t,p):return self.profiles.get(p)
@@ -53,10 +55,10 @@ class FakeRepo:
     def close_tab(self,c,fp):return None
 
 def obj(t,p,**kw):return SimpleNamespace(tenant_id=t,public_id=p,**kw)
-def authority():
+def authority(authorize=lambda *a:True):
     repo=FakeRepo();store={}
     def resolver(t,p):return store.get((t,p))
-    a=R1Authority(repo,resource_resolver=resolver,party_resolver=resolver,identity_resolver=resolver,offer_resolver=resolver,atomic_unit_resolver=resolver,price_resolver=resolver,reservation_resolver=resolver,authorize=lambda *a:True)
+    a=R1Authority(repo,resource_resolver=resolver,party_resolver=resolver,identity_resolver=resolver,offer_resolver=resolver,atomic_unit_resolver=resolver,price_resolver=resolver,reservation_resolver=resolver,authorize=authorize)
     return a,repo,store
 
 def test_service_modes_are_configurable_and_tables_optional():
@@ -110,3 +112,72 @@ def test_r1_acceptance_scopes_alembic_to_disposable_database_via_environment():
     assert "_run(command.upgrade,cfg,test_url,HEAD)" in source
     assert "_run(command.downgrade,cfg,test_url,PREVIOUS)" in source
     assert "_run(command.upgrade,devcfg,url.render_as_string(hide_password=False),HEAD)" in source
+
+def test_service_mode_public_read_returns_exact_normalized_tenant_mode():
+    a,_,_=authority();created=a.define_mode(DefineServiceMode('m',1,' DINE_IN ','Dine'))
+    read=a.mode(1,' DINE_IN ')
+    assert read==created and read.mode_code=='dine_in' and read.tenant_id==1
+
+def test_service_modes_public_read_returns_only_requested_tenant_modes():
+    a,_,_=authority()
+    a.define_mode(DefineServiceMode('m1',1,'counter','Counter'))
+    a.define_mode(DefineServiceMode('m2',2,'delivery','Delivery',allows_remote_origin=True))
+    rows=a.modes(1)
+    assert tuple(x.mode_code for x in rows)==('counter',)
+    assert all(x.tenant_id==1 for x in rows)
+
+def test_service_mode_public_reads_fail_closed_without_read_permission():
+    def authorize(t,p,*_):return p!='restaurant.service_mode.read'
+    a,_,_=authority(authorize=authorize)
+    a.define_mode(DefineServiceMode('m',1,'counter','Counter'))
+    with pytest.raises(R1Error) as one:a.mode(1,'counter')
+    with pytest.raises(R1Error) as many:a.modes(1)
+    assert one.value.code=='R1_PERMISSION_DENIED'
+    assert many.value.code=='R1_PERMISSION_DENIED'
+
+def test_service_mode_public_read_does_not_disclose_cross_tenant_existence():
+    a,_,_=authority()
+    a.define_mode(DefineServiceMode('m',2,'private_mode','Private'))
+    with pytest.raises(R1Error) as e:a.mode(1,'private_mode')
+    assert e.value.code=='R1_MODE_NOT_FOUND' and e.value.category=='scope_mismatch'
+
+def test_service_mode_public_reads_are_side_effect_free():
+    a,repo,_=authority()
+    a.define_mode(DefineServiceMode('m1',1,'counter','Counter'))
+    a.define_mode(DefineServiceMode('m2',1,'takeaway','Takeaway',allows_remote_origin=True))
+    before=dict(repo.mode_rows)
+    one=a.mode(1,'counter');many=a.modes(1)
+    assert one.mode_code=='counter' and len(many)==2
+    assert repo.mode_rows==before
+
+def test_service_mode_public_read_rejects_repository_scope_leak():
+    a,repo,_=authority()
+    foreign=ServiceMode(uuid4(),2,'foreign','Foreign',False,False,False,False,False,True,{},1)
+    repo.mode_rows[(1,'foreign')]=foreign
+    with pytest.raises(R1Error) as one:a.mode(1,'foreign')
+    assert one.value.code=='R1_MODE_NOT_FOUND'
+    repo.mode_rows[(2,'foreign')]=repo.mode_rows.pop((1,'foreign'))
+    original=repo.mode_rows
+    class LeakyRepo(FakeRepo):
+        def modes(self,t):return tuple(original.values())
+    leaky=LeakyRepo();leaky.mode_rows=original
+    a.repo=leaky
+    with pytest.raises(R1Error) as many:a.modes(1)
+    assert many.value.code=='R1_MODE_SCOPE_MISMATCH'
+
+def test_service_mode_public_interface_records_exact_read_permission_without_http_routes():
+    root=Path(__file__).resolve().parents[2]
+    contract=json.loads((root/'contracts/restaurant/v1/r1_public_interfaces.json').read_text(encoding='utf-8'))
+    assert contract['http_routes_added'] is False
+    assert contract['read_permissions']=={
+        'mode':'restaurant.service_mode.read',
+        'modes':'restaurant.service_mode.read',
+    }
+    boundary=contract['service_mode_public_read']
+    assert boundary=={
+        'application_interface_completed':True,
+        'tenant_scoped':True,
+        'authorization_before_result':True,
+        'cross_tenant_disclosure':False,
+        'read_side_effects':False,
+    }

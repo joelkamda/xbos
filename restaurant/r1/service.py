@@ -70,6 +70,14 @@ class R1Authority:
                 if linked and UUID(str(linked))!=x.party_public_id:raise R1Error('R1_IDENTITY_PARTY_MISMATCH','scope_mismatch','Identity and Party attribution disagree')
             out.append(replace(x,role_code=role))
         return tuple(out)
+    def mode(self,t:int,mode_code:str):
+        self._permit(t,'restaurant.service_mode.read');code=self._code(mode_code,'mode_code');r=self.repo.mode(t,code)
+        if r is None or getattr(r,'tenant_id',None)!=t:raise R1Error('R1_MODE_NOT_FOUND','scope_mismatch','Service mode was not found in this tenant')
+        return r
+    def modes(self,t:int):
+        self._permit(t,'restaurant.service_mode.read');rows=tuple(self.repo.modes(t))
+        if any(getattr(x,'tenant_id',None)!=t for x in rows):raise R1Error('R1_MODE_SCOPE_MISMATCH','scope_mismatch','Service modes were not scoped to this tenant')
+        return rows
     def define_mode(self,c:DefineServiceMode):
         self._permit(c.tenant_id,'restaurant.service_mode.define');code=self._code(c.mode_code,'mode_code');name=c.display_name.strip()
         if not name:raise R1Error('R1_MODE_NAME_REQUIRED','validation_failure','Service mode name is required')
