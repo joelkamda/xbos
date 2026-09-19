@@ -31,11 +31,40 @@
     "tickets",
     "preparation_runs",
     "inventory_handoff",
-    "delivery_handoff"
+    "delivery_handoff",
+    "menu"
   ],
   "stable_errors_prefix": "R2_",
   "cross_module_private_access": "FORBIDDEN",
   "finance_integration": "handoff only",
   "inventory_integration": "SO3 intent only",
-  "delivery_integration": "SO8 intent only"
+  "delivery_integration": "SO8 intent only",
+  "read_permissions": {
+    "menu_sections": "restaurant.menu.read",
+    "modifier_configuration": "restaurant.menu.read",
+    "menu": "restaurant.menu.read"
+  },
+  "consumer_menu_public_read": {
+    "implementation": "R2Authority.menu",
+    "tenant_scoped": true,
+    "authorization_before_result": true,
+    "cross_tenant_disclosure": false,
+    "read_side_effects": false,
+    "price_owner": "SO1",
+    "catalog_identity_owner": "SO1",
+    "menu_placement_owner": "R2",
+    "modifier_configuration_owner": "R2",
+    "creates_financial_truth": false,
+    "http_route_added": false
+  },
+  "menu_inputs": [
+    "tenant_id",
+    "catalog_public_id",
+    "effective_at",
+    "price_code",
+    "currency",
+    "scope_type",
+    "scope_id"
+  ],
+  "menu_output": "MenuProjection"
 }

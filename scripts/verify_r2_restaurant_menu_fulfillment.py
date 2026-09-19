@@ -28,6 +28,11 @@ def static_verify():
  if b['inventory']['restaurant_writes_inventory_movement'] or b['delivery']['restaurant_creates_delivery_job'] or b['finance']['restaurant_posts_journal']:raise RuntimeError('R2_BOUNDARY_LEAK')
  if not b['inventory']['wnd_exactly_once_sale_stock_effect_preserved']:raise RuntimeError('R2_WND_STOCK_INVARIANT')
  if i['http_routes_added'] or i['cross_module_private_access']!='FORBIDDEN':raise RuntimeError('R2_PUBLIC_BOUNDARY')
+ required_reads={'menu_sections','modifier_configuration','menu'}
+ if not required_reads.issubset(set(i['reads'])):raise RuntimeError('R2_MENU_PUBLIC_READS_INCOMPLETE')
+ if i.get('read_permissions')!={'menu_sections':'restaurant.menu.read','modifier_configuration':'restaurant.menu.read','menu':'restaurant.menu.read'}:raise RuntimeError('R2_MENU_READ_PERMISSION')
+ menu_contract=i.get('consumer_menu_public_read') or {}
+ if menu_contract!={'implementation':'R2Authority.menu','tenant_scoped':True,'authorization_before_result':True,'cross_tenant_disclosure':False,'read_side_effects':False,'price_owner':'SO1','catalog_identity_owner':'SO1','menu_placement_owner':'R2','modifier_configuration_owner':'R2','creates_financial_truth':False,'http_route_added':False}:raise RuntimeError('R2_MENU_PUBLIC_CONTRACT')
  required_commands={'DefineMenuSection','PlaceMenuEntry','DefineModifierGroup','AddModifierOption','BindMenuEntryModifierGroup','SetLineModifiers','ProfileStation','DefineRoutingRule','DefinePreparationSpec','ReleasePreparation'}
  if not required_commands.issubset(set(i['commands'])):raise RuntimeError('R2_PUBLIC_COMMANDS_INCOMPLETE')
  if 'semantic_routing' not in set(a['capabilities']):raise RuntimeError('R2_SC41_ROUTING_CAPABILITY')
@@ -43,13 +48,22 @@ def static_verify():
  for token in ['R2_MENU_ENTRY_CATALOG_MISMATCH','R2_MODIFIER_PRICE_TARGET_MISMATCH','release_command_key varchar(180) NOT NULL']:
   if token not in up:raise RuntimeError('R2_HARDENING_MISSING='+token)
  repo=(ROOT/'restaurant/r2/sql_repository.py').read_text(encoding='utf-8')
+ service=(ROOT/'restaurant/r2/service.py').read_text(encoding='utf-8');contracts=(ROOT/'restaurant/r2/contracts.py').read_text(encoding='utf-8')
  if 'WHERE tenant_id=:t AND release_command_key=:k' not in repo or 'uuid4()' not in repo:raise RuntimeError('R2_RELEASE_REPLAY_SCOPE')
+ for token in ['def menu_sections(','def modifier_configuration(','def menu(']:
+  if token not in service:raise RuntimeError('R2_MENU_APPLICATION_READ_MISSING='+token)
+ for token in ['def menu_sections(','def menu_section_entries(','def modifier_configuration(']:
+  if token not in repo:raise RuntimeError('R2_MENU_REPOSITORY_READ_MISSING='+token)
+ if 'restaurant.menu.read' not in service:raise RuntimeError('R2_MENU_READ_PERMISSION_MISSING')
+ if 'shared_operations.so1.sql_repository' in service:raise RuntimeError('R2_PRIVATE_SO1_IMPORT')
+ if 'wnd' in service.lower() or 'wnd' in repo.lower():raise RuntimeError('R2_WND_HARDCODING')
+ if 'creates_financial_truth:bool=False' not in contracts.replace(' ',''):raise RuntimeError('R2_MENU_FINANCE_BOUNDARY')
  inv=json.loads((ROOT/'contracts/platform/v1/pc0_frozen_finance_inventory.json').read_text())
  ext={x['path']:x for x in inv['authorized_non_finance_extensions'] if x.get('root')=='alembic_neutral'}
  for path in ['versions/r2_restaurant_menu_fulfillment_043.py','sql/r2_restaurant_menu_fulfillment_up.sql','sql/r2_restaurant_menu_fulfillment_down.sql']:
   if path not in ext or ext[path].get('owner')!='PK':raise RuntimeError('R2_PC0_EXTENSION_MISSING='+path)
  release_count=verify_manifest()
- return {'status':'PASS','source_checkpoint':SOURCE[:7],'previous_head':PREVIOUS,'accepted_head':HEAD,'menu_projection':'PASS','menu_entry_placement':'PASS','modifiers':'PASS','semantic_routing':'PASS','station_routing':'PASS','tickets_hold_fire_course':'PASS','multi_station':'PASS','release_idempotency':'PASS','recipes_yield_waste':'PASS','inventory':'UNCHANGED','delivery':'UNCHANGED','finance':'UNCHANGED','wnd_specimen_not_standard':'PASS','r3_readiness':'PASS','release_artifacts':release_count}
+ return {'status':'PASS','source_checkpoint':SOURCE[:7],'previous_head':PREVIOUS,'accepted_head':HEAD,'menu_projection':'PASS','menu_public_read':'PASS','menu_sections_read':'PASS','modifier_configuration_read':'PASS','menu_read_permission':'restaurant.menu.read','menu_entry_placement':'PASS','modifiers':'PASS','semantic_routing':'PASS','station_routing':'PASS','tickets_hold_fire_course':'PASS','multi_station':'PASS','release_idempotency':'PASS','recipes_yield_waste':'PASS','inventory':'UNCHANGED','delivery':'UNCHANGED','finance':'UNCHANGED','wnd_specimen_not_standard':'PASS','r3_readiness':'PASS','release_artifacts':release_count}
 def _tables(conn):
  from sqlalchemy import text
  return set(conn.execute(text("SELECT table_name FROM information_schema.tables WHERE table_schema='public'")).scalars())

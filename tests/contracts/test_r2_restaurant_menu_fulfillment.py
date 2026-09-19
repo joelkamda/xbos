@@ -1,6 +1,10 @@
 from datetime import datetime,timezone
 from decimal import Decimal
 from pathlib import Path
+from dataclasses import replace
+import copy
+from dataclasses import replace
+import copy
 from types import SimpleNamespace
 from uuid import uuid4
 import pytest
@@ -13,6 +17,10 @@ class FakeRepo:
     def define_section(self,c,p,fp):
         x=MenuSection(p,c.tenant_id,c.catalog_public_id,c.section_code,c.display_name,c.sort_order,c.effective_from,c.effective_to,True,c.metadata,1);self.sections[p]=x;return x
     def section(self,t,p):return self.sections.get(p)
+    def menu_sections(self,t,catalog_public_id,at):
+        return tuple(sorted((x for x in self.sections.values() if x.tenant_id==t and x.catalog_public_id==catalog_public_id and x.active and x.effective_from<=at and (x.effective_to is None or at<x.effective_to)),key=lambda x:(x.sort_order,x.section_code,str(x.public_id))))
+    def menu_section_entries(self,t,section_public_id,at):
+        return tuple(sorted((x for x in self.placements if x.tenant_id==t and x.section_public_id==section_public_id and x.effective_from<=at and (x.effective_to is None or at<x.effective_to)),key=lambda x:(x.sort_order,str(x.catalog_entry_public_id))))
     def place_menu_entry(self,c,fp):
         x=MenuSectionEntry(c.tenant_id,c.section_public_id,c.catalog_entry_public_id,c.sort_order,c.effective_from,c.effective_to);self.placements.append(x);return x
     def bind_menu_entry_modifier_group(self,c,fp):
@@ -23,6 +31,14 @@ class FakeRepo:
     def add_modifier_option(self,c,p,price_amount,currency,fp):
         x=ModifierOption(p,c.tenant_id,c.group_public_id,c.option_code,c.display_name,c.effect_type,c.target_type,c.target_public_id,c.price_public_id,c.default_quantity,c.preparation_instruction,True,c.sort_order,c.metadata);self.options[p]=x;return x
     def modifier_option(self,t,p):return self.options.get(p)
+    def modifier_configuration(self,t,catalog_entry_public_id,at):
+        rows=[]
+        for b in self.bindings:
+            g=self.groups.get(b.modifier_group_public_id)
+            if b.tenant_id!=t or b.catalog_entry_public_id!=catalog_entry_public_id or not (b.effective_from<=at and (b.effective_to is None or at<b.effective_to)) or g is None or not g.active or not (g.effective_from<=at and (g.effective_to is None or at<g.effective_to)):continue
+            opts=tuple(sorted((o for o in self.options.values() if o.tenant_id==t and o.group_public_id==g.public_id and o.active),key=lambda o:(o.sort_order,o.option_code,str(o.public_id))))
+            rows.append(ModifierConfiguration(b.sequence,g,opts))
+        return tuple(sorted(rows,key=lambda x:(x.sequence,x.group.group_code,str(x.group.public_id))))
     def allowed_modifier_groups_for_line(self,t,p,at):return tuple(self.allowed.get(p,()))
     def set_line_modifiers(self,c,p,normalized,fp):
         prior=self.modsets.get(c.order_line_public_id);v=1 if prior is None else prior.selection_version+1;x=ModifierSelectionSet(p,c.tenant_id,c.order_line_public_id,v,tuple(normalized),c.occurred_at);self.modsets[c.order_line_public_id]=x;return x
@@ -70,10 +86,13 @@ class FakeRepo:
         x=PreparationRun(x.public_id,x.tenant_id,x.preparation_spec_public_id,x.ticket_item_public_id,PrepRunStatus.COMPLETED,x.planned_output_units,c.actual_output_units,c.waste_output_units,x.started_at,c.occurred_at,c.inputs if not c.inputs else c.inputs,x.row_version+1);self.runs[x.public_id]=x;return x
 
 def obj(t,p,**kw):return SimpleNamespace(tenant_id=t,public_id=p,**kw)
-def authority(semantic_matcher=None):
+def price_key(t,target_type,target_public_id,price_code,currency,scope_type,scope_id):
+    return ('resolved_price',t,getattr(target_type,'value',target_type),target_public_id,price_code.lower(),currency.upper(),getattr(scope_type,'value',scope_type),scope_id)
+def authority(semantic_matcher=None,authorize=lambda *a:True):
     repo=FakeRepo();store={}
     def resolver(t,p):return store.get((t,p))
-    a=R2Authority(repo,catalog_resolver=resolver,catalog_entry_resolver=resolver,atomic_unit_resolver=resolver,offer_resolver=resolver,price_resolver=resolver,resource_resolver=resolver,order_resolver=resolver,order_line_resolver=resolver,party_resolver=resolver,authorize=lambda *a:True,semantic_matcher=semantic_matcher)
+    def resolve_price(q):return store.get(price_key(q.tenant_id,q.target_type,q.target_public_id,q.price_code,q.currency,q.scope_type,q.scope_id))
+    a=R2Authority(repo,catalog_resolver=resolver,catalog_entry_resolver=resolver,atomic_unit_resolver=resolver,offer_resolver=resolver,price_resolver=resolver,resource_resolver=resolver,order_resolver=resolver,order_line_resolver=resolver,party_resolver=resolver,authorize=authorize,semantic_matcher=semantic_matcher,price_resolution_resolver=resolve_price)
     return a,repo,store
 
 def test_menu_section_is_so1_projection_not_catalog_identity():
@@ -142,3 +161,98 @@ def test_r2_pc0_extension_is_authorized_as_pack_descendant():
 
 def test_acceptance_scopes_both_database_environment_authorities():
     root=Path(__file__).resolve().parents[2];source=(root/'scripts/verify_r2_restaurant_menu_fulfillment.py').read_text(encoding='utf-8');assert "('DATABASE_URL','MIGRATION_DATABASE_URL')" in source and "url.replace('%','%%')" in source
+
+def _menu_fixture(*,authorize=lambda *a:True):
+    a,r,s=authority(authorize=authorize);now=datetime(2026,9,19,9,0,tzinfo=timezone.utc);cat=uuid4();entry=uuid4();target=uuid4();price=uuid4()
+    s[(1,cat)]=obj(1,cat,active=True,effective_from=now,effective_to=None,code='main_menu',name='Menu')
+    s[(1,entry)]=obj(1,entry,catalog_public_id=cat,target_type=SimpleNamespace(value='atomic_unit'),target_public_id=target,enabled=True,effective_from=now,effective_to=None)
+    s[(1,target)]=obj(1,target,active=True,code='item_one',name='Item One')
+    main_price=obj(1,price,target_type=SimpleNamespace(value='atomic_unit'),target_public_id=target,price_code='retail',amount=Decimal('4500'),currency='XAF',scope_type=SimpleNamespace(value='tenant'),scope_id=None,effective_from=now,effective_to=None,active=True)
+    s[price_key(1,'atomic_unit',target,'retail','XAF','tenant',None)]=main_price
+    sec=a.define_menu_section(DefineMenuSection('sec',1,cat,'mains','Mains',now,sort_order=20))
+    a.place_menu_entry(PlaceMenuEntry('place',1,sec.public_id,entry,now,sort_order=10))
+    return a,r,s,now,cat,entry,target,main_price
+
+def test_public_menu_composes_r2_placement_with_so1_identity_price_and_modifiers():
+    a,r,s,now,cat,entry,target,main_price=_menu_fixture()
+    group=a.define_modifier_group(DefineModifierGroup('g',1,'spice','Spice',SelectionMode.SINGLE,0,1,now))
+    extra_target=uuid4();extra_price_id=uuid4();s[(1,extra_target)]=obj(1,extra_target,active=True,code='extra',name='Extra')
+    extra_price=obj(1,extra_price_id,target_type=SimpleNamespace(value='atomic_unit'),target_public_id=extra_target,price_code='modifier',amount=Decimal('250'),currency='XAF',scope_type=SimpleNamespace(value='tenant'),scope_id=None,effective_from=now,effective_to=None,active=True)
+    s[(1,extra_price_id)]=extra_price
+    option=a.add_modifier_option(AddModifierOption('o',1,group.public_id,'extra','Extra',ModifierEffect.ADD,TargetType.ATOMIC_UNIT,extra_target,extra_price_id,Decimal('1'),sort_order=2))
+    a.bind_menu_entry_modifier_group(BindMenuEntryModifierGroup('b',1,entry,group.public_id,now,sequence=3))
+    menu=a.menu(1,cat,now,'retail','xaf','tenant',None)
+    assert menu.catalog_reference.public_id==cat and menu.pricing_context.currency=='XAF' and menu.creates_financial_truth is False
+    item=menu.sections[0].entries[0]
+    assert item.catalog_entry_public_id==entry and item.target_public_id==target and item.target_presentation.name=='Item One'
+    assert item.resolved_price is main_price and item.resolved_price.amount==Decimal('4500')
+    cfg=item.modifier_configuration[0]
+    assert cfg.group_public_id==group.public_id and cfg.selection_mode is SelectionMode.SINGLE and cfg.sequence==3
+    assert cfg.options[0].option_public_id==option.public_id and cfg.options[0].price_effect.amount==Decimal('250')
+
+def test_menu_sections_and_modifier_configuration_are_public_tenant_scoped_reads():
+    a,r,s,now,cat,entry,target,price=_menu_fixture()
+    group=a.define_modifier_group(DefineModifierGroup('g',1,'choice','Choice',SelectionMode.SINGLE,0,1,now))
+    option=a.add_modifier_option(AddModifierOption('o',1,group.public_id,'plain','Plain',ModifierEffect.INSTRUCTION,preparation_instruction='plain'))
+    a.bind_menu_entry_modifier_group(BindMenuEntryModifierGroup('b',1,entry,group.public_id,now,sequence=1))
+    sections=a.menu_sections(1,cat,now);cfg=a.modifier_configuration(1,entry,now,'XAF','tenant',None)
+    assert len(sections)==1 and sections[0].tenant_id==1
+    assert len(cfg)==1 and cfg[0].group_public_id==group.public_id and cfg[0].options[0].option_public_id==option.public_id
+
+def test_menu_authorization_fails_closed_before_any_result():
+    a,r,s,now,cat,entry,target,price=_menu_fixture(authorize=lambda t,p,*_:p!='restaurant.menu.read')
+    before=copy.deepcopy((r.sections,r.placements,r.bindings,r.groups,r.options))
+    with pytest.raises(R2Error) as e:a.menu(1,cat,now,'retail','XAF','tenant',None)
+    assert e.value.code=='R2_PERMISSION_DENIED'
+    assert before==copy.deepcopy((r.sections,r.placements,r.bindings,r.groups,r.options))
+
+def test_menu_cross_catalog_placement_fails_closed_and_cross_tenant_is_not_disclosed():
+    a,r,s,now,cat,entry,target,price=_menu_fixture()
+    other=uuid4();s[(1,other)]=obj(1,other,active=True,effective_from=now,effective_to=None)
+    s[(1,entry)].catalog_public_id=other
+    with pytest.raises(R2Error) as e:a.menu(1,cat,now,'retail','XAF','tenant',None)
+    assert e.value.code=='R2_MENU_ENTRY_CATALOG_MISMATCH'
+    s[(1,entry)].catalog_public_id=cat
+    del s[(1,cat)];s[(2,cat)]=obj(2,cat,active=True,effective_from=now,effective_to=None)
+    with pytest.raises(R2Error) as cross:a.menu(1,cat,now,'retail','XAF','tenant',None)
+    assert cross.value.code=='R2_CATALOG_NOT_FOUND'
+
+def test_menu_filters_inactive_and_expired_rows_and_sorts_deterministically():
+    a,r,s,now,cat,entry,target,price=_menu_fixture()
+    sec2=a.define_menu_section(DefineMenuSection('s2',1,cat,'starters','Starters',now,sort_order=5))
+    e2=uuid4();t2=uuid4();p2=uuid4();s[(1,e2)]=obj(1,e2,catalog_public_id=cat,target_type=SimpleNamespace(value='atomic_unit'),target_public_id=t2,enabled=True,effective_from=now,effective_to=None);s[(1,t2)]=obj(1,t2,active=True,name='Starter')
+    s[price_key(1,'atomic_unit',t2,'retail','XAF','tenant',None)]=obj(1,p2,target_type=SimpleNamespace(value='atomic_unit'),target_public_id=t2,price_code='retail',amount=Decimal('1000'),currency='XAF',scope_type=SimpleNamespace(value='tenant'),scope_id=None,effective_from=now,effective_to=None,active=True)
+    a.place_menu_entry(PlaceMenuEntry('p2',1,sec2.public_id,e2,now,sort_order=1))
+    a.define_menu_section(DefineMenuSection('sx',1,cat,'old','Old',now.replace(day=18),effective_to=now,sort_order=0))
+    inactive=a.define_menu_section(DefineMenuSection('si',1,cat,'inactive','Inactive',now,sort_order=0));r.sections[inactive.public_id]=replace(r.sections[inactive.public_id],active=False)
+    menu=a.menu(1,cat,now,'retail','XAF','tenant',None)
+    assert [x.section_code for x in menu.sections]==['starters','mains']
+    s[(1,e2)].enabled=False
+    menu=a.menu(1,cat,now,'retail','XAF','tenant',None)
+    assert menu.sections[0].entries==()
+
+def test_menu_price_target_scope_and_currency_mismatches_fail_closed():
+    a,r,s,now,cat,entry,target,price=_menu_fixture();key=price_key(1,'atomic_unit',target,'retail','XAF','tenant',None);original=s[key]
+    s[key]=obj(1,original.public_id,target_type=SimpleNamespace(value='atomic_unit'),target_public_id=uuid4(),price_code='retail',amount=Decimal('4500'),currency='XAF',scope_type=SimpleNamespace(value='tenant'),scope_id=None,effective_from=now,effective_to=None,active=True)
+    with pytest.raises(R2Error) as e:a.menu(1,cat,now,'retail','XAF','tenant',None)
+    assert e.value.code=='R2_PRICE_TARGET_MISMATCH'
+    s[key]=obj(1,original.public_id,target_type=SimpleNamespace(value='atomic_unit'),target_public_id=target,price_code='retail',amount=Decimal('4500'),currency='USD',scope_type=SimpleNamespace(value='tenant'),scope_id=None,effective_from=now,effective_to=None,active=True)
+    with pytest.raises(R2Error) as c:a.menu(1,cat,now,'retail','XAF','tenant',None)
+    assert c.value.code=='R2_PRICE_CURRENCY_MISMATCH'
+    s[key]=obj(1,original.public_id,target_type=SimpleNamespace(value='atomic_unit'),target_public_id=target,price_code='retail',amount=Decimal('4500'),currency='XAF',scope_type=SimpleNamespace(value='location'),scope_id=9,effective_from=now,effective_to=None,active=True)
+    with pytest.raises(R2Error) as scope:a.menu(1,cat,now,'retail','XAF','tenant',None)
+    assert scope.value.code=='R2_PRICE_SCOPE_MISMATCH'
+
+def test_menu_read_is_side_effect_free_and_reuses_public_so1_objects():
+    a,r,s,now,cat,entry,target,price=_menu_fixture();before=copy.deepcopy((r.sections,r.placements,r.bindings,r.groups,r.options,r.modsets))
+    menu=a.menu(1,cat,now,'retail','XAF','tenant',None)
+    assert menu.catalog_reference is s[(1,cat)]
+    assert menu.sections[0].entries[0].target_presentation is s[(1,target)]
+    assert before==copy.deepcopy((r.sections,r.placements,r.bindings,r.groups,r.options,r.modsets))
+
+def test_r3_menu_surface_has_no_private_so1_import_no_wnd_hardcoding_and_no_finance_writer():
+    root=Path(__file__).resolve().parents[2]
+    service=(root/'restaurant/r2/service.py').read_text(encoding='utf-8').lower();repo=(root/'restaurant/r2/sql_repository.py').read_text(encoding='utf-8').lower()
+    assert 'shared_operations.so1.sql_repository' not in service
+    assert 'wnd' not in service and 'wnd' not in repo
+    assert 'insert into public.financial_' not in repo and 'insert into public.payment_' not in repo

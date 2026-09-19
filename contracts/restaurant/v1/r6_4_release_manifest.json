@@ -73,8 +73,8 @@
     },
     {
       "path": "contracts/restaurant/v1/r2_release_manifest.json",
-      "sha256": "7b21bc240814277770c4207bd822570828256f2ed73d85a61606cae08d401cd0",
-      "size": 8880
+      "sha256": "2dd99bd10bc7d812d0090f4644041ec30293db466faabf9b826b867755c86797",
+      "size": 8881
     },
     {
       "path": "contracts/restaurant/v1/r1_release_manifest.json",
