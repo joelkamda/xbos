@@ -23,6 +23,7 @@ class R1Repository(Protocol):
     def open_order(self,c,p,fp)->RestaurantOrder|None: ...
     def order(self,t,p)->RestaurantOrder|None: ...
     def add_line(self,c,p,price,currency,fp)->RestaurantOrder|None: ...
+    def change_line_quantity(self,c,fp)->RestaurantOrder|None: ...
     def submit_order(self,c,fp)->RestaurantOrder|None: ...
     def cancel_order(self,c,fp)->RestaurantOrder|None: ...
     def open_tab(self,c,p,fp)->RestaurantTab|None: ...
@@ -133,12 +134,20 @@ class R1Authority:
         r=self.repo.open_order(n,self.public_id_factory(),self._fp(n))
         if r is None:raise R1Error('R1_ORDER_CONFLICT','conflict','Order conflict',retryable=True)
         return r
+    def order(self,t:int,order_public_id:UUID):
+        self._permit(t,'restaurant.order.read');r=self.repo.order(t,order_public_id)
+        if r is None or getattr(r,'tenant_id',None)!=t or UUID(str(getattr(r,'public_id',UUID(int=0))))!=order_public_id:raise R1Error('R1_ORDER_NOT_FOUND','scope_mismatch','Order was not found in this tenant')
+        return r
     def add_line(self,c:AddLine):
         self._permit(c.tenant_id,'restaurant.order.change');resolver=self.atomic_unit_resolver if c.target_type is TargetType.ATOMIC_UNIT else self.offer_resolver
         self._owned(resolver(c.tenant_id,c.target_public_id),c.tenant_id,c.target_public_id,'R1_TARGET_NOT_FOUND');price=self._owned(self.price_resolver(c.tenant_id,c.price_public_id),c.tenant_id,c.price_public_id,'R1_PRICE_NOT_FOUND')
         if getattr(getattr(price,'target_type',None),'value',getattr(price,'target_type',None))!=c.target_type.value or UUID(str(getattr(price,'target_public_id',UUID(int=0))))!=c.target_public_id:raise R1Error('R1_PRICE_TARGET_MISMATCH','scope_mismatch','Price does not match target')
         n=replace(c,quantity=self._qty(c.quantity),occurred_at=self._aware(c.occurred_at,'occurred_at'),note=c.note.strip() if c.note else None);r=self.repo.add_line(n,self.public_id_factory(),Decimal(getattr(price,'amount')),str(getattr(price,'currency')).upper(),self._fp(n))
         if r is None:raise R1Error('R1_ORDER_LINE_CONFLICT','stale_version','Order changed or cannot accept line',retryable=True)
+        return r
+    def change_line_quantity(self,c:ChangeOrderLineQuantity):
+        self._permit(c.tenant_id,'restaurant.order.change');n=replace(c,quantity=self._qty(c.quantity),occurred_at=self._aware(c.occurred_at,'occurred_at'));r=self.repo.change_line_quantity(n,self._fp(n))
+        if r is None:raise R1Error('R1_ORDER_LINE_CHANGE_CONFLICT','stale_version','Order line quantity cannot change',retryable=True)
         return r
     def submit_order(self,c:SubmitOrder):
         self._permit(c.tenant_id,'restaurant.order.submit');n=replace(c,occurred_at=self._aware(c.occurred_at,'occurred_at'));r=self.repo.submit_order(n,self._fp(n))
