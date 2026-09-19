@@ -94,8 +94,8 @@
     },
     {
       "path": "contracts/restaurant/v1/r1_public_interfaces.json",
-      "sha256": "cb3883cfd97a5e3691cabdd300efa0eacd14dc9a0129b7fbb305a752c7ef6f0c",
-      "size": 552
+      "sha256": "866eb657468e8dedfb0ce8212d9abeb9408a2b7dcf1d184f9dfdc4c894ee9113",
+      "size": 831
     },
     {
       "path": "contracts/restaurant/v1/r1_r2_readiness.json",
@@ -189,8 +189,8 @@
     },
     {
       "path": "restaurant/r1/service.py",
-      "sha256": "ce276cf1b012b9c499f6d9f7a20e4c2c42eeccd157893d21d945593cb737f778",
-      "size": 17134
+      "sha256": "ba49a202bbbd9fd97360054d1f2d5b1f2dfa8edb10524de5e4013f467d731fc3",
+      "size": 17570
     },
     {
       "path": "restaurant/r1/sql_repository.py",
@@ -204,8 +204,8 @@
     },
     {
       "path": "scripts/verify_r1_restaurant_service_operation.py",
-      "sha256": "e2c539259872086483b99b143a00261388b54361455088ce01fb9d8b57119542",
-      "size": 8274
+      "sha256": "ba5f3def665f88b94dfe10125c6f1e3c5f2f8a42af7b64e052ee72c7cac8a29a",
+      "size": 9189
     },
     {
       "path": "scripts/verify_semantic_classification_hardening.py",
@@ -214,8 +214,8 @@
     },
     {
       "path": "tests/contracts/test_r1_restaurant_service_operation.py",
-      "sha256": "23a2d4d6a0e14c73e92a3aa69a8c0557f6ad821ce8e3f5cfb812da02c5f435c3",
-      "size": 10565
+      "sha256": "90245e6810580c0b97b46c100c81613a533ac3e9a198010e966f27ae8dd11e1b",
+      "size": 13800
     }
   ],
   "contract": "XBOS_R1_RESTAURANT_SERVICE_OPERATION_RELEASE_MANIFEST",

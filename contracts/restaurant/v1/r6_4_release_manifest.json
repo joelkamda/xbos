@@ -73,12 +73,12 @@
     },
     {
       "path": "contracts/restaurant/v1/r2_release_manifest.json",
-      "sha256": "d8c0bf6f644e20acf8cab10c866ce657575bf643eee168eaa14b733753c291b4",
+      "sha256": "7b21bc240814277770c4207bd822570828256f2ed73d85a61606cae08d401cd0",
       "size": 8880
     },
     {
       "path": "contracts/restaurant/v1/r1_release_manifest.json",
-      "sha256": "9c582c7c25bc66e80d313c018523e8b75d341921ea4067456d0d1ba37035bcfe",
+      "sha256": "3d041d1b3137b37ffd26c02ecb8e5c676a4ce8dfe31beabc321c73b46fb189f5",
       "size": 9099
     },
     {
