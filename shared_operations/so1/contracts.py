@@ -41,6 +41,13 @@ class Catalog:
 
 
 @dataclass(frozen=True)
+class CatalogEntry:
+    public_id: UUID; tenant_id: int; catalog_public_id: UUID; target_type: TargetType
+    target_public_id: UUID; semantic_reference: str | None; sort_order: int; enabled: bool
+    effective_from: datetime; effective_to: datetime | None; row_version: int
+
+
+@dataclass(frozen=True)
 class OfferComponent:
     atomic_unit_public_id: UUID; quantity: Decimal; rule: ComponentRule; sequence: int
 

@@ -21,6 +21,7 @@ if str(ROOT) not in sys.path:
 
 from core.platform.architecture_contract import validate_pc0
 from core.platform.neutral_proof.dependency_authority import verify_dependency_authority
+from core.platform.release_integrity import verify_latest_release
 from scripts.verify_so0_shared_operations import verify_so0
 from scripts.verify_so1_atomic_catalog_pricing import static_verify as verify_so1
 from scripts.verify_xa_frontend_experience_architecture import verify_xa
@@ -171,7 +172,26 @@ def static_verify() -> dict[str, object]:
     install_lines = (ROOT / "SO2_INSTALL_MANIFEST.txt").read_text(encoding="utf-8").splitlines()
     inventory = install_lines[install_lines.index("SO2_INSTALL_MANIFEST.txt"):]
     expected = [item["path"] for item in manifest["artifacts"]] + ["contracts/shared_operations/v1/so2_release_manifest.json"]
-    if len(inventory) != len(set(inventory)) or set(inventory) != set(expected):
+    if len(inventory) != len(set(inventory)):
+        raise RuntimeError("SO2_PACKAGE_INVENTORY_MISMATCH")
+    current_platform = verify_latest_release(ROOT)["latest"]
+    normalized_inventory = list(inventory)
+    if current_platform > 6:
+        historical_platform_slot = "contracts/platform/v1/pc6_release_manifest.json"
+        current_platform_slot = f"contracts/platform/v1/pc{current_platform}_release_manifest.json"
+        if inventory.count(historical_platform_slot) != 1:
+            raise RuntimeError("SO2_PACKAGE_PLATFORM_HISTORICAL_SLOT")
+        if current_platform_slot in inventory:
+            raise RuntimeError("SO2_PACKAGE_PLATFORM_SLOT_DUPLICATE")
+        if historical_platform_slot in expected:
+            raise RuntimeError("SO2_PACKAGE_PLATFORM_DESCENDANT_EXPECTED")
+        if expected.count(current_platform_slot) != 1:
+            raise RuntimeError("SO2_PACKAGE_PLATFORM_DESCENDANT_PIN")
+        normalized_inventory = [
+            current_platform_slot if path == historical_platform_slot else path
+            for path in inventory
+        ]
+    if set(normalized_inventory) != set(expected):
         raise RuntimeError("SO2_PACKAGE_INVENTORY_MISMATCH")
     for item in manifest["artifacts"]:
         path = ROOT / item["path"]

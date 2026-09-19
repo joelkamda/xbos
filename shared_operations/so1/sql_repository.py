@@ -10,7 +10,7 @@ from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from .contracts import (
-    AtomicUnit, Catalog, ComponentRule, CreateAtomicUnit, CreateCatalog, CreateOffer,
+    AtomicUnit, Catalog, CatalogEntry, ComponentRule, CreateAtomicUnit, CreateCatalog, CreateOffer,
     DefinePrice, Offer, OfferComponent, Price, PublishCatalogEntry, ResolvePrice,
     ScopeType, TargetType, UpdateAtomicUnit, UpdateOffer,
 )
@@ -75,6 +75,34 @@ class SQLSO1Repository:
     def catalog(self, tenant_id: int, public_id: UUID) -> Catalog | None:
         row=self._session.execute(text("SELECT id,public_id,tenant_id,code,name,scope_type,scope_id,active,effective_from,effective_to,row_version FROM so1_catalogs WHERE tenant_id=:tenant AND public_id=:public_id"),{"tenant":tenant_id,"public_id":public_id}).one_or_none()
         return self._catalog(row) if row else None
+
+    def catalog_entry(self, tenant_id: int, public_id: UUID) -> CatalogEntry | None:
+        row = self._session.execute(text("""SELECT e.public_id,e.tenant_id,c.public_id AS catalog_public_id,e.target_type,
+                u.public_id AS atomic_unit_public_id,o.public_id AS offer_public_id,
+                e.semantic_reference,e.sort_order,e.enabled,e.effective_from,e.effective_to,e.row_version
+            FROM so1_catalog_entries e
+            JOIN so1_catalogs c ON (c.tenant_id,c.id)=(e.tenant_id,e.catalog_id)
+            LEFT JOIN atomic_units u ON (u.tenant_id,u.id)=(e.tenant_id,e.atomic_unit_id)
+            LEFT JOIN so1_offers o ON (o.tenant_id,o.id)=(e.tenant_id,e.offer_id)
+            WHERE e.tenant_id=:tenant AND e.public_id=:public_id"""),
+            {"tenant": tenant_id, "public_id": public_id}).one_or_none()
+        if row is None:
+            return None
+        target_type = TargetType(row.target_type)
+        atomic_public_id = row.atomic_unit_public_id
+        offer_public_id = row.offer_public_id
+        if target_type is TargetType.ATOMIC_UNIT:
+            if atomic_public_id is None or offer_public_id is not None:
+                raise ValueError("SO1_CATALOG_ENTRY_TARGET_CORRUPT")
+            target_public_id = atomic_public_id
+        else:
+            if offer_public_id is None or atomic_public_id is not None:
+                raise ValueError("SO1_CATALOG_ENTRY_TARGET_CORRUPT")
+            target_public_id = offer_public_id
+        return CatalogEntry(
+            row.public_id,row.tenant_id,row.catalog_public_id,target_type,target_public_id,
+            row.semantic_reference,row.sort_order,row.enabled,row.effective_from,row.effective_to,row.row_version,
+        )
 
     def publish_entry(self, command: PublishCatalogEntry, public_id: UUID) -> UUID:
         target_column="atomic_unit_id" if command.target_type is TargetType.ATOMIC_UNIT else "offer_id"

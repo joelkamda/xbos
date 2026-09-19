@@ -1,0 +1,176 @@
+{
+  "schema_version": 1,
+  "contract": "R6_4_DESCENDANT_FREEZE_INTEGRITY_CORRECTION",
+  "correction_class": "DESCENDANT_FREEZE_INTEGRITY_CORRECTION",
+  "original_freeze_commit": "330694145cb1d06ea915c3c484451f664ebd75f3",
+  "original_freeze_tag": "restaurant-r6-5-production-forward-baseline-v1-20260917",
+  "original_install_manifest_sha256": "3ff1cf7cba91cd6391bd8d6f2a9d951c262379f8bc03c5799ff3991d78df09e0",
+  "original_release_manifest_sha256": "cc0850be82e13c2ff3c4f8944eaf17ac3b58b733f8381ebcfd8a2423afb4e2ca",
+  "byte_identical_recovery_count": 0,
+  "deterministic_regeneration_count": 0,
+  "historical_artifact_byte_identity": "UNRECOVERABLE",
+  "underlying_semantics": "INDEPENDENTLY_PROVEN",
+  "historical_omission_count": 8,
+  "historical_omissions": [
+    {
+      "path": "R6_4_REVISION_9_WND_COMPAT_OPENAPI_BINDING.txt",
+      "size": 1670,
+      "sha256": "0860f93386e915c236564370d9437b128ab0ec40e85b546e12418dbdd7436fd6",
+      "subject": "WND_COMPATIBILITY_OPENAPI_ANNOTATION_BINDING",
+      "semantic_evidence": "COMPLETE",
+      "historical_artifact_byte_identity": "UNRECOVERABLE",
+      "underlying_semantics": "INDEPENDENTLY_PROVEN",
+      "supporting_paths": [
+        "XBOS_R6_4_INSTALL_AND_VERIFY.txt",
+        "contracts/restaurant/v1/r6_4_production_cutover_package_authority.json",
+        "restaurant/r6/wnd_api_compat/router.py",
+        "tests/contracts/test_r6_4_wnd_production_cutover_package.py"
+      ]
+    },
+    {
+      "path": "R6_4_REVISION_8_WND_API_COMPATIBILITY_BRIDGE.txt",
+      "size": 2220,
+      "sha256": "317363db4ad8f904197555cd72465da2ac0a79ade51059f9048812fffb5f9139",
+      "subject": "WND_API_COMPATIBILITY_BRIDGE",
+      "semantic_evidence": "COMPLETE",
+      "historical_artifact_byte_identity": "UNRECOVERABLE",
+      "underlying_semantics": "INDEPENDENTLY_PROVEN",
+      "supporting_paths": [
+        "XBOS_R6_4_INSTALL_AND_VERIFY.txt",
+        "contracts/restaurant/v1/r6_4_wnd_api_compatibility_bridge.json",
+        "contracts/restaurant/v1/r6_4_production_cutover_package_authority.json",
+        "restaurant/r6/wnd_compat_runtime.py",
+        "restaurant/r6/wnd_api_compat/router.py",
+        "tests/contracts/test_r6_4_wnd_production_cutover_package.py"
+      ]
+    },
+    {
+      "path": "R6_4_REVISION_7_COLLISION_SAFE_DIAGNOSTIC_PORTS.txt",
+      "size": 1233,
+      "sha256": "ea45e8ebb8e9439da29fb2ee8aa5beb52198faef9f013d843b952e93a6ec9d9c",
+      "subject": "COLLISION_SAFE_DIAGNOSTIC_PORTS",
+      "semantic_evidence": "COMPLETE",
+      "historical_artifact_byte_identity": "UNRECOVERABLE",
+      "underlying_semantics": "INDEPENDENTLY_PROVEN",
+      "supporting_paths": [
+        "XBOS_R6_4_INSTALL_AND_VERIFY.txt",
+        "contracts/restaurant/v1/r6_4_production_cutover_package_authority.json",
+        "scripts/verify_r6_4_wnd_production_cutover_package.py",
+        "tests/contracts/test_r6_4_wnd_production_cutover_package.py"
+      ]
+    },
+    {
+      "path": "R6_4_REVISION_6_BCRYPT_CONTROL_BACKEND.txt",
+      "size": 1022,
+      "sha256": "d6b7b063d6253d87687412d49e220523e0c3d01a5d2db884cb6adf88bccec935",
+      "subject": "BCRYPT_CONTROL_BACKEND",
+      "semantic_evidence": "COMPLETE",
+      "historical_artifact_byte_identity": "UNRECOVERABLE",
+      "underlying_semantics": "INDEPENDENTLY_PROVEN",
+      "supporting_paths": [
+        "XBOS_R6_4_INSTALL_AND_VERIFY.txt",
+        "requirements-r6-4-control.txt",
+        "XBOS_R6_4_RUN_ACCEPTANCE.cmd",
+        "contracts/restaurant/v1/r6_4_production_cutover_package_authority.json",
+        "tests/contracts/test_r6_4_wnd_production_cutover_package.py"
+      ]
+    },
+    {
+      "path": "R6_4_REVISION_5_ISOLATED_FULL_REGRESSION.txt",
+      "size": 1265,
+      "sha256": "14f2798384f36d2308d584b356bb801315be0f848bcf67db32eafe098608d8b2",
+      "subject": "ISOLATED_FULL_REGRESSION",
+      "semantic_evidence": "COMPLETE",
+      "historical_artifact_byte_identity": "UNRECOVERABLE",
+      "underlying_semantics": "INDEPENDENTLY_PROVEN",
+      "supporting_paths": [
+        "XBOS_R6_4_INSTALL_AND_VERIFY.txt",
+        "contracts/restaurant/v1/r6_4_production_cutover_package_authority.json",
+        "scripts/run_r6_4_isolated_full_regression.py",
+        "XBOS_R6_4_RUN_ACCEPTANCE.cmd",
+        "tests/contracts/test_r6_4_wnd_production_cutover_package.py"
+      ]
+    },
+    {
+      "path": "R6_4_REVISION_4_DOWNSTREAM_RELEASE_INTEGRITY_CHAIN.txt",
+      "size": 1743,
+      "sha256": "2fd61835d14cac9dfb8199ad0e6b0d1cd40bb5b07c11ad2d87a3264a451aeff3",
+      "subject": "DOWNSTREAM_RELEASE_INTEGRITY_CHAIN",
+      "semantic_evidence": "COMPLETE",
+      "historical_artifact_byte_identity": "UNRECOVERABLE",
+      "underlying_semantics": "INDEPENDENTLY_PROVEN",
+      "supporting_paths": [
+        "XBOS_R6_4_INSTALL_AND_VERIFY.txt",
+        "contracts/shared_operations/v1/so_aggregate_release_manifest.json",
+        "contracts/packs/v1/pk_aggregate_release_manifest.json",
+        "contracts/platform_admin/v1/pa6_release_manifest.json",
+        "contracts/platform/v1/sc41_release_manifest.json",
+        "contracts/restaurant/v1/r1_release_manifest.json",
+        "contracts/restaurant/v1/r2_release_manifest.json",
+        "tests/contracts/test_r6_4_wnd_production_cutover_package.py"
+      ]
+    },
+    {
+      "path": "R6_4_REVISION_3_CUMULATIVE_PLATFORM_INTEGRITY.txt",
+      "size": 1962,
+      "sha256": "7149ba7d9cc3660f467f30f0cc53d0711d7e592f25ac51cdfc13ec59a4969283",
+      "subject": "CUMULATIVE_PLATFORM_INTEGRITY",
+      "semantic_evidence": "COMPLETE",
+      "historical_artifact_byte_identity": "UNRECOVERABLE",
+      "underlying_semantics": "INDEPENDENTLY_PROVEN",
+      "supporting_paths": [
+        "XBOS_R6_4_INSTALL_AND_VERIFY.txt",
+        "contracts/platform/v1/pc0_frozen_finance_inventory.json",
+        "contracts/platform/v1/pc0_release_manifest.json",
+        "contracts/platform/v1/pc6_release_manifest.json",
+        "tests/contracts/test_r6_4_wnd_production_cutover_package.py"
+      ]
+    },
+    {
+      "path": "R6_4_REVISION_2_WND_SERVER_RUNTIME.txt",
+      "size": 1034,
+      "sha256": "2e379014e41dc43ba24ca66fa864f544a3efe9afbfaed5bed6995f9fbfc37b0a",
+      "subject": "WND_SERVER_RUNTIME",
+      "semantic_evidence": "COMPLETE",
+      "historical_artifact_byte_identity": "UNRECOVERABLE",
+      "underlying_semantics": "INDEPENDENTLY_PROVEN",
+      "supporting_paths": [
+        "XBOS_R6_4_INSTALL_AND_VERIFY.txt",
+        "contracts/restaurant/v1/r6_4_production_cutover_package_authority.json",
+        "requirements-r6-4-control.txt",
+        "XBOS_R6_4_RUN_ACCEPTANCE.cmd",
+        "tests/contracts/test_r6_4_wnd_production_cutover_package.py"
+      ]
+    }
+  ],
+  "historical_rewrite": "NO",
+  "artifact_fabrication": "NO",
+  "historical_install_manifest_mutation": "NO",
+  "historical_commit_tag_mutation": "NO",
+  "authority_changes": {
+    "r6_4_semantic_change": "NO",
+    "database_schema_change": "NO",
+    "migration_change": "NO",
+    "payment_authority_change": "NO",
+    "inventory_authority_change": "NO",
+    "writer_routing_change": "NO",
+    "live_cutover_authority_change": "NO",
+    "production_write_authority_change": "NO"
+  },
+  "correction_scope": "DESCENDANT_INTEGRITY_REPRESENTATION_ONLY",
+  "additional_manifest_identity_defect_count": 1,
+  "manifest_identity_defects": [
+    {
+      "path": "restaurant/r6/wnd_api_compat/inventory_service.py",
+      "original_manifest_size": 54552,
+      "original_manifest_sha256": "329e9ddc1c5e8d1798ad270caaa5c777067ad3d2f365ee565d8ceb92fd673e3f",
+      "actual_frozen_git_blob_canonical_lf_size": 53723,
+      "actual_frozen_git_blob_canonical_lf_sha256": "2000f54f377d01748b1c01a353eec8000af86905fdae37daa103b53ef07e1ece",
+      "source_drift": "NO",
+      "historical_blob_count": 1,
+      "original_manifest_hash_matching_blob_count": 0
+    }
+  ],
+  "descendant_artifact_size_basis": "CANONICAL_LF_BYTES",
+  "descendant_artifact_hash_basis": "CANONICAL_LF_SHA256"
+}

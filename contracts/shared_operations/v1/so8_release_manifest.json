@@ -67,31 +67,31 @@
     },
     {
       "path": "contracts/shared_operations/v1/so1_release_manifest.json",
-      "sha256": "0c8d13e0fbd46b92c2217c1a8ace467e6870af81fa06818d04539f3bc4d955ce"
+      "sha256": "d0178a0425d7ab5793174e52d502c70713029b74d0c5ff54553288163b21ab45"
     },
     {
       "path": "contracts/shared_operations/v1/so2_release_manifest.json",
-      "sha256": "b7ab7f281eb387c976ad0e5cab9a91baa6b5579d6892b074110fd5f6a2c6b498"
+      "sha256": "6938427a83e5d6525b3ae38ab80a5a60fcd5f41fc19fae86a3e05531c44f566a"
     },
     {
       "path": "contracts/shared_operations/v1/so3_release_manifest.json",
-      "sha256": "596d249f782fba2a7c04e025a18f8608deb518461d0573125fb7fdf62a1fb45c"
+      "sha256": "c9b91682a5aa7fad07ae1e7ecaee4fbff0c6ff393164f1a8b1f6d69570d9c750"
     },
     {
       "path": "contracts/shared_operations/v1/so4_release_manifest.json",
-      "sha256": "b4de8cb9ee86731d70db01ea54b908b2d82411f2c793fa425af13aa4e23261fa"
+      "sha256": "9a0664b12023bf4281443ce8db5d409c6605f55f8509a772a877cf39dfd3473b"
     },
     {
       "path": "contracts/shared_operations/v1/so5_release_manifest.json",
-      "sha256": "884d152029e265b21df48d63b5edce3f040739569d214d88f4bec8cef2c925f4"
+      "sha256": "e015fa6d53337e1ca64c05940494cc042b7322b072b965a0725b578483cb14b7"
     },
     {
       "path": "contracts/shared_operations/v1/so6_release_manifest.json",
-      "sha256": "c3b30b0a47edc8685c42c1a0186e23f2d9b834067614efff3b1850a14c7a8198"
+      "sha256": "6535a20bd3cf41a1c11b3640fc4962fbde2a24862955c52217fd89ab3d95603e"
     },
     {
       "path": "contracts/shared_operations/v1/so7_release_manifest.json",
-      "sha256": "b79e506fd31502d40a813f2cbfc3b405add6ae0dbc36252d2975ee7b0d025e30"
+      "sha256": "dd80eb9d357318d4261653778231c8d308b4747ab9a89add09ca2c4605c7e99a"
     },
     {
       "path": "contracts/shared_operations/v1/so8_authority.json",
