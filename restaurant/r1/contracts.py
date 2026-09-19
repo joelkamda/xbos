@@ -67,6 +67,9 @@ class OpenOrder:
 class AddLine:
     command_key:str; tenant_id:int; order_public_id:UUID; expected_order_version:int; target_type:TargetType; target_public_id:UUID; price_public_id:UUID; quantity:Decimal; occurred_at:datetime; note:str|None=None
 @dataclass(frozen=True)
+class ChangeOrderLineQuantity:
+    command_key:str; tenant_id:int; order_public_id:UUID; order_line_public_id:UUID; expected_order_version:int; expected_line_version:int; quantity:Decimal; occurred_at:datetime
+@dataclass(frozen=True)
 class SubmitOrder:
     command_key:str; tenant_id:int; order_public_id:UUID; expected_version:int; occurred_at:datetime
 @dataclass(frozen=True)

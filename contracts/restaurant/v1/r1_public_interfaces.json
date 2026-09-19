@@ -1,1 +1,70 @@
-{"schema_version":1,"contract":"R1_RESTAURANT_PUBLIC_INTERFACES","python_package":"restaurant.r1","http_routes_added":false,"commands":["DefineServiceMode","ProfileResource","OpenSession","CloseSession","OpenOrder","AddLine","SubmitOrder","CancelOrder","OpenTab","AttachOrder","PartitionTab","CloseTab"],"reads":["mode","modes","resource_profile","session","order","tab","tab_line_quantities","obligation_handoff"],"deferred":["R2 kitchen/menu/recipe fulfillment","R3 financial semantics","R4 pack registration/routes","R5 WND profile","R6 cutover"],"read_permissions":{"mode":"restaurant.service_mode.read","modes":"restaurant.service_mode.read"},"service_mode_public_read":{"application_interface_completed":true,"tenant_scoped":true,"authorization_before_result":true,"cross_tenant_disclosure":false,"read_side_effects":false}}
+{
+  "schema_version": 1,
+  "contract": "R1_RESTAURANT_PUBLIC_INTERFACES",
+  "python_package": "restaurant.r1",
+  "http_routes_added": false,
+  "commands": [
+    "DefineServiceMode",
+    "ProfileResource",
+    "OpenSession",
+    "CloseSession",
+    "OpenOrder",
+    "AddLine",
+    "SubmitOrder",
+    "CancelOrder",
+    "OpenTab",
+    "AttachOrder",
+    "PartitionTab",
+    "CloseTab",
+    "ChangeOrderLineQuantity"
+  ],
+  "reads": [
+    "mode",
+    "modes",
+    "resource_profile",
+    "session",
+    "order",
+    "tab",
+    "tab_line_quantities",
+    "obligation_handoff"
+  ],
+  "deferred": [
+    "R2 kitchen/menu/recipe fulfillment",
+    "R3 financial semantics",
+    "R4 pack registration/routes",
+    "R5 WND profile",
+    "R6 cutover"
+  ],
+  "read_permissions": {
+    "mode": "restaurant.service_mode.read",
+    "modes": "restaurant.service_mode.read",
+    "order": "restaurant.order.read"
+  },
+  "service_mode_public_read": {
+    "application_interface_completed": true,
+    "tenant_scoped": true,
+    "authorization_before_result": true,
+    "cross_tenant_disclosure": false,
+    "read_side_effects": false
+  },
+  "command_permissions": {
+    "change_order_line_quantity": "restaurant.order.change"
+  },
+  "consumer_cart_order_authority": {
+    "order_read_application_interface": true,
+    "order_read_tenant_scoped": true,
+    "authorization_before_result": true,
+    "cross_tenant_disclosure": false,
+    "read_side_effects": false,
+    "change_order_line_quantity": true,
+    "quantity_strictly_positive": true,
+    "zero_as_remove": false,
+    "order_row_version_required": true,
+    "line_row_version_required": true,
+    "price_snapshot_immutable": true,
+    "currency_immutable": true,
+    "history_event": "item_quantity_changed",
+    "remove_line_implemented": false,
+    "creates_financial_truth": false
+  }
+}

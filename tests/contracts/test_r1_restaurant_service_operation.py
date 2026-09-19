@@ -3,6 +3,7 @@ from decimal import Decimal
 from types import SimpleNamespace
 from uuid import uuid4
 from pathlib import Path
+from dataclasses import replace
 import json
 import pytest
 
@@ -11,7 +12,7 @@ from restaurant.r1.service import R1Authority,R1Error
 
 class FakeRepo:
     def __init__(self):
-        self.mode_rows={};self.profiles={};self.sessions={};self.orders={};self.tabs={};self.line_qty={}
+        self.mode_rows={};self.profiles={};self.sessions={};self.orders={};self.tabs={};self.line_qty={};self.change_commands={};self.order_history=[]
     def define_mode(self,c,p,fp):
         key=(c.tenant_id,c.mode_code)
         if key in self.mode_rows:return self.mode_rows[key]
@@ -36,6 +37,28 @@ class FakeRepo:
         if o.row_version!=c.expected_order_version or o.status is not OrderStatus.OPEN:return None
         line=OrderLine(p,c.tenant_id,o.public_id,c.target_type,c.target_public_id,c.price_public_id,c.quantity,price,currency,c.note,1)
         o=RestaurantOrder(o.public_id,o.tenant_id,o.order_code,o.mode_code,o.source_channel_code,o.status,o.opened_at,o.submitted_at,o.cancelled_at,o.session_public_id,o.party_public_id,o.staff,o.lines+(line,),o.row_version+1);self.orders[o.public_id]=o;return o
+    def change_line_quantity(self,c,fp):
+        key=(c.tenant_id,c.command_key)
+        if key in self.change_commands:
+            prior_fp,order_public_id=self.change_commands[key]
+            if prior_fp!=fp:raise R1Error('R1_COMMAND_CONFLICT','idempotency_conflict','Command key already used with different content')
+            return self.orders.get(order_public_id)
+        o=self.orders.get(c.order_public_id)
+        if not o or o.tenant_id!=c.tenant_id or o.status is not OrderStatus.OPEN or o.row_version!=c.expected_order_version:return None
+        index=None
+        for i,line in enumerate(o.lines):
+            if line.public_id==c.order_line_public_id:
+                index=i;break
+        if index is None:return None
+        line=o.lines[index]
+        if line.tenant_id!=c.tenant_id or line.order_public_id!=o.public_id or line.row_version!=c.expected_line_version:return None
+        changed=replace(line,quantity=c.quantity,row_version=line.row_version+1)
+        lines=list(o.lines);lines[index]=changed
+        updated=replace(o,lines=tuple(lines),row_version=o.row_version+1)
+        self.orders[o.public_id]=updated
+        self.change_commands[key]=(fp,o.public_id)
+        self.order_history.append({'event_type':'item_quantity_changed','order_public_id':o.public_id,'line_public_id':line.public_id,'old_quantity':line.quantity,'new_quantity':changed.quantity,'old_line_version':line.row_version,'new_line_version':changed.row_version})
+        return updated
     def submit_order(self,c,fp):
         o=self.orders[c.order_public_id]
         if o.row_version!=c.expected_version or not o.lines:return None
@@ -169,10 +192,9 @@ def test_service_mode_public_interface_records_exact_read_permission_without_htt
     root=Path(__file__).resolve().parents[2]
     contract=json.loads((root/'contracts/restaurant/v1/r1_public_interfaces.json').read_text(encoding='utf-8'))
     assert contract['http_routes_added'] is False
-    assert contract['read_permissions']=={
-        'mode':'restaurant.service_mode.read',
-        'modes':'restaurant.service_mode.read',
-    }
+    assert contract['read_permissions']['mode']=='restaurant.service_mode.read'
+    assert contract['read_permissions']['modes']=='restaurant.service_mode.read'
+    assert contract['read_permissions']['order']=='restaurant.order.read'
     boundary=contract['service_mode_public_read']
     assert boundary=={
         'application_interface_completed':True,
@@ -181,3 +203,91 @@ def test_service_mode_public_interface_records_exact_read_permission_without_htt
         'cross_tenant_disclosure':False,
         'read_side_effects':False,
     }
+
+def _cart_fixture(*,authorize=lambda *a:True,tenant=1):
+    a,r,s=authority(authorize=authorize);now=datetime(2026,9,19,10,0,tzinfo=timezone.utc);target=uuid4();price=uuid4()
+    s[(tenant,target)]=obj(tenant,target,active=True)
+    s[(tenant,price)]=obj(tenant,price,target_type=SimpleNamespace(value='atomic_unit'),target_public_id=target,amount=Decimal('1000'),currency='XAF')
+    a.define_mode(DefineServiceMode('mode',tenant,'takeaway','Takeaway',allows_remote_origin=True))
+    o=a.open_order(OpenOrder('open',tenant,'CART-1','takeaway','customer_channel',now))
+    o=a.add_line(AddLine('add',tenant,o.public_id,o.row_version,TargetType.ATOMIC_UNIT,target,price,Decimal('2'),now))
+    return a,r,s,now,o,target,price
+
+def test_public_order_read_is_authorized_tenant_scoped_exact_and_side_effect_free():
+    a,r,s,now,o,target,price=_cart_fixture();before=(dict(r.orders),list(r.order_history),dict(r.change_commands))
+    read=a.order(1,o.public_id)
+    assert read==o and read.lines==o.lines and read.row_version==o.row_version and read.lines[0].row_version==1
+    assert sum((x.commercial_total for x in read.lines),Decimal('0'))==Decimal('2000')
+    assert before==(dict(r.orders),list(r.order_history),dict(r.change_commands))
+
+def test_public_order_read_fails_closed_before_result_and_hides_cross_tenant_existence():
+    denied=lambda t,p,*_:p!='restaurant.order.read'
+    a,r,s,now,o,target,price=_cart_fixture(authorize=denied)
+    with pytest.raises(R1Error) as e:a.order(1,o.public_id)
+    assert e.value.code=='R1_PERMISSION_DENIED'
+    a2,r2,s2,now2,o2,target2,price2=_cart_fixture(tenant=2)
+    with pytest.raises(R1Error) as cross:a2.order(1,o2.public_id)
+    assert cross.value.code=='R1_ORDER_NOT_FOUND' and cross.value.category=='scope_mismatch'
+    with pytest.raises(R1Error) as missing:a2.order(1,uuid4())
+    assert missing.value.code=='R1_ORDER_NOT_FOUND'
+
+def test_change_line_quantity_changes_only_quantity_and_versions_and_history():
+    a,r,s,now,o,target,price=_cart_fixture();line=o.lines[0]
+    changed=a.change_line_quantity(ChangeOrderLineQuantity('qty',1,o.public_id,line.public_id,o.row_version,line.row_version,Decimal('3'),now))
+    after=changed.lines[0]
+    assert changed.row_version==o.row_version+1 and after.row_version==line.row_version+1 and after.quantity==Decimal('3')
+    assert after.target_type==line.target_type and after.target_public_id==line.target_public_id and after.price_public_id==line.price_public_id
+    assert after.unit_price_snapshot==line.unit_price_snapshot and after.currency==line.currency and after.note==line.note
+    assert sum((x.commercial_total for x in changed.lines),Decimal('0'))==Decimal('3000')
+    assert r.order_history==[{'event_type':'item_quantity_changed','order_public_id':o.public_id,'line_public_id':line.public_id,'old_quantity':Decimal('2'),'new_quantity':Decimal('3'),'old_line_version':1,'new_line_version':2}]
+
+def test_change_line_quantity_rejects_submitted_cancelled_zero_negative_and_stale_versions():
+    a,r,s,now,o,target,price=_cart_fixture();line=o.lines[0]
+    submitted=a.submit_order(SubmitOrder('submit',1,o.public_id,o.row_version,now))
+    with pytest.raises(R1Error) as sub:a.change_line_quantity(ChangeOrderLineQuantity('q-sub',1,submitted.public_id,line.public_id,submitted.row_version,line.row_version,Decimal('3'),now))
+    assert sub.value.code=='R1_ORDER_LINE_CHANGE_CONFLICT'
+    a2,r2,s2,now2,o2,target2,price2=_cart_fixture();l2=o2.lines[0];r2.orders[o2.public_id]=replace(o2,status=OrderStatus.CANCELLED,cancelled_at=now2)
+    with pytest.raises(R1Error) as can:a2.change_line_quantity(ChangeOrderLineQuantity('q-can',1,o2.public_id,l2.public_id,o2.row_version,l2.row_version,Decimal('3'),now2))
+    assert can.value.code=='R1_ORDER_LINE_CHANGE_CONFLICT'
+    for key,q in [('zero',Decimal('0')),('neg',Decimal('-1'))]:
+        with pytest.raises(R1Error) as bad:a2.change_line_quantity(ChangeOrderLineQuantity(key,1,o2.public_id,l2.public_id,o2.row_version,l2.row_version,q,now2))
+        assert bad.value.code=='R1_INVALID_QUANTITY'
+    a3,r3,s3,now3,o3,target3,price3=_cart_fixture();l3=o3.lines[0]
+    with pytest.raises(R1Error) as stale_o:a3.change_line_quantity(ChangeOrderLineQuantity('stale-o',1,o3.public_id,l3.public_id,o3.row_version-1,l3.row_version,Decimal('3'),now3))
+    assert stale_o.value.code=='R1_ORDER_LINE_CHANGE_CONFLICT'
+    with pytest.raises(R1Error) as stale_l:a3.change_line_quantity(ChangeOrderLineQuantity('stale-l',1,o3.public_id,l3.public_id,o3.row_version,l3.row_version+1,Decimal('3'),now3))
+    assert stale_l.value.code=='R1_ORDER_LINE_CHANGE_CONFLICT'
+
+def test_change_line_quantity_rejects_wrong_tenant_and_line_not_in_order_without_partial_effect():
+    a,r,s,now,o,target,price=_cart_fixture();line=o.lines[0];before=replace(o)
+    with pytest.raises(R1Error) as wrong_tenant:a.change_line_quantity(ChangeOrderLineQuantity('wrong-t',2,o.public_id,line.public_id,o.row_version,line.row_version,Decimal('3'),now))
+    assert wrong_tenant.value.code=='R1_ORDER_LINE_CHANGE_CONFLICT'
+    with pytest.raises(R1Error) as missing:a.change_line_quantity(ChangeOrderLineQuantity('missing',1,o.public_id,uuid4(),o.row_version,line.row_version,Decimal('3'),now))
+    assert missing.value.code=='R1_ORDER_LINE_CHANGE_CONFLICT'
+    assert r.orders[o.public_id]==before and r.order_history==[] and r.change_commands=={}
+
+def test_change_line_quantity_idempotent_replay_is_one_effect_and_conflict_fails_closed():
+    a,r,s,now,o,target,price=_cart_fixture();line=o.lines[0];cmd=ChangeOrderLineQuantity('qty-replay',1,o.public_id,line.public_id,o.row_version,line.row_version,Decimal('4'),now)
+    first=a.change_line_quantity(cmd);second=a.change_line_quantity(cmd)
+    assert first==second and first.row_version==o.row_version+1 and first.lines[0].row_version==line.row_version+1
+    assert len(r.order_history)==1 and len(r.change_commands)==1
+    conflict=replace(cmd,quantity=Decimal('5'))
+    with pytest.raises(R1Error) as e:a.change_line_quantity(conflict)
+    assert e.value.code=='R1_COMMAND_CONFLICT'
+    assert len(r.order_history)==1 and r.orders[o.public_id].lines[0].quantity==Decimal('4')
+
+def test_submit_after_quantity_change_requires_new_order_version():
+    a,r,s,now,o,target,price=_cart_fixture();line=o.lines[0];changed=a.change_line_quantity(ChangeOrderLineQuantity('qty',1,o.public_id,line.public_id,o.row_version,line.row_version,Decimal('3'),now))
+    with pytest.raises(R1Error) as stale:a.submit_order(SubmitOrder('stale-submit',1,o.public_id,o.row_version,now))
+    assert stale.value.code=='R1_ORDER_STATE_CONFLICT'
+    submitted=a.submit_order(SubmitOrder('fresh-submit',1,o.public_id,changed.row_version,now))
+    assert submitted.status is OrderStatus.SUBMITTED
+
+def test_c1_sql_quantity_change_preserves_price_currency_and_writes_exact_history():
+    root=Path(__file__).resolve().parents[2];repo=(root/'restaurant/r1/sql_repository.py').read_text(encoding='utf-8')
+    block=repo[repo.index('def change_line_quantity'):repo.index('def submit_order',repo.index('def change_line_quantity'))]
+    assert 'change_order_line_quantity' in block and "item_quantity_changed" in block
+    assert 'SET quantity=:q,row_version=row_version+1' in block
+    assert 'unit_price_snapshot=' not in block and 'currency=' not in block and 'price_id=' not in block
+    for key in ['line_public_id','old_quantity','new_quantity','old_line_version','new_line_version']:assert key in block
+    assert 'FOR UPDATE' in block and 'expected_order_version' in block and 'expected_line_version' in block

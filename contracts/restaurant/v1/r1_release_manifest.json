@@ -94,8 +94,8 @@
     },
     {
       "path": "contracts/restaurant/v1/r1_public_interfaces.json",
-      "sha256": "866eb657468e8dedfb0ce8212d9abeb9408a2b7dcf1d184f9dfdc4c894ee9113",
-      "size": 831
+      "sha256": "7c28d70b4404b951c9837c603340bf5bf46e856652003ca35b7a341bf23e7872",
+      "size": 1827
     },
     {
       "path": "contracts/restaurant/v1/r1_r2_readiness.json",
@@ -104,8 +104,8 @@
     },
     {
       "path": "contracts/restaurant/v1/r1_service_operation_authority.json",
-      "sha256": "5ac596a90bd94884002efc7c94b4f4dbc48a0e81cbc1278aeddbbc6cddabea0c",
-      "size": 959
+      "sha256": "cf26bcf05d1fe2f25f1538ad040f7f259794075964fab08163adb912ba0ec8d0",
+      "size": 1705
     },
     {
       "path": "contracts/shared_operations/v1/so10_release_manifest.json",
@@ -184,18 +184,18 @@
     },
     {
       "path": "restaurant/r1/contracts.py",
-      "sha256": "32fb87a588c7b47f8bb1de63b6a61f65746b5a16270dc2481b77daa2a9af6cc6",
-      "size": 6341
+      "sha256": "346a9ab0c70a7fc0d4613b84c736f509288ba0e8265a60f444ff6f1d53be78de",
+      "size": 6489
     },
     {
       "path": "restaurant/r1/service.py",
-      "sha256": "ba49a202bbbd9fd97360054d1f2d5b1f2dfa8edb10524de5e4013f467d731fc3",
-      "size": 17570
+      "sha256": "18a34e6fbe8d908beb53e387661232179ea5af65260978ee27fb500e091e1218",
+      "size": 18417
     },
     {
       "path": "restaurant/r1/sql_repository.py",
-      "sha256": "9d9a799d333e78c1bb50bc572843f0cb6ce8b1c21b7fde43e65fb733e3b22b5d",
-      "size": 25883
+      "sha256": "2aa2e7a850c4ddc25b6095c89ecdf78b3d4a493c1a3c4e92cd9f4b5c40933f02",
+      "size": 27881
     },
     {
       "path": "scripts/verify_r0_restaurant_domain_extraction.py",
@@ -204,8 +204,8 @@
     },
     {
       "path": "scripts/verify_r1_restaurant_service_operation.py",
-      "sha256": "ba5f3def665f88b94dfe10125c6f1e3c5f2f8a42af7b64e052ee72c7cac8a29a",
-      "size": 9189
+      "sha256": "a5850f201fb742d174d4d272f5cf7dc62485a473669a00710aeaa6c474a3e43f",
+      "size": 10946
     },
     {
       "path": "scripts/verify_semantic_classification_hardening.py",
@@ -214,8 +214,8 @@
     },
     {
       "path": "tests/contracts/test_r1_restaurant_service_operation.py",
-      "sha256": "90245e6810580c0b97b46c100c81613a533ac3e9a198010e966f27ae8dd11e1b",
-      "size": 13800
+      "sha256": "a48c81a254ee2a9fb8cdf0c9697bb7962829a8f16d98dcefeea2eaa96cfe122f",
+      "size": 23016
     }
   ],
   "contract": "XBOS_R1_RESTAURANT_SERVICE_OPERATION_RELEASE_MANIFEST",

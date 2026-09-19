@@ -109,6 +109,21 @@ class SQLR1Repository:
         if target is None or pr is None:return None
         au=target if c.target_type is TargetType.ATOMIC_UNIT else None;offer=target if c.target_type is TargetType.OFFER else None
         self.db_session.execute(text('INSERT INTO r1_restaurant_order_lines(public_id,tenant_id,order_id,target_type,atomic_unit_id,offer_id,price_id,quantity,unit_price_snapshot,currency,note) VALUES(:p,:t,:o,:tt,:u,:offer,:price,:q,:snap,:cur,:note)'),{'p':str(p),'t':c.tenant_id,'o':o.id,'tt':c.target_type.value,'u':au,'offer':offer,'price':pr,'q':c.quantity,'snap':price,'cur':currency,'note':c.note});self.db_session.execute(text('UPDATE r1_restaurant_orders SET row_version=row_version+1,updated_at=now() WHERE tenant_id=:t AND id=:o AND row_version=:v'),{'t':c.tenant_id,'o':o.id,'v':c.expected_order_version});self.db_session.execute(text("INSERT INTO r1_restaurant_order_history(tenant_id,order_id,event_type,from_status,to_status,reason_code,occurred_at,event_payload) VALUES(:t,:o,'item_added','open','open','item_added',:at,CAST(:p AS jsonb))"),{'t':c.tenant_id,'o':o.id,'at':c.occurred_at,'p':json.dumps({'line_public_id':str(p)},sort_keys=True)});self._done(c.tenant_id,c.command_key,'restaurant_order',c.order_public_id);return self.order(c.tenant_id,c.order_public_id)
+    def change_line_quantity(self,c,fp):
+        replay=self._command(c.tenant_id,c.command_key,fp,'change_order_line_quantity')
+        if replay.completed_at:return self.order(c.tenant_id,c.order_public_id)
+        o=self._order_row(c.tenant_id,c.order_public_id,True)
+        if not o or o.row_version!=c.expected_order_version or o.lifecycle_status!='open':return None
+        line=self.db_session.execute(text('SELECT id,public_id,tenant_id,order_id,quantity,row_version FROM r1_restaurant_order_lines WHERE tenant_id=:t AND public_id=:p FOR UPDATE'),{'t':c.tenant_id,'p':str(c.order_line_public_id)}).first()
+        if not line or line.order_id!=o.id or line.row_version!=c.expected_line_version:return None
+        old_quantity=Decimal(line.quantity);new_line_version=c.expected_line_version+1
+        changed=self.db_session.execute(text('UPDATE r1_restaurant_order_lines SET quantity=:q,row_version=row_version+1,updated_at=now() WHERE tenant_id=:t AND id=:l AND row_version=:v RETURNING row_version'),{'q':c.quantity,'t':c.tenant_id,'l':line.id,'v':c.expected_line_version}).scalar()
+        if changed!=new_line_version:return None
+        order_version=self.db_session.execute(text('UPDATE r1_restaurant_orders SET row_version=row_version+1,updated_at=now() WHERE tenant_id=:t AND id=:o AND row_version=:v RETURNING row_version'),{'t':c.tenant_id,'o':o.id,'v':c.expected_order_version}).scalar()
+        if order_version!=c.expected_order_version+1:return None
+        payload={'line_public_id':str(c.order_line_public_id),'old_quantity':str(old_quantity),'new_quantity':str(c.quantity),'old_line_version':c.expected_line_version,'new_line_version':new_line_version}
+        self.db_session.execute(text("INSERT INTO r1_restaurant_order_history(tenant_id,order_id,event_type,from_status,to_status,reason_code,occurred_at,event_payload) VALUES(:t,:o,'item_quantity_changed','open','open','item_quantity_changed',:at,CAST(:p AS jsonb))"),{'t':c.tenant_id,'o':o.id,'at':c.occurred_at,'p':json.dumps(payload,sort_keys=True)})
+        self._done(c.tenant_id,c.command_key,'restaurant_order',c.order_public_id);return self.order(c.tenant_id,c.order_public_id)
     def submit_order(self,c,fp):
         replay=self._command(c.tenant_id,c.command_key,fp,'submit_order')
         if replay.result_public_id:return self.order(c.tenant_id,replay.result_public_id)
