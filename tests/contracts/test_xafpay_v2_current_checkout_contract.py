@@ -147,3 +147,98 @@ def test_legacy_paths_are_present_but_not_forward_authority():
     assert "payments_xafpay" not in kernel
     assert "xafpay_v2_router" in kernel
     assert 'prefix="/integrations/xafpay-v2"' in kernel
+
+def test_signed_event_route_has_exact_global_middleware_bypass_only():
+    exact = 'path == "/kernel/integrations/xafpay-v2/events"'
+    for rel in (
+        "core/middleware/auth_middleware.py",
+        "core/middleware/tenant_middleware.py",
+        "core/middleware/branch_middleware.py",
+    ):
+        source = (ROOT / rel).read_text(encoding="utf-8")
+        assert exact in source
+        assert 'path.startswith("/kernel/integrations/xafpay-v2")' not in source
+        assert 'path.startswith("/integrations/xafpay-v2")' not in source
+
+    kernel = (ROOT / "core/api/kernel_router.py").read_text(encoding="utf-8")
+    assert "xafpay_v2_router" in kernel
+    assert 'prefix="/integrations/xafpay-v2"' in kernel
+
+def test_signed_event_bypass_preserves_normal_auth_tenant_branch_behavior(monkeypatch):
+    import asyncio
+
+    monkeypatch.setenv("JWT_SECRET", "xgi1-test-jwt-secret")
+    monkeypatch.setenv("DATABASE_URL", "postgresql://xgi1:xgi1@127.0.0.1:1/xgi1")
+    monkeypatch.setenv("GATEWAY_API_KEY", "xgi1-test-gateway-key")
+
+    from fastapi import HTTPException
+    from starlette.requests import Request
+    from starlette.responses import Response as StarletteResponse
+
+    from core.middleware.auth_middleware import AuthMiddleware
+    from core.middleware.branch_middleware import BranchMiddleware
+    from core.middleware.tenant_middleware import TenantMiddleware
+
+    signed = "/kernel/integrations/xafpay-v2/events"
+    near_miss = signed + "/extra"
+
+    async def next_ok(request):
+        return StarletteResponse(status_code=204)
+
+    def req(path):
+        return Request(
+            {
+                "type": "http",
+                "http_version": "1.1",
+                "method": "POST",
+                "scheme": "http",
+                "path": path,
+                "raw_path": path.encode(),
+                "query_string": b"",
+                "headers": [],
+                "client": ("127.0.0.1", 1),
+                "server": ("testserver", 80),
+            }
+        )
+
+    async def exercise():
+        monkeypatch.setenv("ENV", "production")
+
+        auth = AuthMiddleware(lambda scope, receive, send: None)
+        assert (await auth.dispatch(req(signed), next_ok)).status_code == 204
+        assert (await auth.dispatch(req("/kernel/health"), next_ok)).status_code == 204
+        assert (await auth.dispatch(req("/kernel/auth/login"), next_ok)).status_code == 204
+        assert (await auth.dispatch(req("/kernel/protected"), next_ok)).status_code == 401
+        assert (await auth.dispatch(req(near_miss), next_ok)).status_code == 401
+
+        tenant = TenantMiddleware(lambda scope, receive, send: None)
+        assert (await tenant.dispatch(req(signed), next_ok)).status_code == 204
+        assert (await tenant.dispatch(req("/kernel/health"), next_ok)).status_code == 204
+        assert (await tenant.dispatch(req("/kernel/auth/login"), next_ok)).status_code == 204
+        try:
+            await tenant.dispatch(req("/kernel/protected"), next_ok)
+            raise AssertionError("tenant middleware should deny missing production context")
+        except HTTPException as exc:
+            assert exc.status_code == 400 and exc.detail == "MISSING_TENANT_HEADER"
+        try:
+            await tenant.dispatch(req(near_miss), next_ok)
+            raise AssertionError("tenant near-miss path must not bypass")
+        except HTTPException as exc:
+            assert exc.status_code == 400 and exc.detail == "MISSING_TENANT_HEADER"
+
+        branch = BranchMiddleware(lambda scope, receive, send: None)
+        assert (await branch.dispatch(req(signed), next_ok)).status_code == 204
+        assert (await branch.dispatch(req("/kernel/health"), next_ok)).status_code == 204
+        assert (await branch.dispatch(req("/kernel/auth/login"), next_ok)).status_code == 204
+        try:
+            await branch.dispatch(req("/kernel/protected"), next_ok)
+            raise AssertionError("branch middleware should deny missing context")
+        except HTTPException as exc:
+            assert exc.status_code == 400 and exc.detail == "TENANT_CONTEXT_MISSING"
+        try:
+            await branch.dispatch(req(near_miss), next_ok)
+            raise AssertionError("branch near-miss path must not bypass")
+        except HTTPException as exc:
+            assert exc.status_code == 400 and exc.detail == "TENANT_CONTEXT_MISSING"
+
+    asyncio.run(exercise())
