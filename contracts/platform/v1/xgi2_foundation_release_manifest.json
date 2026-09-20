@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "authority": "XBOS-XGI2-R4D-FOUNDATION-SOURCE-MATERIALIZATION",
+  "parent_authority": "XBOS-XGI2-R4C-TENANT2-FOUNDATION-DESIGN",
+  "source_parent": "c79d81094f8ee236851ae999582a453ecca63ec1",
+  "branch": "integration/xafpay-xgi2-foundation-source-materialization",
+  "database_foundation_rows": false,
+  "schema_mutation": false,
+  "artifacts": [
+    {
+      "path": "core/platform/structure/identity_import_contract.py",
+      "sha256": "ac8e04064829b60f2b3a90100c9fd1be8d863b181197b63b70843c2f70a6c21c"
+    },
+    {
+      "path": "core/platform/structure/identity_import_service.py",
+      "sha256": "6cb84a1d1d4a2ec16d1725ebda386f26201fe745e4843d7463cfa2ae0d02589f"
+    },
+    {
+      "path": "core/platform/structure/identity_import_repository.py",
+      "sha256": "93769982d7ed5c6059e7acd9bdcc9f8677bbccb56053fae57adb642ed2c7d956"
+    },
+    {
+      "path": "core/platform/structure/currency_foundation_contract.py",
+      "sha256": "1409215bfff318206937f39b8afb05aeec13076efc2fbf02a42cb150251856d5"
+    },
+    {
+      "path": "core/platform/structure/currency_foundation_service.py",
+      "sha256": "0394d24626dcb020f2abfb914ce41c02647e054b93367b4c2f86076f92d97a31"
+    },
+    {
+      "path": "core/platform/structure/currency_foundation_repository.py",
+      "sha256": "448b43ec0fb2ae0feae45c8af2f7ddd4368263e0ea03334577b33cf4757e9536"
+    },
+    {
+      "path": "contracts/platform/v1/xgi2_foundation_authority.json",
+      "sha256": "f92dc439aaec1384edc6952cb2a13e06ce9e09194fd0c6d6e9af7f6cbac0a543"
+    },
+    {
+      "path": "docs/platform_core/XGI2_TENANT_IDENTITY_AND_CURRENCY_FOUNDATION.md",
+      "sha256": "53b265ea2e8dd5417ffe32faf0dc88f2bf56408db5a7b9ede5ecb1f91c32ddf7"
+    },
+    {
+      "path": "scripts/verify_xgi2_foundation_authority.py",
+      "sha256": "41b636327ed781dfd7bb29874c25dd7e7b18d76627377459f18c8d4e683b586f"
+    },
+    {
+      "path": "tests/contracts/test_xgi2_foundation_authority.py",
+      "sha256": "1564d5391d9b80138c7166864d138aac9ffe8a27f4d47d463f2625affbb5c21a"
+    }
+  ]
+}
