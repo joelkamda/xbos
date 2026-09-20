@@ -25,6 +25,8 @@ def static_verify():
  if (a['source_checkpoint'],a['previous_head'],a['accepted_head'])!=(SOURCE,PREVIOUS,HEAD):raise RuntimeError('R2_HEAD_CONTRACT')
  if not a['wnd_specimen_not_standard'] or a['tables_required'] or a['printer_required'] or a['kds_required']:raise RuntimeError('R2_WORLD_RESTAURANT_NEUTRALITY')
  if a['finance_writer']!='NONE' or a['inventory_writer']!='NONE' or a['delivery_job_writer']!='NONE':raise RuntimeError('R2_DUPLICATE_AUTHORITY')
+ removed=a.get('r1_removed_line_policy') or {}
+ if removed!={'removed_r1_line_new_modifier_mutation':'DENIED','removed_r1_line_new_preparation_mutation':'DENIED','existing_modifier_history':'PRESERVED','existing_preparation_history':'PRESERVED','r1_line_reference_anchor':'PRESERVED'}:raise RuntimeError('R2_REMOVED_LINE_POLICY')
  if b['inventory']['restaurant_writes_inventory_movement'] or b['delivery']['restaurant_creates_delivery_job'] or b['finance']['restaurant_posts_journal']:raise RuntimeError('R2_BOUNDARY_LEAK')
  if not b['inventory']['wnd_exactly_once_sale_stock_effect_preserved']:raise RuntimeError('R2_WND_STOCK_INVARIANT')
  if i['http_routes_added'] or i['cross_module_private_access']!='FORBIDDEN':raise RuntimeError('R2_PUBLIC_BOUNDARY')
@@ -58,12 +60,14 @@ def static_verify():
  if 'shared_operations.so1.sql_repository' in service:raise RuntimeError('R2_PRIVATE_SO1_IMPORT')
  if 'wnd' in service.lower() or 'wnd' in repo.lower():raise RuntimeError('R2_WND_HARDCODING')
  if 'creates_financial_truth:bool=False' not in contracts.replace(' ',''):raise RuntimeError('R2_MENU_FINANCE_BOUNDARY')
+ for token in ['line_lifecycle_status',"line.line_lifecycle_status!='active'","SELECT id,lifecycle_status FROM r1_restaurant_order_lines","state.lifecycle_status!='active'"]:
+  if token not in repo:raise RuntimeError('R2_REMOVED_LINE_GUARD_MISSING='+token)
  inv=json.loads((ROOT/'contracts/platform/v1/pc0_frozen_finance_inventory.json').read_text())
  ext={x['path']:x for x in inv['authorized_non_finance_extensions'] if x.get('root')=='alembic_neutral'}
  for path in ['versions/r2_restaurant_menu_fulfillment_043.py','sql/r2_restaurant_menu_fulfillment_up.sql','sql/r2_restaurant_menu_fulfillment_down.sql']:
   if path not in ext or ext[path].get('owner')!='PK':raise RuntimeError('R2_PC0_EXTENSION_MISSING='+path)
  release_count=verify_manifest()
- return {'status':'PASS','source_checkpoint':SOURCE[:7],'previous_head':PREVIOUS,'accepted_head':HEAD,'menu_projection':'PASS','menu_public_read':'PASS','menu_sections_read':'PASS','modifier_configuration_read':'PASS','menu_read_permission':'restaurant.menu.read','menu_entry_placement':'PASS','modifiers':'PASS','semantic_routing':'PASS','station_routing':'PASS','tickets_hold_fire_course':'PASS','multi_station':'PASS','release_idempotency':'PASS','recipes_yield_waste':'PASS','inventory':'UNCHANGED','delivery':'UNCHANGED','finance':'UNCHANGED','wnd_specimen_not_standard':'PASS','r3_readiness':'PASS','release_artifacts':release_count}
+ return {'status':'PASS','source_checkpoint':SOURCE[:7],'previous_head':PREVIOUS,'accepted_head':HEAD,'menu_projection':'PASS','menu_public_read':'PASS','menu_sections_read':'PASS','modifier_configuration_read':'PASS','menu_read_permission':'restaurant.menu.read','menu_entry_placement':'PASS','modifiers':'PASS','removed_line_modifier_guard':'PASS','removed_line_preparation_guard':'PASS','historical_r1_line_references':'PRESERVED','semantic_routing':'PASS','station_routing':'PASS','tickets_hold_fire_course':'PASS','multi_station':'PASS','release_idempotency':'PASS','recipes_yield_waste':'PASS','inventory':'UNCHANGED','delivery':'UNCHANGED','finance':'UNCHANGED','wnd_specimen_not_standard':'PASS','r3_readiness':'PASS','release_artifacts':release_count}
 def _tables(conn):
  from sqlalchemy import text
  return set(conn.execute(text("SELECT table_name FROM information_schema.tables WHERE table_schema='public'")).scalars())

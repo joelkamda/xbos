@@ -105,7 +105,7 @@ def test_pc6_historical_replacement_map_is_exact():
         {
             "path": "contracts/platform/v1/pc0_release_manifest.json",
             "historical_sha256": "84b18a78630bea3657e07c044e4488bb588f1e2d3a7b0c64b38c2a7054301244",
-            "descendant_sha256": "0ba51c63cd41fb0366d7c7a6562af26693493ddb8b22ab63fb6065c06e4c8ee7",
+            "descendant_sha256": "80a8a746de5ec584927f01723a22b65269389a45e8da1002d8a03bbf58525cc3",
         },
         {
             "path": "scripts/verify_pc6_neutral_platform.py",
@@ -136,7 +136,7 @@ def test_pc0_release_refresh_identity_is_exact():
     raw = path.read_bytes().replace(b"\r\n", b"\n")
     assert len(raw) == 3925
     assert hashlib.sha256(raw).hexdigest() == (
-        "0ba51c63cd41fb0366d7c7a6562af26693493ddb8b22ab63fb6065c06e4c8ee7"
+        "80a8a746de5ec584927f01723a22b65269389a45e8da1002d8a03bbf58525cc3"
     )
 
 

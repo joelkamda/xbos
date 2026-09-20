@@ -35,11 +35,11 @@
     },
     {
       "path": "contracts/packs/v1/pk0123_release_manifest.json",
-      "sha256": "085c84aff80d9a395a15d9efaf7bdadf7c8e2c0c798c45d4a877379b2361ef33"
+      "sha256": "2afd0292f1f3ac3edc1161f59f30240bc0bf38853c9254213d909be0d2916119"
     },
     {
       "path": "contracts/packs/v1/pk456_release_manifest.json",
-      "sha256": "28d4b84fa3dfd869612cc414f21ba649ca81403598c85bc79500860e4f5259c3"
+      "sha256": "e2c7b641ad60bacf6a407dca93c4297884d5a4a268004964bc2031c99e85252e"
     }
   ],
   "business_capability_change": "NONE",

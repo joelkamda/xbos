@@ -36,7 +36,18 @@
     "expected_line_version_required": true,
     "unit_price_snapshot_repricing": false,
     "financial_truth_created": false,
-    "remove_line": "HOLD_SEPARATE_AUTHORITY",
+    "remove_line": "RemoveOrderLine",
     "customer_safe_cancel": "NOT_ESTABLISHED"
+  },
+  "order_line_lifecycle": {
+    "states": [
+      "active",
+      "removed"
+    ],
+    "active_cart_projection_filter": "active_only",
+    "physical_delete": false,
+    "preparation_existence_removal_guard": "fail_closed",
+    "current_tab_partition_removal_guard": "fail_closed",
+    "historical_modifier_tab_preparation_references": "preserved"
   }
 }

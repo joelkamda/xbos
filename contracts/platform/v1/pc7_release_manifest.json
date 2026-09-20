@@ -31,11 +31,11 @@
     },
     {
       "path": "contracts/platform/v1/pc0_frozen_finance_inventory.json",
-      "sha256": "18d8cdbdfcdc0edf8d566bbd27d353a1a61ff0fa33189efe48773b91f9de0e6d"
+      "sha256": "356d4cace4714e1a43de411cac3b69c2321b950a36e723123930197f6f96638b"
     },
     {
       "path": "contracts/platform/v1/pc0_release_manifest.json",
-      "sha256": "0ba51c63cd41fb0366d7c7a6562af26693493ddb8b22ab63fb6065c06e4c8ee7"
+      "sha256": "80a8a746de5ec584927f01723a22b65269389a45e8da1002d8a03bbf58525cc3"
     },
     {
       "path": "contracts/platform/v1/pc6_public_contract_inventory.json",
@@ -131,7 +131,7 @@
     },
     {
       "path": "tests/contracts/test_pc7_cumulative_release_manifest_chain.py",
-      "sha256": "93e5a7e959a5de7198bbc90cad3230564267f3f441151875033665ee86459988"
+      "sha256": "b16a1302db95d1be2510ef311ed50e0bb40c548e187e1d6d91cf45f585a8072c"
     }
   ],
   "commit": "NOT_CREATED",
@@ -160,7 +160,7 @@
       "path": "contracts/platform/v1/pc0_dependency_policy.json"
     },
     {
-      "descendant_sha256": "18d8cdbdfcdc0edf8d566bbd27d353a1a61ff0fa33189efe48773b91f9de0e6d",
+      "descendant_sha256": "356d4cace4714e1a43de411cac3b69c2321b950a36e723123930197f6f96638b",
       "historical_sha256": "cc09f761922396baf3d3827b817554c04797fb3d0e6f006631b8619c766b961d",
       "path": "contracts/platform/v1/pc0_frozen_finance_inventory.json"
     },
@@ -175,7 +175,7 @@
       "path": "contracts/platform/v1/pc0_public_private_interfaces.json"
     },
     {
-      "descendant_sha256": "0ba51c63cd41fb0366d7c7a6562af26693493ddb8b22ab63fb6065c06e4c8ee7",
+      "descendant_sha256": "80a8a746de5ec584927f01723a22b65269389a45e8da1002d8a03bbf58525cc3",
       "historical_sha256": "489eb41292bf57c44396498e12fcfcd5260faeff0f6acc791d6945d0daa0eda8",
       "path": "contracts/platform/v1/pc0_release_manifest.json"
     },
@@ -257,12 +257,12 @@
       "path": "contracts/platform/v1/pc0_public_private_interfaces.json"
     },
     {
-      "descendant_sha256": "18d8cdbdfcdc0edf8d566bbd27d353a1a61ff0fa33189efe48773b91f9de0e6d",
+      "descendant_sha256": "356d4cace4714e1a43de411cac3b69c2321b950a36e723123930197f6f96638b",
       "historical_sha256": "3a300ffabb3fb60a4be1e31481498b5b37cfee676b157e1fd24d654e2628941e",
       "path": "contracts/platform/v1/pc0_frozen_finance_inventory.json"
     },
     {
-      "descendant_sha256": "0ba51c63cd41fb0366d7c7a6562af26693493ddb8b22ab63fb6065c06e4c8ee7",
+      "descendant_sha256": "80a8a746de5ec584927f01723a22b65269389a45e8da1002d8a03bbf58525cc3",
       "historical_sha256": "c5c7203390403b8e849f69810bbbc30f1b864ca6e22ea750cdcf4b247ca04eb4",
       "path": "contracts/platform/v1/pc0_release_manifest.json"
     },
@@ -314,12 +314,12 @@
       "path": "contracts/platform/v1/pc0_public_private_interfaces.json"
     },
     {
-      "descendant_sha256": "18d8cdbdfcdc0edf8d566bbd27d353a1a61ff0fa33189efe48773b91f9de0e6d",
+      "descendant_sha256": "356d4cace4714e1a43de411cac3b69c2321b950a36e723123930197f6f96638b",
       "historical_sha256": "eef26e8f1f368e35564844895bd253f816acc291b4129cb95a2718e808b3b064",
       "path": "contracts/platform/v1/pc0_frozen_finance_inventory.json"
     },
     {
-      "descendant_sha256": "0ba51c63cd41fb0366d7c7a6562af26693493ddb8b22ab63fb6065c06e4c8ee7",
+      "descendant_sha256": "80a8a746de5ec584927f01723a22b65269389a45e8da1002d8a03bbf58525cc3",
       "historical_sha256": "05ff891997e798f2b5fca45dca4f835fe2c37b78d7256438a5212c0e0b7d4271",
       "path": "contracts/platform/v1/pc0_release_manifest.json"
     },
@@ -376,12 +376,12 @@
       "path": "contracts/platform/v1/pc0_public_private_interfaces.json"
     },
     {
-      "descendant_sha256": "18d8cdbdfcdc0edf8d566bbd27d353a1a61ff0fa33189efe48773b91f9de0e6d",
+      "descendant_sha256": "356d4cace4714e1a43de411cac3b69c2321b950a36e723123930197f6f96638b",
       "historical_sha256": "8b466e2a78efe2967fbb1c8a4a8521791b1f7656c0e91e458cb9532dec85f420",
       "path": "contracts/platform/v1/pc0_frozen_finance_inventory.json"
     },
     {
-      "descendant_sha256": "0ba51c63cd41fb0366d7c7a6562af26693493ddb8b22ab63fb6065c06e4c8ee7",
+      "descendant_sha256": "80a8a746de5ec584927f01723a22b65269389a45e8da1002d8a03bbf58525cc3",
       "historical_sha256": "d5b83cb554d8ae36d2c7a8d31e31978770e9921ff6c1834fcbb3bafa0e4823b2",
       "path": "contracts/platform/v1/pc0_release_manifest.json"
     },
@@ -453,12 +453,12 @@
       "path": "contracts/platform/v1/pc0_public_private_interfaces.json"
     },
     {
-      "descendant_sha256": "18d8cdbdfcdc0edf8d566bbd27d353a1a61ff0fa33189efe48773b91f9de0e6d",
+      "descendant_sha256": "356d4cace4714e1a43de411cac3b69c2321b950a36e723123930197f6f96638b",
       "historical_sha256": "b58527481b5979df4478faebded3ca474f7bd77940a236c3988955dd0ce56622",
       "path": "contracts/platform/v1/pc0_frozen_finance_inventory.json"
     },
     {
-      "descendant_sha256": "0ba51c63cd41fb0366d7c7a6562af26693493ddb8b22ab63fb6065c06e4c8ee7",
+      "descendant_sha256": "80a8a746de5ec584927f01723a22b65269389a45e8da1002d8a03bbf58525cc3",
       "historical_sha256": "7fa650cf646c478e55059273384a5f6a4d7f50f480a49b731a2fdbf09ba75115",
       "path": "contracts/platform/v1/pc0_release_manifest.json"
     },
@@ -500,7 +500,7 @@
       "path": "contracts/platform/v1/pc0_public_private_interfaces.json"
     },
     {
-      "descendant_sha256": "0ba51c63cd41fb0366d7c7a6562af26693493ddb8b22ab63fb6065c06e4c8ee7",
+      "descendant_sha256": "80a8a746de5ec584927f01723a22b65269389a45e8da1002d8a03bbf58525cc3",
       "historical_sha256": "84b18a78630bea3657e07c044e4488bb588f1e2d3a7b0c64b38c2a7054301244",
       "path": "contracts/platform/v1/pc0_release_manifest.json"
     },

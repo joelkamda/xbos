@@ -16,7 +16,8 @@
     "AttachOrder",
     "PartitionTab",
     "CloseTab",
-    "ChangeOrderLineQuantity"
+    "ChangeOrderLineQuantity",
+    "RemoveOrderLine"
   ],
   "reads": [
     "mode",
@@ -48,7 +49,8 @@
     "read_side_effects": false
   },
   "command_permissions": {
-    "change_order_line_quantity": "restaurant.order.change"
+    "change_order_line_quantity": "restaurant.order.change",
+    "remove_order_line": "restaurant.order.remove"
   },
   "consumer_cart_order_authority": {
     "order_read_application_interface": true,
@@ -64,7 +66,20 @@
     "price_snapshot_immutable": true,
     "currency_immutable": true,
     "history_event": "item_quantity_changed",
-    "remove_line_implemented": false,
+    "remove_line_implemented": true,
+    "creates_financial_truth": false
+  },
+  "safe_order_line_removal": {
+    "command": "RemoveOrderLine",
+    "permission": "restaurant.order.remove",
+    "physical_delete": false,
+    "zero_quantity_remove": false,
+    "active_cart_projection": "active_only",
+    "commercial_total": "active_lines_only",
+    "obligation_handoff": "active_lines_only",
+    "preparation_item_guard": "fail_closed",
+    "current_tab_partition_guard": "fail_closed",
+    "history_event": "item_removed",
     "creates_financial_truth": false
   }
 }

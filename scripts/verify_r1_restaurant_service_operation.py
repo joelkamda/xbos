@@ -16,7 +16,7 @@ def sha(p):
 def verify_manifest():
  m=load('r1_release_manifest.json')
  if (m['source_checkpoint'],m['source_archive_sha256'],m['source_archive_size'])!=(SOURCE,SOURCE_SHA,SOURCE_SIZE):raise RuntimeError('R1_RELEASE_SOURCE')
- if m['previous_head']!=PREVIOUS or m['accepted_head']!=HEAD or m['migration_count']!=1:raise RuntimeError('R1_RELEASE_BOUNDARY')
+ if m['previous_head']!=PREVIOUS or m['accepted_head']!=HEAD or m['migration_count']!=2:raise RuntimeError('R1_RELEASE_BOUNDARY')
  if m['artifact_count']!=len(m['artifacts']) or len({x['path'] for x in m['artifacts']})!=len(m['artifacts']):raise RuntimeError('R1_RELEASE_COUNT')
  for x in m['artifacts']:
   p=ROOT/x['path']
@@ -34,8 +34,11 @@ def static_verify():
  if i.get('read_permissions')!={'mode':'restaurant.service_mode.read','modes':'restaurant.service_mode.read','order':'restaurant.order.read'}:raise RuntimeError('R1_READ_PERMISSION')
  if 'ChangeOrderLineQuantity' not in set(i.get('commands',[])):raise RuntimeError('R1_CART_COMMAND_DECLARATION')
  if (i.get('command_permissions') or {}).get('change_order_line_quantity')!='restaurant.order.change':raise RuntimeError('R1_CART_CHANGE_PERMISSION')
+ if 'RemoveOrderLine' not in set(i.get('commands',[])) or (i.get('command_permissions') or {}).get('remove_order_line')!='restaurant.order.remove':raise RuntimeError('R1_CART_REMOVE_PERMISSION')
+ safe=i.get('safe_order_line_removal') or {}
+ if safe!={'command':'RemoveOrderLine','permission':'restaurant.order.remove','physical_delete':False,'zero_quantity_remove':False,'active_cart_projection':'active_only','commercial_total':'active_lines_only','obligation_handoff':'active_lines_only','preparation_item_guard':'fail_closed','current_tab_partition_guard':'fail_closed','history_event':'item_removed','creates_financial_truth':False}:raise RuntimeError('R1_SAFE_REMOVE_CONTRACT')
  cart=i.get('consumer_cart_order_authority') or {}
- if cart!={'order_read_application_interface':True,'order_read_tenant_scoped':True,'authorization_before_result':True,'cross_tenant_disclosure':False,'read_side_effects':False,'change_order_line_quantity':True,'quantity_strictly_positive':True,'zero_as_remove':False,'order_row_version_required':True,'line_row_version_required':True,'price_snapshot_immutable':True,'currency_immutable':True,'history_event':'item_quantity_changed','remove_line_implemented':False,'creates_financial_truth':False}:raise RuntimeError('R1_CART_ORDER_CONTRACT')
+ if cart!={'order_read_application_interface':True,'order_read_tenant_scoped':True,'authorization_before_result':True,'cross_tenant_disclosure':False,'read_side_effects':False,'change_order_line_quantity':True,'quantity_strictly_positive':True,'zero_as_remove':False,'order_row_version_required':True,'line_row_version_required':True,'price_snapshot_immutable':True,'currency_immutable':True,'history_event':'item_quantity_changed','remove_line_implemented':True,'creates_financial_truth':False}:raise RuntimeError('R1_CART_ORDER_CONTRACT')
  public_read=i.get('service_mode_public_read') or {}
  if public_read!={'application_interface_completed':True,'tenant_scoped':True,'authorization_before_result':True,'cross_tenant_disclosure':False,'read_side_effects':False}:raise RuntimeError('R1_SERVICE_MODE_PUBLIC_READ_BOUNDARY')
  service=(ROOT/'restaurant/r1/service.py').read_text(encoding='utf-8')
@@ -43,10 +46,16 @@ def static_verify():
  if service.count("restaurant.service_mode.read")<2:raise RuntimeError('R1_SERVICE_MODE_READ_PERMISSION_MISSING')
  if "def order(self,t:int,order_public_id:UUID):" not in service or "restaurant.order.read" not in service:raise RuntimeError('R1_ORDER_PUBLIC_READ_MISSING')
  if "def change_line_quantity(self,c:ChangeOrderLineQuantity):" not in service or "restaurant.order.change" not in service:raise RuntimeError('R1_CART_QUANTITY_CHANGE_MISSING')
+ if "def remove_order_line(self,c:RemoveOrderLine):" not in service or "restaurant.order.remove" not in service:raise RuntimeError('R1_CART_REMOVE_MISSING')
  repo=(ROOT/'restaurant/r1/sql_repository.py').read_text(encoding='utf-8')
  for token in ["change_order_line_quantity","item_quantity_changed","old_quantity","new_quantity","old_line_version","new_line_version"]:
   if token not in repo:raise RuntimeError('R1_CART_SQL_MISSING='+token)
  if "SET quantity=:q,row_version=row_version+1" not in repo:raise RuntimeError('R1_CART_LINE_VERSION_UPDATE')
+ for token in ["remove_order_line","item_removed","SET lifecycle_status='removed'","r2_restaurant_preparation_ticket_items","partition_version=tab.partition_version","l.lifecycle_status='active'"]:
+  if token not in repo:raise RuntimeError('R1_SAFE_REMOVE_SQL_MISSING='+token)
+ mig=(ROOT/'alembic_neutral/versions/r1_restaurant_order_line_lifecycle_046.py').read_text(encoding='utf-8');migup=(ROOT/'alembic_neutral/sql/r1_restaurant_order_line_lifecycle_up.sql').read_text(encoding='utf-8');migdown=(ROOT/'alembic_neutral/sql/r1_restaurant_order_line_lifecycle_down.sql').read_text(encoding='utf-8')
+ if 'revision = "r1_restaurant_order_line_lifecycle_046"' not in mig or 'down_revision = "ia0_neutral_interaction_authority_045"' not in mig:raise RuntimeError('R1_C2_MIGRATION_LINEAGE')
+ if "CHECK(lifecycle_status IN('active','removed'))" not in migup or "SET lifecycle_status='active'" not in migup or 'removed order-line history exists' not in migdown:raise RuntimeError('R1_C2_MIGRATION_CONTRACT')
  if ready['status']!='READY_WHEN_R1_SINGLE_GATE_PASS':raise RuntimeError('R1_R2_READINESS')
  up=(ROOT/'alembic_neutral/sql/r1_restaurant_service_operation_up.sql').read_text()
  forbidden=['INSERT INTO financial_events','INSERT INTO obligations','INSERT INTO inventory_movements','INSERT INTO journals','INSERT INTO payment_']
@@ -61,7 +70,7 @@ def static_verify():
  if 'FOREIGN KEY(tenant_id,partition_id) REFERENCES public.r1_restaurant_tab_partitions(tenant_id,id)' not in up:
   raise RuntimeError('R1_PARTITION_LINE_FK_MISSING')
  release_count=verify_manifest()
- return {'status':'PASS','source_checkpoint':SOURCE[:7],'previous_head':PREVIOUS,'accepted_head':HEAD,'service_modes':'PASS','service_mode_public_read':'PASS','service_mode_read_permission':'restaurant.service_mode.read','order_public_read':'PASS','order_read_permission':'restaurant.order.read','change_order_line_quantity':'PASS','change_permission':'restaurant.order.change','http_routes_added':False,'tables_optional':'PASS','orders':'PASS','staff_attribution':'PASS','tabs_split_bills':'PASS','reservation_composition':'PASS','finance':'UNCHANGED','inventory':'UNCHANGED','wnd_specimen_not_standard':'PASS','r2_readiness':'PASS','release_artifacts':release_count}
+ return {'status':'PASS','source_checkpoint':SOURCE[:7],'previous_head':PREVIOUS,'accepted_head':HEAD,'service_modes':'PASS','service_mode_public_read':'PASS','service_mode_read_permission':'restaurant.service_mode.read','order_public_read':'PASS','order_read_permission':'restaurant.order.read','change_order_line_quantity':'PASS','change_permission':'restaurant.order.change','remove_order_line':'PASS','remove_permission':'restaurant.order.remove','active_cart_projection':'PASS','http_routes_added':False,'tables_optional':'PASS','orders':'PASS','staff_attribution':'PASS','tabs_split_bills':'PASS','reservation_composition':'PASS','finance':'UNCHANGED','inventory':'UNCHANGED','wnd_specimen_not_standard':'PASS','r2_readiness':'PASS','release_artifacts':release_count}
 def _tables(conn):
  from sqlalchemy import text
  return set(conn.execute(text("SELECT table_name FROM information_schema.tables WHERE table_schema='public'")).scalars())

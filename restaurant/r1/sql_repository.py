@@ -86,7 +86,7 @@ class SQLR1Repository:
         return self.db_session.execute(text('''SELECT o.*,m.mode_code,s.public_id session_public_id,p.public_id party_public_id FROM r1_restaurant_orders o JOIN r1_restaurant_service_modes m ON (m.tenant_id,m.id)=(o.tenant_id,o.service_mode_id) LEFT JOIN r1_restaurant_service_sessions s ON (s.tenant_id,s.id)=(o.tenant_id,o.service_session_id) LEFT JOIN parties p ON (p.tenant_id,p.id)=(o.tenant_id,o.party_id) WHERE o.tenant_id=:t AND o.public_id=:p'''+suffix),{'t':t,'p':str(p)}).first()
     def _order(self,r):
         if not r:return None
-        rows=self.db_session.execute(text('''SELECT l.*,COALESCE(u.public_id,o.public_id) target_public_id,p.public_id price_public_id FROM r1_restaurant_order_lines l LEFT JOIN atomic_units u ON l.target_type='atomic_unit' AND (u.tenant_id,u.id)=(l.tenant_id,l.atomic_unit_id) LEFT JOIN so1_offers o ON l.target_type='offer' AND (o.tenant_id,o.id)=(l.tenant_id,l.offer_id) JOIN so1_prices p ON p.id=l.price_id WHERE l.tenant_id=:t AND l.order_id=:o ORDER BY l.id'''),{'t':r.tenant_id,'o':r.id}).all()
+        rows=self.db_session.execute(text('''SELECT l.*,COALESCE(u.public_id,o.public_id) target_public_id,p.public_id price_public_id FROM r1_restaurant_order_lines l LEFT JOIN atomic_units u ON l.target_type='atomic_unit' AND (u.tenant_id,u.id)=(l.tenant_id,l.atomic_unit_id) LEFT JOIN so1_offers o ON l.target_type='offer' AND (o.tenant_id,o.id)=(l.tenant_id,l.offer_id) JOIN so1_prices p ON p.id=l.price_id WHERE l.tenant_id=:t AND l.order_id=:o AND l.lifecycle_status='active' ORDER BY l.id'''),{'t':r.tenant_id,'o':r.id}).all()
         lines=tuple(OrderLine(UUID(str(x.public_id)),x.tenant_id,UUID(str(r.public_id)),TargetType(x.target_type),UUID(str(x.target_public_id)),UUID(str(x.price_public_id)),Decimal(x.quantity),Decimal(x.unit_price_snapshot),x.currency,x.note,x.row_version) for x in rows)
         return RestaurantOrder(UUID(str(r.public_id)),r.tenant_id,r.order_code,r.mode_code,r.source_channel_code,OrderStatus(r.lifecycle_status),r.opened_at,r.submitted_at,r.cancelled_at,UUID(str(r.session_public_id)) if r.session_public_id else None,UUID(str(r.party_public_id)) if r.party_public_id else None,self._staff_read('r1_restaurant_order_staff','order_id',r.tenant_id,r.id),lines,r.row_version)
     def open_order(self,c,p,fp):
@@ -114,8 +114,8 @@ class SQLR1Repository:
         if replay.completed_at:return self.order(c.tenant_id,c.order_public_id)
         o=self._order_row(c.tenant_id,c.order_public_id,True)
         if not o or o.row_version!=c.expected_order_version or o.lifecycle_status!='open':return None
-        line=self.db_session.execute(text('SELECT id,public_id,tenant_id,order_id,quantity,row_version FROM r1_restaurant_order_lines WHERE tenant_id=:t AND public_id=:p FOR UPDATE'),{'t':c.tenant_id,'p':str(c.order_line_public_id)}).first()
-        if not line or line.order_id!=o.id or line.row_version!=c.expected_line_version:return None
+        line=self.db_session.execute(text('SELECT id,public_id,tenant_id,order_id,quantity,row_version,lifecycle_status FROM r1_restaurant_order_lines WHERE tenant_id=:t AND public_id=:p FOR UPDATE'),{'t':c.tenant_id,'p':str(c.order_line_public_id)}).first()
+        if not line or line.order_id!=o.id or line.row_version!=c.expected_line_version or line.lifecycle_status!='active':return None
         old_quantity=Decimal(line.quantity);new_line_version=c.expected_line_version+1
         changed=self.db_session.execute(text('UPDATE r1_restaurant_order_lines SET quantity=:q,row_version=row_version+1,updated_at=now() WHERE tenant_id=:t AND id=:l AND row_version=:v RETURNING row_version'),{'q':c.quantity,'t':c.tenant_id,'l':line.id,'v':c.expected_line_version}).scalar()
         if changed!=new_line_version:return None
@@ -124,11 +124,29 @@ class SQLR1Repository:
         payload={'line_public_id':str(c.order_line_public_id),'old_quantity':str(old_quantity),'new_quantity':str(c.quantity),'old_line_version':c.expected_line_version,'new_line_version':new_line_version}
         self.db_session.execute(text("INSERT INTO r1_restaurant_order_history(tenant_id,order_id,event_type,from_status,to_status,reason_code,occurred_at,event_payload) VALUES(:t,:o,'item_quantity_changed','open','open','item_quantity_changed',:at,CAST(:p AS jsonb))"),{'t':c.tenant_id,'o':o.id,'at':c.occurred_at,'p':json.dumps(payload,sort_keys=True)})
         self._done(c.tenant_id,c.command_key,'restaurant_order',c.order_public_id);return self.order(c.tenant_id,c.order_public_id)
+    def remove_order_line(self,c,fp):
+        replay=self._command(c.tenant_id,c.command_key,fp,'remove_order_line')
+        if replay.completed_at:return self.order(c.tenant_id,c.order_public_id)
+        o=self._order_row(c.tenant_id,c.order_public_id,True)
+        if not o or o.row_version!=c.expected_order_version or o.lifecycle_status!='open':return None
+        line=self.db_session.execute(text('SELECT id,public_id,tenant_id,order_id,quantity,unit_price_snapshot,currency,row_version,lifecycle_status FROM r1_restaurant_order_lines WHERE tenant_id=:t AND public_id=:p FOR UPDATE'),{'t':c.tenant_id,'p':str(c.order_line_public_id)}).first()
+        if not line or line.order_id!=o.id or line.row_version!=c.expected_line_version or line.lifecycle_status!='active':return None
+        if self.db_session.execute(text('SELECT 1 FROM r2_restaurant_preparation_ticket_items WHERE tenant_id=:t AND order_line_id=:l LIMIT 1'),{'t':c.tenant_id,'l':line.id}).scalar():return None
+        current_partition=self.db_session.execute(text('''SELECT 1 FROM r1_restaurant_tab_partition_lines pl JOIN r1_restaurant_tab_partitions p ON (p.tenant_id,p.id)=(pl.tenant_id,pl.partition_id) JOIN r1_restaurant_tabs tab ON (tab.tenant_id,tab.id)=(p.tenant_id,p.tab_id) JOIN r1_restaurant_tab_orders x ON (x.tenant_id,x.tab_id)=(tab.tenant_id,tab.id) WHERE pl.tenant_id=:t AND pl.order_line_id=:l AND x.order_id=:o AND p.partition_version=tab.partition_version LIMIT 1'''),{'t':c.tenant_id,'l':line.id,'o':o.id}).scalar()
+        if current_partition:return None
+        new_line_version=c.expected_line_version+1
+        changed=self.db_session.execute(text("UPDATE r1_restaurant_order_lines SET lifecycle_status='removed',row_version=row_version+1,updated_at=now() WHERE tenant_id=:t AND id=:l AND row_version=:v AND lifecycle_status='active' RETURNING row_version"),{'t':c.tenant_id,'l':line.id,'v':c.expected_line_version}).scalar()
+        if changed!=new_line_version:return None
+        order_version=self.db_session.execute(text('UPDATE r1_restaurant_orders SET row_version=row_version+1,updated_at=now() WHERE tenant_id=:t AND id=:o AND row_version=:v RETURNING row_version'),{'t':c.tenant_id,'o':o.id,'v':c.expected_order_version}).scalar()
+        if order_version!=c.expected_order_version+1:return None
+        payload={'line_public_id':str(c.order_line_public_id),'quantity':str(line.quantity),'unit_price_snapshot':str(line.unit_price_snapshot),'currency':line.currency,'old_line_version':c.expected_line_version,'new_line_version':new_line_version}
+        self.db_session.execute(text("INSERT INTO r1_restaurant_order_history(tenant_id,order_id,event_type,from_status,to_status,reason_code,occurred_at,event_payload) VALUES(:t,:o,'item_removed','open','open','item_removed',:at,CAST(:p AS jsonb))"),{'t':c.tenant_id,'o':o.id,'at':c.occurred_at,'p':json.dumps(payload,sort_keys=True)})
+        self._done(c.tenant_id,c.command_key,'restaurant_order',c.order_public_id);return self.order(c.tenant_id,c.order_public_id)
     def submit_order(self,c,fp):
         replay=self._command(c.tenant_id,c.command_key,fp,'submit_order')
         if replay.result_public_id:return self.order(c.tenant_id,replay.result_public_id)
         o=self._order_row(c.tenant_id,c.order_public_id,True)
-        if not o or o.row_version!=c.expected_version or o.lifecycle_status!='open' or not self.db_session.execute(text('SELECT 1 FROM r1_restaurant_order_lines WHERE tenant_id=:t AND order_id=:o LIMIT 1'),{'t':c.tenant_id,'o':o.id}).scalar():return None
+        if not o or o.row_version!=c.expected_version or o.lifecycle_status!='open' or not self.db_session.execute(text("SELECT 1 FROM r1_restaurant_order_lines WHERE tenant_id=:t AND order_id=:o AND lifecycle_status='active' LIMIT 1"),{'t':c.tenant_id,'o':o.id}).scalar():return None
         self.db_session.execute(text("UPDATE r1_restaurant_orders SET lifecycle_status='submitted',submitted_at=:at,row_version=row_version+1,updated_at=now() WHERE tenant_id=:t AND id=:o AND row_version=:v"),{'at':c.occurred_at,'t':c.tenant_id,'o':o.id,'v':c.expected_version});self.db_session.execute(text("INSERT INTO r1_restaurant_order_history(tenant_id,order_id,event_type,from_status,to_status,reason_code,occurred_at,event_payload) VALUES(:t,:o,'submitted','open','submitted','submitted',:at,'{}'::jsonb)"),{'t':c.tenant_id,'o':o.id,'at':c.occurred_at});self._done(c.tenant_id,c.command_key,'restaurant_order',c.order_public_id);return self.order(c.tenant_id,c.order_public_id)
     def cancel_order(self,c,fp):
         replay=self._command(c.tenant_id,c.command_key,fp,'cancel_order')
@@ -164,13 +182,13 @@ class SQLR1Repository:
     def tab_line_quantities(self,t,p):
         tab=self._tab_row(t,p)
         if not tab:return {}
-        rows=self.db_session.execute(text('''SELECT l.public_id,l.quantity FROM r1_restaurant_tab_orders x JOIN r1_restaurant_orders o ON (o.tenant_id,o.id)=(x.tenant_id,x.order_id) JOIN r1_restaurant_order_lines l ON (l.tenant_id,l.order_id)=(o.tenant_id,o.id) WHERE x.tenant_id=:t AND x.tab_id=:tab AND o.lifecycle_status<>'cancelled' ORDER BY l.id'''),{'t':t,'tab':tab.id}).all();return {UUID(str(x.public_id)):Decimal(x.quantity) for x in rows}
+        rows=self.db_session.execute(text('''SELECT l.public_id,l.quantity FROM r1_restaurant_tab_orders x JOIN r1_restaurant_orders o ON (o.tenant_id,o.id)=(x.tenant_id,x.order_id) JOIN r1_restaurant_order_lines l ON (l.tenant_id,l.order_id)=(o.tenant_id,o.id) WHERE x.tenant_id=:t AND x.tab_id=:tab AND o.lifecycle_status<>'cancelled' AND l.lifecycle_status='active' ORDER BY l.id'''),{'t':t,'tab':tab.id}).all();return {UUID(str(x.public_id)):Decimal(x.quantity) for x in rows}
     def partition_tab(self,c,ids,fp):
         replay=self._command(c.tenant_id,c.command_key,fp,'partition_tab')
         if replay.completed_at:return self.tab(c.tenant_id,c.tab_public_id),()
         tab=self._tab_row(c.tenant_id,c.tab_public_id,True)
         if not tab or tab.row_version!=c.expected_tab_version or tab.lifecycle_status!='open':return None
-        lineids={UUID(str(x.public_id)):x.id for x in self.db_session.execute(text('''SELECT l.id,l.public_id FROM r1_restaurant_tab_orders x JOIN r1_restaurant_orders o ON (o.tenant_id,o.id)=(x.tenant_id,x.order_id) JOIN r1_restaurant_order_lines l ON (l.tenant_id,l.order_id)=(o.tenant_id,o.id) WHERE x.tenant_id=:t AND x.tab_id=:tab AND o.lifecycle_status<>'cancelled' '''),{'t':c.tenant_id,'tab':tab.id}).all()};version=tab.partition_version+1;out=[]
+        lineids={UUID(str(x.public_id)):x.id for x in self.db_session.execute(text('''SELECT l.id,l.public_id FROM r1_restaurant_tab_orders x JOIN r1_restaurant_orders o ON (o.tenant_id,o.id)=(x.tenant_id,x.order_id) JOIN r1_restaurant_order_lines l ON (l.tenant_id,l.order_id)=(o.tenant_id,o.id) WHERE x.tenant_id=:t AND x.tab_id=:tab AND o.lifecycle_status<>'cancelled' AND l.lifecycle_status='active' '''),{'t':c.tenant_id,'tab':tab.id}).all()};version=tab.partition_version+1;out=[]
         for spec,pub in zip(c.partitions,ids):
             part=self.db_session.execute(text('INSERT INTO r1_restaurant_tab_partitions(public_id,tenant_id,tab_id,partition_version,partition_code,created_at) VALUES(:p,:t,:tab,:v,:c,:at) RETURNING id'),{'p':str(pub),'t':c.tenant_id,'tab':tab.id,'v':version,'c':spec.partition_code,'at':c.occurred_at}).one()
             for a in spec.allocations:self.db_session.execute(text('INSERT INTO r1_restaurant_tab_partition_lines(tenant_id,partition_id,order_line_id,quantity) VALUES(:t,:p,:l,:q)'),{'t':c.tenant_id,'p':part.id,'l':lineids[a.line_public_id],'q':a.quantity})

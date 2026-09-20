@@ -126,6 +126,20 @@
     },
     {
       "owner": "PK",
+      "path": "sql/r1_restaurant_order_line_lifecycle_down.sql",
+      "reason": "R1_RESTAURANT_PACK_NON_FINANCE_ORDER_LINE_LIFECYCLE_EXTENSION",
+      "root": "alembic_neutral",
+      "sha256": "f78024e02dcb493d1addb4b34bf4a4dbd92fe75e651052bd827acf4e1ad2459c"
+    },
+    {
+      "owner": "PK",
+      "path": "sql/r1_restaurant_order_line_lifecycle_up.sql",
+      "reason": "R1_RESTAURANT_PACK_NON_FINANCE_ORDER_LINE_LIFECYCLE_EXTENSION",
+      "root": "alembic_neutral",
+      "sha256": "a81a9f7043bc14df15d259e0e5ec9dda0a7c88688acdc96cad83942639ff9e6e"
+    },
+    {
+      "owner": "PK",
       "path": "sql/r1_restaurant_service_operation_down.sql",
       "reason": "R1 Restaurant pack canonical migration descendant governed through Pack Platform; Restaurant domain authority only, Finance unchanged",
       "root": "alembic_neutral",
@@ -395,6 +409,13 @@
       "reason": "PK456 authorized non-Finance canonical descendant; pack conformance/template composition only",
       "root": "alembic_neutral",
       "sha256": "fe7c6a8f5c13c6a7119dc82921205439f8e4093fb861268edca259e6d79f3807"
+    },
+    {
+      "owner": "PK",
+      "path": "versions/r1_restaurant_order_line_lifecycle_046.py",
+      "reason": "R1_RESTAURANT_PACK_NON_FINANCE_ORDER_LINE_LIFECYCLE_EXTENSION",
+      "root": "alembic_neutral",
+      "sha256": "663a7af1af4847f5eddfc6749d657cfe556fcdda5301d1cf9fe46dcd5b45ab09"
     },
     {
       "owner": "PK",
