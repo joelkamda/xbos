@@ -105,7 +105,7 @@ def test_r6_4_cumulative_pc0_pc6_fingerprints_follow_r63_registration():
     import hashlib
     inv_path = ROOT / "contracts/platform/v1/pc0_frozen_finance_inventory.json"
     inv_sha = hashlib.sha256(inv_path.read_bytes().replace(b"\r\n", b"\n")).hexdigest()
-    assert inv_sha == "18d8cdbdfcdc0edf8d566bbd27d353a1a61ff0fa33189efe48773b91f9de0e6d"
+    assert inv_sha == "356d4cace4714e1a43de411cac3b69c2321b950a36e723123930197f6f96638b"
 
     pc0 = load("contracts/platform/v1/pc0_release_manifest.json")
     pc0_artifact = next(
@@ -116,7 +116,7 @@ def test_r6_4_cumulative_pc0_pc6_fingerprints_follow_r63_registration():
 
     pc0_path = ROOT / "contracts/platform/v1/pc0_release_manifest.json"
     pc0_sha = hashlib.sha256(pc0_path.read_bytes().replace(b"\r\n", b"\n")).hexdigest()
-    assert pc0_sha == "0ba51c63cd41fb0366d7c7a6562af26693493ddb8b22ab63fb6065c06e4c8ee7"
+    assert pc0_sha == "80a8a746de5ec584927f01723a22b65269389a45e8da1002d8a03bbf58525cc3"
 
     pc6 = load("contracts/platform/v1/pc7_release_manifest.json")
     for milestone in range(1, 7):

@@ -10,6 +10,7 @@ class TargetType(StrEnum): ATOMIC_UNIT='atomic_unit'; OFFER='offer'
 class ResourceRole(StrEnum): DINING_AREA='dining_area'; TABLE='table'; COUNTER_SEAT='counter_seat'; BAR_SEAT='bar_seat'; SERVICE_STATION='service_station'; PICKUP_POINT='pickup_point'
 class SessionStatus(StrEnum): OPEN='open'; CLOSED='closed'; CANCELLED='cancelled'
 class OrderStatus(StrEnum): OPEN='open'; SUBMITTED='submitted'; CANCELLED='cancelled'
+class OrderLineLifecycle(StrEnum): ACTIVE='active'; REMOVED='removed'
 class TabStatus(StrEnum): OPEN='open'; CLOSED='closed'; CANCELLED='cancelled'
 
 @dataclass(frozen=True)
@@ -26,7 +27,7 @@ class ServiceSession:
     public_id:UUID; tenant_id:int; mode_code:str; guest_count:int; status:SessionStatus; opened_at:datetime; closed_at:datetime|None=None; reservation_public_id:UUID|None=None; party_public_id:UUID|None=None; resource_public_ids:tuple[UUID,...]=(); staff:tuple[StaffAttribution,...]=(); row_version:int=1
 @dataclass(frozen=True)
 class OrderLine:
-    public_id:UUID; tenant_id:int; order_public_id:UUID; target_type:TargetType; target_public_id:UUID; price_public_id:UUID; quantity:Decimal; unit_price_snapshot:Decimal; currency:str; note:str|None=None; row_version:int=1
+    public_id:UUID; tenant_id:int; order_public_id:UUID; target_type:TargetType; target_public_id:UUID; price_public_id:UUID; quantity:Decimal; unit_price_snapshot:Decimal; currency:str; note:str|None=None; row_version:int=1; lifecycle_status:OrderLineLifecycle=OrderLineLifecycle.ACTIVE
     @property
     def commercial_total(self)->Decimal:return self.quantity*self.unit_price_snapshot
 @dataclass(frozen=True)
@@ -69,6 +70,9 @@ class AddLine:
 @dataclass(frozen=True)
 class ChangeOrderLineQuantity:
     command_key:str; tenant_id:int; order_public_id:UUID; order_line_public_id:UUID; expected_order_version:int; expected_line_version:int; quantity:Decimal; occurred_at:datetime
+@dataclass(frozen=True)
+class RemoveOrderLine:
+    command_key:str; tenant_id:int; order_public_id:UUID; order_line_public_id:UUID; expected_order_version:int; expected_line_version:int; occurred_at:datetime
 @dataclass(frozen=True)
 class SubmitOrder:
     command_key:str; tenant_id:int; order_public_id:UUID; expected_version:int; occurred_at:datetime

@@ -13,7 +13,7 @@ from restaurant.r2.service import R2Authority,R2Error
 
 class FakeRepo:
     def __init__(self):
-        self.sections={};self.placements=[];self.bindings=[];self.groups={};self.options={};self.allowed={};self.modsets={};self.stations={};self.routes=[];self.specs={};self.tickets={};self.items={};self.runs={}
+        self.sections={};self.placements=[];self.bindings=[];self.groups={};self.options={};self.allowed={};self.modsets={};self.stations={};self.routes=[];self.specs={};self.tickets={};self.items={};self.runs={};self.line_states={}
     def define_section(self,c,p,fp):
         x=MenuSection(p,c.tenant_id,c.catalog_public_id,c.section_code,c.display_name,c.sort_order,c.effective_from,c.effective_to,True,c.metadata,1);self.sections[p]=x;return x
     def section(self,t,p):return self.sections.get(p)
@@ -41,6 +41,7 @@ class FakeRepo:
         return tuple(sorted(rows,key=lambda x:(x.sequence,x.group.group_code,str(x.group.public_id))))
     def allowed_modifier_groups_for_line(self,t,p,at):return tuple(self.allowed.get(p,()))
     def set_line_modifiers(self,c,p,normalized,fp):
+        if self.line_states.get(c.order_line_public_id,'active')!='active':return None
         prior=self.modsets.get(c.order_line_public_id);v=1 if prior is None else prior.selection_version+1;x=ModifierSelectionSet(p,c.tenant_id,c.order_line_public_id,v,tuple(normalized),c.occurred_at);self.modsets[c.order_line_public_id]=x;return x
     def modifier_set(self,t,p):return self.modsets.get(p)
     def profile_station(self,c,p,fp):
@@ -54,6 +55,7 @@ class FakeRepo:
         x=PreparationSpec(p,c.tenant_id,c.spec_code,c.spec_version,c.display_name,c.output_atomic_unit_public_id,c.yield_stock_units,c.effective_from,c.effective_to,c.components,'active',c.metadata);self.specs[p]=x;return x
     def preparation_spec(self,t,p):return self.specs.get(p)
     def release_preparation(self,c,plans,fp):
+        if any(self.line_states.get(plan['line'].public_id,'active')!='active' for plan in plans):return None
         grouped={}
         for plan in plans:grouped.setdefault(plan['route'].station_resource_public_id,[]).append(plan)
         out=[]
@@ -256,3 +258,16 @@ def test_r3_menu_surface_has_no_private_so1_import_no_wnd_hardcoding_and_no_fina
     assert 'shared_operations.so1.sql_repository' not in service
     assert 'wnd' not in service and 'wnd' not in repo
     assert 'insert into public.financial_' not in repo and 'insert into public.payment_' not in repo
+
+def test_removed_r1_line_denies_new_modifier_and_preparation_mutation_but_preserves_history():
+    a,r,s=authority();line=uuid4();order=uuid4();target=uuid4();resource=uuid4();s[(1,line)]=obj(1,line,order_public_id=order,target_type=SimpleNamespace(value='atomic_unit'),target_public_id=target,quantity=Decimal('1'),note=None);s[(1,order)]=obj(1,order,status=SimpleNamespace(value='open'),mode_code='dine_in',source_channel_code='in_person',lines=(s[(1,line)],));r.line_states[line]='removed';prior=ModifierSelectionSet(uuid4(),1,line,1,(),datetime.now(timezone.utc));r.modsets[line]=prior
+    with pytest.raises(R2Error) as mod:a.set_line_modifiers(SetLineModifiers('set-removed',1,line,(),datetime.now(timezone.utc)));assert mod.value.code=='R2_MODIFIER_SET_CONFLICT';assert r.modsets[line] is prior
+    s[(1,order)].status=SimpleNamespace(value='submitted');s[(1,target)]=obj(1,target);s[(1,resource)]=obj(1,resource);a.profile_station(ProfileStation('st',1,resource,'hot','Hot',StationKind.KITCHEN));a.define_routing_rule(DefineRoutingRule('rr',1,'hot',resource,datetime.now(timezone.utc),TargetType.ATOMIC_UNIT,target))
+    existing_ticket=PreparationTicket(uuid4(),1,order,resource,'OLD',TicketStatus.COMPLETED,None,100,False,datetime.now(timezone.utc),items=());r.tickets[existing_ticket.public_id]=existing_ticket
+    with pytest.raises(R2Error) as prep:a.release_preparation(ReleasePreparation('rel-removed',1,order,datetime.now(timezone.utc),line_public_ids=(line,)));assert prep.value.code=='R2_RELEASE_CONFLICT';assert r.tickets[existing_ticket.public_id] is existing_ticket
+
+def test_c2_r2_sql_guards_non_active_lines_without_filtering_historical_reads():
+    root=Path(__file__).resolve().parents[2];repo=(root/'restaurant/r2/sql_repository.py').read_text(encoding='utf-8');mod=repo[repo.index('def set_line_modifiers'):repo.index('def modifier_set',repo.index('def set_line_modifiers'))];rel=repo[repo.index('def release_preparation'):repo.index('def ticket',repo.index('def release_preparation'))];hist=repo[repo.index('def modifier_set'):repo.index('def _station',repo.index('def modifier_set'))]
+    assert 'line_lifecycle_status' in mod and "!='active'" in mod
+    assert 'SELECT id,lifecycle_status FROM r1_restaurant_order_lines' in rel and "state.lifecycle_status!='active'" in rel
+    assert "lifecycle_status='active'" not in hist

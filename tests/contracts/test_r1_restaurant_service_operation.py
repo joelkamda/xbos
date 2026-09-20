@@ -12,7 +12,7 @@ from restaurant.r1.service import R1Authority,R1Error
 
 class FakeRepo:
     def __init__(self):
-        self.mode_rows={};self.profiles={};self.sessions={};self.orders={};self.tabs={};self.line_qty={};self.change_commands={};self.order_history=[]
+        self.mode_rows={};self.profiles={};self.sessions={};self.orders={};self.tabs={};self.line_qty={};self.change_commands={};self.remove_commands={};self.removed_rows={};self.preparation_line_ids=set();self.current_partition_line_ids=set();self.historical_partition_line_ids=set();self.order_history=[]
     def define_mode(self,c,p,fp):
         key=(c.tenant_id,c.mode_code)
         if key in self.mode_rows:return self.mode_rows[key]
@@ -58,6 +58,21 @@ class FakeRepo:
         self.orders[o.public_id]=updated
         self.change_commands[key]=(fp,o.public_id)
         self.order_history.append({'event_type':'item_quantity_changed','order_public_id':o.public_id,'line_public_id':line.public_id,'old_quantity':line.quantity,'new_quantity':changed.quantity,'old_line_version':line.row_version,'new_line_version':changed.row_version})
+        return updated
+    def remove_order_line(self,c,fp):
+        key=(c.tenant_id,c.command_key)
+        if key in self.remove_commands:
+            prior_fp,order_public_id=self.remove_commands[key]
+            if prior_fp!=fp:raise R1Error('R1_COMMAND_CONFLICT','idempotency_conflict','Command key already used with different content')
+            return self.orders.get(order_public_id)
+        o=self.orders.get(c.order_public_id)
+        if not o or o.tenant_id!=c.tenant_id or o.status is not OrderStatus.OPEN or o.row_version!=c.expected_order_version:return None
+        line=next((x for x in o.lines if x.public_id==c.order_line_public_id),None)
+        if not line or line.tenant_id!=c.tenant_id or line.order_public_id!=o.public_id or line.row_version!=c.expected_line_version or line.lifecycle_status is not OrderLineLifecycle.ACTIVE:return None
+        if line.public_id in self.preparation_line_ids or line.public_id in self.current_partition_line_ids:return None
+        removed=replace(line,row_version=line.row_version+1,lifecycle_status=OrderLineLifecycle.REMOVED);self.removed_rows[line.public_id]=removed
+        updated=replace(o,lines=tuple(x for x in o.lines if x.public_id!=line.public_id),row_version=o.row_version+1);self.orders[o.public_id]=updated;self.line_qty.pop(line.public_id,None)
+        self.remove_commands[key]=(fp,o.public_id);self.order_history.append({'event_type':'item_removed','order_public_id':o.public_id,'line_public_id':line.public_id,'quantity':line.quantity,'unit_price_snapshot':line.unit_price_snapshot,'currency':line.currency,'old_line_version':line.row_version,'new_line_version':removed.row_version})
         return updated
     def submit_order(self,c,fp):
         o=self.orders[c.order_public_id]
@@ -291,3 +306,44 @@ def test_c1_sql_quantity_change_preserves_price_currency_and_writes_exact_histor
     assert 'unit_price_snapshot=' not in block and 'currency=' not in block and 'price_id=' not in block
     for key in ['line_public_id','old_quantity','new_quantity','old_line_version','new_line_version']:assert key in block
     assert 'FOR UPDATE' in block and 'expected_order_version' in block and 'expected_line_version' in block
+
+def test_remove_order_line_active_cart_projection_total_handoff_and_history():
+    a,r,s,now,o,target,price=_cart_fixture();line=o.lines[0];removed=a.remove_order_line(RemoveOrderLine('rm',1,o.public_id,line.public_id,o.row_version,line.row_version,now))
+    assert removed.status is OrderStatus.OPEN and removed.lines==() and removed.row_version==o.row_version+1
+    durable=r.removed_rows[line.public_id];assert durable.quantity==line.quantity and durable.unit_price_snapshot==line.unit_price_snapshot and durable.currency==line.currency and durable.lifecycle_status is OrderLineLifecycle.REMOVED and durable.row_version==line.row_version+1
+    assert r.order_history[-1]=={'event_type':'item_removed','order_public_id':o.public_id,'line_public_id':line.public_id,'quantity':line.quantity,'unit_price_snapshot':line.unit_price_snapshot,'currency':line.currency,'old_line_version':line.row_version,'new_line_version':line.row_version+1}
+    with pytest.raises(R1Error) as empty:a.submit_order(SubmitOrder('sub-empty',1,o.public_id,removed.row_version,now))
+    assert empty.value.code=='R1_ORDER_STATE_CONFLICT'
+
+def test_remove_order_line_authorization_state_versions_unknown_and_idempotency():
+    a,r,s,now,o,target,price=_cart_fixture();line=o.lines[0]
+    denied=lambda t,p,*_:p!='restaurant.order.remove';ad,rd,sd,nd,od,td,pd=_cart_fixture(authorize=denied);ld=od.lines[0]
+    with pytest.raises(R1Error) as unauth:ad.remove_order_line(RemoveOrderLine('u',1,od.public_id,ld.public_id,od.row_version,ld.row_version,nd));assert unauth.value.code=='R1_PERMISSION_DENIED'
+    for key,cmd in [('stale-o',RemoveOrderLine('stale-o',1,o.public_id,line.public_id,o.row_version-1,line.row_version,now)),('stale-l',RemoveOrderLine('stale-l',1,o.public_id,line.public_id,o.row_version,line.row_version+1,now)),('missing',RemoveOrderLine('missing',1,o.public_id,uuid4(),o.row_version,line.row_version,now)),('tenant',RemoveOrderLine('tenant',2,o.public_id,line.public_id,o.row_version,line.row_version,now))]:
+        with pytest.raises(R1Error) as e:a.remove_order_line(cmd)
+        assert e.value.code=='R1_ORDER_LINE_REMOVE_CONFLICT'
+    cmd=RemoveOrderLine('rm-replay',1,o.public_id,line.public_id,o.row_version,line.row_version,now);first=a.remove_order_line(cmd);second=a.remove_order_line(cmd);assert first==second and len([x for x in r.order_history if x['event_type']=='item_removed'])==1
+    with pytest.raises(R1Error) as conflict:a.remove_order_line(replace(cmd,expected_line_version=line.row_version+1));assert conflict.value.code=='R1_COMMAND_CONFLICT'
+    with pytest.raises(R1Error) as newcmd:a.remove_order_line(RemoveOrderLine('rm-new',1,o.public_id,line.public_id,first.row_version,line.row_version+1,now));assert newcmd.value.code=='R1_ORDER_LINE_REMOVE_CONFLICT'
+
+def test_remove_order_line_denies_submitted_cancelled_preparation_and_current_partition_but_allows_superseded_history():
+    a,r,s,now,o,target,price=_cart_fixture();line=o.lines[0];submitted=a.submit_order(SubmitOrder('sub',1,o.public_id,o.row_version,now))
+    with pytest.raises(R1Error) as sub:a.remove_order_line(RemoveOrderLine('rm-sub',1,submitted.public_id,line.public_id,submitted.row_version,line.row_version,now));assert sub.value.code=='R1_ORDER_LINE_REMOVE_CONFLICT'
+    a2,r2,s2,now2,o2,t2,p2=_cart_fixture();l2=o2.lines[0];r2.orders[o2.public_id]=replace(o2,status=OrderStatus.CANCELLED,cancelled_at=now2)
+    with pytest.raises(R1Error) as can:a2.remove_order_line(RemoveOrderLine('rm-can',1,o2.public_id,l2.public_id,o2.row_version,l2.row_version,now2));assert can.value.code=='R1_ORDER_LINE_REMOVE_CONFLICT'
+    a3,r3,s3,now3,o3,t3,p3=_cart_fixture();l3=o3.lines[0];r3.preparation_line_ids.add(l3.public_id);before=r3.orders[o3.public_id]
+    with pytest.raises(R1Error) as prep:a3.remove_order_line(RemoveOrderLine('rm-prep',1,o3.public_id,l3.public_id,o3.row_version,l3.row_version,now3));assert prep.value.code=='R1_ORDER_LINE_REMOVE_CONFLICT';assert r3.orders[o3.public_id]==before and r3.order_history==[]
+    a4,r4,s4,now4,o4,t4,p4=_cart_fixture();l4=o4.lines[0];r4.current_partition_line_ids.add(l4.public_id)
+    with pytest.raises(R1Error) as current:a4.remove_order_line(RemoveOrderLine('rm-current',1,o4.public_id,l4.public_id,o4.row_version,l4.row_version,now4));assert current.value.code=='R1_ORDER_LINE_REMOVE_CONFLICT'
+    a5,r5,s5,now5,o5,t5,p5=_cart_fixture();l5=o5.lines[0];r5.historical_partition_line_ids.add(l5.public_id);ok=a5.remove_order_line(RemoveOrderLine('rm-old',1,o5.public_id,l5.public_id,o5.row_version,l5.row_version,now5));assert ok.lines==() and l5.public_id in r5.historical_partition_line_ids
+
+def test_removed_line_is_excluded_from_obligation_and_active_tab_quantities():
+    a,r,s=authority();now=datetime.now(timezone.utc);target=uuid4();price=uuid4();s[(1,target)]=obj(1,target);s[(1,price)]=obj(1,price,target_type=SimpleNamespace(value='atomic_unit'),target_public_id=target,amount=Decimal('10'),currency='XAF');a.define_mode(DefineServiceMode('m',1,'counter','Counter',supports_tabs=True));o=a.open_order(OpenOrder('o',1,'O1','counter','in_person',now));o=a.add_line(AddLine('l1',1,o.public_id,o.row_version,TargetType.ATOMIC_UNIT,target,price,Decimal('2'),now));first=o.lines[0];o=a.add_line(AddLine('l2',1,o.public_id,o.row_version,TargetType.ATOMIC_UNIT,target,price,Decimal('3'),now));tab=a.open_tab(OpenTab('t',1,'T1',now));tab=a.attach_order(AttachOrder('a',1,tab.public_id,o.public_id,tab.row_version,now));o=a.remove_order_line(RemoveOrderLine('rm',1,o.public_id,first.public_id,o.row_version,first.row_version,now));assert first.public_id not in r.tab_line_quantities(1,tab.public_id)
+    o=a.submit_order(SubmitOrder('sub',1,o.public_id,o.row_version,now));h=a.obligation_handoff(1,o.public_id);assert len(h.lines)==1 and h.commercial_total==Decimal('30') and h.lines[0].order_line_public_id!=first.public_id
+
+def test_c2_sql_has_soft_remove_guards_and_active_only_projections():
+    root=Path(__file__).resolve().parents[2];repo=(root/'restaurant/r1/sql_repository.py').read_text(encoding='utf-8');up=(root/'alembic_neutral/sql/r1_restaurant_order_line_lifecycle_up.sql').read_text(encoding='utf-8');down=(root/'alembic_neutral/sql/r1_restaurant_order_line_lifecycle_down.sql').read_text(encoding='utf-8');mig=(root/'alembic_neutral/versions/r1_restaurant_order_line_lifecycle_046.py').read_text(encoding='utf-8')
+    assert 'revision = "r1_restaurant_order_line_lifecycle_046"' in mig and 'down_revision = "ia0_neutral_interaction_authority_045"' in mig
+    assert "CHECK(lifecycle_status IN('active','removed'))" in up and "SET lifecycle_status='active'" in up and 'removed order-line history exists' in down
+    block=repo[repo.index('def remove_order_line'):repo.index('def submit_order',repo.index('def remove_order_line'))];assert "SET lifecycle_status='removed'" in block and 'DELETE FROM r1_restaurant_order_lines' not in block and 'quantity=0' not in block
+    assert 'r2_restaurant_preparation_ticket_items' in block and 'partition_version=tab.partition_version' in block and "l.lifecycle_status='active'" in repo
