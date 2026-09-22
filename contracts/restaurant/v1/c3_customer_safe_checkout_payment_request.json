@@ -1,0 +1,114 @@
+﻿{
+  "contract": "XBOS_CUSTOMER_SAFE_PAYMENT_REQUEST_STATE_FACADE_V1",
+  "schema_version": 1,
+  "status": "G02_C3_R1_LOCAL_MATERIALIZATION_CANDIDATE",
+  "parent_can1": "0e5185083ede8f92f9ef6a5181bb03d0eaf20fa9",
+  "flow": [
+    "submitted_restaurant_order",
+    "restaurant_obligation_handoff",
+    "c3_application_service",
+    "neutral_finance_create_payment_request_command",
+    "transactional_payment_intent_engine_create_request",
+    "customer_safe_payment_request_projection"
+  ],
+  "authority": {
+    "order": "restaurant.r1.R1Authority",
+    "commercial_handoff": "restaurant.r1.R1Authority.obligation_handoff",
+    "amount": "ObligationHandoff.commercial_total",
+    "currency": "ObligationHandoff.currency",
+    "organization_unit": "core.platform.structure.StructuralAuthority.resolve(tenant_id, legacy_branch_id)",
+    "business_time": "restaurant.r5.build_wnd_calendar + core.platform.operating_context.BusinessTimeResolver.resolve",
+    "payment_method_policy": "core.platform.operating_context.OperatingContextAuthority.resolve:wnd.payments.enabled_methods",
+    "payment_request": "core.domain.finance.payment_intent_engine.TransactionalPaymentIntentEngine.create_request"
+  },
+  "public_id": {
+    "namespace": "UUID5:NAMESPACE_URL",
+    "seed": "xbos:restaurant:c3:payment-request:{tenant_id}:{organization_unit_id}:{order_public_id}:v{row_version}",
+    "binds_submitted_row_version": true
+  },
+  "correlation": {
+    "namespace": "UUID5:NAMESPACE_URL",
+    "seed": "xbos:restaurant:c3:correlation:{tenant_id}:{organization_unit_id}:{order_public_id}:v{row_version}",
+    "random_finance_correlation_forbidden": true
+  },
+  "source_record_id": "restaurant_order:{order_public_id}:v{row_version}",
+  "idempotency": {
+    "scope": "restaurant.c3.payment_request",
+    "key": "order:{order_public_id}:v{row_version}",
+    "exact_replay": "return_existing_payment_request",
+    "different_fingerprint": "PaymentCommandIdempotencyConflict",
+    "second_request_identity": false
+  },
+  "commercial_fingerprint": {
+    "algorithm": "sha256",
+    "canonical_serialization": "json_sorted_keys_compact_ascii",
+    "fields": [
+      "order_public_id",
+      "row_version",
+      "ObligationHandoff.mode_code",
+      "ObligationHandoff.party_public_id",
+      "ObligationHandoff.currency",
+      "active_handoff_lines",
+      "commercial_total",
+      "payment_policy_ref"
+    ]
+  },
+  "payment_policy": {
+    "configuration_key": "wnd.payments.enabled_methods",
+    "resolution_time": "RestaurantOrder.submitted_at",
+    "policy_ref": "wnd.payments.enabled_methods@{ConfigurationResult.version}",
+    "mapping": {
+      "cash": "pay_at_counter",
+      "mtn": "mtn_mobile_money",
+      "orange": "orange_money"
+    },
+    "unknown_method": "fail_closed",
+    "xafpay_wallet_currently_offered": false
+  },
+  "payment_request_command": {
+    "purpose_code": "restaurant_order",
+    "expires_at": null,
+    "source_component": "restaurant.c3",
+    "actor_service": "xbos.restaurant.c3",
+    "customer_supplied_amount": false,
+    "customer_supplied_currency": false,
+    "direct_finance_insert": false,
+    "creates_payment_intent": false,
+    "creates_settlement": false
+  },
+  "projection_fields": [
+    "payment_request_ref",
+    "order_ref",
+    "merchant_reference",
+    "correlation_ref",
+    "canonical_amount",
+    "currency",
+    "permitted_methods",
+    "policy_ref",
+    "expires_at",
+    "payment_request_state",
+    "wallet_handoff_context",
+    "safe_next_action",
+    "receipt_ref"
+  ],
+  "projection_law": {
+    "supported_payment_request_state": "open",
+    "paid_mapping": null,
+    "wallet_handoff_context_current_wnd": null,
+    "safe_next_action": "present_permitted_methods_only",
+    "receipt_ref_at_request_creation": null,
+    "private_tenant_or_organization_ids_exposed": false
+  },
+  "transport": {
+    "application_service_only": true,
+    "public_http_route": false,
+    "customer_channel_adapter": false,
+    "gateway_call": false,
+    "provider_call": false,
+    "xafpay_core_service_call": false
+  },
+  "schema_change": false,
+  "migration": false,
+  "migration_head": "r1_restaurant_order_line_lifecycle_046",
+  "xc8_semantic_compatibility": "PARTIAL"
+}
