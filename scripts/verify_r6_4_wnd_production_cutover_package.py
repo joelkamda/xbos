@@ -47,26 +47,6 @@ RUNBOOK = "contracts/restaurant/v1/r6_4_r6_5_cutover_runbook.json"
 HYPERCARE = "contracts/restaurant/v1/r6_4_hypercare_retirement_boundary.json"
 RELEASE = "contracts/restaurant/v1/r6_4_release_manifest.json"
 REFERENCE = "contracts/restaurant/v1/r6_3_reference_application_contract.json"
-DESCENDANT_CORRECTION = "contracts/restaurant/v1/r6_4_freeze_integrity_correction.json"
-ORIGINAL_FREEZE_COMMIT = "330694145cb1d06ea915c3c484451f664ebd75f3"
-ORIGINAL_FREEZE_TAG = "restaurant-r6-5-production-forward-baseline-v1-20260917"
-ORIGINAL_INSTALL_MANIFEST_SHA256 = "3ff1cf7cba91cd6391bd8d6f2a9d951c262379f8bc03c5799ff3991d78df09e0"
-ORIGINAL_RELEASE_MANIFEST_SHA256 = "cc0850be82e13c2ff3c4f8944eaf17ac3b58b733f8381ebcfd8a2423afb4e2ca"
-INVENTORY_SERVICE_PATH = "restaurant/r6/wnd_api_compat/inventory_service.py"
-INVENTORY_SERVICE_ORIGINAL_MANIFEST_SIZE = 54552
-INVENTORY_SERVICE_ORIGINAL_MANIFEST_SHA256 = "329e9ddc1c5e8d1798ad270caaa5c777067ad3d2f365ee565d8ceb92fd673e3f"
-INVENTORY_SERVICE_FROZEN_BLOB_CANONICAL_LF_SIZE = 53723
-INVENTORY_SERVICE_FROZEN_BLOB_CANONICAL_LF_SHA256 = "2000f54f377d01748b1c01a353eec8000af86905fdae37daa103b53ef07e1ece"
-HISTORICAL_OMISSIONS = (
-    ("R6_4_REVISION_9_WND_COMPAT_OPENAPI_BINDING.txt", 1670, "0860f93386e915c236564370d9437b128ab0ec40e85b546e12418dbdd7436fd6"),
-    ("R6_4_REVISION_8_WND_API_COMPATIBILITY_BRIDGE.txt", 2220, "317363db4ad8f904197555cd72465da2ac0a79ade51059f9048812fffb5f9139"),
-    ("R6_4_REVISION_7_COLLISION_SAFE_DIAGNOSTIC_PORTS.txt", 1233, "ea45e8ebb8e9439da29fb2ee8aa5beb52198faef9f013d843b952e93a6ec9d9c"),
-    ("R6_4_REVISION_6_BCRYPT_CONTROL_BACKEND.txt", 1022, "d6b7b063d6253d87687412d49e220523e0c3d01a5d2db884cb6adf88bccec935"),
-    ("R6_4_REVISION_5_ISOLATED_FULL_REGRESSION.txt", 1265, "14f2798384f36d2308d584b356bb801315be0f848bcf67db32eafe098608d8b2"),
-    ("R6_4_REVISION_4_DOWNSTREAM_RELEASE_INTEGRITY_CHAIN.txt", 1743, "2fd61835d14cac9dfb8199ad0e6b0d1cd40bb5b07c11ad2d87a3264a451aeff3"),
-    ("R6_4_REVISION_3_CUMULATIVE_PLATFORM_INTEGRITY.txt", 1962, "7149ba7d9cc3660f467f30f0cc53d0711d7e592f25ac51cdfc13ec59a4969283"),
-    ("R6_4_REVISION_2_WND_SERVER_RUNTIME.txt", 1034, "2e379014e41dc43ba24ca66fa864f544a3efe9afbfaed5bed6995f9fbfc37b0a"),
-)
 
 DOWNLOADS = Path.home() / "Downloads"
 WORKSPACE = DOWNLOADS / "XBOS_R6_4_ACCEPTANCE_WORKSPACE"
@@ -99,199 +79,7 @@ def _git(*args: str) -> str:
     return (cp.stdout or "").strip()
 
 
-def _canonical_sha_bytes(raw: bytes) -> str:
-    return hashlib.sha256(raw.replace(b"\r\n", b"\n")).hexdigest()
-
-
-def _git_show_bytes(commit: str, path: str) -> bytes:
-    cp = subprocess.run(
-        ["git", "show", f"{commit}:{path}"],
-        cwd=ROOT,
-        capture_output=True,
-    )
-    if cp.returncode:
-        raise RuntimeError(
-            "R6_4_DESCENDANT_GIT_OBJECT_MISSING="
-            + f"{commit}:{path} "
-            + cp.stderr.decode("utf-8", errors="replace")
-        )
-    return cp.stdout
-
-
-def _git_path_exists_at(commit: str, path: str) -> bool:
-    cp = subprocess.run(
-        ["git", "cat-file", "-e", f"{commit}:{path}"],
-        cwd=ROOT,
-        capture_output=True,
-    )
-    return cp.returncode == 0
-
-
-def _verify_descendant_freeze_integrity_correction(head: str) -> dict[str, Any]:
-    ancestor = subprocess.run(
-        ["git", "merge-base", "--is-ancestor", ORIGINAL_FREEZE_COMMIT, head],
-        cwd=ROOT,
-        capture_output=True,
-    )
-    if ancestor.returncode != 0:
-        raise RuntimeError("R6_4_DESCENDANT_FREEZE_NOT_ANCESTOR")
-
-    tag_target = _git("rev-parse", f"{ORIGINAL_FREEZE_TAG}^{{}}")
-    if tag_target != ORIGINAL_FREEZE_COMMIT:
-        raise RuntimeError(
-            f"R6_4_DESCENDANT_FREEZE_TAG_DRIFT expected={ORIGINAL_FREEZE_COMMIT} actual={tag_target}"
-        )
-
-    contract = _load(DESCENDANT_CORRECTION)
-    required_identity = {
-        "correction_class": "DESCENDANT_FREEZE_INTEGRITY_CORRECTION",
-        "original_freeze_commit": ORIGINAL_FREEZE_COMMIT,
-        "original_freeze_tag": ORIGINAL_FREEZE_TAG,
-        "original_install_manifest_sha256": ORIGINAL_INSTALL_MANIFEST_SHA256,
-        "original_release_manifest_sha256": ORIGINAL_RELEASE_MANIFEST_SHA256,
-        "byte_identical_recovery_count": 0,
-        "deterministic_regeneration_count": 0,
-        "historical_artifact_byte_identity": "UNRECOVERABLE",
-        "underlying_semantics": "INDEPENDENTLY_PROVEN",
-        "historical_omission_count": 8,
-        "historical_rewrite": "NO",
-        "artifact_fabrication": "NO",
-        "historical_install_manifest_mutation": "NO",
-        "historical_commit_tag_mutation": "NO",
-        "correction_scope": "DESCENDANT_INTEGRITY_REPRESENTATION_ONLY",
-    }
-    for key, expected in required_identity.items():
-        if contract.get(key) != expected:
-            raise RuntimeError(
-                f"R6_4_DESCENDANT_CORRECTION_IDENTITY_{key} expected={expected!r} actual={contract.get(key)!r}"
-            )
-
-    historical_install = _git_show_bytes(ORIGINAL_FREEZE_COMMIT, "R6_4_INSTALL_MANIFEST.txt")
-    if _canonical_sha_bytes(historical_install) != ORIGINAL_INSTALL_MANIFEST_SHA256:
-        raise RuntimeError("R6_4_DESCENDANT_HISTORICAL_INSTALL_MANIFEST_HASH")
-    current_install = (ROOT / "R6_4_INSTALL_MANIFEST.txt").read_bytes()
-    if _canonical_sha_bytes(current_install) != ORIGINAL_INSTALL_MANIFEST_SHA256:
-        raise RuntimeError("R6_4_DESCENDANT_CURRENT_INSTALL_MANIFEST_MUTATION")
-
-    historical_release = _git_show_bytes(
-        ORIGINAL_FREEZE_COMMIT,
-        "contracts/restaurant/v1/r6_4_release_manifest.json",
-    )
-    if _canonical_sha_bytes(historical_release) != ORIGINAL_RELEASE_MANIFEST_SHA256:
-        raise RuntimeError("R6_4_DESCENDANT_HISTORICAL_RELEASE_MANIFEST_HASH")
-
-    omissions = contract.get("historical_omissions") or []
-    if len(omissions) != 8:
-        raise RuntimeError("R6_4_DESCENDANT_OMISSION_COUNT")
-    by_path = {row.get("path"): row for row in omissions}
-    expected_paths = {path for path, _, _ in HISTORICAL_OMISSIONS}
-    if set(by_path) != expected_paths:
-        raise RuntimeError("R6_4_DESCENDANT_OMISSION_PATH_SET")
-    for path, size, sha256 in HISTORICAL_OMISSIONS:
-        row = by_path[path]
-        if row.get("size") != size or row.get("sha256") != sha256:
-            raise RuntimeError("R6_4_DESCENDANT_OMISSION_IDENTITY=" + path)
-        if row.get("semantic_evidence") != "COMPLETE":
-            raise RuntimeError("R6_4_DESCENDANT_SEMANTIC_EVIDENCE=" + path)
-        if row.get("historical_artifact_byte_identity") != "UNRECOVERABLE":
-            raise RuntimeError("R6_4_DESCENDANT_BYTE_IDENTITY=" + path)
-        if row.get("underlying_semantics") != "INDEPENDENTLY_PROVEN":
-            raise RuntimeError("R6_4_DESCENDANT_UNDERLYING_SEMANTICS=" + path)
-        supporting = row.get("supporting_paths") or []
-        if not supporting:
-            raise RuntimeError("R6_4_DESCENDANT_SUPPORTING_PATHS_EMPTY=" + path)
-        for support in supporting:
-            if not _git_path_exists_at(ORIGINAL_FREEZE_COMMIT, support):
-                raise RuntimeError(
-                    f"R6_4_DESCENDANT_SUPPORT_NOT_IMMUTABLE omission={path} support={support}"
-                )
-
-    authority_changes = contract.get("authority_changes") or {}
-    expected_authority_keys = {
-        "r6_4_semantic_change",
-        "database_schema_change",
-        "migration_change",
-        "payment_authority_change",
-        "inventory_authority_change",
-        "writer_routing_change",
-        "live_cutover_authority_change",
-        "production_write_authority_change",
-    }
-    if set(authority_changes) != expected_authority_keys:
-        raise RuntimeError("R6_4_DESCENDANT_AUTHORITY_CHANGE_KEYS")
-    if any(authority_changes[key] != "NO" for key in expected_authority_keys):
-        raise RuntimeError("R6_4_DESCENDANT_AUTHORITY_EXPANSION")
-
-    release = _load(RELEASE)
-    artifacts = release.get("artifacts") or []
-    release_paths = {row.get("path") for row in artifacts}
-    if expected_paths & release_paths:
-        raise RuntimeError("R6_4_DESCENDANT_OMISSIONS_REMAIN_IN_RELEASE")
-    if DESCENDANT_CORRECTION not in release_paths:
-        raise RuntimeError("R6_4_DESCENDANT_CORRECTION_NOT_IN_RELEASE")
-    if release.get("artifact_count") != 53 or len(artifacts) != 53:
-        raise RuntimeError("R6_4_DESCENDANT_RELEASE_COUNT")
-
-    if contract.get("additional_manifest_identity_defect_count") != 1:
-        raise RuntimeError("R6_4_DESCENDANT_MANIFEST_IDENTITY_DEFECT_COUNT")
-    defects = contract.get("manifest_identity_defects") or []
-    if len(defects) != 1:
-        raise RuntimeError("R6_4_DESCENDANT_MANIFEST_IDENTITY_DEFECT_ROWS")
-    defect = defects[0]
-    expected_defect = {
-        "path": INVENTORY_SERVICE_PATH,
-        "original_manifest_size": INVENTORY_SERVICE_ORIGINAL_MANIFEST_SIZE,
-        "original_manifest_sha256": INVENTORY_SERVICE_ORIGINAL_MANIFEST_SHA256,
-        "actual_frozen_git_blob_canonical_lf_size": INVENTORY_SERVICE_FROZEN_BLOB_CANONICAL_LF_SIZE,
-        "actual_frozen_git_blob_canonical_lf_sha256": INVENTORY_SERVICE_FROZEN_BLOB_CANONICAL_LF_SHA256,
-        "source_drift": "NO",
-        "historical_blob_count": 1,
-        "original_manifest_hash_matching_blob_count": 0,
-    }
-    if defect != expected_defect:
-        raise RuntimeError("R6_4_DESCENDANT_MANIFEST_IDENTITY_DEFECT_MISMATCH")
-    if contract.get("descendant_artifact_size_basis") != "CANONICAL_LF_BYTES":
-        raise RuntimeError("R6_4_DESCENDANT_SIZE_BASIS")
-    if contract.get("descendant_artifact_hash_basis") != "CANONICAL_LF_SHA256":
-        raise RuntimeError("R6_4_DESCENDANT_HASH_BASIS")
-
-    frozen_inventory = _git_show_bytes(ORIGINAL_FREEZE_COMMIT, INVENTORY_SERVICE_PATH)
-    frozen_inventory_canonical = frozen_inventory.replace(bytes((13, 10)), bytes((10,)))
-    if len(frozen_inventory_canonical) != INVENTORY_SERVICE_FROZEN_BLOB_CANONICAL_LF_SIZE:
-        raise RuntimeError("R6_4_DESCENDANT_INVENTORY_FROZEN_SIZE")
-    if hashlib.sha256(frozen_inventory_canonical).hexdigest() != INVENTORY_SERVICE_FROZEN_BLOB_CANONICAL_LF_SHA256:
-        raise RuntimeError("R6_4_DESCENDANT_INVENTORY_FROZEN_HASH")
-
-    current_inventory = (ROOT / INVENTORY_SERVICE_PATH).read_bytes().replace(bytes((13, 10)), bytes((10,)))
-    if len(current_inventory) != INVENTORY_SERVICE_FROZEN_BLOB_CANONICAL_LF_SIZE:
-        raise RuntimeError("R6_4_DESCENDANT_INVENTORY_SOURCE_SIZE_DRIFT")
-    if hashlib.sha256(current_inventory).hexdigest() != INVENTORY_SERVICE_FROZEN_BLOB_CANONICAL_LF_SHA256:
-        raise RuntimeError("R6_4_DESCENDANT_INVENTORY_SOURCE_HASH_DRIFT")
-
-    inventory_row = next((row for row in artifacts if row.get("path") == INVENTORY_SERVICE_PATH), None)
-    if inventory_row is None:
-        raise RuntimeError("R6_4_DESCENDANT_INVENTORY_ROW_MISSING")
-    if inventory_row.get("size") != INVENTORY_SERVICE_FROZEN_BLOB_CANONICAL_LF_SIZE:
-        raise RuntimeError("R6_4_DESCENDANT_INVENTORY_ROW_SIZE")
-    if inventory_row.get("sha256") != INVENTORY_SERVICE_FROZEN_BLOB_CANONICAL_LF_SHA256:
-        raise RuntimeError("R6_4_DESCENDANT_INVENTORY_ROW_HASH")
-
-    return {
-        "status": "PASS",
-        "original_freeze_commit": ORIGINAL_FREEZE_COMMIT,
-        "original_freeze_tag_target": tag_target,
-        "historical_install_manifest_sha256": ORIGINAL_INSTALL_MANIFEST_SHA256,
-        "historical_release_manifest_sha256": ORIGINAL_RELEASE_MANIFEST_SHA256,
-        "historical_omission_count": len(omissions),
-        "byte_identical_recovery_count": contract["byte_identical_recovery_count"],
-        "deterministic_regeneration_count": contract["deterministic_regeneration_count"],
-        "semantic_evidence_complete_count": sum(
-            row.get("semantic_evidence") == "COMPLETE" for row in omissions
-        ),
-    }
-
-
-def _verify_release_manifest(*, canonical_lf_identity: bool = False) -> int:
+def _verify_release_manifest() -> int:
     data = _load(RELEASE)
     if data.get("self_excluded") is not True:
         raise RuntimeError("R6_4_RELEASE_SELF_EXCLUSION")
@@ -303,26 +91,21 @@ def _verify_release_manifest(*, canonical_lf_identity: bool = False) -> int:
         if not p.is_file():
             raise RuntimeError("R6_4_RELEASE_MISSING=" + row["path"])
         raw = p.read_bytes()
-        canonical = raw.replace(bytes((13, 10)), bytes((10,)))
-        identity = canonical if canonical_lf_identity else raw
-        if len(identity) != row["size"]:
+        if len(raw) != row["size"]:
             raise RuntimeError("R6_4_RELEASE_SIZE=" + row["path"])
+        canonical = raw.replace(b"\r\n", b"\n")
         if hashlib.sha256(canonical).hexdigest() != row["sha256"]:
             raise RuntimeError("R6_4_RELEASE_HASH=" + row["path"])
     return len(artifacts)
 
 
-def _static(*, descendant_freeze_integrity_correction: bool = False) -> dict[str, Any]:
+def _static() -> dict[str, Any]:
     branch = _git("branch", "--show-current")
     head = _git("rev-parse", "HEAD")
-    descendant_correction: dict[str, Any] | None = None
-    if descendant_freeze_integrity_correction:
-        descendant_correction = _verify_descendant_freeze_integrity_correction(head)
-    else:
-        if branch != EXPECTED_BRANCH:
-            raise RuntimeError(f"R6_4_WRONG_BRANCH expected={EXPECTED_BRANCH} actual={branch}")
-        if head != EXPECTED_HEAD:
-            raise RuntimeError(f"R6_4_SOURCE_DRIFT expected={EXPECTED_HEAD} actual={head}")
+    if branch != EXPECTED_BRANCH:
+        raise RuntimeError(f"R6_4_WRONG_BRANCH expected={EXPECTED_BRANCH} actual={branch}")
+    if head != EXPECTED_HEAD:
+        raise RuntimeError(f"R6_4_SOURCE_DRIFT expected={EXPECTED_HEAD} actual={head}")
 
     tag_target = _git("rev-parse", f"{R6_3_TAG}^{{}}")
     if tag_target != EXPECTED_HEAD:
@@ -393,13 +176,10 @@ def _static(*, descendant_freeze_integrity_correction: bool = False) -> dict[str
         "branch": branch,
         "head": head,
         "r6_3_tag": R6_3_TAG,
-        "release_artifacts": _verify_release_manifest(
-            canonical_lf_identity=descendant_freeze_integrity_correction
-        ),
+        "release_artifacts": _verify_release_manifest(),
         "production_writes": "NONE",
         "writer_routing": "UNCHANGED",
         "live_cutover_authorized": False,
-        "descendant_freeze_integrity_correction": descendant_correction,
     }
 
 
@@ -713,15 +493,9 @@ def main() -> int:
     import argparse
     parser = argparse.ArgumentParser()
     parser.add_argument("--acceptance", action="store_true")
-    parser.add_argument("--descendant-freeze-integrity-correction", action="store_true")
     args = parser.parse_args()
 
-    if args.acceptance and args.descendant_freeze_integrity_correction:
-        raise RuntimeError("R6_4_DESCENDANT_CORRECTION_ACCEPTANCE_MODE_FORBIDDEN")
-
-    static = _static(
-        descendant_freeze_integrity_correction=args.descendant_freeze_integrity_correction
-    )
+    static = _static()
     if not args.acceptance:
         print(json.dumps(static, indent=2, sort_keys=True))
         print("R6_4_STATIC_VERIFY=PASS")
