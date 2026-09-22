@@ -244,6 +244,7 @@ class TreasuryRepository:
         *,
         tenant_id: int,
         branch_id: int,
+        shift: str,
         before: Optional[datetime],
     ) -> Dict[str, float]:
         """
@@ -266,8 +267,8 @@ class TreasuryRepository:
             .filter(
                 ReconSheet.tenant_id == tenant_id,
                 ReconSheet.branch_id == branch_id,
-                ReconSheet.window_end <= before_dt,
-                ReconSheet.status.in_(["closed", "approved"]),
+                ReconSheet.shift == shift,
+                ReconSheet.window_end == before_dt,
             )
             .order_by(
                 ReconSheet.channel.asc(),
@@ -376,6 +377,14 @@ class TreasuryRepository:
             window_end=end_dt,
         )
 
+        previous_closing = TreasuryRepository.get_previous_closed_reconciliation_by_channel(
+            db,
+            tenant_id=tenant_id,
+            branch_id=branch_id,
+            shift=shift,
+            before=start_dt,
+        )
+
         now = _utc_now()
 
         for incoming in rows:
@@ -384,7 +393,13 @@ class TreasuryRepository:
             if not channel:
                 continue
 
-            opening = _d(incoming.get("opening"))
+            row = existing_map.get(channel)
+            if channel in previous_closing:
+                opening = _d(previous_closing[channel])
+            elif row:
+                opening = _d(row.opening_amount)
+            else:
+                opening = _d(incoming.get("opening"))
             income = _d(incoming.get("income"))
             expense = _d(incoming.get("expense"))
             cash_in = _d(incoming.get("cashIn"))
@@ -407,8 +422,6 @@ class TreasuryRepository:
                 "window_end_utc": _iso(end_dt),
             }
 
-            row = existing_map.get(channel)
-
             if row:
                 row.opening_amount = opening
                 row.income_amount = income
@@ -421,7 +434,10 @@ class TreasuryRepository:
                 row.note = note
                 row.status = safe_status
                 row.closed_by_user_id = closed_by_user_id
-                row.closed_at = now
+                if safe_status == "closed":
+                    row.closed_at = now
+                elif safe_status == "draft":
+                    row.closed_at = None
                 row.updated_at = now
                 row.meta = meta or row.meta
             else:
@@ -443,7 +459,7 @@ class TreasuryRepository:
                     note=note,
                     status=safe_status,
                     closed_by_user_id=closed_by_user_id,
-                    closed_at=now,
+                    closed_at=now if safe_status == "closed" else None,
                     meta=meta,
                 )
 

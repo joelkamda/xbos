@@ -10,6 +10,10 @@ from core.domain.inventory.models import (
     InventoryItem,
     InventoryMovement,
 )
+from core.domain.inventory.stock_location_resolver import (
+    resolve_canonical_stock_location_id,
+    validate_inventory_item_stock_location,
+)
 from core.domain.inventory.repository import InventoryRepository
 from core.domain.sales.models import Sale
 from core.domain.orders.models import Order
@@ -19,6 +23,7 @@ from core.domain.taxonomy.models import (
     TaxonomyNode,
 )
 from core.domain.inventory.taxonomy_profile import resolve_inventory_profile
+from datetime import datetime as _lr2_datetime, timezone as _lr2_timezone
 
 
 # ============================================================
@@ -348,10 +353,17 @@ class InventoryService:
                 inventory_item.reorder_level = _int(reorder_level)
             return inventory_item
 
+        canonical_stock_location_id = resolve_canonical_stock_location_id(
+            db,
+            tenant_id=tenant_id,
+            branch_id=branch_id,
+        )
+
         inventory_item = InventoryItem(
             tenant_id=tenant_id,
             branch_id=branch_id,
             atomic_unit_id=atomic_unit_id,
+            stock_location_id=canonical_stock_location_id,
             quantity_on_hand=0,
             reorder_level=_int(reorder_level) if reorder_level is not None else None,
             created_at=datetime.utcnow(),
@@ -524,17 +536,29 @@ class InventoryService:
                 f"Current={current_quantity}, requested_delta={quantity_delta}."
             )
 
+        canonical_stock_location_id = validate_inventory_item_stock_location(
+            db,
+            tenant_id=tenant_id,
+            branch_id=branch_id,
+            inventory_item_stock_location_id=inventory_item.stock_location_id,
+        )
+
+        movement_timestamp = _lr2_datetime.now(_lr2_timezone.utc)
+
         movement = InventoryMovement(
             tenant_id=tenant_id,
             branch_id=branch_id,
             inventory_item_id=inventory_item.id,
             atomic_unit_id=atomic_unit_id,
+            stock_location_id=canonical_stock_location_id,
             quantity_delta=quantity_delta,
             movement_type=movement_type,
             source=_normalize_source(source),
             reference_type=reference_type,
             reference_id=reference_id,
-            created_at=datetime.utcnow(),
+            created_at=movement_timestamp,
+            occurred_at=movement_timestamp,
+            reason_code=movement_type,
         )
 
         InventoryRepository.create_movement(

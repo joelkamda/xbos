@@ -10,6 +10,7 @@ from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
 from database import Base
+from sqlalchemy import BigInteger as _LR2BigInteger, DateTime as _LR2DateTime, String as _LR2String
 
 
 # -------------------------------------------------
@@ -50,6 +51,8 @@ class InventoryItem(Base):
         nullable=False,
         index=True,
     )
+    # R6.5-LR2: application-owned canonical SO3 stock-location identity.
+    stock_location_id = Column(_LR2BigInteger, nullable=False)
 
     quantity_on_hand = Column(
         Integer,
@@ -196,6 +199,10 @@ class InventoryMovement(Base):
         server_default=func.now(),
         nullable=False,
     )
+    # R6.5-LR2: required SO3 movement neutral fields.
+    stock_location_id = Column(_LR2BigInteger, nullable=False)
+    occurred_at = Column(_LR2DateTime(timezone=True), nullable=False)
+    reason_code = Column(_LR2String(80), nullable=False)
 
     # -------------------------
     # Relationships
