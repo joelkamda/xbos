@@ -11,6 +11,10 @@ IDEMPOTENCY_SCOPE = "restaurant.c3.payment_request"
 SOURCE_COMPONENT = "restaurant.c3"
 ACTOR_SERVICE = "xbos.restaurant.c3"
 SAFE_NEXT_ACTION = "present_permitted_methods_only"
+C4_INTENT_IDEMPOTENCY_SCOPE = "restaurant.c4.payment_intent"
+C4_ATTEMPT_IDEMPOTENCY_SCOPE = "restaurant.c4.payment_attempt"
+C4_SOURCE_COMPONENT = "restaurant.c4"
+C4_ACTOR_SERVICE = "xbos.restaurant.c4"
 
 
 class C3Error(ValueError):
@@ -61,3 +65,21 @@ class CustomerSafePaymentRequestProjection:
     wallet_handoff_context: WalletHandoffContext | None
     safe_next_action: str
     receipt_ref: str | None
+
+
+@dataclass(frozen=True, slots=True)
+class ExternalPaymentExecutionHandoffProjection:
+    payment_request_ref: str
+    payment_intent_ref: str
+    payment_attempt_ref: str
+    selected_method: str
+    payment_method_code: str
+    payment_rail_code: str
+    canonical_amount: Decimal
+    currency: str
+    gateway_payment_id: str
+    gateway_external_reference: str
+    gateway_idempotency_key: str
+    gateway_status: str
+    attempt_state: str
+    next_action: object | None

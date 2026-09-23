@@ -12,12 +12,17 @@ import pytest
 
 from core.domain.finance.payment_intent_contract import PaymentCommandIdempotencyConflict
 from core.domain.finance.payment_intent_repository import PaymentRequestRecord
+from core.integrations.xafpay.contract import XafPayPaymentCreateRequest, XafPayPaymentCreateResponse
 from restaurant.c3 import C3Error, CustomerSafeCheckoutPaymentRequestService, TrustedCheckoutContext
 from restaurant.c3.contracts import CustomerSafePaymentRequestProjection
 from restaurant.c3.service import (
+    ExternalMethodPaymentExecutionService,
+    c4_idempotency_key,
     commercial_fingerprint,
     finance_correlation_id,
     idempotency_key,
+    payment_attempt_public_id,
+    payment_intent_public_id,
     payment_request_public_id,
 )
 from restaurant.r1.contracts import (
@@ -427,24 +432,31 @@ def test_31_channel_fake_success_does_not_imply_paid():
     assert _call(_service()[0]).payment_request_state == "open"
 
 
+def _c3_request_service_source():
+    source = (ROOT / "restaurant/c3/service.py").read_text(encoding="utf-8-sig").lower()
+    return source.split("class customersafecheckoutpaymentrequestservice", 1)[1].split(
+        "class externalmethodpaymentexecutionservice", 1
+    )[0]
+
+
 def test_32_no_gateway_call():
-    source = "\n".join((ROOT / f"restaurant/c3/{name}").read_text(encoding="utf-8-sig").lower() for name in ("service.py", "adapters.py"))
+    source = _c3_request_service_source()
     assert "gateway" not in source
 
 
 def test_33_no_provider_call():
-    source = "\n".join((ROOT / f"restaurant/c3/{name}").read_text(encoding="utf-8-sig").lower() for name in ("service.py", "adapters.py"))
+    source = _c3_request_service_source()
     assert "provider" not in source
     assert "requests." not in source and "httpx" not in source
 
 
 def test_34_no_xafpay_core_service_call():
-    source = "\n".join((ROOT / f"restaurant/c3/{name}").read_text(encoding="utf-8-sig").lower() for name in ("service.py", "adapters.py"))
+    source = _c3_request_service_source()
     assert "xafpay_core" not in source and "core.integrations.xafpay" not in source
 
 
 def test_35_no_second_financial_ledger():
-    source = "\n".join((ROOT / f"restaurant/c3/{name}").read_text(encoding="utf-8-sig").lower() for name in ("service.py", "adapters.py"))
+    source = _c3_request_service_source()
     assert "insert into" not in source and "sqlalchemy" not in source and "create_intent" not in source and "transactionalpaymentsettlementengine" not in source and "create_settlement" not in source
 
 
@@ -457,3 +469,281 @@ def test_36_xc8_semantic_compatibility():
     assert projection.wallet_handoff_context is None
     assert finance_correlation_id(tenant_id=TENANT, organization_unit_id=ORG, order_public_id=ORDER_ID, row_version=7) == UUID(projection.correlation_ref)
     assert commercial_fingerprint(_order(), _handoff(), "wnd.payments.enabled_methods@3")
+
+
+class FakeC4Finance(FakeFinance):
+    def __init__(self):
+        super().__init__()
+        self.intent_rows = {}
+        self.attempt_rows = {}
+
+    def find_request(self, session, *, tenant_id, public_id):
+        for _, record in self.rows.values():
+            if record.tenant_id == tenant_id and record.public_id == public_id:
+                return record
+        return None
+
+    def create_intent(self, session, command):
+        identity = (command.tenant_id, command.idempotency_scope, command.idempotency_key)
+        previous = self.intent_rows.get(identity)
+        if previous is not None:
+            fingerprint, record = previous
+            if fingerprint != command.request_fingerprint:
+                raise PaymentCommandIdempotencyConflict(
+                    "payment_command_idempotency_conflict",
+                    "same identity has different intent content",
+                )
+            return SimpleNamespace(payment_intent=record, replayed=True)
+        record = SimpleNamespace(
+            public_id=command.public_id,
+            requested_amount=command.requested_amount,
+            currency_code=command.currency_code,
+            payment_method_policy=command.payment_method_policy,
+            intent_state="pending",
+            row_version=1,
+            replayed=False,
+        )
+        self.intent_rows[identity] = (command.request_fingerprint, record)
+        return SimpleNamespace(payment_intent=record, replayed=False)
+
+    def create_attempt(self, session, command):
+        identity = (command.tenant_id, command.idempotency_scope, command.idempotency_key)
+        previous = self.attempt_rows.get(identity)
+        if previous is not None:
+            fingerprint, record = previous
+            if fingerprint != command.request_fingerprint:
+                raise PaymentCommandIdempotencyConflict(
+                    "payment_command_idempotency_conflict",
+                    "same identity has different attempt content",
+                )
+            return SimpleNamespace(payment_attempt=record, replayed=True)
+        record = SimpleNamespace(
+            public_id=command.public_id,
+            payment_intent_public_id=command.payment_intent_public_id,
+            payment_method_code=command.payment_method_code,
+            payment_rail_code=command.payment_rail_code,
+            orchestrator_code=command.orchestrator_code,
+            provider_account_id=None,
+            underlying_provider_code=None,
+            external_attempt_reference=None,
+            attempt_state="pending",
+            attempted_amount=command.attempted_amount,
+            currency_code=command.currency_code,
+            row_version=1,
+            replayed=False,
+        )
+        self.attempt_rows[identity] = (command.request_fingerprint, record)
+        return SimpleNamespace(payment_attempt=record, replayed=False)
+
+    def attempt_by_public_id(self, public_id):
+        for _, record in self.attempt_rows.values():
+            if record.public_id == public_id:
+                return record
+        raise AssertionError("attempt not found")
+
+
+class FakeC4Gateway:
+    def __init__(self, finance, *, status="CREATED"):
+        self.finance = finance
+        self.status = status
+        self.created = []
+        self.recorded = []
+
+    def prepare(self, session, **kwargs):
+        attempt = self.finance.attempt_by_public_id(kwargs["payment_attempt_public_id"])
+        return XafPayPaymentCreateRequest(
+            payment_attempt_public_id=attempt.public_id,
+            amount=attempt.attempted_amount,
+            currency_code=attempt.currency_code,
+            payment_method_code=attempt.payment_method_code,
+            payment_rail_code=attempt.payment_rail_code,
+            channel=kwargs["channel"],
+        )
+
+    def create(self, request, *, service_credential, transport):
+        self.created.append((request, service_credential, transport))
+        suffix = str(request.payment_attempt_public_id).replace("-", "")
+        return XafPayPaymentCreateResponse(
+            payment_id=f"pay_{suffix}",
+            external_reference=request.external_reference,
+            status=self.status,
+            amount=request.amount,
+            currency_code=request.currency_code,
+            next_action=(
+                {"type": "MOBILE_APPROVAL", "url": None}
+                if self.status == "REQUIRES_ACTION"
+                else None
+            ),
+            evidence={"fixture": "c4"},
+        )
+
+    def record(self, session, command):
+        self.recorded.append(command)
+        attempt = self.finance.attempt_by_public_id(command.payment_attempt_public_id)
+        attempt.external_attempt_reference = command.response.payment_id
+        attempt.attempt_state = (
+            "requires_action" if command.response.status == "REQUIRES_ACTION" else "processing"
+        )
+        attempt.row_version += 1
+        return attempt
+
+
+def _c4_service(*, methods=None, gateway_status="CREATED"):
+    restaurant = FakeRestaurant()
+    structure = FakeStructure()
+    policy = FakePolicy(methods)
+    finance = FakeC4Finance()
+    checkout = CustomerSafeCheckoutPaymentRequestService(
+        restaurant=restaurant,
+        structure=structure,
+        payment_policy=policy,
+        finance=finance,
+    )
+    c3_projection = checkout.create_payment_request(
+        None,
+        context=TrustedCheckoutContext(TENANT, BRANCH, 9),
+        order_public_id=ORDER_ID,
+    )
+    gateway = FakeC4Gateway(finance, status=gateway_status)
+    execution = ExternalMethodPaymentExecutionService(
+        restaurant=restaurant,
+        structure=structure,
+        payment_policy=policy,
+        finance=finance,
+        gateway=gateway,
+    )
+    execution._test_payment_request_public_id = UUID(c3_projection.payment_request_ref)
+    return execution, finance, gateway
+
+
+def _c4_call(service, selected_method):
+    return service.execute(
+        None,
+        context=TrustedCheckoutContext(TENANT, BRANCH, 9),
+        order_public_id=ORDER_ID,
+        payment_request_ref=service._test_payment_request_public_id,
+        selected_method=selected_method,
+        service_credential="gateway-service-credential",
+        transport=object(),
+        channel="customer-channel",
+    )
+
+
+def test_c4_mtn_selection_creates_one_canonical_intent():
+    service, finance, _ = _c4_service()
+    result = _c4_call(service, "mtn_mobile_money")
+    assert len(finance.intent_rows) == 1
+    assert result.payment_intent_ref == str(payment_intent_public_id(UUID(result.payment_request_ref)))
+
+
+def test_c4_mtn_selection_creates_one_canonical_attempt():
+    service, finance, _ = _c4_service()
+    result = _c4_call(service, "mtn_mobile_money")
+    assert len(finance.attempt_rows) == 1
+    assert result.payment_attempt_ref == str(payment_attempt_public_id(UUID(result.payment_request_ref)))
+
+
+def test_c4_orange_selection_creates_one_canonical_intent():
+    service, finance, _ = _c4_service()
+    _c4_call(service, "orange_money")
+    assert len(finance.intent_rows) == 1
+
+
+def test_c4_orange_selection_creates_one_canonical_attempt():
+    service, finance, _ = _c4_service()
+    result = _c4_call(service, "orange_money")
+    assert len(finance.attempt_rows) == 1
+    assert result.payment_rail_code == "orange_money"
+
+
+@pytest.mark.parametrize(
+    "selected,expected",
+    [
+        ("mtn_mobile_money", ("mobile_money", "mtn_momo")),
+        ("orange_money", ("mobile_money", "orange_money")),
+    ],
+)
+def test_c4_method_rail_mapping_exact(selected, expected):
+    service, _, _ = _c4_service()
+    result = _c4_call(service, selected)
+    assert (result.payment_method_code, result.payment_rail_code) == expected
+
+
+def test_c4_exact_replay_reuses_intent_and_attempt():
+    service, finance, gateway = _c4_service()
+    first = _c4_call(service, "mtn_mobile_money")
+    second = _c4_call(service, "mtn_mobile_money")
+    assert first.payment_intent_ref == second.payment_intent_ref
+    assert first.payment_attempt_ref == second.payment_attempt_ref
+    assert len(finance.intent_rows) == 1
+    assert len(finance.attempt_rows) == 1
+    assert len(gateway.created) == 2
+
+
+def test_c4_gateway_external_reference_binds_attempt():
+    service, _, gateway = _c4_service()
+    result = _c4_call(service, "mtn_mobile_money")
+    request = gateway.created[0][0]
+    expected = f"xbos:pay:{result.payment_attempt_ref}"
+    assert request.external_reference == expected
+    assert result.gateway_external_reference == expected
+
+
+def test_c4_gateway_idempotency_is_replay_stable():
+    service, _, gateway = _c4_service()
+    first = _c4_call(service, "orange_money")
+    second = _c4_call(service, "orange_money")
+    expected = f"xbos:pay:{first.payment_attempt_ref}"
+    assert first.gateway_idempotency_key == expected
+    assert second.gateway_idempotency_key == expected
+    assert [item[0].idempotency_key for item in gateway.created] == [expected, expected]
+
+
+def test_c4_non_external_or_non_permitted_method_fails_closed():
+    service, finance, gateway = _c4_service()
+    with pytest.raises(C3Error) as caught:
+        _c4_call(service, "pay_at_counter")
+    assert caught.value.code == "C4_EXTERNAL_METHOD_REQUIRED"
+    assert not finance.intent_rows
+    assert not finance.attempt_rows
+    assert not gateway.created
+
+
+def test_c4_method_switch_after_first_attempt_conflicts_instead_of_second_attempt():
+    service, finance, gateway = _c4_service()
+    _c4_call(service, "mtn_mobile_money")
+    with pytest.raises(PaymentCommandIdempotencyConflict):
+        _c4_call(service, "orange_money")
+    assert len(finance.intent_rows) == 1
+    assert len(finance.attempt_rows) == 1
+    assert len(gateway.created) == 1
+
+
+def test_c4_gateway_owned_provider_routing_remains_unbound_in_xbos_attempt():
+    service, finance, _ = _c4_service()
+    result = _c4_call(service, "orange_money")
+    attempt = finance.attempt_by_public_id(UUID(result.payment_attempt_ref))
+    assert attempt.provider_account_id is None
+    assert attempt.underlying_provider_code is None
+    assert attempt.orchestrator_code == "xafpay"
+
+
+def test_c4_gateway_create_records_nonterminal_gateway_identity_only():
+    service, finance, _ = _c4_service(gateway_status="REQUIRES_ACTION")
+    result = _c4_call(service, "mtn_mobile_money")
+    attempt = finance.attempt_by_public_id(UUID(result.payment_attempt_ref))
+    assert result.gateway_payment_id.startswith("pay_")
+    assert attempt.external_attempt_reference == result.gateway_payment_id
+    assert result.attempt_state == "requires_action"
+
+
+def test_c4_no_settlement_paid_accounting_or_treasury_path():
+    source = (ROOT / "restaurant/c3/service.py").read_text(encoding="utf-8-sig")
+    c4 = source.split("class ExternalMethodPaymentExecutionService", 1)[1].lower()
+    assert "payment_settlement" not in c4
+    assert "create_settlement" not in c4
+    assert "paid" not in c4
+    assert "accounting" not in c4
+    assert "treasury" not in c4
+    assert "provider_account_public_id=none" in c4
+    assert c4_idempotency_key(UUID(int=1)) == "request:00000000-0000-0000-0000-000000000001"

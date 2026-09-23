@@ -1,6 +1,9 @@
 ﻿from __future__ import annotations
 
+from core.domain.finance.payment_attempt_engine import TransactionalPaymentAttemptEngine
 from core.domain.finance.payment_intent_engine import TransactionalPaymentIntentEngine
+from core.domain.finance.payment_intent_repository import PaymentIntentRepository
+from core.integrations.xafpay.orchestration_service import XafPayOrchestrationService
 
 
 class R1CheckoutAdapter:
@@ -37,8 +40,45 @@ class PaymentPolicyAdapter:
 
 
 class NeutralFinancePaymentRequestAdapter:
-    """The only C3 finance write path: accepted Neutral Finance request creation."""
+    """Accepted Neutral Finance command boundary for C3 request and C4 intent/attempt creation."""
 
     @staticmethod
     def create(session, command):
         return TransactionalPaymentIntentEngine.create_request(session, command)
+
+    @staticmethod
+    def find_request(session, *, tenant_id, public_id):
+        return PaymentIntentRepository.find_request(
+            session,
+            tenant_id=tenant_id,
+            public_id=public_id,
+            lock=False,
+        )
+
+    @staticmethod
+    def create_intent(session, command):
+        return TransactionalPaymentIntentEngine.create_intent(session, command)
+
+    @staticmethod
+    def create_attempt(session, command):
+        return TransactionalPaymentAttemptEngine.create(session, command)
+
+
+class XafPayGatewayV2ExecutionAdapter:
+    """C4 wrapper over the accepted Gateway V2 payment-create orchestration boundary."""
+
+    @staticmethod
+    def prepare(session, **kwargs):
+        return XafPayOrchestrationService.prepare_payment_create(session, **kwargs)
+
+    @staticmethod
+    def create(request, *, service_credential, transport):
+        return XafPayOrchestrationService.create_payment(
+            request,
+            service_credential=service_credential,
+            transport=transport,
+        )
+
+    @staticmethod
+    def record(session, command):
+        return XafPayOrchestrationService.record_payment_create(session, command)
