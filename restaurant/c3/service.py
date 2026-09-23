@@ -202,7 +202,7 @@ class CustomerSafeCheckoutPaymentRequestService:
             tenant_id=context.tenant_id,
             organization_unit_id=organization_unit_id,
             purpose_code=PAYMENT_REQUEST_PURPOSE,
-            requested_amount=handoff.commercial_total,
+            requested_amount=Decimal(_decimal_text(handoff.commercial_total)),
             currency_code=handoff.currency,
             occurred_at=order.submitted_at,
             business_date=business_time.business_date,

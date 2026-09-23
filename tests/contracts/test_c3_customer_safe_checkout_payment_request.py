@@ -10,7 +10,10 @@ from uuid import NAMESPACE_URL, UUID, uuid5
 
 import pytest
 
-from core.domain.finance.payment_intent_contract import PaymentCommandIdempotencyConflict
+from core.domain.finance.payment_intent_contract import (
+    PaymentCommandIdempotencyConflict,
+    PaymentCommandValidationError,
+)
 from core.domain.finance.payment_intent_repository import PaymentRequestRecord
 from core.integrations.xafpay.contract import XafPayPaymentCreateRequest, XafPayPaymentCreateResponse
 from restaurant.c3 import C3Error, CustomerSafeCheckoutPaymentRequestService, TrustedCheckoutContext
@@ -258,6 +261,63 @@ def test_07_amount_derived_from_obligation_handoff():
     service, *_ = _service(handoff=_handoff(amount="4321"))
     projection = _call(service)
     assert projection.canonical_amount == Decimal("4321.00000000")
+
+
+def test_07a_trailing_zero_scale_12_amount_normalizes_exactly_at_finance_boundary():
+    service, _, _, _, finance = _service(handoff=_handoff(amount="2500.000000000000"))
+    projection = _call(service)
+    assert finance.commands[0].requested_amount == Decimal("2500.00000000")
+    assert projection.canonical_amount == Decimal("2500.00000000")
+
+
+def test_07b_trailing_zero_normalization_preserves_commercial_fingerprint():
+    order = _order()
+    handoff = _handoff(order, amount="2500.000000000000")
+    expected = commercial_fingerprint(order, handoff, "wnd.payments.enabled_methods@3")
+    service, _, _, _, finance = _service(order=order, handoff=handoff)
+    _call(service)
+    assert finance.commands[0].metadata["commercial_fingerprint"] == expected
+
+
+def test_07c_nine_meaningful_decimal_places_remain_rejected():
+    service, *_ = _service(handoff=_handoff(amount="1.123456789"))
+    with pytest.raises(PaymentCommandValidationError) as exc:
+        _call(service)
+    assert exc.value.code == "invalid_money"
+    assert "at most eight decimals" in str(exc.value)
+
+
+def test_07d_standard_existing_amount_path_remains_unchanged():
+    service, _, _, _, finance = _service(handoff=_handoff(amount="4321"))
+    projection = _call(service)
+    assert finance.commands[0].requested_amount == Decimal("4321.00000000")
+    assert projection.canonical_amount == Decimal("4321.00000000")
+
+
+def test_07e_deterministic_identities_unchanged_for_scale_12_amount():
+    service, _, _, _, finance = _service(handoff=_handoff(amount="2500.000000000000"))
+    projection = _call(service)
+    assert projection.payment_request_ref == str(
+        payment_request_public_id(
+            tenant_id=TENANT, organization_unit_id=ORG, order_public_id=ORDER_ID, row_version=7
+        )
+    )
+    assert projection.correlation_ref == str(
+        finance_correlation_id(
+            tenant_id=TENANT, organization_unit_id=ORG, order_public_id=ORDER_ID, row_version=7
+        )
+    )
+    assert finance.commands[0].idempotency_key == f"order:{ORDER_ID}:v7"
+
+
+def test_07f_scale_12_exact_replay_still_returns_one_request():
+    service, _, _, _, finance = _service(handoff=_handoff(amount="2500.000000000000"))
+    first = _call(service)
+    second = _call(service)
+    assert first == second
+    assert len(finance.rows) == 1
+    assert len(finance.commands) == 2
+    assert finance.commands[0].request_fingerprint == finance.commands[1].request_fingerprint
 
 
 def test_08_currency_derived_from_obligation_handoff():
