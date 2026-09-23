@@ -45,6 +45,7 @@ class AuthMiddleware(BaseHTTPMiddleware):
             or path.startswith("/auth/")
             or path == "/kernel/health"
             or path == "/kernel/db-check"
+            or path == "/kernel/integrations/xafpay-v2/events"
             or path == "/health"
             or path == "/docs"
             or path.startswith("/docs/")
