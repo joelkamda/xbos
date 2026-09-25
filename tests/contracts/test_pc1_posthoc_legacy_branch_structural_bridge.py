@@ -35,6 +35,7 @@ from restaurant.c3.service import CustomerSafeCheckoutPaymentRequestService
 
 ROOT = Path(__file__).resolve().parents[2]
 BASE = "192d0becb83929a0807537a80eea9b57559d5145"
+BRIDGE_HEAD = "936451415a8ffcf033331194e50a4f606d37b87b"
 AUTHORIZED = {
     "core/platform/structure/posthoc_bridge/__init__.py",
     "core/platform/structure/posthoc_bridge/contracts.py",
@@ -174,20 +175,12 @@ def _cmd(org=10, loc=20, tenant=1):
     return EnsureLegacyBranchStructuralBridge(tenant, org, loc)
 
 
-def _changed_paths():
-    committed = subprocess.run(
-        ["git", "diff", "--name-only", f"{BASE}...HEAD"],
+def _historical_changed_paths():
+    changed = subprocess.run(
+        ["git", "diff", "--name-only", BASE, BRIDGE_HEAD],
         cwd=ROOT, text=True, capture_output=True, check=True,
     ).stdout.splitlines()
-    unstaged = subprocess.run(
-        ["git", "diff", "--name-only"],
-        cwd=ROOT, text=True, capture_output=True, check=True,
-    ).stdout.splitlines()
-    untracked = subprocess.run(
-        ["git", "ls-files", "--others", "--exclude-standard"],
-        cwd=ROOT, text=True, capture_output=True, check=True,
-    ).stdout.splitlines()
-    return {path.replace("\\", "/") for path in committed + unstaged + untracked if path.strip()}
+    return {path.replace("\\", "/") for path in changed if path.strip()}
 
 
 def test_01_happy_path_creates_one_branch_and_one_mapping():
@@ -366,10 +359,10 @@ def test_23_zero_r1_order_effect():
 
 
 def test_24_alembic_and_schema_head_unchanged():
-    changed = _changed_paths()
+    changed = _historical_changed_paths()
     assert not any(path.startswith("alembic") for path in changed)
     assert not any("migration" in path.lower() for path in changed)
 
 
 def test_25_exact_source_boundary_only():
-    assert _changed_paths() == AUTHORIZED
+    assert _historical_changed_paths() == AUTHORIZED

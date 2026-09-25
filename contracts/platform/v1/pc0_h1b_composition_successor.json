@@ -1,0 +1,67 @@
+{
+  "schema": "xbos.platform.pc0-h1b-composition-successor.v1",
+  "authority": "XBOS-G02-C3-H1B-R2-R1-PC0-PC6-SUCCESSOR-REPAIR-AND-FULL-REGRESSION",
+  "successor_class": "POSTHOC_PC0_COMPOSITION_AND_NON_FINANCE_EXTENSION_SUCCESSOR_ONLY",
+  "source_base": "f4dcfbe3c555d7da17196cdc4b377fd333db7a4d",
+  "historical_pc0_composition_baseline_mutated": false,
+  "historical_pc0_finance_inventory_mutated": false,
+  "historical_pc0_release_manifest_mutated": false,
+  "composition_override": {
+    "path": "startup.py",
+    "historical_sha256": "465fb8e613f66de8f77b7a3d4b4566c42dda1ad5db9435608a66cfa2fb20e698",
+    "successor_sha256": "fde45446f8f85df518e1997a5b5005308f6314ed4088a582a7fefeb6eee90dce",
+    "required_markers": [
+      "from restaurant.customer_channel.router import router as customer_channel_router",
+      "app.include_router(customer_channel_router)"
+    ]
+  },
+  "non_finance_extensions": [
+    {
+      "owner": "H1B_CUSTOMER_CHANNEL",
+      "root": "alembic_neutral",
+      "path": "sql/cch_customer_channel_checkout_authority_up.sql",
+      "sha256": "a8e9663911a11c1b3df9dea462ceb20ca6598329baf1144af2f9f50fa937a3fb",
+      "reason": "H1B_CUSTOMER_CHANNEL_NON_FINANCE_SCHEMA_EXTENSION"
+    },
+    {
+      "owner": "H1B_CUSTOMER_CHANNEL",
+      "root": "alembic_neutral",
+      "path": "sql/cch_customer_channel_checkout_authority_down.sql",
+      "sha256": "4344980ab4d8821076185a1987c6cb0df744d3ccc782138923a844708af10c01",
+      "reason": "H1B_CUSTOMER_CHANNEL_NON_FINANCE_SCHEMA_EXTENSION"
+    },
+    {
+      "owner": "H1B_CUSTOMER_CHANNEL",
+      "root": "alembic_neutral",
+      "path": "versions/cch_customer_channel_checkout_authority_047.py",
+      "sha256": "8f9b6ca94353c6fe83843a37ae1e4be619442debfdf55a12f460a16dc57d6859",
+      "reason": "H1B_CUSTOMER_CHANNEL_NON_FINANCE_SCHEMA_EXTENSION"
+    }
+  ],
+  "migration": {
+    "revision": "cch_customer_channel_checkout_authority_047",
+    "parent": "r1_restaurant_order_line_lifecycle_046",
+    "new_table_count": 2,
+    "financial_effect": "ZERO"
+  },
+  "pc0_release_replacements": [
+    {
+      "path": "core/platform/architecture_contract.py",
+      "historical_sha256": "eae3265ad7632fcb9bc811ccda290579d59583ebc15aaf8d762a7262c93755b8",
+      "successor_sha256": "2da6f332c8e71d5a24c362c4570c086a51a7a885614d0e1d22fae70f55d6e20a"
+    },
+    {
+      "path": "tests/contracts/test_pc0_kernel_boundaries.py",
+      "historical_sha256": "ece19ea243bc1725ebf0e7446af69c28ff83411cd2ff0f2cf717a9de842d06f9",
+      "successor_sha256": "94dfe111550ef76ac89aff8838c0ec04751b0b61e565bf6fd61c85ab89447cc8"
+    }
+  ],
+  "allowed_paths": [
+    "alembic_neutral/sql/cch_customer_channel_checkout_authority_down.sql",
+    "alembic_neutral/sql/cch_customer_channel_checkout_authority_up.sql",
+    "alembic_neutral/versions/cch_customer_channel_checkout_authority_047.py",
+    "core/platform/architecture_contract.py",
+    "startup.py",
+    "tests/contracts/test_pc0_kernel_boundaries.py"
+  ]
+}

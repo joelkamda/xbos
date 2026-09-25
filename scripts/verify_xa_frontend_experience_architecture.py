@@ -16,6 +16,7 @@ if str(ROOT) not in sys.path:
 from core.platform.architecture_contract import validate_pc0
 from core.platform.release_integrity import verify_historical_release, verify_latest_release
 from experience_contracts import validate_experience
+from scripts.verify_pc8_h1b_private_route_admission_successor import require_full_regression_replacement
 
 CONTRACTS = ROOT / "contracts/experience/v1"
 EXAMPLES = CONTRACTS / "examples"
@@ -102,30 +103,16 @@ def _verify_release() -> int:
     if _canonical_sha(CONTRACTS / "xa_release_manifest.json") != "fe3c8a84bf225300d5b13da4e3daa9dc02b55ddbd79ec5f0226f20bd92527a08":
         raise RuntimeError("XA_HISTORICAL_RELEASE_MANIFEST_CHANGED")
     latest = verify_latest_release(ROOT)["latest"]
-    replacements = {}
-    if latest > 6:
-        descendant = _json(ROOT / "contracts/shared_operations/v1/so1_release_manifest.json")
-        pins = {item["path"]: item["sha256"] for item in descendant.get("artifacts", [])}
-        platform_path = f"contracts/platform/v1/pc{latest}_release_manifest.json"
-        if pins.get(platform_path) != _canonical_sha(ROOT / platform_path):
-            raise RuntimeError("XA_DESCENDANT_PLATFORM_PIN")
-        if pins.get("contracts/shared_operations/v1/so0_release_manifest.json") != "69e5af59af71a666d029ec536c80316a9d007f451ad1e677cdf30212520527cd":
-            raise RuntimeError("XA_DESCENDANT_SO0_PIN")
-        entries = descendant.get("historical_xa_replacements", [])
-        replacements = {item.get("path"): item for item in entries}
-        if set(replacements) != {"scripts/verify_xa_frontend_experience_architecture.py"} or len(entries) != 1:
-            raise RuntimeError("XA_DESCENDANT_REPLACEMENT_AUTHORITY")
-    mismatches = set()
+    if latest > 6 and verify_historical_release(ROOT, 6)["latest"] != latest:
+        raise RuntimeError("XA_PLATFORM_CORE_DESCENDANT_RESOLUTION")
     for item in manifest["artifacts"]:
         path = ROOT / item["path"]
         actual = _canonical_sha(path) if path.is_file() else None
         if actual != item["sha256"]:
-            mismatches.add(item["path"])
-            replacement = replacements.get(item["path"])
-            if not replacement or replacement.get("historical_sha256") != item["sha256"] or replacement.get("descendant_sha256") != actual:
-                raise RuntimeError(f"XA_RELEASE_MANIFEST_MISMATCH={item['path']}")
-    if set(replacements) != mismatches:
-        raise RuntimeError(f"XA_DESCENDANT_REPLACEMENT_SET={sorted(set(replacements)^mismatches)}")
+            require_full_regression_replacement(
+                item["path"], item["sha256"], actual,
+                "scripts/verify_xa_frontend_experience_architecture.py",
+            )
     return len(listed)
 
 

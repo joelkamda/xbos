@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Verify final PC7 neutral-interaction Platform Core registration and release."""
+"""Verify immutable PC7 neutral-interaction authority through current successor release."""
 from __future__ import annotations
 
 import ast
@@ -42,8 +42,6 @@ EXPECTED_TABLES = {
     "ia0_interaction_handoffs", "ia0_interaction_events",
     "ia0_interaction_capability_grants", "ia0_interaction_context_bindings",
 }
-EXPECTED_REPLACEMENT_COUNTS = {1: 15, 2: 11, 3: 12, 4: 15, 5: 11, 6: 6}
-
 
 def _json(name):
     return json.loads((CONTRACTS / name).read_text(encoding="utf-8"))
@@ -172,12 +170,12 @@ def verify():
         raise RuntimeError(f"IA0 table topology mismatch={sorted(tables)}")
 
     chain = release_chain(ROOT)
-    if [number for number, _ in chain] != [1, 2, 3, 4, 5, 6, 7]:
-        raise RuntimeError("PC7 release chain is not contiguous through 7")
-    latest = verify_latest_release(ROOT)
-    if latest != {"latest": 7, "artifact_count": 33}:
-        raise RuntimeError(f"PC7 latest release mismatch={latest}")
+    if [number for number, _ in chain] != [1, 2, 3, 4, 5, 6, 7, 8]:
+        raise RuntimeError("Platform release chain is not contiguous through PC8")
     release = _json("pc7_release_manifest.json")
+    pc8_successor = _json("pc8_h1b_private_route_admission_successor.json")
+    if _sha("contracts/platform/v1/pc7_release_manifest.json") != pc8_successor["historical_manifest_sha256"]["pc7"]:
+        raise RuntimeError("immutable PC7 release manifest bytes changed")
     if (
         release.get("release") != "XBOS_PLATFORM_CORE_PC7"
         or release.get("source_checkpoint") != "b067d0a"
@@ -188,10 +186,12 @@ def verify():
     ):
         raise RuntimeError("PC7 release metadata mismatch")
 
-    for number, expected_count in EXPECTED_REPLACEMENT_COUNTS.items():
+    pc8 = _json("pc8_release_manifest.json")
+    for number in range(1, 8):
         report = verify_historical_release(ROOT, number)
-        if report["latest"] != 7 or report["replacement_count"] != expected_count:
-            raise RuntimeError(f"PC{number} historical resolution mismatch={report}")
+        expected_count = len(pc8[f"historical_pc{number}_replacements"])
+        if report["latest"] != 8 or report["replacement_count"] != expected_count:
+            raise RuntimeError(f"PC{number} historical resolution through PC8 mismatch={report}")
     for relative in ("XBOS_PC7_INSTALL_AND_VERIFY.txt", "XBOS_PC7_RUN_ACCEPTANCE.cmd"):
         if not (ROOT / relative).is_file():
             raise RuntimeError(f"missing PC7 operator surface={relative}")
@@ -213,8 +213,8 @@ def verify():
         "canonical_primitive_count": 10,
         "internal_command_table_count": 1,
         "migration": "ia0_neutral_interaction_authority_045",
-        "latest_platform_release": 7,
-        "pc7_release_manifest": "PASS",
+        "latest_platform_release": 8,
+        "pc7_release_manifest": "PASS_HISTORICAL",
         "artifact_count": 33,
         "a3_definition": "NOT_YET_REPOSITORY_AUTHORITY",
     }
@@ -223,7 +223,7 @@ def verify():
 if __name__ == "__main__":
     result = verify()
     print("PC7_FULL_PLATFORM_REGISTRATION=PASS")
-    print("PC7_LATEST_RELEASE=PASS")
-    print("PC7_RELEASE_MANIFEST=PASS")
+    print("PC7_HISTORICAL_RELEASE_THROUGH_PC8=PASS")
+    print("PC7_RELEASE_MANIFEST_IMMUTABLE=PASS")
     for key, value in result.items():
         print(f"{key.upper()}={value}")

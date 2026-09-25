@@ -31,6 +31,7 @@ class TenantMiddleware(BaseHTTPMiddleware):
         if (
             path.startswith("/kernel/auth/")
             or path.startswith("/auth/")
+            or path.startswith("/internal/customer-channel/v1")
             or path in ("/kernel/health", "/kernel/db-check")
             or method == "OPTIONS"
         ):

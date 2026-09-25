@@ -1,4 +1,4 @@
-"""Final cumulative PC0->PC7 release-integrity and historical-resolution proof."""
+"""Immutable PC7 milestone and cumulative historical resolution through PC8."""
 from __future__ import annotations
 
 import hashlib
@@ -14,7 +14,6 @@ from core.platform.release_integrity import (
 
 ROOT = Path(__file__).resolve().parents[2]
 CONTRACTS = ROOT / "contracts/platform/v1"
-EXPECTED_REPLACEMENT_COUNTS = {1: 15, 2: 11, 3: 12, 4: 15, 5: 11, 6: 6}
 EXPECTED_ARTIFACTS = {
     "XBOS_PC7_INSTALL_AND_VERIFY.txt",
     "XBOS_PC7_RUN_ACCEPTANCE.cmd",
@@ -54,35 +53,39 @@ EXPECTED_ARTIFACTS = {
 
 def _json(name):
     return json.loads((CONTRACTS / name).read_text(encoding="utf-8"))
-def test_pc7_is_exact_contiguous_latest_platform_release():
+def test_pc7_is_exact_immutable_historical_milestone_under_pc8():
     chain = release_chain(ROOT)
-    assert [number for number, _ in chain] == [1, 2, 3, 4, 5, 6, 7]
-    number, manifest = chain[-1]
-    assert number == 7
+    assert [number for number, _ in chain] == list(range(1, 9))
+    manifest = _json("pc7_release_manifest.json")
     assert manifest["release"] == "XBOS_PLATFORM_CORE_PC7"
     assert manifest["source_checkpoint"] == "b067d0a"
     assert manifest["previous_head"] == "pc5_identity_policy_audit_025"
     assert manifest["accepted_head"] == "ia0_neutral_interaction_authority_045"
     assert manifest["migration_count"] == 1
     assert manifest["fingerprint_policy"]["release_sequence"] == 7
+    assert verify_latest_release(ROOT) == {"latest": 8, "artifact_count": 40}
 
 
-def test_pc7_artifact_set_is_exact_unique_and_current():
+def test_pc7_artifact_set_and_manifest_bytes_remain_immutable():
     manifest = _json("pc7_release_manifest.json")
     paths = [item["path"] for item in manifest["artifacts"]]
     assert len(paths) == len(set(paths)) == 33
     assert set(paths) == EXPECTED_ARTIFACTS
-    assert verify_latest_release(ROOT) == {"latest": 7, "artifact_count": 33}
+    raw = (CONTRACTS / "pc7_release_manifest.json").read_bytes().replace(b"\r\n", b"\n")
+    successor = _json("pc8_h1b_private_route_admission_successor.json")
+    assert hashlib.sha256(raw).hexdigest() == successor["historical_manifest_sha256"]["pc7"]
 
 
-def test_every_historical_platform_release_resolves_exactly_through_pc7():
-    reports = {number: verify_historical_release(ROOT, number) for number in range(1, 7)}
+def test_every_historical_platform_release_resolves_exactly_through_pc8():
+    pc8 = _json("pc8_release_manifest.json")
+    reports = {number: verify_historical_release(ROOT, number) for number in range(1, 8)}
     assert {number: report["latest"] for number, report in reports.items()} == {
-        number: 7 for number in range(1, 7)
+        number: 8 for number in range(1, 8)
     }
-    assert {number: report["replacement_count"] for number, report in reports.items()} == (
-        EXPECTED_REPLACEMENT_COUNTS
-    )
+    assert {number: report["replacement_count"] for number, report in reports.items()} == {
+        number: len(pc8[f"historical_pc{number}_replacements"])
+        for number in range(1, 8)
+    }
 def test_pc6_historical_replacement_map_is_exact():
     manifest = _json("pc7_release_manifest.json")
     actual = manifest["historical_pc6_replacements"]

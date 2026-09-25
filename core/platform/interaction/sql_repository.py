@@ -1139,3 +1139,29 @@ class SQLInteractionRepository:
             ended_at=row.ended_at,
             correlation_id=UUID(str(row.correlation_id)) if row.correlation_id else None,
         )
+
+    def context_binding_by_public_id(
+        self, public_id: UUID
+    ) -> InteractionContextBinding | None:
+        """Resolve an IA0 binding only when the public id is globally unambiguous.
+
+        IA0 public ids are tenant-scoped. Customer Channel intentionally does
+        not supply tenant authority, so a duplicated public id across tenants
+        must fail closed rather than select a tenant implicitly.
+        """
+        rows = self.db_session.execute(
+            text(
+                "SELECT tenant_id FROM ia0_interaction_context_bindings "
+                "WHERE public_id=:p ORDER BY tenant_id"
+            ),
+            {"p": str(public_id)},
+        ).scalars().all()
+        tenant_ids = tuple(dict.fromkeys(int(value) for value in rows))
+        if not tenant_ids:
+            return None
+        if len(tenant_ids) != 1:
+            raise IA0RepositoryError(
+                "IA0_CONTEXT_BINDING_AMBIGUOUS",
+                "context binding public id is ambiguous across tenants",
+            )
+        return self.context_binding(tenant_ids[0], public_id)

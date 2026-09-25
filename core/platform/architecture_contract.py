@@ -37,6 +37,22 @@ CONTRACT_FILES = {
 ROOT_PYTHON_MODULES = {
     "app", "container", "database", "logging_config", "main", "settings", "startup"
 }
+H1B_SUCCESSOR_FILE = "pc0_h1b_composition_successor.json"
+_H1B_SCHEMA = "xbos.platform.pc0-h1b-composition-successor.v1"
+_H1B_AUTHORITY = "XBOS-G02-C3-H1B-R2-R1-PC0-PC6-SUCCESSOR-REPAIR-AND-FULL-REGRESSION"
+_H1B_CLASS = "POSTHOC_PC0_COMPOSITION_AND_NON_FINANCE_EXTENSION_SUCCESSOR_ONLY"
+_H1B_SOURCE_BASE = "f4dcfbe3c555d7da17196cdc4b377fd333db7a4d"
+_H1B_STARTUP_HISTORICAL = "465fb8e613f66de8f77b7a3d4b4566c42dda1ad5db9435608a66cfa2fb20e698"
+_H1B_STARTUP_SUCCESSOR = "fde45446f8f85df518e1997a5b5005308f6314ed4088a582a7fefeb6eee90dce"
+_H1B_EXTENSION_HASHES = {
+    "sql/cch_customer_channel_checkout_authority_up.sql": "a8e9663911a11c1b3df9dea462ceb20ca6598329baf1144af2f9f50fa937a3fb",
+    "sql/cch_customer_channel_checkout_authority_down.sql": "4344980ab4d8821076185a1987c6cb0df744d3ccc782138923a844708af10c01",
+    "versions/cch_customer_channel_checkout_authority_047.py": "8f9b6ca94353c6fe83843a37ae1e4be619442debfdf55a12f460a16dc57d6859",
+}
+_H1B_PC0_RELEASE_HISTORICAL = {
+    "core/platform/architecture_contract.py": "eae3265ad7632fcb9bc811ccda290579d59583ebc15aaf8d762a7262c93755b8",
+    "tests/contracts/test_pc0_kernel_boundaries.py": "ece19ea243bc1725ebf0e7446af69c28ff83411cd2ff0f2cf717a9de842d06f9",
+}
 
 
 class PC0ArchitectureError(AssertionError):
@@ -78,6 +94,163 @@ def _sha256_file(path: Path) -> str:
 def _source_sha256(path: Path) -> str:
     """Hash the canonical Git text, independent of checkout newline policy."""
     return hashlib.sha256(path.read_bytes().replace(b"\r\n", b"\n")).hexdigest()
+
+
+def _validate_h1b_successor_contract(root: Path, contract: dict[str, Any]) -> dict[str, Any]:
+    expected_keys = {
+        "schema", "authority", "successor_class", "source_base",
+        "historical_pc0_composition_baseline_mutated",
+        "historical_pc0_finance_inventory_mutated",
+        "historical_pc0_release_manifest_mutated",
+        "composition_override", "non_finance_extensions", "migration",
+        "pc0_release_replacements", "allowed_paths",
+    }
+    if set(contract) != expected_keys:
+        _fail("PC0-H1B-SUCCESSOR-SHAPE", f"keys={sorted(contract)}")
+    if contract.get("schema") != _H1B_SCHEMA:
+        _fail("PC0-H1B-SUCCESSOR-SCHEMA", str(contract.get("schema")))
+    if contract.get("authority") != _H1B_AUTHORITY or contract.get("successor_class") != _H1B_CLASS:
+        _fail("PC0-H1B-SUCCESSOR-AUTHORITY", "authority or successor class mismatch")
+    if contract.get("source_base") != _H1B_SOURCE_BASE:
+        _fail("PC0-H1B-SUCCESSOR-BASE", str(contract.get("source_base")))
+    for key in (
+        "historical_pc0_composition_baseline_mutated",
+        "historical_pc0_finance_inventory_mutated",
+        "historical_pc0_release_manifest_mutated",
+    ):
+        if contract.get(key) is not False:
+            _fail("PC0-H1B-HISTORICAL-REWRITE", key)
+
+    composition = contract.get("composition_override")
+    if not isinstance(composition, dict) or set(composition) != {
+        "path", "historical_sha256", "successor_sha256", "required_markers"
+    }:
+        _fail("PC0-H1B-COMPOSITION-OVERRIDE", "invalid shape")
+    if composition.get("path") != "startup.py":
+        _fail("PC0-H1B-COMPOSITION-OVERRIDE", str(composition.get("path")))
+    if composition.get("historical_sha256") != _H1B_STARTUP_HISTORICAL:
+        _fail("PC0-H1B-COMPOSITION-HISTORICAL", str(composition.get("historical_sha256")))
+    if composition.get("successor_sha256") != _H1B_STARTUP_SUCCESSOR:
+        _fail("PC0-H1B-COMPOSITION-SUCCESSOR", str(composition.get("successor_sha256")))
+    markers = composition.get("required_markers")
+    expected_markers = [
+        "from restaurant.customer_channel.router import router as customer_channel_router",
+        "app.include_router(customer_channel_router)",
+    ]
+    if markers != expected_markers:
+        _fail("PC0-H1B-COMPOSITION-MARKERS", str(markers))
+    startup = root / "startup.py"
+    if _source_sha256(startup) != _H1B_STARTUP_SUCCESSOR:
+        _fail("PC0-H1B-COMPOSITION-CHANGED", "startup.py")
+    source = startup.read_text(encoding="utf-8")
+    for marker in expected_markers:
+        if marker not in source:
+            _fail("PC0-H1B-COMPOSITION-MARKER", marker)
+
+    extensions = contract.get("non_finance_extensions")
+    if not isinstance(extensions, list) or len(extensions) != 3:
+        _fail("PC0-H1B-EXTENSIONS", "exactly three extensions required")
+    by_path: dict[str, dict[str, Any]] = {}
+    for item in extensions:
+        if not isinstance(item, dict) or set(item) != {"owner", "root", "path", "sha256", "reason"}:
+            _fail("PC0-H1B-EXTENSIONS", str(item))
+        path = item.get("path")
+        if path in by_path:
+            _fail("PC0-H1B-EXTENSIONS", f"duplicate={path}")
+        by_path[path] = item
+    if set(by_path) != set(_H1B_EXTENSION_HASHES):
+        _fail("PC0-H1B-EXTENSIONS", f"paths={sorted(by_path)}")
+    for relative, expected_hash in _H1B_EXTENSION_HASHES.items():
+        item = by_path[relative]
+        if (
+            item.get("owner") != "H1B_CUSTOMER_CHANNEL"
+            or item.get("root") != "alembic_neutral"
+            or item.get("sha256") != expected_hash
+            or item.get("reason") != "H1B_CUSTOMER_CHANNEL_NON_FINANCE_SCHEMA_EXTENSION"
+        ):
+            _fail("PC0-H1B-EXTENSIONS", relative)
+        if _source_sha256(root / "alembic_neutral" / relative) != expected_hash:
+            _fail("PC0-NON-FINANCE-EXTENSION-CHANGED", f"alembic_neutral/{relative}")
+
+    migration = contract.get("migration")
+    if migration != {
+        "revision": "cch_customer_channel_checkout_authority_047",
+        "parent": "r1_restaurant_order_line_lifecycle_046",
+        "new_table_count": 2,
+        "financial_effect": "ZERO",
+    }:
+        _fail("PC0-H1B-MIGRATION-SUCCESSOR", str(migration))
+
+    replacements = contract.get("pc0_release_replacements")
+    if not isinstance(replacements, list) or len(replacements) != 2:
+        _fail("PC0-H1B-RELEASE-REPLACEMENTS", "exactly two replacements required")
+    replacement_by_path = {item.get("path"): item for item in replacements if isinstance(item, dict)}
+    if set(replacement_by_path) != set(_H1B_PC0_RELEASE_HISTORICAL):
+        _fail("PC0-H1B-RELEASE-REPLACEMENTS", f"paths={sorted(replacement_by_path)}")
+    for relative, historical in _H1B_PC0_RELEASE_HISTORICAL.items():
+        item = replacement_by_path[relative]
+        if set(item) != {"path", "historical_sha256", "successor_sha256"}:
+            _fail("PC0-H1B-RELEASE-REPLACEMENTS", relative)
+        actual = _source_sha256(root / relative)
+        if item.get("historical_sha256") != historical or item.get("successor_sha256") != actual:
+            _fail("PC0-H1B-RELEASE-REPLACEMENTS", relative)
+
+    allowed = contract.get("allowed_paths")
+    expected_allowed = sorted({
+        "startup.py",
+        *(f"alembic_neutral/{path}" for path in _H1B_EXTENSION_HASHES),
+        *_H1B_PC0_RELEASE_HISTORICAL,
+    })
+    if allowed != expected_allowed:
+        _fail("PC0-H1B-ALLOWED-PATHS", str(allowed))
+    return contract
+
+
+def _load_h1b_successor(root: Path) -> dict[str, Any] | None:
+    path = root / CONTRACT_DIRECTORY / H1B_SUCCESSOR_FILE
+    if not path.is_file():
+        return None
+    try:
+        contract = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        _fail("PC0-H1B-SUCCESSOR-READ", str(exc))
+    return _validate_h1b_successor_contract(root, contract)
+
+
+def _pc8_composition_replacements(root: Path) -> dict[str, tuple[str, str]]:
+    contract_path = root / CONTRACT_DIRECTORY / "pc8_h1b_private_route_admission_successor.json"
+    manifest_path = root / CONTRACT_DIRECTORY / "pc8_release_manifest.json"
+    if not contract_path.is_file() and not manifest_path.is_file():
+        return {}
+    if not contract_path.is_file() or not manifest_path.is_file():
+        _fail("PC0-PC8-SUCCESSOR-INCOMPLETE", "contract/manifest pair required")
+    try:
+        contract = json.loads(contract_path.read_text(encoding="utf-8"))
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        _fail("PC0-PC8-SUCCESSOR-READ", str(exc))
+    if (
+        contract.get("schema") != "xbos.platform.pc8-h1b-private-route-admission-successor.v1"
+        or contract.get("source_base") != _H1B_SOURCE_BASE
+        or contract.get("private_prefix") != "/internal/customer-channel/v1"
+        or contract.get("new_platform_business_authority") is not False
+        or contract.get("new_platform_schema_authority") is not False
+    ):
+        _fail("PC0-PC8-SUCCESSOR-AUTHORITY", "private-route successor mismatch")
+    expected = {
+        "core/middleware/auth_middleware.py": "4a8cafe8e87069499da4ee798ba060e54b757224930e131a434f8b99f18e2366",
+        "core/middleware/tenant_middleware.py": "5151239379e4b6e686bc168818d655c94e2945df324ee5452441549deb83dd9d",
+        "core/middleware/branch_middleware.py": "af0c6cc09242d60f54c7d300e5fadda872b13db2e793307afedf47036bd5554f",
+    }
+    bases = contract.get("accepted_base_canonical_sha256", {})
+    artifacts = {item.get("path"): item.get("sha256") for item in manifest.get("artifacts", [])}
+    replacements: dict[str, tuple[str, str]] = {}
+    for relative, historical in expected.items():
+        actual = _source_sha256(root / relative)
+        if bases.get(relative) != historical or artifacts.get(relative) != actual:
+            _fail("PC0-PC8-SUCCESSOR-INTEGRITY", relative)
+        replacements[relative] = (historical, actual)
+    return replacements
 
 
 _TRANSIENT_CACHE_COMPONENTS = {".pytest_cache", ".mypy_cache", ".ruff_cache", ".hypothesis"}
@@ -230,6 +403,7 @@ def _edges_for_source(
     source_path: str,
     source: str,
     roots: list[tuple[str, str]],
+    admitted_unmapped_targets: set[tuple[str, str, str]] | None = None,
 ) -> list[ImportEdge]:
     source_module = _module_for_path(source_path, roots)
     if source_module is None:
@@ -241,6 +415,9 @@ def _edges_for_source(
             continue
         target_module = _module_for_path(target_path, roots)
         if target_module is None:
+            key = (source_path, import_name, target_path)
+            if admitted_unmapped_targets and key in admitted_unmapped_targets:
+                continue
             _fail("PC0-UNMAPPED-TARGET", f"{source_path} -> {import_name} ({target_path})")
         if source_module != target_module:
             edges.append(ImportEdge(source_path, import_name, source_module, target_module))
@@ -361,13 +538,32 @@ def _validate_reference_migrations(register: dict[str, Any]) -> None:
                 _fail("PC0-REFERENCE-INCOMPLETE", f"{entry.get('reference')}.{field}")
 
 
-def _validate_composition(root: Path, composition: dict[str, Any]) -> None:
+def _validate_composition(
+    root: Path, composition: dict[str, Any], successor: dict[str, Any] | None = None
+) -> None:
+    if successor is None:
+        successor = _load_h1b_successor(root)
+    else:
+        successor = _validate_h1b_successor_contract(root, successor)
     if composition.get("fingerprint_mode") != "sha256_git_canonical_lf":
         _fail("PC0-COMPOSITION-FINGERPRINT-MODE", str(composition.get("fingerprint_mode")))
+    override = successor.get("composition_override") if successor else None
+    pc8_replacements = _pc8_composition_replacements(root)
     for relative, expected in composition.get("files", {}).items():
         actual = _source_sha256(root / relative)
-        if actual != expected:
-            _fail("PC0-COMPOSITION-CHANGED", f"{relative}: {actual} != {expected}")
+        if actual == expected:
+            continue
+        if (
+            override
+            and relative == override["path"]
+            and expected == override["historical_sha256"]
+            and actual == override["successor_sha256"]
+        ):
+            continue
+        pc8 = pc8_replacements.get(relative)
+        if pc8 and pc8 == (expected, actual):
+            continue
+        _fail("PC0-COMPOSITION-CHANGED", f"{relative}: {actual} != {expected}")
     for relative, markers in composition.get("markers", {}).items():
         source = (root / relative).read_text(encoding="utf-8")
         for marker in markers:
@@ -434,7 +630,17 @@ def _validate_migration_lineage(
         _fail("PC0-MIGRATION-HEAD", f"heads={heads}, lineage={lineage}")
 
 
-def _validate_finance(root: Path, finance: dict[str, Any], inventory: dict[str, Any], accepted_heads: Iterable[str] = ()) -> None:
+def _validate_finance(
+    root: Path,
+    finance: dict[str, Any],
+    inventory: dict[str, Any],
+    accepted_heads: Iterable[str] = (),
+    successor: dict[str, Any] | None = None,
+) -> None:
+    if successor is None:
+        successor = _load_h1b_successor(root)
+    else:
+        successor = _validate_h1b_successor_contract(root, successor)
     if isinstance(accepted_heads, str):
         accepted_heads = (accepted_heads,)
     if finance.get("fingerprint_mode") != "sha256_git_canonical_lf":
@@ -456,6 +662,9 @@ def _validate_finance(root: Path, finance: dict[str, Any], inventory: dict[str, 
         if not valid_owner or not all(isinstance(item.get(key), str) and item[key] for key in ("root","path","sha256")):
             _fail("PC0-NON-FINANCE-EXTENSION", str(item))
         extensions_by_root.setdefault(item["root"], {})[item["path"]] = item["sha256"]
+    if successor:
+        for item in successor["non_finance_extensions"]:
+            extensions_by_root.setdefault(item["root"], {})[item["path"]] = item["sha256"]
     for tree in finance.get("trees", []):
         declared = inventory_trees[tree["root"]]
         files = declared.get("files", [])
@@ -467,6 +676,10 @@ def _validate_finance(root: Path, finance: dict[str, Any], inventory: dict[str, 
             _fail("PC0-FROZEN-FINANCE-CHANGED", f"{tree['root']}: count={count}, sha256={actual}")
     heads, lineage = _migration_revisions(root)
     _validate_migration_lineage(heads, lineage, finance, accepted_heads)
+    if successor:
+        migration = successor["migration"]
+        if heads != [migration["revision"]] or lineage[-2:] != [migration["parent"], migration["revision"]]:
+            _fail("PC0-H1B-MIGRATION-SUCCESSOR", f"heads={heads}, tail={lineage[-2:]}")
     boundaries = finance.get("boundaries", {})
     if boundaries.get("migration") != "NONE" or boundaries.get("schema_neutral") is not True:
         _fail("PC0-SCHEMA-NEUTRAL", "PC0 may not carry a migration")
@@ -487,12 +700,13 @@ def validate_pc0(root: str | Path, validate_release: bool = True) -> dict[str, A
     """Validate the complete static PC0 contract and return deterministic counts."""
     root_path = Path(root).resolve()
     contracts = {key: _load_json(root_path, name) for key, name in CONTRACT_FILES.items()}
+    successor = _load_h1b_successor(root_path)
     _validate_modules(contracts["module_map"], contracts["dependency_policy"], contracts["interfaces"])
     if set(contracts["composition"].get("files", {})) != set(contracts["module_map"].get("composition_files", [])):
         _fail("PC0-COMPOSITION-COVERAGE", "composition baseline must exactly match the module-map inventory")
     _validate_authorities(contracts["authorities"])
     _validate_reference_migrations(contracts["reference_migrations"])
-    _validate_composition(root_path, contracts["composition"])
+    _validate_composition(root_path, contracts["composition"], successor)
     descendant_heads = [
         contracts["pc1"].get("accepted_head"), contracts["pc2"].get("accepted_head"),
         contracts["pc3"].get("accepted_head"), contracts["pc4"].get("accepted_head"),
@@ -516,16 +730,28 @@ def validate_pc0(root: str | Path, validate_release: bool = True) -> dict[str, A
         contracts["finance"],
         contracts["finance_inventory"],
         descendant_heads,
+        successor,
     )
     _validate_kernel(contracts["kernel"])
 
     roots = _module_roots(contracts["module_map"])
     exception_keys = _exception_keys(contracts["legacy_exceptions"])
     edges: list[ImportEdge] = []
+    admitted_unmapped_targets = {
+        ("startup.py", "restaurant.customer_channel.router", "restaurant/customer_channel/router.py")
+    } if successor else set()
     files = _production_python_files(root_path, contracts["module_map"])
     for path in files:
         relative = path.relative_to(root_path).as_posix()
-        edges.extend(_edges_for_source(root_path, relative, path.read_text(encoding="utf-8"), roots))
+        edges.extend(
+            _edges_for_source(
+                root_path,
+                relative,
+                path.read_text(encoding="utf-8"),
+                roots,
+                admitted_unmapped_targets,
+            )
+        )
     violations, used = _evaluate_edges(edges, contracts["dependency_policy"], exception_keys)
     if violations:
         edge = violations[0]
@@ -546,9 +772,22 @@ def validate_pc0(root: str | Path, validate_release: bool = True) -> dict[str, A
     }
     if validate_release:
         manifest = _load_json(root_path, "pc0_release_manifest.json")
+        replacements = {
+            item["path"]: item for item in successor.get("pc0_release_replacements", [])
+        } if successor else {}
+        used_replacements: set[str] = set()
         for item in manifest.get("artifacts", []):
             path = root_path / item["path"]
-            if not path.is_file() or _sha256_file(path) != item["sha256"]:
+            if not path.is_file():
                 _fail("PC0-RELEASE-MANIFEST", item["path"])
+            actual = _sha256_file(path)
+            if actual == item["sha256"]:
+                continue
+            replacement = replacements.get(item["path"])
+            if not replacement or replacement["historical_sha256"] != item["sha256"] or replacement["successor_sha256"] != actual:
+                _fail("PC0-RELEASE-MANIFEST", item["path"])
+            used_replacements.add(item["path"])
+        if used_replacements != set(replacements):
+            _fail("PC0-H1B-RELEASE-REPLACEMENTS", f"unused={sorted(set(replacements)-used_replacements)}")
         result["release_artifact_count"] = len(manifest.get("artifacts", []))
     return result
