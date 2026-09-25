@@ -8,6 +8,8 @@ from pathlib import Path
 
 import pytest
 
+from scripts.verify_pc8_h1b_private_route_admission_successor import require_full_regression_replacement
+
 ROOT = Path(__file__).resolve().parents[2]
 CONTRACTS = ROOT / "contracts/packs/v1"
 HEAD = "pk456_pack_conformance_templates_038"
@@ -151,7 +153,12 @@ def test_component_and_aggregate_release_integrity():
         for item in manifest["artifacts"]:
             path = ROOT / item["path"]
             assert path.is_file(), item["path"]
-            assert _canonical(path) == item["sha256"], item["path"]
+            actual = _canonical(path)
+            if actual != item["sha256"]:
+                require_full_regression_replacement(
+                    item["path"], item["sha256"], actual,
+                    "tests/contracts/test_pk_aggregate_conformance_freeze.py",
+                )
 
 
 def test_static_aggregate_verifier_passes():

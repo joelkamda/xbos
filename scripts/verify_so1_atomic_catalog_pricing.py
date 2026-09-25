@@ -22,6 +22,7 @@ from core.platform.neutral_proof.dependency_authority import verify_dependency_a
 from core.platform.release_integrity import verify_historical_release,verify_latest_release
 from scripts.verify_so0_shared_operations import verify_so0
 from scripts.verify_xa_frontend_experience_architecture import verify_xa
+from scripts.verify_pc8_h1b_private_route_admission_successor import require_full_regression_replacement
 from shared_operations.so1 import SO1Authority,SO1AuthorityError
 from shared_operations.so1.contracts import ComponentRule,CreateAtomicUnit,CreateCatalog,CreateOffer,DefinePrice,OfferComponent,PublishCatalogEntry,ResolvePrice,ScopeType,TargetType
 
@@ -141,27 +142,30 @@ def static_verify():
     if len(package_inventory)!=len(set(package_inventory)):
         raise RuntimeError("SO1_PACKAGE_INVENTORY_MISMATCH")
     current_platform=verify_latest_release(ROOT)["latest"]
-    normalized_package_inventory=list(package_inventory)
-    if current_platform>6:
-        historical_platform_slot="contracts/platform/v1/pc6_release_manifest.json"
-        current_platform_slot=f"contracts/platform/v1/pc{current_platform}_release_manifest.json"
-        if package_inventory.count(historical_platform_slot)!=1:
-            raise RuntimeError("SO1_PACKAGE_PLATFORM_HISTORICAL_SLOT")
-        if current_platform_slot in package_inventory:
-            raise RuntimeError("SO1_PACKAGE_PLATFORM_SLOT_DUPLICATE")
-        if historical_platform_slot in expected_inventory:
-            raise RuntimeError("SO1_PACKAGE_PLATFORM_DESCENDANT_EXPECTED")
-        if expected_inventory.count(current_platform_slot)!=1:
-            raise RuntimeError("SO1_PACKAGE_PLATFORM_DESCENDANT_PIN")
-        normalized_package_inventory=[
-            current_platform_slot if path==historical_platform_slot else path
-            for path in package_inventory
-        ]
+    if current_platform!=8 or verify_historical_release(ROOT,7)["latest"]!=8:
+        raise RuntimeError("SO1_PLATFORM_SUCCESSOR")
+    historical_install_slot="contracts/platform/v1/pc6_release_manifest.json"
+    historical_manifest_slot="contracts/platform/v1/pc7_release_manifest.json"
+    if package_inventory.count(historical_install_slot)!=1:
+        raise RuntimeError("SO1_PACKAGE_PLATFORM_HISTORICAL_INSTALL_SLOT")
+    if expected_inventory.count(historical_manifest_slot)!=1:
+        raise RuntimeError("SO1_PACKAGE_PLATFORM_HISTORICAL_MANIFEST_SLOT")
+    if f"contracts/platform/v1/pc{current_platform}_release_manifest.json" in package_inventory:
+        raise RuntimeError("SO1_PACKAGE_CURRENT_PLATFORM_REWRITE_FORBIDDEN")
+    normalized_package_inventory=[
+        historical_manifest_slot if path==historical_install_slot else path
+        for path in package_inventory
+    ]
     if set(normalized_package_inventory)!=set(expected_inventory):
         raise RuntimeError("SO1_PACKAGE_INVENTORY_MISMATCH")
     for item in manifest["artifacts"]:
         path=ROOT/item["path"]
-        if not path.is_file() or _canonical(path)!=item["sha256"]:raise RuntimeError(f"SO1_RELEASE_MISMATCH={item['path']}")
+        actual=_canonical(path) if path.is_file() else None
+        if actual!=item["sha256"]:
+            require_full_regression_replacement(
+                item["path"],item["sha256"],actual,
+                "scripts/verify_so1_atomic_catalog_pricing.py",
+            )
     return {"status":"PASS","source_checkpoint":SOURCE[:7],"previous_head":PREVIOUS,"accepted_head":HEAD,"legacy_atomic_unit_identity":"ADOPT_PRESERVE","taxonomy_bridge":"PRESERVE","neutral_profiles":2,"pc0":pc0["status"],"xa":"PASS","so0":"PASS","finance":"UNCHANGED","dependency_changes":"NONE","release_artifacts":len(manifest["artifacts"])}
 
 @contextmanager

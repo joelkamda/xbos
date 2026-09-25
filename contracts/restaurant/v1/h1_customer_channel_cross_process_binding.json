@@ -1,0 +1,119 @@
+{
+  "schema": "xbos.restaurant.customer-channel-cross-process-binding.v1",
+  "authority": "XBOS-G02-C3-H1B-CUSTOMER-CHANNEL-CROSS-PROCESS-BINDING-MATERIALIZATION",
+  "base_head": "f4dcfbe3c555d7da17196cdc4b377fd333db7a4d",
+  "design_source": "f3a8c8ae58efc7ec336176b75a10e3446edcf34b",
+  "private_route_prefix": "/internal/customer-channel/v1",
+  "service_auth": {
+    "principal": "customer-channel",
+    "actor_type": "SERVICE",
+    "permission": "restaurant.customer_channel.checkout",
+    "scope": "location",
+    "required_assurance": 1,
+    "credential": "OPAQUE_BEARER_SERVICE_CREDENTIAL_WITH_SHA256_DIGEST_VERIFICATION",
+    "secret_reference": "env.xafpay_customer_channel_service_token",
+    "digest_env_current": "XAFPAY_CUSTOMER_CHANNEL_SERVICE_TOKEN_SHA256_CURRENT",
+    "digest_env_next": "XAFPAY_CUSTOMER_CHANNEL_SERVICE_TOKEN_SHA256_NEXT",
+    "human_impersonation": false
+  },
+  "trusted_context": {
+    "binding_authority": "IA0_InteractionContextBinding.public_id",
+    "purpose": "restaurant.customer_channel.checkout",
+    "caller_reference_authority": false,
+    "tenant_source": "IA0_InteractionContextBinding.tenant_id",
+    "structural_authority": "PC1_StructuralAuthority",
+    "merchant_authority": "PlatformAdministration",
+    "merchant_state": "operational",
+    "caller_tenant_forbidden": true,
+    "caller_organization_forbidden": true,
+    "caller_location_forbidden": true
+  },
+  "service_modes": {
+    "dine_in": [
+      "R1_ServiceMode",
+      "R1_ServiceSession",
+      "R1_ResourceProfile",
+      "SO5_Resource",
+      "PC1_Location"
+    ],
+    "takeaway_contact_purpose": "restaurant.customer_channel.contact",
+    "delivery_address_purpose": "restaurant.customer_channel.delivery_address",
+    "delivery_address_contact_type": "postal_address"
+  },
+  "delivery_policy": {
+    "table": "restaurant_customer_delivery_policies",
+    "match_fields": [
+      "country_code",
+      "region",
+      "city",
+      "district",
+      "postal_prefix"
+    ],
+    "normalization": [
+      "trim",
+      "unicode_normalize",
+      "casefold"
+    ],
+    "postal_prefix": "startswith",
+    "selection": "unique_most_specific_active_effective_match",
+    "fee_authority": "delivery_policy_plus_so1_canonical_fee_target_and_price",
+    "channel_calculates_fee": false,
+    "channel_calculates_total": false,
+    "nonzero_fee": "canonical_r1_commercial_line_quantity_1"
+  },
+  "confirmation": {
+    "table": "restaurant_customer_order_confirmations",
+    "ttl_max_seconds": 300,
+    "fingerprint": "sha256_canonical_json_over_all_trusted_and_commercial_authorities",
+    "immutable_commercial_fields": true,
+    "material_change_result": "ORDER_CONFIRMATION_EXPIRED_OR_CHANGED"
+  },
+  "idempotency": {
+    "client_submit_ref_normalization": "trim_only_case_preserved_utf8_nonempty_max160",
+    "hash": "sha256_lowercase_hex",
+    "namespace": "cc1:{client_submit_ref_hash}",
+    "keys": [
+      "cc1:{hash}:session",
+      "cc1:{hash}:order",
+      "cc1:{hash}:line:{ordinal_4_digits}",
+      "cc1:{hash}:modifier:{ordinal_4_digits}",
+      "cc1:{hash}:submit"
+    ],
+    "order_code": "CC-{first_12_hex_of_client_submit_ref_hash}",
+    "transaction": "one_database_transaction",
+    "journal": "r1_restaurant_commands"
+  },
+  "c3": {
+    "scope": "restaurant.c3.payment_request",
+    "key": "order:{order_public_id}:v{row_version}",
+    "response_fields": [
+      "payment_request_ref",
+      "order_ref",
+      "merchant_reference",
+      "correlation_ref",
+      "canonical_amount",
+      "currency",
+      "permitted_methods",
+      "policy_ref",
+      "expires_at",
+      "payment_request_state",
+      "wallet_handoff_context",
+      "safe_next_action",
+      "receipt_ref"
+    ],
+    "payment_execution": false
+  },
+  "routes": [
+    "POST /internal/customer-channel/v1/order-confirmations",
+    "POST /internal/customer-channel/v1/orders",
+    "GET /internal/customer-channel/v1/orders/by-client-submit-ref/{client_submit_ref}",
+    "POST /internal/customer-channel/v1/orders/{order_ref}/payment-request"
+  ],
+  "migration": {
+    "revision": "cch_customer_channel_checkout_authority_047",
+    "down_revision": "r1_restaurant_order_line_lifecycle_046",
+    "table_count": 2,
+    "execution": false
+  },
+  "financial_effect": "ZERO"
+}

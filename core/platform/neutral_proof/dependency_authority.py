@@ -30,7 +30,13 @@ def parse_exact_pins(path: Path) -> dict[str, str]:
 
 def production_imports(root: Path) -> dict[str, tuple[str, ...]]:
     """Return third-party top-level imports from application, core, and Alembic runtime code."""
-    local = {"core", "scripts"} | {path.stem for path in root.rglob("*.py")}
+    root_modules = {path.stem for path in root.glob("*.py")}
+    top_level_packages = {
+        path.name
+        for path in root.iterdir()
+        if path.is_dir() and (path / "__init__.py").is_file()
+    }
+    local = {"core", "scripts"} | root_modules | top_level_packages
     standard = set(sys.stdlib_module_names)
     found: dict[str, set[str]] = {}
     candidates = list((root / "core").rglob("*.py"))
