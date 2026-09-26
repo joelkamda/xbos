@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 from datetime import datetime
 from types import SimpleNamespace
-from typing import Any
+from typing import Any, Protocol
 from uuid import UUID
 
 from sqlalchemy import text
@@ -18,6 +18,7 @@ from .contracts import (
     ServiceAuthorization,
 )
 from .delivery_policy import DeliveryPolicyRecord
+from .contracts import CatalogReadBinding
 
 
 class CustomerChannelRepository:
@@ -436,3 +437,21 @@ class CustomerChannelRepository:
             {"tenant": tenant_id, "key": submit_command_key},
         ).scalar()
         return UUID(str(row)) if row else None
+
+class CatalogReadBindingRepository(Protocol):
+    def resolve(
+        self,
+        merchant_public_id: UUID,
+        location_public_id: UUID,
+        effective_at: datetime,
+    ) -> tuple[CatalogReadBinding, ...]: ...
+
+class AbsentCatalogReadBindingRepository:
+    """Fail-closed placeholder until R2-R3 installs real binding persistence."""
+    def resolve(
+        self,
+        merchant_public_id: UUID,
+        location_public_id: UUID,
+        effective_at: datetime,
+    ) -> tuple[CatalogReadBinding, ...]:
+        return ()

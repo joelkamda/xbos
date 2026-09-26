@@ -179,3 +179,62 @@ def payment_projection_dict(value: Any) -> dict[str, Any]:
         "safe_next_action": value.safe_next_action,
         "receipt_ref": value.receipt_ref,
     }
+
+CATALOG_READ_PRINCIPAL = "customer-channel-catalog-reader"
+CATALOG_READ_SCOPE = "restaurant.menu.read"
+CATALOG_TOKEN_DIGEST_CURRENT_ENV = "XAFPAY_CUSTOMER_CHANNEL_CATALOG_READER_TOKEN_SHA256_CURRENT"
+CATALOG_TOKEN_DIGEST_NEXT_ENV = "XAFPAY_CUSTOMER_CHANNEL_CATALOG_READER_TOKEN_SHA256_NEXT"
+CATALOG_CONTEXT_PURPOSE = CONTEXT_PURPOSE
+
+CATALOG_SAFE_MESSAGES = {
+    "CATALOG_AUTH_REQUIRED": "Catalog reader authentication is required.",
+    "CATALOG_AUTH_FORBIDDEN": "Catalog reader authentication is not authorized.",
+    "CATALOG_CONTEXT_REQUIRED": "The supplied Customer Channel context is unavailable or stale.",
+    "CATALOG_BINDING_MISSING": "No active catalog binding is available.",
+    "CATALOG_BINDING_AMBIGUOUS": "Catalog binding resolution is ambiguous.",
+    "CATALOG_BINDING_STALE": "The catalog binding is stale or disabled.",
+    "CATALOG_BINDING_VERSION_MISMATCH": "The catalog binding version changed.",
+    "CATALOG_BINDING_MISMATCH": "The catalog binding does not match the request context.",
+    "CATALOG_REQUEST_INVALID": "The catalog read request is invalid.",
+    "CATALOG_SEMANTIC_FAILURE": "The canonical menu authority rejected the request.",
+}
+CATALOG_STATUS = {
+    "CATALOG_AUTH_REQUIRED": 401,
+    "CATALOG_AUTH_FORBIDDEN": 403,
+    "CATALOG_CONTEXT_REQUIRED": 403,
+    "CATALOG_BINDING_MISSING": 404,
+    "CATALOG_BINDING_AMBIGUOUS": 409,
+    "CATALOG_BINDING_STALE": 409,
+    "CATALOG_BINDING_VERSION_MISMATCH": 409,
+    "CATALOG_BINDING_MISMATCH": 409,
+    "CATALOG_REQUEST_INVALID": 422,
+    "CATALOG_SEMANTIC_FAILURE": 409,
+}
+
+class CatalogReadError(RuntimeError):
+    def __init__(self, code: str, *, correlation_ref: str | None = None):
+        if code not in CATALOG_SAFE_MESSAGES:
+            code = "CATALOG_SEMANTIC_FAILURE"
+        self.code = code
+        self.safe_message = CATALOG_SAFE_MESSAGES[code]
+        self.correlation_ref = correlation_ref
+        self.status_code = CATALOG_STATUS[code]
+        super().__init__(code)
+    def envelope(self) -> dict[str, Any]:
+        return {"error": {"code": self.code, "message": self.safe_message, "correlation_ref": self.correlation_ref}}
+
+@dataclass(frozen=True, slots=True)
+class CatalogReadBinding:
+    binding_ref: UUID
+    binding_version: int
+    merchant_public_id: UUID
+    location_public_id: UUID
+    tenant_id: int
+    catalog_public_id: UUID
+    price_code: str
+    currency: str
+    scope_type: str
+    scope_id: int | None
+    effective_from: datetime
+    effective_to: datetime | None = None
+    enabled: bool = True

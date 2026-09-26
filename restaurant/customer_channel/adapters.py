@@ -88,6 +88,7 @@ class AcceptedAuthorityAdapters:
             order_line_resolver=self.repo.order_line,
             party_resolver=self.repo.party,
             authorize=allow,
+            price_resolution_resolver=self.so1_repo.resolve_price,
         )
 
     @staticmethod

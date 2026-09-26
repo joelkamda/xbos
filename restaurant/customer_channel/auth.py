@@ -5,7 +5,11 @@ import hmac
 import os
 import re
 
-from .contracts import H1BError, TOKEN_DIGEST_CURRENT_ENV, TOKEN_DIGEST_NEXT_ENV
+from .contracts import (
+    H1BError, TOKEN_DIGEST_CURRENT_ENV, TOKEN_DIGEST_NEXT_ENV,
+    CATALOG_READ_PRINCIPAL, CATALOG_READ_SCOPE, CATALOG_TOKEN_DIGEST_CURRENT_ENV,
+    CATALOG_TOKEN_DIGEST_NEXT_ENV, CatalogReadError,
+)
 
 _DIGEST = re.compile(r"^[0-9a-f]{64}$")
 
@@ -45,4 +49,37 @@ def bearer_from_authorization_header(value: str | None, *, correlation_ref: str 
     token = value[len(prefix):]
     if not token or token != token.strip():
         raise H1BError("SERVICE_AUTH_REQUIRED", correlation_ref=correlation_ref)
+    return token
+
+def authenticate_catalog_reader(
+    raw_token: str | None,
+    *,
+    principal: str | None,
+    scopes: str | None,
+    correlation_ref: str | None = None,
+) -> str:
+    if principal != CATALOG_READ_PRINCIPAL:
+        raise CatalogReadError("CATALOG_AUTH_FORBIDDEN", correlation_ref=correlation_ref)
+    selected = {x for x in (scopes or "").split() if x}
+    if selected != {CATALOG_READ_SCOPE}:
+        raise CatalogReadError("CATALOG_AUTH_FORBIDDEN", correlation_ref=correlation_ref)
+    if raw_token is None or not raw_token:
+        raise CatalogReadError("CATALOG_AUTH_REQUIRED", correlation_ref=correlation_ref)
+    digest = hashlib.sha256(raw_token.encode("utf-8")).hexdigest()
+    current = _configured_digest(CATALOG_TOKEN_DIGEST_CURRENT_ENV)
+    nxt = _configured_digest(CATALOG_TOKEN_DIGEST_NEXT_ENV)
+    if current and hmac.compare_digest(digest, current):
+        return "current"
+    if nxt and hmac.compare_digest(digest, nxt):
+        return "next"
+    raise CatalogReadError("CATALOG_AUTH_FORBIDDEN", correlation_ref=correlation_ref)
+
+def catalog_bearer_from_authorization_header(
+    value: str | None, *, correlation_ref: str | None = None
+) -> str:
+    if not value or not value.startswith("Bearer "):
+        raise CatalogReadError("CATALOG_AUTH_REQUIRED", correlation_ref=correlation_ref)
+    token = value[len("Bearer "):]
+    if not token or token != token.strip():
+        raise CatalogReadError("CATALOG_AUTH_REQUIRED", correlation_ref=correlation_ref)
     return token

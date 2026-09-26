@@ -1,0 +1,106 @@
+{
+  "schema": "xbos.restaurant.customer-channel.catalog-read-transport.v1",
+  "visibility": "private_service_to_private_service",
+  "public_internet_surface": false,
+  "prefix": "/internal/customer-channel/v1",
+  "routes": [
+    "POST /internal/customer-channel/v1/context-attestations",
+    "POST /internal/customer-channel/v1/catalog-bindings/resolve",
+    "POST /internal/customer-channel/v1/catalog/menu"
+  ],
+  "authentication": {
+    "principal": "customer-channel-catalog-reader",
+    "required_scopes": ["restaurant.menu.read"],
+    "digest_slots": ["current", "next"],
+    "real_identity_created_by_this_gate": false,
+    "real_credential_created_by_this_gate": false
+  },
+  "context": {
+    "requires_server_issued_context_binding_ref": true,
+    "authority": "existing_ia0_context_binding",
+    "creates_binding": false,
+    "natural_key_search": false
+  },
+  "binding_repository": {
+    "key": ["merchant_public_id", "location_public_id", "effective_at"],
+    "preserves": [
+      "binding_ref",
+      "binding_version",
+      "tenant_id",
+      "catalog_public_id",
+      "price_code",
+      "currency",
+      "scope_type",
+      "scope_id"
+    ],
+    "missing": "fail_closed",
+    "disabled": "fail_closed",
+    "multiple": "fail_closed",
+    "stale": "fail_closed",
+    "version_mismatch": "fail_closed",
+    "tenant_mismatch": "fail_closed",
+    "catalog_mismatch": "fail_closed",
+    "default_binding": false,
+    "schema_owned_by": "R2-R3",
+    "schema_created_by_this_gate": false
+  },
+  "menu": {
+    "authority": "R2Authority.menu",
+    "forwarded_inputs": [
+      "tenant_id",
+      "catalog_public_id",
+      "effective_at",
+      "price_code",
+      "currency",
+      "scope_type",
+      "scope_id"
+    ],
+    "not_forwarded_as_business_inputs": [
+      "binding_ref",
+      "binding_version",
+      "correlation_ref"
+    ],
+    "repricing": false,
+    "direct_catalog_table_bypass": false,
+    "order_effect": false,
+    "payment_effect": false,
+    "inventory_effect": false
+  },
+  "retry": {
+    "connect_timeout_seconds": 1,
+    "read_timeout_seconds": 3,
+    "max_retry_count": 1,
+    "total_attempts_max": 2,
+    "backoff_milliseconds": 100,
+    "preserve_serialized_effective_at": true,
+    "retryable": [
+      "connect_timeout",
+      "read_timeout",
+      "connection_reset",
+      "http_502",
+      "http_503",
+      "http_504"
+    ],
+    "nonretryable": [
+      "auth_failure",
+      "authorization_failure",
+      "http_400",
+      "http_401",
+      "http_403",
+      "http_404",
+      "http_409",
+      "http_422",
+      "binding_conflict",
+      "semantic_mismatch",
+      "malformed_request"
+    ]
+  },
+  "effects": {
+    "real_network_calls": 0,
+    "deployment": 0,
+    "order_creation": 0,
+    "payment_creation": 0,
+    "inventory_mutation": 0,
+    "financial_effect": "zero"
+  }
+}
