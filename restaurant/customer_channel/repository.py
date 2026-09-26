@@ -447,7 +447,7 @@ class CatalogReadBindingRepository(Protocol):
     ) -> tuple[CatalogReadBinding, ...]: ...
 
 class AbsentCatalogReadBindingRepository:
-    """Fail-closed placeholder until R2-R3 installs real binding persistence."""
+    """Fail-closed placeholder used only when no persistence session exists."""
     def resolve(
         self,
         merchant_public_id: UUID,
@@ -455,3 +455,70 @@ class AbsentCatalogReadBindingRepository:
         effective_at: datetime,
     ) -> tuple[CatalogReadBinding, ...]:
         return ()
+
+
+class SQLCatalogReadBindingRepository:
+    """Resolve the XBOS-owned versioned Customer Channel catalog binding registry."""
+
+    def __init__(self, session: Session):
+        self.session = session
+
+    @staticmethod
+    def _binding(row) -> CatalogReadBinding:
+        return CatalogReadBinding(
+            binding_ref=UUID(str(row["binding_ref"])),
+            binding_version=int(row["binding_version"]),
+            merchant_public_id=UUID(str(row["merchant_public_id"])),
+            location_public_id=UUID(str(row["location_public_id"])),
+            tenant_id=int(row["tenant_id"]),
+            catalog_public_id=UUID(str(row["catalog_public_id"])),
+            price_code=str(row["price_code"]),
+            currency=str(row["currency"]),
+            scope_type=str(row["scope_type"]),
+            scope_id=int(row["scope_id"]) if row["scope_id"] is not None else None,
+            effective_from=row["effective_from"],
+            effective_to=row["effective_to"],
+            enabled=bool(row["active"]),
+        )
+
+    def resolve(
+        self,
+        merchant_public_id: UUID,
+        location_public_id: UUID,
+        effective_at: datetime,
+    ) -> tuple[CatalogReadBinding, ...]:
+        rows = self.session.execute(
+            text(
+                """
+                SELECT
+                    b.public_id AS binding_ref,
+                    b.row_version AS binding_version,
+                    b.merchant_public_id,
+                    l.public_id AS location_public_id,
+                    b.tenant_id,
+                    b.catalog_public_id,
+                    b.price_code,
+                    b.currency,
+                    b.scope_type,
+                    b.scope_id,
+                    b.effective_from,
+                    b.effective_to,
+                    b.active
+                FROM restaurant_customer_catalog_read_bindings b
+                JOIN locations l
+                  ON (l.tenant_id,l.id)=(b.tenant_id,b.location_id)
+                WHERE b.merchant_public_id=:merchant
+                  AND l.public_id=:location
+                  AND b.active=true
+                  AND b.effective_from<=:at
+                  AND (b.effective_to IS NULL OR :at<b.effective_to)
+                ORDER BY b.effective_from DESC,b.row_version DESC,b.public_id
+                """
+            ),
+            {
+                "merchant": str(merchant_public_id),
+                "location": str(location_public_id),
+                "at": effective_at,
+            },
+        ).mappings().all()
+        return tuple(self._binding(row) for row in rows)

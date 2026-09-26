@@ -18,6 +18,7 @@ from .contracts import (
 from .repository import (
     AbsentCatalogReadBindingRepository,
     CatalogReadBindingRepository,
+    SQLCatalogReadBindingRepository,
 )
 
 
@@ -32,9 +33,12 @@ class CatalogReadTransport:
         binding_repository: CatalogReadBindingRepository | None = None,
     ):
         self.adapters = adapters or AcceptedAuthorityAdapters(session)
-        self.binding_repository = (
-            binding_repository or AbsentCatalogReadBindingRepository()
-        )
+        if binding_repository is not None:
+            self.binding_repository = binding_repository
+        elif session is not None:
+            self.binding_repository = SQLCatalogReadBindingRepository(session)
+        else:
+            self.binding_repository = AbsentCatalogReadBindingRepository()
 
     @staticmethod
     def _authorize(
