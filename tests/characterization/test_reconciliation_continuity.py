@@ -205,13 +205,11 @@ def test_same_window_close_is_upserted_and_adjacent_window_carries_latest_actual
     assert Decimal(str(cash_row["variance"])) == Decimal("-130")
 
 
-def test_legacy_close_allows_an_unclosed_middle_window(
+def test_close_blocks_missing_or_unclosed_immediate_predecessor_and_does_not_cross_gap_carry(
     client,
     auth_headers,
     wnd_test_identity,
 ):
-    from database import SessionLocal
-
     _clear_future_reconciliation(wnd_test_identity)
     shift = f"b1-gap-{uuid4().hex[:8]}"
 
@@ -233,50 +231,70 @@ def test_legacy_close_allows_an_unclosed_middle_window(
     )
 
     assert skipped_window_view["status"] == "draft"
-    assert Decimal(str(cash_row["opening"])) == Decimal("200")
+    assert Decimal(str(cash_row["opening"])) == Decimal("0")
 
-    gap_close = _close_window(
-        client,
-        auth_headers,
-        shift=shift,
-        window=WINDOW_3,
-        opening=200,
-        actual=300,
-        note="Legacy API accepts skipped middle window",
+    missing_predecessor_close = client.post(
+        RECONCILIATION_CLOSE_PATH,
+        headers=auth_headers,
+        json={
+            "start": WINDOW_3[0],
+            "end": WINDOW_3[1],
+            "shift": shift,
+            "rows": [
+                _reconciliation_row(
+                    opening=0,
+                    actual=300,
+                    note="Missing immediate predecessor must block close",
+                )
+            ],
+        },
     )
 
-    assert gap_close["status"] == "closed"
+    assert missing_predecessor_close.status_code == 409, missing_predecessor_close.text
+    assert "previous reconciliation window" in missing_predecessor_close.json()["detail"].lower()
 
-    db = SessionLocal()
+    draft_predecessor = client.post(
+        f"{RECONCILIATION_PATH}/save-draft",
+        headers=auth_headers,
+        json={
+            "start": WINDOW_2[0],
+            "end": WINDOW_2[1],
+            "shift": shift,
+            "rows": [
+                _reconciliation_row(
+                    opening=200,
+                    actual=200,
+                    note="Immediate predecessor remains unclosed",
+                )
+            ],
+        },
+    )
 
-    try:
-        starts = db.execute(
-            text(
-                """
-                SELECT window_start
-                FROM recon_sheets
-                WHERE tenant_id = :tenant_id
-                  AND branch_id = :branch_id
-                  AND shift = :shift
-                  AND channel = 'cash'
-                ORDER BY window_start
-                """
-            ),
-            {
-                "tenant_id": wnd_test_identity["tenant_id"],
-                "branch_id": wnd_test_identity["branch_id"],
-                "shift": shift,
-            },
-        ).scalars().all()
-    finally:
-        db.close()
+    assert draft_predecessor.status_code == 200, draft_predecessor.text
+    assert draft_predecessor.json()["status"] == "draft"
 
-    assert len(starts) == 2
-    assert starts[0].astimezone(timezone.utc).isoformat() == WINDOW_1[0]
-    assert starts[1].astimezone(timezone.utc).isoformat() == WINDOW_3[0]
+    unclosed_predecessor_close = client.post(
+        RECONCILIATION_CLOSE_PATH,
+        headers=auth_headers,
+        json={
+            "start": WINDOW_3[0],
+            "end": WINDOW_3[1],
+            "shift": shift,
+            "rows": [
+                _reconciliation_row(
+                    opening=0,
+                    actual=300,
+                    note="Unclosed immediate predecessor must block close",
+                )
+            ],
+        },
+    )
+
+    assert unclosed_predecessor_close.status_code == 409, unclosed_predecessor_close.text
+    assert "previous reconciliation window" in unclosed_predecessor_close.json()["detail"].lower()
 
 
-def test_previous_closing_leaks_across_shift_names(
+def test_previous_closing_does_not_cross_shift_names(
     client,
     auth_headers,
     wnd_test_identity,
@@ -303,10 +321,10 @@ def test_previous_closing_leaks_across_shift_names(
     )
 
     assert next_window["status"] == "draft"
-    assert Decimal(str(cash_row["opening"])) == Decimal("400")
+    assert Decimal(str(cash_row["opening"])) == Decimal("0")
 
 
-def test_correcting_prior_close_does_not_cascade_into_persisted_next_window(
+def test_correcting_prior_close_recalculates_persisted_next_opening_and_preserves_actual(
     client,
     auth_headers,
     wnd_test_identity,
@@ -352,5 +370,7 @@ def test_correcting_prior_close_does_not_cascade_into_persisted_next_window(
     )
 
     assert second_window["status"] == "closed"
-    assert Decimal(str(cash_row["opening"])) == Decimal("100")
+    assert Decimal(str(cash_row["opening"])) == Decimal("250")
+    assert Decimal(str(cash_row["expected"])) == Decimal("250")
     assert Decimal(str(cash_row["actual"])) == Decimal("150")
+    assert Decimal(str(cash_row["variance"])) == Decimal("-100")

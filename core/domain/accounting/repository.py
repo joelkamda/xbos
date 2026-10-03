@@ -244,6 +244,7 @@ class TreasuryRepository:
         *,
         tenant_id: int,
         branch_id: int,
+        shift: str,
         before: Optional[datetime],
     ) -> Dict[str, float]:
         """
@@ -266,8 +267,8 @@ class TreasuryRepository:
             .filter(
                 ReconSheet.tenant_id == tenant_id,
                 ReconSheet.branch_id == branch_id,
-                ReconSheet.window_end <= before_dt,
-                ReconSheet.status.in_(["closed", "approved"]),
+                ReconSheet.shift == shift,
+                ReconSheet.window_end == before_dt,
             )
             .order_by(
                 ReconSheet.channel.asc(),
@@ -289,6 +290,98 @@ class TreasuryRepository:
                 result[channel] = _f(row.actual_closing_amount)
 
         return result
+
+    @staticmethod
+    def get_reconciliation_continuity(
+        db: Session,
+        *,
+        tenant_id: int,
+        branch_id: int,
+        shift: str,
+        window_start: Optional[datetime],
+    ) -> Dict[str, Any]:
+        """
+        Decide whether one reconciliation window may close without skipping
+        its immediately required predecessor in the same governed shift.
+
+        Rules:
+        - A shift with no earlier reconciliation history may close its first window.
+        - Otherwise an exact predecessor must end at this window start.
+        - The exact predecessor must be fully closed or approved.
+        - Older windows and unrelated shifts never satisfy the guard.
+        """
+
+        start_dt = _normalize_dt(window_start)
+        safe_shift = str(shift or "full24").strip() or "full24"
+
+        if not start_dt:
+            return {
+                "can_close": False,
+                "code": "invalid_window",
+                "message": "A valid reconciliation window start is required.",
+            }
+
+        exact_rows = (
+            db.query(ReconSheet)
+            .filter(
+                ReconSheet.tenant_id == tenant_id,
+                ReconSheet.branch_id == branch_id,
+                ReconSheet.shift == safe_shift,
+                ReconSheet.window_end == start_dt,
+            )
+            .order_by(ReconSheet.id.asc())
+            .all()
+        )
+
+        if exact_rows:
+            statuses = {
+                str(row.status or "draft").strip().lower()
+                for row in exact_rows
+            }
+
+            if statuses and statuses.issubset({"closed", "approved"}):
+                return {
+                    "can_close": True,
+                    "code": "continuous",
+                    "message": "The immediately preceding reconciliation window is closed.",
+                }
+
+            return {
+                "can_close": False,
+                "code": "previous_window_unclosed",
+                "message": (
+                    "The previous reconciliation window must be "
+                    "closed before this window can be closed."
+                ),
+            }
+
+        prior_exists = (
+            db.query(ReconSheet.id)
+            .filter(
+                ReconSheet.tenant_id == tenant_id,
+                ReconSheet.branch_id == branch_id,
+                ReconSheet.shift == safe_shift,
+                ReconSheet.window_end < start_dt,
+            )
+            .first()
+            is not None
+        )
+
+        if prior_exists:
+            return {
+                "can_close": False,
+                "code": "previous_window_missing",
+                "message": (
+                    "The previous reconciliation window is missing "
+                    "and must be closed before this window can be closed."
+                ),
+            }
+
+        return {
+            "can_close": True,
+            "code": "first_window",
+            "message": "This is the first reconciliation window for the shift.",
+        }
 
     @staticmethod
     def get_existing_reconciliation_window(
@@ -376,6 +469,14 @@ class TreasuryRepository:
             window_end=end_dt,
         )
 
+        previous_closing = TreasuryRepository.get_previous_closed_reconciliation_by_channel(
+            db,
+            tenant_id=tenant_id,
+            branch_id=branch_id,
+            shift=shift,
+            before=start_dt,
+        )
+
         now = _utc_now()
 
         for incoming in rows:
@@ -384,7 +485,13 @@ class TreasuryRepository:
             if not channel:
                 continue
 
-            opening = _d(incoming.get("opening"))
+            row = existing_map.get(channel)
+            if channel in previous_closing:
+                opening = _d(previous_closing[channel])
+            elif row:
+                opening = _d(row.opening_amount)
+            else:
+                opening = _d(incoming.get("opening"))
             income = _d(incoming.get("income"))
             expense = _d(incoming.get("expense"))
             cash_in = _d(incoming.get("cashIn"))
@@ -407,8 +514,6 @@ class TreasuryRepository:
                 "window_end_utc": _iso(end_dt),
             }
 
-            row = existing_map.get(channel)
-
             if row:
                 row.opening_amount = opening
                 row.income_amount = income
@@ -421,7 +526,10 @@ class TreasuryRepository:
                 row.note = note
                 row.status = safe_status
                 row.closed_by_user_id = closed_by_user_id
-                row.closed_at = now
+                if safe_status == "closed":
+                    row.closed_at = now
+                elif safe_status == "draft":
+                    row.closed_at = None
                 row.updated_at = now
                 row.meta = meta or row.meta
             else:
@@ -443,7 +551,7 @@ class TreasuryRepository:
                     note=note,
                     status=safe_status,
                     closed_by_user_id=closed_by_user_id,
-                    closed_at=now,
+                    closed_at=now if safe_status == "closed" else None,
                     meta=meta,
                 )
 

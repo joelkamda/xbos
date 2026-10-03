@@ -565,6 +565,21 @@ class AccountingController:
                 detail="At least one reconciliation row is required",
             )
 
+        continuity = TreasuryRepository.get_reconciliation_continuity(
+            db,
+            tenant_id=tenant_id,
+            branch_id=branch_id,
+            shift=shift,
+            window_start=start_dt,
+        )
+
+        if not continuity.get("can_close"):
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail=continuity.get("message")
+                or "The previous reconciliation window must be closed first.",
+            )
+
         cleaned_rows: List[Dict[str, Any]] = []
 
         for incoming in rows:

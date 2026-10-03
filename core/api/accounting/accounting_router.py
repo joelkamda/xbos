@@ -626,6 +626,7 @@ def _load_previous_closing_map(
     *,
     tenant_id: int,
     branch_id: int,
+    shift: str,
     before: Optional[datetime],
 ) -> Dict[str, float]:
     """
@@ -648,14 +649,15 @@ def _load_previous_closing_map(
             FROM recon_sheets
             WHERE tenant_id = :tenant_id
               AND branch_id = :branch_id
-              AND status IN ('closed', 'approved')
-              AND window_end <= :before
+              AND shift = :shift
+              AND window_end = :before
             ORDER BY channel, window_end DESC, id DESC
             """
         ),
         {
             "tenant_id": tenant_id,
             "branch_id": branch_id,
+            "shift": shift,
             "before": before,
         },
     ).mappings().all()
@@ -763,7 +765,7 @@ def _apply_reconciliation_persistence(
         persisted = existing_recon.get(channel)
 
         if persisted:
-            row["opening"] = _f(persisted.get("opening_amount"))
+            row["opening"] = _f(previous_closing.get(channel, persisted.get("opening_amount")))
             row["actual"] = _f(persisted.get("actual_closing_amount"))
             row["note"] = persisted.get("note") or ""
             row["status"] = persisted.get("status") or "draft"
@@ -1735,7 +1737,7 @@ def financial_summary(
     start: Optional[str] = None,
     end: Optional[str] = None,
 ):
-    daily = accounting_daily(
+    daily = accounting_daily.__wrapped__(
         request=request,
         db=db,
         start=start,
@@ -1797,6 +1799,7 @@ def get_reconciliation(
         db,
         tenant_id=ctx["tenant_id"],
         branch_id=ctx["branch_id"],
+        shift=shift,
         before=start_dt,
     )
 
@@ -1859,154 +1862,8 @@ def close_reconciliation(
     request: Request,
     db: Session = Depends(get_db),
 ):
-    """
-    Persists a closed reconciliation window.
-
-    Rule:
-    - actual_closing_amount becomes the opening amount for the next cycle.
-    - Existing same-window/channel rows are updated, not duplicated.
-    """
-
-    ctx = request.state.user
-    start_dt = _parse_dt(payload.start)
-    end_dt = _parse_dt(payload.end)
-
-    if not start_dt or not end_dt:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="start and end are required",
-        )
-
-    if end_dt <= start_dt:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="end must be after start",
-        )
-
-    user_id = ctx.get("id") or ctx.get("user_id")
-    saved_rows: List[Dict[str, Any]] = []
-
-    try:
-        for incoming in payload.rows:
-            row = incoming.model_dump()
-            channel = str(row.get("channel") or "").strip().lower()
-
-            if not channel:
-                continue
-
-            clean = _recompute_recon_row(row)
-            clean["channel"] = channel
-            clean["note"] = clean.get("note") or ""
-            clean["status"] = "closed"
-
-            db.execute(
-                text(
-                    """
-                    INSERT INTO recon_sheets (
-                        tenant_id,
-                        branch_id,
-                        shift,
-                        window_start,
-                        window_end,
-                        channel,
-                        opening_amount,
-                        income_amount,
-                        expense_amount,
-                        cash_in_amount,
-                        cash_out_amount,
-                        expected_closing_amount,
-                        actual_closing_amount,
-                        variance_amount,
-                        note,
-                        status,
-                        closed_by_user_id,
-                        closed_at,
-                        updated_at
-                    )
-                    VALUES (
-                        :tenant_id,
-                        :branch_id,
-                        :shift,
-                        :window_start,
-                        :window_end,
-                        :channel,
-                        :opening_amount,
-                        :income_amount,
-                        :expense_amount,
-                        :cash_in_amount,
-                        :cash_out_amount,
-                        :expected_closing_amount,
-                        :actual_closing_amount,
-                        :variance_amount,
-                        :note,
-                        'closed',
-                        :closed_by_user_id,
-                        NOW(),
-                        NOW()
-                    )
-                    ON CONFLICT (
-                        tenant_id,
-                        branch_id,
-                        shift,
-                        window_start,
-                        window_end,
-                        channel
-                    )
-                    DO UPDATE SET
-                        opening_amount = EXCLUDED.opening_amount,
-                        income_amount = EXCLUDED.income_amount,
-                        expense_amount = EXCLUDED.expense_amount,
-                        cash_in_amount = EXCLUDED.cash_in_amount,
-                        cash_out_amount = EXCLUDED.cash_out_amount,
-                        expected_closing_amount = EXCLUDED.expected_closing_amount,
-                        actual_closing_amount = EXCLUDED.actual_closing_amount,
-                        variance_amount = EXCLUDED.variance_amount,
-                        note = EXCLUDED.note,
-                        status = 'closed',
-                        closed_by_user_id = EXCLUDED.closed_by_user_id,
-                        closed_at = NOW(),
-                        updated_at = NOW()
-                    """
-                ),
-                {
-                    "tenant_id": ctx["tenant_id"],
-                    "branch_id": ctx["branch_id"],
-                    "shift": payload.shift,
-                    "window_start": start_dt,
-                    "window_end": end_dt,
-                    "channel": channel,
-                    "opening_amount": clean["opening"],
-                    "income_amount": clean["income"],
-                    "expense_amount": clean["expense"],
-                    "cash_in_amount": clean["cashIn"],
-                    "cash_out_amount": clean["cashOut"],
-                    "expected_closing_amount": clean["expected"],
-                    "actual_closing_amount": clean["actual"],
-                    "variance_amount": clean["variance"],
-                    "note": clean["note"],
-                    "closed_by_user_id": user_id,
-                },
-            )
-
-            saved_rows.append(clean)
-
-        db.commit()
-
-    except Exception as exc:
-        db.rollback()
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to close reconciliation: {exc}",
-        )
-
-    return {
-        "ok": True,
-        "status": "closed",
-        "shift": payload.shift,
-        "window_start": _iso_utc(start_dt),
-        "window_end": _iso_utc(end_dt),
-        "window_start_business": _iso_business(start_dt),
-        "window_end_business": _iso_business(end_dt),
-        "business_timezone": BUSINESS_TIMEZONE_NAME,
-        "rows": saved_rows,
-    }
+    return AccountingController.close_reconciliation(
+        request=request,
+        db=db,
+        payload=payload.model_dump(),
+    )
