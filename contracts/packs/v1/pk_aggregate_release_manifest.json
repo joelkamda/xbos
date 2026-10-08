@@ -27,19 +27,19 @@
     },
     {
       "path": "scripts/verify_pk_aggregate_conformance_freeze.py",
-      "sha256": "b61bd1b618a9c97283a5451abfbd5acde1fe945e32dc4d28badcf6ddc00f32e9"
+      "sha256": "545ad8106a9383e6e83c9e114133a24b8423298407511b832314d6e22d9063e3"
     },
     {
       "path": "tests/contracts/test_pk_aggregate_conformance_freeze.py",
-      "sha256": "df0e10bf3190c20d74279fd7f6b7b1523a5aea3a5a29286bc7831d15deb66032"
+      "sha256": "33e1a4f1abea1e562e41f7c9de8b5b79a704ccb7a1202078b7e0b7c233127b2e"
     },
     {
       "path": "contracts/packs/v1/pk0123_release_manifest.json",
-      "sha256": "9cc43365e21e87cb3212631f3a17f5e197edfefe912e4bbc051180053fbbefb5"
+      "sha256": "85926751b4a2f7249dc0bfbdc706370afab1ba93b301aa1138191bc4301ec893"
     },
     {
       "path": "contracts/packs/v1/pk456_release_manifest.json",
-      "sha256": "ff1a845bde18030c9af77b1545327f7e892d13c7dfb6fed3994dd1826864eeec"
+      "sha256": "af2653fac804ad63c261fe29df33913810de07461565e9401b343821e5d7fcf7"
     }
   ],
   "business_capability_change": "NONE",

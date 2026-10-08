@@ -15,7 +15,7 @@ from core.platform.neutral_proof import (
     NeutralProofError, bootstrap_profile, deterministic_export, load_profile,
     restore_export, validate_export, validate_profile,
 )
-from core.platform.neutral_proof.dependency_authority import parse_exact_pins, verify_dependency_authority
+from core.platform.neutral_proof.dependency_authority import parse_exact_pins, production_imports, verify_dependency_authority
 from core.platform.neutral_proof.leakage import scan_wnd_leakage
 
 
@@ -162,6 +162,18 @@ def test_dependency_authority_has_exact_operator_pins_and_complete_import_mappin
     contract=_json("pc6_dependency_authority.json")
     report=verify_dependency_authority(ROOT,contract)
     assert report["status"]=="PASS" and report["pin_count"]==14 and report["python"]=="3.13.3"
+    assert "restaurant" not in production_imports(ROOT)
+
+    local_root=tmp_path/"local-repo";(local_root/"core").mkdir(parents=True)
+    (local_root/"restaurant").mkdir();(local_root/"restaurant/__init__.py").write_text("",encoding="utf-8")
+    (local_root/"core/__init__.py").write_text("",encoding="utf-8")
+    (local_root/"core/sample.py").write_text("from restaurant import customer_channel\nimport definitely_external_package\n",encoding="utf-8")
+    for name in ("main.py","app.py","startup.py","database.py","settings.py"):
+        (local_root/name).write_text("",encoding="utf-8")
+    imports=production_imports(local_root)
+    assert "restaurant" not in imports
+    assert imports=={"definitely_external_package":("core/sample.py",)}
+
     pins=parse_exact_pins(ROOT/"requirements-prod.txt")
     assert pins["sqlalchemy"]=="2.0.41" and "pytest" not in pins and "pandas" not in pins
     bad=tmp_path/"requirements-prod.txt";bad.write_text("fastapi>=0.115.12\n")

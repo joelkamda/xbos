@@ -1,0 +1,57 @@
+XBOS R6.4 — REVISION 8 WND API COMPATIBILITY BRIDGE
+===================================================
+
+Decision
+--------
+Approved Option 1: preserve the planned R6.5 architecture — neutral schema +
+Track B runtime + temporary compatibility — and add an explicit WND API
+compatibility boundary rather than reverting the production runtime to Track A.
+
+Authoritative WND-server discovery
+----------------------------------
+After the 2,089-test full regression passed and the fresh candidate migrated
+through r63_legacy_inventory_writer_compat_044, Track B OpenAPI was missing 16
+routes from the R6.3 required-route subset. A complete frozen-source comparison
+shows 26 Track-A-only routes in the final accepted WND backend. Revision 8
+bridges all 26 so the accepted UAT surface is not silently reduced to the older
+R6.3 subset.
+
+Boundary
+--------
+Neutral default runtime remains:
+  main:app
+
+WND R6.5 hypercare runtime is explicitly:
+  restaurant.r6.wnd_compat_runtime:app
+
+The WND compatibility runtime starts the same neutral application and mounts an
+R6-scoped adapter for tenant_id=2 only. Non-WND tenant contexts fail closed.
+No WND-only routes are added to neutral main:app.
+
+Bridge coverage
+---------------
+Track-A-only routes preserved: 26
+
+Coverage includes Customers, A/R identity, Payments activity and standalone
+receive/pay/transfer, stock reconciliation/close/waste, fulfillment mode,
+kitchen history/item summary, and WND operational reports.
+
+Accepted Track-A implementation logic used by these routes is copied under the
+explicit restaurant/r6/wnd_api_compat namespace. It is compatibility evidence,
+not new neutral-kernel authority.
+
+Retirement
+----------
+The API bridge is TEMPORARY_THROUGH_HYPERCARE and may not be removed merely
+because R6.5 cutover succeeds. Retirement requires the separate post-hypercare
+legacy retirement gate already planned in the WBS.
+
+Non-actions
+-----------
+- production xbos writes: NONE during R6.4
+- live schema migration: NO during R6.4
+- neutral main runtime WND leakage: NONE
+- financial semantic rewrite: NONE
+- writer routing change: NONE
+- legacy writer retirement: NO
+- live cutover authorization: NO

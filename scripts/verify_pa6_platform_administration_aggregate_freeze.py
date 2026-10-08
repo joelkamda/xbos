@@ -15,6 +15,8 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
+from scripts.verify_pc8_h1b_private_route_admission_successor import require_full_regression_replacement
+
 SOURCE = "03ede10255cfb330d3d3e76429c8c9b35d8e45ba"
 PREVIOUS = "pa45_support_recovery_health_040"
 HEAD = "pa45_support_recovery_health_040"
@@ -91,8 +93,12 @@ def _verify_release_manifest(path: Path) -> int:
     manifest = _json(path)
     for item in manifest.get("artifacts", []):
         artifact = ROOT / item["path"]
-        if not artifact.is_file() or _canonical_sha(artifact) != item["sha256"]:
-            raise RuntimeError(f"PA6_COMPONENT_RELEASE_MISMATCH={path.name}:{item['path']}")
+        actual = _canonical_sha(artifact) if artifact.is_file() else None
+        if actual != item["sha256"]:
+            require_full_regression_replacement(
+                item["path"], item["sha256"], actual,
+                "scripts/verify_pa6_platform_administration_aggregate_freeze.py",
+            )
     return len(manifest.get("artifacts", []))
 
 
@@ -177,8 +183,12 @@ def static_verify() -> dict:
     manifest = _json(CONTRACTS / "pa6_release_manifest.json")
     for item in manifest["artifacts"]:
         path = ROOT / item["path"]
-        if not path.is_file() or _canonical_sha(path) != item["sha256"]:
-            raise RuntimeError("PA6_RELEASE_MISMATCH=" + item["path"])
+        actual = _canonical_sha(path) if path.is_file() else None
+        if actual != item["sha256"]:
+            require_full_regression_replacement(
+                item["path"], item["sha256"], actual,
+                "scripts/verify_pa6_platform_administration_aggregate_freeze.py",
+            )
 
     return {
         "status": "PASS",

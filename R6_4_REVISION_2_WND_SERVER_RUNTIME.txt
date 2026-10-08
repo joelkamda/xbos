@@ -1,0 +1,22 @@
+XBOS R6.4 — REVISION 2 WND SERVER RUNTIME CORRECTION
+=====================================================
+
+Observed during real WND-server R6.4 setup:
+- live WND backend executable: Python 3.13.5
+- R6.4 isolated control venv: Python 3.13.5
+- Alembic was intentionally absent from the live backend environment
+- Windows zoneinfo required tzdata to resolve Africa/Douala
+- fresh production planning baseline then passed read-only capture against:
+    database xbos
+    PostgreSQL 17.5
+    Alembic head 5c706797029a
+
+Revision 2 therefore:
+- replaces the obsolete R6.4 runner assertion for Python 3.13.3 with 3.13.5;
+- adds a control-runtime preflight for Alembic 1.17.2 and Africa/Douala;
+- adds requirements-r6-4-control.txt with tzdata==2025.2;
+- records that this is an isolated control/rehearsal environment and does not
+  alter the Python interpreter currently serving live WND.
+
+No production database migration, writer routing, business semantics,
+rollback policy, or R6.5 live-cutover authority changed.

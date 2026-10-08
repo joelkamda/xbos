@@ -13,7 +13,7 @@ from uuid import UUID
 import pytest
 
 from shared_operations.so1 import SO1Authority,SO1AuthorityError
-from shared_operations.so1.contracts import AtomicUnit,Catalog,ComponentRule,CreateAtomicUnit,CreateCatalog,CreateOffer,DefinePrice,Offer,OfferComponent,Price,PublishCatalogEntry,ResolvePrice,ScopeType,TargetType,UpdateOffer
+from shared_operations.so1.contracts import AtomicUnit,Catalog,CatalogEntry,ComponentRule,CreateAtomicUnit,CreateCatalog,CreateOffer,DefinePrice,Offer,OfferComponent,Price,PublishCatalogEntry,ResolvePrice,ScopeType,TargetType,UpdateOffer
 from scripts.verify_so1_atomic_catalog_pricing import HEAD,PREDECESSOR_TABLES,PREVIOUS,SO1_CONSTRAINTS,SO1_INDEXES,SO1_TABLES,_development_action,_run_alembic,_set_alembic_url,_verify_development_snapshot,_verify_predecessor_schema,_verify_so1_schema,static_verify
 
 ROOT=Path(__file__).resolve().parents[2];CONTRACTS=ROOT/"contracts/shared_operations/v1"
@@ -39,8 +39,17 @@ class MemoryRepository:
         result=Catalog(self.next,p,c.tenant_id,c.code,c.name,c.scope_type,c.scope_id,True,c.effective_from,c.effective_to,1);self.next+=1;self.catalogs[(c.tenant_id,p)]=result;return result
     def catalog(self,t,p):return self.catalogs.get((t,p))
     def publish_entry(self,c,p):
-        if self.catalog(c.tenant_id,c.catalog_public_id) is None:raise ValueError("cross tenant")
-        self.entries.append((c,p));return p
+        catalog=self.catalog(c.tenant_id,c.catalog_public_id)
+        if catalog is None:raise ValueError("cross tenant")
+        if c.target_type is TargetType.ATOMIC_UNIT:
+            target=self.atomic_unit(c.tenant_id,c.target_public_id)
+        else:
+            target=self.offer(c.tenant_id,c.target_public_id)
+        if target is None:raise ValueError("cross tenant")
+        entry=CatalogEntry(p,c.tenant_id,catalog.public_id,c.target_type,target.public_id,c.semantic_reference,c.sort_order,True,c.effective_from or catalog.effective_from,c.effective_to,1)
+        self.entries.append(entry);return p
+    def catalog_entry(self,t,p):
+        return next((entry for entry in self.entries if entry.tenant_id==t and entry.public_id==p),None)
     def create_offer(self,c,p):
         if any(self.atomic_unit(c.tenant_id,x.atomic_unit_public_id) is None for x in c.components):raise ValueError("cross tenant")
         result=Offer(self.next,p,c.tenant_id,c.code,c.name,True,c.components,1);self.next+=1;self.offers[(c.tenant_id,p)]=result;return result
@@ -253,3 +262,43 @@ def test_migration_is_additive_single_head_and_preserves_dependencies():
     wrapper=(ROOT/"alembic_neutral/versions/so1_atomic_catalog_offer_pricing_026.py").read_text()
     assert f'revision = "{HEAD}"' in wrapper and f'down_revision = "{PREVIOUS}"' in wrapper
     assert load("so1_authority.json")["production_dependency_changes"]=="NONE"
+
+
+def test_catalog_entry_atomic_unit_resolves_public_id_and_lifecycle_without_internal_ids():
+    repo=MemoryRepository();service=authority(repo);now=datetime(2026,9,18,12,tzinfo=timezone.utc)
+    unit=service.create_atomic_unit(CreateAtomicUnit("u",1,"NDOL","Ndole"))
+    catalog=service.create_catalog(CreateCatalog("c",1,"MENU","Menu",ScopeType.TENANT,None,now))
+    entry_id=service.publish_catalog_entry(PublishCatalogEntry("e",1,catalog.public_id,TargetType.ATOMIC_UNIT,unit.public_id,7,"food.ndole",now,now+timedelta(days=1)))
+    entry=service.catalog_entry(1,entry_id)
+    assert entry==CatalogEntry(entry_id,1,catalog.public_id,TargetType.ATOMIC_UNIT,unit.public_id,"food.ndole",7,True,now,now+timedelta(days=1),1)
+    assert not hasattr(entry,"atomic_unit_id") and not hasattr(entry,"offer_id") and not hasattr(entry,"catalog_id")
+
+
+def test_catalog_entry_offer_resolves_offer_public_identity():
+    repo=MemoryRepository();service=authority(repo);now=datetime(2026,9,18,12,tzinfo=timezone.utc)
+    unit=service.create_atomic_unit(CreateAtomicUnit("u",1,"BASE","Base"))
+    offer=service.create_offer(CreateOffer("o",1,"COMBO","Combo",(OfferComponent(unit.public_id,Decimal("1"),ComponentRule.REQUIRED,1),)))
+    catalog=service.create_catalog(CreateCatalog("c",1,"MENU","Menu",ScopeType.TENANT,None,now))
+    entry_id=service.publish_catalog_entry(PublishCatalogEntry("e",1,catalog.public_id,TargetType.OFFER,offer.public_id,3,None,now))
+    entry=service.catalog_entry(1,entry_id)
+    assert entry.target_type is TargetType.OFFER and entry.target_public_id==offer.public_id
+    assert entry.catalog_public_id==catalog.public_id and entry.enabled is True and entry.row_version==1
+
+
+def test_catalog_entry_lookup_is_tenant_safe_and_unknown_fails_closed():
+    repo=MemoryRepository();service=authority(repo);now=datetime(2026,9,18,12,tzinfo=timezone.utc)
+    unit=service.create_atomic_unit(CreateAtomicUnit("u",2,"OTHER","Other"))
+    catalog=service.create_catalog(CreateCatalog("c",2,"MENU","Menu",ScopeType.TENANT,None,now))
+    entry_id=service.publish_catalog_entry(PublishCatalogEntry("e",2,catalog.public_id,TargetType.ATOMIC_UNIT,unit.public_id))
+    with pytest.raises(SO1AuthorityError,match="SO1_NOT_FOUND"):service.catalog_entry(1,entry_id)
+    with pytest.raises(SO1AuthorityError,match="SO1_NOT_FOUND"):service.catalog_entry(1,UUID(int=9999))
+
+
+def test_catalog_entry_query_reuses_catalog_read_permission_and_public_interface():
+    permissions=[];repo=MemoryRepository();ids=iter(UUID(int=x) for x in range(1,20))
+    service=SO1Authority(repo,authorize=lambda permission,*args:permissions.append(permission) or True,validate_scope=lambda *args:True,public_id_factory=lambda:next(ids))
+    now=datetime(2026,9,18,12,tzinfo=timezone.utc);unit=service.create_atomic_unit(CreateAtomicUnit("u",1,"X","X"));catalog=service.create_catalog(CreateCatalog("c",1,"MENU","Menu",ScopeType.TENANT,None,now));entry_id=service.publish_catalog_entry(PublishCatalogEntry("e",1,catalog.public_id,TargetType.ATOMIC_UNIT,unit.public_id))
+    permissions.clear();service.catalog_entry(1,entry_id)
+    assert permissions==["so1.catalog.read"]
+    interface=load("so1_public_interfaces.json")
+    assert "catalog_entry" in interface["public_queries"] and "so1.catalog.read" in interface["required_permissions"]

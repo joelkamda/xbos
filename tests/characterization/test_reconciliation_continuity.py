@@ -205,13 +205,11 @@ def test_same_window_close_is_upserted_and_adjacent_window_carries_latest_actual
     assert Decimal(str(cash_row["variance"])) == Decimal("-130")
 
 
-def test_legacy_close_allows_an_unclosed_middle_window(
+def test_non_adjacent_window_does_not_inherit_stale_prior_close(
     client,
     auth_headers,
     wnd_test_identity,
 ):
-    from database import SessionLocal
-
     _clear_future_reconciliation(wnd_test_identity)
     shift = f"b1-gap-{uuid4().hex[:8]}"
 
@@ -233,50 +231,9 @@ def test_legacy_close_allows_an_unclosed_middle_window(
     )
 
     assert skipped_window_view["status"] == "draft"
-    assert Decimal(str(cash_row["opening"])) == Decimal("200")
+    assert Decimal(str(cash_row["opening"])) == Decimal("0")
 
-    gap_close = _close_window(
-        client,
-        auth_headers,
-        shift=shift,
-        window=WINDOW_3,
-        opening=200,
-        actual=300,
-        note="Legacy API accepts skipped middle window",
-    )
-
-    assert gap_close["status"] == "closed"
-
-    db = SessionLocal()
-
-    try:
-        starts = db.execute(
-            text(
-                """
-                SELECT window_start
-                FROM recon_sheets
-                WHERE tenant_id = :tenant_id
-                  AND branch_id = :branch_id
-                  AND shift = :shift
-                  AND channel = 'cash'
-                ORDER BY window_start
-                """
-            ),
-            {
-                "tenant_id": wnd_test_identity["tenant_id"],
-                "branch_id": wnd_test_identity["branch_id"],
-                "shift": shift,
-            },
-        ).scalars().all()
-    finally:
-        db.close()
-
-    assert len(starts) == 2
-    assert starts[0].astimezone(timezone.utc).isoformat() == WINDOW_1[0]
-    assert starts[1].astimezone(timezone.utc).isoformat() == WINDOW_3[0]
-
-
-def test_previous_closing_leaks_across_shift_names(
+def test_previous_closing_is_isolated_across_shift_names(
     client,
     auth_headers,
     wnd_test_identity,
@@ -303,16 +260,17 @@ def test_previous_closing_leaks_across_shift_names(
     )
 
     assert next_window["status"] == "draft"
-    assert Decimal(str(cash_row["opening"])) == Decimal("400")
+    assert Decimal(str(cash_row["opening"])) == Decimal("0")
 
-
-def test_correcting_prior_close_does_not_cascade_into_persisted_next_window(
+def test_correcting_prior_close_cascades_projection_without_erasing_later_actual(
     client,
     auth_headers,
     wnd_test_identity,
 ):
+    from database import SessionLocal
+
     _clear_future_reconciliation(wnd_test_identity)
-    shift = f"b1-nocascade-{uuid4().hex[:8]}"
+    shift = f"b1-cascade-{uuid4().hex[:8]}"
 
     _close_window(
         client,
@@ -352,5 +310,40 @@ def test_correcting_prior_close_does_not_cascade_into_persisted_next_window(
     )
 
     assert second_window["status"] == "closed"
-    assert Decimal(str(cash_row["opening"])) == Decimal("100")
+    assert Decimal(str(cash_row["opening"])) == Decimal("250")
+    assert Decimal(str(cash_row["expected"])) == Decimal("250")
     assert Decimal(str(cash_row["actual"])) == Decimal("150")
+    assert Decimal(str(cash_row["variance"])) == Decimal("-100")
+
+    db = SessionLocal()
+    try:
+        persisted = (
+            db.execute(
+                text(
+                    """
+                    SELECT opening_amount, actual_closing_amount
+                    FROM recon_sheets
+                    WHERE tenant_id = :tenant_id
+                      AND branch_id = :branch_id
+                      AND shift = :shift
+                      AND window_start = :window_start
+                      AND window_end = :window_end
+                      AND channel = 'cash'
+                    """
+                ),
+                {
+                    "tenant_id": wnd_test_identity["tenant_id"],
+                    "branch_id": wnd_test_identity["branch_id"],
+                    "shift": shift,
+                    "window_start": WINDOW_2[0],
+                    "window_end": WINDOW_2[1],
+                },
+            )
+            .mappings()
+            .one()
+        )
+    finally:
+        db.close()
+
+    assert Decimal(str(persisted["opening_amount"])) == Decimal("100")
+    assert Decimal(str(persisted["actual_closing_amount"])) == Decimal("150")

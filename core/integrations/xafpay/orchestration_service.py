@@ -18,10 +18,13 @@ from .adapter import XafPayAdapter, XafPayTransport
 from .contract import (
     ProcessXafPayCallbackCommand,
     RecordXafPayInitiationCommand,
+    RecordXafPayPaymentCreateCommand,
     XafPayCallbackResult,
     XafPayInitiationRequest,
     XafPayInitiationResponse,
     XafPayIntegrationError,
+    XafPayPaymentCreateRequest,
+    XafPayPaymentCreateResponse,
 )
 from .repository import XafPayRepository
 
@@ -46,6 +49,139 @@ def _stable(kind: str, tenant_id: int, key: str) -> UUID:
 class XafPayOrchestrationService:
     repository = XafPayRepository
     adapter = XafPayAdapter
+
+    @classmethod
+    def prepare_payment_create(
+        cls,
+        session,
+        *,
+        tenant_id: int,
+        organization_unit_id: int,
+        payment_attempt_public_id: UUID,
+        channel: str,
+    ) -> XafPayPaymentCreateRequest:
+        authority = cls.repository.attempt_authority(
+            session,
+            tenant_id=tenant_id,
+            public_id=payment_attempt_public_id,
+            lock=False,
+        )
+        if authority is None:
+            raise XafPayIntegrationError("payment_attempt_not_found", "payment attempt does not exist")
+        if authority["organization_unit_id"] != organization_unit_id:
+            raise XafPayIntegrationError("payment_attempt_scope_mismatch", "payment attempt organization differs")
+        if authority["orchestrator_code"] != "xafpay":
+            raise XafPayIntegrationError("orchestrator_mismatch", "payment attempt is not assigned to XafPay")
+        if authority["provider_account_id"] is not None or authority["underlying_provider_code"] is not None:
+            raise XafPayIntegrationError(
+                "gateway_provider_route_must_be_external",
+                "Gateway V2 owns provider and provider-account routing for C4",
+            )
+        if authority["attempt_state"] not in {"pending", "processing", "requires_action"}:
+            raise XafPayIntegrationError("attempt_not_creatable", "payment attempt is not eligible for Gateway create")
+        return XafPayPaymentCreateRequest(
+            payment_attempt_public_id=UUID(str(authority["public_id"])),
+            amount=Decimal(authority["attempted_amount"]),
+            currency_code=authority["currency_code"],
+            payment_method_code=authority["payment_method_code"],
+            payment_rail_code=authority["payment_rail_code"],
+            channel=channel,
+        )
+
+    @classmethod
+    def create_payment(
+        cls,
+        request: XafPayPaymentCreateRequest,
+        *,
+        service_credential: str,
+        transport: XafPayTransport,
+    ) -> XafPayPaymentCreateResponse:
+        return cls.adapter.create_payment(
+            request,
+            service_credential=service_credential,
+            transport=transport,
+        )
+
+    @classmethod
+    def record_payment_create(cls, session, command: RecordXafPayPaymentCreateCommand):
+        with session.begin_nested():
+            authority = cls.repository.attempt_authority(
+                session,
+                tenant_id=command.tenant_id,
+                public_id=command.payment_attempt_public_id,
+                lock=True,
+            )
+            if authority is None or authority["organization_unit_id"] != command.organization_unit_id:
+                raise XafPayIntegrationError("payment_attempt_not_found", "payment attempt does not exist in scope")
+            if authority["orchestrator_code"] != "xafpay":
+                raise XafPayIntegrationError("orchestrator_mismatch", "payment attempt is not assigned to XafPay")
+            if authority["provider_account_id"] is not None or authority["underlying_provider_code"] is not None:
+                raise XafPayIntegrationError(
+                    "gateway_provider_route_must_be_external",
+                    "Gateway V2 owns provider and provider-account routing for C4",
+                )
+            expected_external = f"xbos:pay:{command.payment_attempt_public_id}"
+            response = command.response
+            if response.external_reference != expected_external:
+                raise XafPayIntegrationError("gateway_external_reference_mismatch", "Gateway external reference differs from canonical attempt")
+            if Decimal(authority["attempted_amount"]) != response.amount or authority["currency_code"] != response.currency_code:
+                raise XafPayIntegrationError("gateway_amount_mismatch", "Gateway create amount or currency differs from canonical attempt")
+            existing = authority["external_attempt_reference"]
+            if existing not in {None, response.payment_id}:
+                raise XafPayIntegrationError("gateway_identity_conflict", "Gateway payment identity cannot be rewritten")
+            if authority["attempt_state"] in _TERMINAL:
+                raise XafPayIntegrationError("attempt_not_recordable", "terminal payment attempt cannot accept Gateway create evidence")
+
+            current = authority
+            if current["attempt_state"] == "pending":
+                result = TransactionalPaymentAttemptEngine.transition(
+                    session,
+                    cls._attempt_transition(
+                        command,
+                        current,
+                        "processing",
+                        "xafpay_v2_payment_created",
+                        response.payment_id,
+                        evidence={
+                            "gateway_status": response.status,
+                            "external_reference": response.external_reference,
+                        },
+                    ),
+                )
+                current = {
+                    **current,
+                    "attempt_state": result.payment_attempt.attempt_state,
+                    "row_version": result.payment_attempt.row_version,
+                    "external_attempt_reference": result.payment_attempt.external_attempt_reference,
+                }
+            if response.status == "REQUIRES_ACTION" and current["attempt_state"] == "processing":
+                result = TransactionalPaymentAttemptEngine.transition(
+                    session,
+                    cls._attempt_transition(
+                        command,
+                        current,
+                        "requires_action",
+                        "xafpay_v2_requires_action",
+                        response.payment_id,
+                        evidence={
+                            "gateway_status": response.status,
+                            "next_action": response.next_action,
+                            "external_reference": response.external_reference,
+                        },
+                    ),
+                )
+                current = {
+                    **current,
+                    "attempt_state": result.payment_attempt.attempt_state,
+                    "row_version": result.payment_attempt.row_version,
+                    "external_attempt_reference": result.payment_attempt.external_attempt_reference,
+                }
+            return cls.repository.attempt_authority(
+                session,
+                tenant_id=command.tenant_id,
+                public_id=command.payment_attempt_public_id,
+                lock=False,
+            )
 
     @classmethod
     def prepare_initiation(

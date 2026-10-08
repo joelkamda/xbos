@@ -15,6 +15,8 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
+from scripts.verify_pc8_h1b_private_route_admission_successor import require_full_regression_replacement
+
 SOURCE = "97c6c751259649ef0a90a63f11fa78d8b1b1d599"
 PREVIOUS = "pk456_pack_conformance_templates_038"
 HEAD = "pk456_pack_conformance_templates_038"
@@ -106,8 +108,12 @@ def _verify_release_manifest(name: str) -> int:
     manifest = _json(CONTRACTS / name)
     for item in manifest.get("artifacts", []):
         path = ROOT / item["path"]
-        if not path.is_file() or _canonical_sha(path) != item["sha256"]:
-            raise RuntimeError(f"PK_AGG_COMPONENT_RELEASE_MISMATCH={name}:{item['path']}")
+        actual = _canonical_sha(path) if path.is_file() else None
+        if actual != item["sha256"]:
+            require_full_regression_replacement(
+                item["path"], item["sha256"], actual,
+                "scripts/verify_pk_aggregate_conformance_freeze.py",
+            )
     return len(manifest.get("artifacts", []))
 
 
@@ -218,8 +224,12 @@ def static_verify() -> dict:
     manifest = _json(CONTRACTS / "pk_aggregate_release_manifest.json")
     for item in manifest["artifacts"]:
         path = ROOT / item["path"]
-        if not path.is_file() or _canonical_sha(path) != item["sha256"]:
-            raise RuntimeError("PK_AGG_RELEASE_MISMATCH=" + item["path"])
+        actual = _canonical_sha(path) if path.is_file() else None
+        if actual != item["sha256"]:
+            require_full_regression_replacement(
+                item["path"], item["sha256"], actual,
+                "scripts/verify_pk_aggregate_conformance_freeze.py",
+            )
 
     return {
         "status": "PASS",

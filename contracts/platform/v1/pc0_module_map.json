@@ -298,6 +298,14 @@
       "source_roots": [
         "platform_admin"
       ]
+    },
+    {
+      "code": "interaction",
+      "kind": "platform_authority",
+      "owner": "PC7",
+      "source_roots": [
+        "core/platform/interaction"
+      ]
     }
   ],
   "composition_files": [

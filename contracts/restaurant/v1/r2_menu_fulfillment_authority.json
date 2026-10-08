@@ -42,5 +42,12 @@
   "kds_required": false,
   "finance_writer": "NONE",
   "inventory_writer": "NONE",
-  "delivery_job_writer": "NONE"
+  "delivery_job_writer": "NONE",
+  "r1_removed_line_policy": {
+    "removed_r1_line_new_modifier_mutation": "DENIED",
+    "removed_r1_line_new_preparation_mutation": "DENIED",
+    "existing_modifier_history": "PRESERVED",
+    "existing_preparation_history": "PRESERVED",
+    "r1_line_reference_anchor": "PRESERVED"
+  }
 }

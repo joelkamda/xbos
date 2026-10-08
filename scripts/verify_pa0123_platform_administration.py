@@ -4,6 +4,7 @@ import argparse, hashlib, json, os, sys
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path: sys.path.insert(0,str(ROOT))
+from scripts.verify_pc8_h1b_private_route_admission_successor import require_full_regression_replacement
 SOURCE="24028584c4e7c252c03169fb87dfd880e12e8f7a"
 PREVIOUS="pk456_pack_conformance_templates_038"
 HEAD="pa0123_merchant_lifecycle_subscriptions_onboarding_039"
@@ -36,7 +37,12 @@ def static_verify():
     manifest=_j("pa0123_release_manifest.json")
     for item in manifest["artifacts"]:
         path=ROOT/item["path"]
-        if not path.is_file() or _sha(path)!=item["sha256"]: raise RuntimeError("PA0123_RELEASE_MISMATCH="+item["path"])
+        actual=_sha(path) if path.is_file() else None
+        if actual!=item["sha256"]:
+            require_full_regression_replacement(
+                item["path"],item["sha256"],actual,
+                "scripts/verify_pa0123_platform_administration.py",
+            )
     return {"status":"PASS","source_checkpoint":SOURCE[:7],"previous_head":PREVIOUS,"accepted_head":HEAD,"merchant_lifecycle":"PASS","plans_subscriptions":"PASS","usage_quotas":"PASS","onboarding_readiness":"PASS","finance":"UNCHANGED","shared_operations":"UNCHANGED","dependencies":"UNCHANGED","pc0":report["status"],"release_artifacts":len(manifest["artifacts"])}
 
 def database_acceptance():

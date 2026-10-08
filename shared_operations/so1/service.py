@@ -8,7 +8,7 @@ from typing import Any, Callable, Protocol
 from uuid import UUID
 
 from .contracts import (
-    AtomicUnit, Catalog, CreateAtomicUnit, CreateCatalog, CreateOffer, DefinePrice,
+    AtomicUnit, Catalog, CatalogEntry, CreateAtomicUnit, CreateCatalog, CreateOffer, DefinePrice,
     Offer, Price, PublishCatalogEntry, ResolvePrice, UpdateAtomicUnit, UpdateOffer,
 )
 
@@ -27,6 +27,7 @@ class SO1Repository(Protocol):
     def link_taxonomy(self, tenant_id: int, atomic_unit_public_id: UUID, taxonomy_node_id: int) -> None: ...
     def create_catalog(self, command: CreateCatalog, public_id: UUID) -> Catalog: ...
     def catalog(self, tenant_id: int, public_id: UUID) -> Catalog | None: ...
+    def catalog_entry(self, tenant_id: int, public_id: UUID) -> CatalogEntry | None: ...
     def publish_entry(self, command: PublishCatalogEntry, public_id: UUID) -> UUID: ...
     def create_offer(self, command: CreateOffer, public_id: UUID) -> Offer: ...
     def offer(self, tenant_id: int, public_id: UUID) -> Offer | None: ...
@@ -89,6 +90,13 @@ class SO1Authority:
         self._guard("so1.catalog.read", tenant_id)
         result = self._repository.catalog(tenant_id, public_id)
         if result is None: raise SO1AuthorityError("SO1_NOT_FOUND", "Catalog was not found in this tenant.")
+        return result
+
+    def catalog_entry(self, tenant_id: int, catalog_entry_public_id: UUID) -> CatalogEntry:
+        self._guard("so1.catalog.read", tenant_id)
+        result = self._repository.catalog_entry(tenant_id, catalog_entry_public_id)
+        if result is None:
+            raise SO1AuthorityError("SO1_NOT_FOUND", "Catalog entry was not found in this tenant.")
         return result
 
     def publish_catalog_entry(self, command: PublishCatalogEntry) -> UUID:

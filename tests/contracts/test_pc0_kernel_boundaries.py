@@ -68,18 +68,75 @@ class PC0KernelBoundaryTests(unittest.TestCase):
         report = validate_pc0(ROOT)
         self.assertEqual("PASS", report["status"])
         self.assertEqual("m64_reconciliation_controls_020", report["canonical_migration_head"])
+        successor = json.loads((ROOT / "contracts/platform/v1/pc0_h1b_composition_successor.json").read_text(encoding="utf-8"))
+        self.assertEqual("xbos.platform.pc0-h1b-composition-successor.v1", successor["schema"])
+        self.assertFalse(successor["historical_pc0_composition_baseline_mutated"])
+        self.assertFalse(successor["historical_pc0_finance_inventory_mutated"])
+        self.assertFalse(successor["historical_pc0_release_manifest_mutated"])
+        self.assertEqual(2, report["successor_dependency_edge_count"])
+        self.assertEqual(5, report["nce_source_file_count"])
+        nce = successor["nce_additive_successor"]
+        self.assertEqual("92f6dbc7db37f5e1e8cf9c3e497e5be57a03b611", nce["nce_commit"])
+        self.assertEqual("core/integrations/xafpay_v2", nce["module_overlay"]["source_root"])
+        self.assertEqual(5, len(nce["module_overlay"]["files"]))
+        self.assertEqual(2, len(nce["authorized_dependency_edges"]))
 
     def test_every_frozen_composition_fingerprint_matches_canonical_source(self) -> None:
         composition = self._composition()
+        successor = json.loads((ROOT / "contracts/platform/v1/pc0_h1b_composition_successor.json").read_text(encoding="utf-8"))
+        pc8_contract = json.loads((ROOT / "contracts/platform/v1/pc8_h1b_private_route_admission_successor.json").read_text(encoding="utf-8"))
+        pc8_manifest = json.loads((ROOT / "contracts/platform/v1/pc8_release_manifest.json").read_text(encoding="utf-8"))
+        pc8_artifacts = {item["path"]: item["sha256"] for item in pc8_manifest["artifacts"]}
+        pc8_paths = {
+            "core/middleware/auth_middleware.py",
+            "core/middleware/tenant_middleware.py",
+            "core/middleware/branch_middleware.py",
+        }
         self.assertEqual("sha256_git_canonical_lf", composition["fingerprint_mode"])
         actual = {relative: _source_sha256(ROOT / relative) for relative in composition["files"]}
-        self.assertEqual(composition["files"], actual)
+        for relative, historical in composition["files"].items():
+            if relative == "startup.py":
+                self.assertEqual(historical, successor["composition_override"]["historical_sha256"])
+                self.assertEqual(actual[relative], successor["composition_override"]["successor_sha256"])
+            elif relative == "core/api/kernel_router.py":
+                override = successor["nce_additive_successor"]["kernel_router_override"]
+                self.assertEqual(historical, override["historical_sha256"])
+                self.assertEqual(actual[relative], override["successor_sha256"])
+            elif relative in pc8_paths:
+                self.assertEqual(historical, pc8_contract["accepted_base_canonical_sha256"][relative])
+                self.assertEqual(actual[relative], pc8_artifacts[relative])
+            else:
+                self.assertEqual(historical, actual[relative])
+
+        with tempfile.TemporaryDirectory() as directory:
+            candidate_root = Path(directory)
+            for relative in composition["files"]:
+                destination = candidate_root / relative
+                destination.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copyfile(ROOT / relative, destination)
+            with self.assertRaisesRegex(PC0ArchitectureError, "PC0-COMPOSITION-CHANGED: startup.py"):
+                _validate_composition(candidate_root, composition)
 
     def test_real_composition_source_change_fails(self) -> None:
         composition = self._composition()
         with tempfile.TemporaryDirectory() as directory:
             candidate_root = Path(directory)
-            for relative in composition["files"]:
+            required = set(composition["files"]) | {
+                "contracts/platform/v1/pc0_h1b_composition_successor.json",
+                "contracts/platform/v1/pc8_h1b_private_route_admission_successor.json",
+                "contracts/platform/v1/pc8_release_manifest.json",
+                "core/platform/architecture_contract.py",
+                "tests/contracts/test_pc0_kernel_boundaries.py",
+                "alembic_neutral/sql/cch_customer_channel_checkout_authority_up.sql",
+                "alembic_neutral/sql/cch_customer_channel_checkout_authority_down.sql",
+                "alembic_neutral/versions/cch_customer_channel_checkout_authority_047.py",
+                "core/integrations/xafpay_v2/__init__.py",
+                "core/integrations/xafpay_v2/contract.py",
+                "core/integrations/xafpay_v2/repository.py",
+                "core/integrations/xafpay_v2/router.py",
+                "core/integrations/xafpay_v2/service.py",
+            }
+            for relative in required:
                 destination = candidate_root / relative
                 destination.parent.mkdir(parents=True, exist_ok=True)
                 shutil.copyfile(ROOT / relative, destination)
@@ -92,11 +149,47 @@ class PC0KernelBoundaryTests(unittest.TestCase):
         stale = deepcopy(self._composition())
         stale["files"]["database.py"] = "0" * 64
         with self.assertRaisesRegex(PC0ArchitectureError, "PC0-COMPOSITION-CHANGED: database.py"):
-                _validate_composition(ROOT, stale)
+            _validate_composition(ROOT, stale)
+
+        successor = json.loads((ROOT / "contracts/platform/v1/pc0_h1b_composition_successor.json").read_text(encoding="utf-8"))
+        wrong_hash = deepcopy(successor)
+        wrong_hash["composition_override"]["successor_sha256"] = "0" * 64
+        with self.assertRaisesRegex(PC0ArchitectureError, "PC0-H1B-COMPOSITION-SUCCESSOR"):
+            _validate_composition(ROOT, self._composition(), wrong_hash)
+
+        second_override = deepcopy(successor)
+        second_override["allowed_paths"] = sorted([*second_override["allowed_paths"], "database.py"])
+        with self.assertRaisesRegex(PC0ArchitectureError, "PC0-H1B-ALLOWED-PATHS"):
+            _validate_composition(ROOT, self._composition(), second_override)
+
+        bad_nce = deepcopy(successor)
+        bad_nce["nce_additive_successor"]["module_overlay"]["files"][0]["sha256"] = "0" * 64
+        with self.assertRaisesRegex(PC0ArchitectureError, "PC0-NCE-SOURCE-FILES"):
+            _validate_composition(ROOT, self._composition(), bad_nce)
+
+        extra_edge = deepcopy(successor)
+        extra_edge["nce_additive_successor"]["authorized_dependency_edges"].append({
+            "source_path": "core/integrations/xafpay_v2/service.py",
+            "import_name": "database",
+            "source_module": "xafpay",
+            "target_module": "application",
+        })
+        with self.assertRaisesRegex(PC0ArchitectureError, "PC0-NCE-DEPENDENCY-EDGES"):
+            _validate_composition(ROOT, self._composition(), extra_edge)
 
     def test_frozen_finance_explicit_inventory_passes(self) -> None:
         baseline, inventory, accepted_head = self._finance_contracts()
         _validate_finance(ROOT, baseline, inventory, accepted_head)
+        successor = json.loads((ROOT / "contracts/platform/v1/pc0_h1b_composition_successor.json").read_text(encoding="utf-8"))
+        self.assertEqual(
+            {
+                "sql/cch_customer_channel_checkout_authority_up.sql",
+                "sql/cch_customer_channel_checkout_authority_down.sql",
+                "versions/cch_customer_channel_checkout_authority_047.py",
+            },
+            {item["path"] for item in successor["non_finance_extensions"]},
+        )
+        self.assertTrue(all(item["owner"] == "H1B_CUSTOMER_CHANNEL" for item in successor["non_finance_extensions"]))
 
     def test_finance_runtime_cache_artifacts_do_not_change_fingerprint(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -132,6 +225,13 @@ class PC0KernelBoundaryTests(unittest.TestCase):
             with self.assertRaisesRegex(PC0ArchitectureError, "PC0-FROZEN-FINANCE"):
                 _validate_finance(candidate_root, baseline, inventory, accepted_head)
 
+        baseline, inventory, accepted_head = self._finance_contracts()
+        successor = json.loads((ROOT / "contracts/platform/v1/pc0_h1b_composition_successor.json").read_text(encoding="utf-8"))
+        wrong_hash = deepcopy(successor)
+        wrong_hash["non_finance_extensions"][0]["sha256"] = "0" * 64
+        with self.assertRaisesRegex(PC0ArchitectureError, "PC0-H1B-EXTENSIONS"):
+            _validate_finance(ROOT, baseline, inventory, accepted_head, wrong_hash)
+
     def test_frozen_finance_prefix_and_known_descendants_pass(self) -> None:
         baseline, _, accepted = self._finance_contracts()
         lineage = [*baseline["lineage"], *accepted]
@@ -160,10 +260,16 @@ class PC0KernelBoundaryTests(unittest.TestCase):
             _validate_migration_lineage([lineage[-1]], lineage, baseline, accepted)
 
     def test_parallel_migration_head_fails(self) -> None:
-        baseline, _, accepted = self._finance_contracts()
+        baseline, inventory, accepted = self._finance_contracts()
         lineage = [*baseline["lineage"], *accepted]
         with self.assertRaisesRegex(PC0ArchitectureError, "PC0-MIGRATION-HEAD"):
             _validate_migration_lineage([lineage[-1], "parallel_head"], [], baseline, accepted)
+
+        successor = json.loads((ROOT / "contracts/platform/v1/pc0_h1b_composition_successor.json").read_text(encoding="utf-8"))
+        wrong_parent = deepcopy(successor)
+        wrong_parent["migration"]["parent"] = "parallel_or_wrong_parent"
+        with self.assertRaisesRegex(PC0ArchitectureError, "PC0-H1B-MIGRATION-SUCCESSOR"):
+            _validate_finance(ROOT, baseline, inventory, accepted, wrong_parent)
 
     def test_added_protected_finance_source_fails(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -173,6 +279,20 @@ class PC0KernelBoundaryTests(unittest.TestCase):
             added.write_text("# unexpected source\n", encoding="utf-8")
             with self.assertRaisesRegex(PC0ArchitectureError, "PC0-FROZEN-FINANCE-INVENTORY"):
                 _validate_finance(candidate_root, baseline, inventory, accepted_head)
+
+        baseline, inventory, accepted_head = self._finance_contracts()
+        successor = json.loads((ROOT / "contracts/platform/v1/pc0_h1b_composition_successor.json").read_text(encoding="utf-8"))
+        fourth = deepcopy(successor)
+        fourth["non_finance_extensions"].append({
+            "owner": "H1B_CUSTOMER_CHANNEL",
+            "root": "alembic_neutral",
+            "path": "sql/unauthorized_fourth_extension.sql",
+            "sha256": "0" * 64,
+            "reason": "H1B_CUSTOMER_CHANNEL_NON_FINANCE_SCHEMA_EXTENSION",
+        })
+        fourth["allowed_paths"] = sorted([*fourth["allowed_paths"], "alembic_neutral/sql/unauthorized_fourth_extension.sql"])
+        with self.assertRaisesRegex(PC0ArchitectureError, "PC0-H1B-EXTENSIONS"):
+            _validate_finance(ROOT, baseline, inventory, accepted_head, fourth)
 
     def test_removed_protected_finance_source_fails(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -209,6 +329,12 @@ class PC0KernelBoundaryTests(unittest.TestCase):
     def test_new_unmapped_production_source_fails_closed(self) -> None:
         with self.assertRaisesRegex(PC0ArchitectureError, "PC0-UNMAPPED-SOURCE"):
             evaluate_source_text(ROOT, "core/new_feature/handler.py", "from database import get_db\n")
+        with self.assertRaisesRegex(PC0ArchitectureError, "PC0-UNMAPPED-TARGET"):
+            evaluate_source_text(
+                ROOT,
+                "startup.py",
+                "from restaurant.customer_channel.adapters import CustomerChannelAdapter\n",
+            )
 
     def test_exception_baseline_has_no_wildcard_or_duplicate_identity(self) -> None:
         baseline = json.loads((ROOT / "contracts/platform/v1/pc0_legacy_exception_baseline.json").read_text(encoding="utf-8"))

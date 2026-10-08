@@ -1,0 +1,43 @@
+XBOS R6.4 — REVISION 9 WND COMPAT OPENAPI BINDING
+=================================================
+
+Authoritative WND-server observation
+------------------------------------
+Revision 8 installed the explicit WND compatibility runtime, but its first
+OpenAPI proof failed before route comparison with:
+
+  pydantic.errors.PydanticUserError:
+  TypeAdapter[Annotated[ForwardRef('ManualIncomePayload'), ...]] is not fully defined
+
+Diagnosis
+---------
+The temporary compatibility router used:
+
+  from __future__ import annotations
+
+while its route functions were wrapped by the existing RBAC
+`@require_permissions(...)` decorator. `functools.wraps()` preserves the
+wrapped function signature, but FastAPI/Pydantic 2.11 resolves that signature
+through the wrapper callable. Deferred string annotations such as
+`ManualIncomePayload`, `ExpensePayload`, and `CashMovementPayload` therefore
+arrived at OpenAPI generation as unresolved ForwardRefs instead of concrete
+Pydantic model classes.
+
+Revision 9 correction
+---------------------
+Only the temporary WND compatibility route module changes. Deferred annotations
+are disabled there so the imported Track A payload models are bound to concrete
+runtime classes when each endpoint is defined.
+
+This is deliberately narrower than changing the shared RBAC decorator or any
+neutral XBOS router. The accepted RBAC behavior remains untouched.
+
+Non-actions
+-----------
+- neutral main:app: UNCHANGED
+- shared RBAC decorator: UNCHANGED
+- database schema/migrations: NONE
+- production xbos writes: NONE
+- writer routing: UNCHANGED
+- legacy writer retirement: NO
+- live cutover authorization: NO

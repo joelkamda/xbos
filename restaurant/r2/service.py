@@ -6,6 +6,7 @@ from decimal import Decimal,ROUND_CEILING
 from typing import Callable,Protocol
 from uuid import UUID,uuid4
 from .contracts import *
+from shared_operations.so1.contracts import ResolvePrice as SO1ResolvePrice, ScopeType as SO1ScopeType, TargetType as SO1TargetType
 
 class R2Error(RuntimeError):
     def __init__(self,code:str,category:str,explanation:str,*,retryable:bool=False):
@@ -14,12 +15,15 @@ class R2Error(RuntimeError):
 class R2Repository(Protocol):
     def define_section(self,c,p,fp)->MenuSection|None: ...
     def section(self,t,p)->MenuSection|None: ...
+    def menu_sections(self,t,catalog_public_id,at)->tuple[MenuSection,...]: ...
+    def menu_section_entries(self,t,section_public_id,at)->tuple[MenuSectionEntry,...]: ...
     def place_menu_entry(self,c,fp)->MenuSectionEntry|None: ...
     def bind_menu_entry_modifier_group(self,c,fp)->MenuEntryModifierBinding|None: ...
     def define_modifier_group(self,c,p,fp)->ModifierGroup|None: ...
     def modifier_group(self,t,p)->ModifierGroup|None: ...
     def add_modifier_option(self,c,p,price_amount,currency,fp)->ModifierOption|None: ...
     def modifier_option(self,t,p)->ModifierOption|None: ...
+    def modifier_configuration(self,t,catalog_entry_public_id,at)->tuple[ModifierConfiguration,...]: ...
     def allowed_modifier_groups_for_line(self,t,line_public_id,at)->tuple[ModifierGroup,...]: ...
     def set_line_modifiers(self,c,p,normalized,fp)->ModifierSelectionSet|None: ...
     def modifier_set(self,t,line_public_id)->ModifierSelectionSet|None: ...
@@ -40,8 +44,8 @@ class R2Repository(Protocol):
     def complete_preparation_run(self,c,fp)->PreparationRun|None: ...
 
 class R2Authority:
-    def __init__(self,repo:R2Repository,*,catalog_resolver:Callable,catalog_entry_resolver:Callable,atomic_unit_resolver:Callable,offer_resolver:Callable,price_resolver:Callable,resource_resolver:Callable,order_resolver:Callable,order_line_resolver:Callable,party_resolver:Callable,authorize:Callable,semantic_matcher:Callable|None=None,public_id_factory:Callable[[],UUID]=uuid4):
-        self.repo=repo;self.catalog_resolver=catalog_resolver;self.catalog_entry_resolver=catalog_entry_resolver;self.atomic_unit_resolver=atomic_unit_resolver;self.offer_resolver=offer_resolver;self.price_resolver=price_resolver;self.resource_resolver=resource_resolver;self.order_resolver=order_resolver;self.order_line_resolver=order_line_resolver;self.party_resolver=party_resolver;self.authorize=authorize;self.semantic_matcher=semantic_matcher or (lambda tenant_id,target_type,target_public_id,semantic_reference,at:False);self.public_id_factory=public_id_factory
+    def __init__(self,repo:R2Repository,*,catalog_resolver:Callable,catalog_entry_resolver:Callable,atomic_unit_resolver:Callable,offer_resolver:Callable,price_resolver:Callable,resource_resolver:Callable,order_resolver:Callable,order_line_resolver:Callable,party_resolver:Callable,authorize:Callable,semantic_matcher:Callable|None=None,price_resolution_resolver:Callable|None=None,public_id_factory:Callable[[],UUID]=uuid4):
+        self.repo=repo;self.catalog_resolver=catalog_resolver;self.catalog_entry_resolver=catalog_entry_resolver;self.atomic_unit_resolver=atomic_unit_resolver;self.offer_resolver=offer_resolver;self.price_resolver=price_resolver;self.resource_resolver=resource_resolver;self.order_resolver=order_resolver;self.order_line_resolver=order_line_resolver;self.party_resolver=party_resolver;self.authorize=authorize;self.semantic_matcher=semantic_matcher or (lambda tenant_id,target_type,target_public_id,semantic_reference,at:False);self.price_resolution_resolver=price_resolution_resolver;self.public_id_factory=public_id_factory
     @staticmethod
     def _fp(c):return hashlib.sha256(json.dumps(asdict(c),sort_keys=True,separators=(',',':'),default=str).encode()).hexdigest()
     @staticmethod
@@ -68,6 +72,96 @@ class R2Authority:
     def _owned(v,t,p,code):
         if v is None or getattr(v,'tenant_id',None)!=t or UUID(str(getattr(v,'public_id',UUID(int=0))))!=p:raise R2Error(code,'scope_mismatch','Referenced authority was not found in this tenant')
         return v
+    @staticmethod
+    def _effective(v,at):
+        return bool(getattr(v,'active',True)) and getattr(v,'effective_from',at)<=at and (getattr(v,'effective_to',None) is None or at<getattr(v,'effective_to'))
+    @staticmethod
+    def _scope_value(v):
+        return str(getattr(v,'value',v)).strip().lower()
+    def _pricing(self,price_code,currency,scope_type,scope_id):
+        code=self._code(price_code,'price_code');cur=str(currency).strip().upper()
+        if len(cur)!=3 or not cur.isalpha():raise R2Error('R2_PRICE_CURRENCY_INVALID','validation_failure','Pricing currency must be a three-letter code')
+        scope=self._scope_value(scope_type)
+        try:SO1ScopeType(scope)
+        except Exception as exc:raise R2Error('R2_PRICE_SCOPE_INVALID','validation_failure','Pricing scope type is invalid') from exc
+        return MenuPricingContext(code,cur,scope,scope_id)
+    def _catalog_for_menu(self,t,catalog_public_id,at):
+        catalog=self._owned(self.catalog_resolver(t,catalog_public_id),t,catalog_public_id,'R2_CATALOG_NOT_FOUND')
+        if not self._effective(catalog,at):raise R2Error('R2_CATALOG_NOT_EFFECTIVE','invalid_state_transition','Catalog is not active for the requested effective time')
+        return catalog
+    def _price_for_entry(self,t,entry,pricing,at):
+        if self.price_resolution_resolver is None:raise R2Error('R2_PRICE_RESOLUTION_UNAVAILABLE','invalid_state_transition','Public SO1 price resolution is unavailable')
+        typ=self._scope_value(getattr(entry,'target_type',None))
+        try:so1_type=SO1TargetType(typ)
+        except Exception as exc:raise R2Error('R2_MENU_TARGET_TYPE_INVALID','validation_failure','Catalog entry target type is invalid') from exc
+        query=SO1ResolvePrice(t,so1_type,entry.target_public_id,pricing.price_code,pricing.currency,at,SO1ScopeType(pricing.scope_type),pricing.scope_id)
+        try:price=self.price_resolution_resolver(query)
+        except Exception as exc:raise R2Error('R2_PRICE_UNAVAILABLE','invalid_state_transition','No effective public SO1 price is available') from exc
+        if price is None:raise R2Error('R2_PRICE_UNAVAILABLE','invalid_state_transition','No effective public SO1 price is available')
+        if getattr(price,'tenant_id',None)!=t:raise R2Error('R2_PRICE_SCOPE_MISMATCH','scope_mismatch','Resolved price escaped tenant scope')
+        price_type=self._scope_value(getattr(price,'target_type',None))
+        if price_type!=typ or UUID(str(getattr(price,'target_public_id',UUID(int=0))))!=entry.target_public_id:raise R2Error('R2_PRICE_TARGET_MISMATCH','scope_mismatch','Resolved price does not price the catalog entry target')
+        if str(getattr(price,'price_code','')).strip().lower()!=pricing.price_code:raise R2Error('R2_PRICE_CODE_MISMATCH','scope_mismatch','Resolved price code does not match the requested pricing context')
+        if str(getattr(price,'currency','')).upper()!=pricing.currency:raise R2Error('R2_PRICE_CURRENCY_MISMATCH','scope_mismatch','Resolved price currency does not match the requested pricing context')
+        if self._scope_value(getattr(price,'scope_type',''))!=pricing.scope_type or getattr(price,'scope_id',None)!=pricing.scope_id:raise R2Error('R2_PRICE_SCOPE_MISMATCH','scope_mismatch','Resolved price scope does not match the requested pricing context')
+        if not self._effective(price,at):raise R2Error('R2_PRICE_NOT_EFFECTIVE','invalid_state_transition','Resolved price is not active for the requested effective time')
+        return price
+    def _modifier_projection(self,t,catalog_entry_public_id,at,pricing):
+        rows=self.repo.modifier_configuration(t,catalog_entry_public_id,at);out=[]
+        for row in rows:
+            g=row.group
+            if getattr(g,'tenant_id',None)!=t or not self._effective(g,at):raise R2Error('R2_MODIFIER_SCOPE_MISMATCH','scope_mismatch','Modifier group escaped the effective tenant menu')
+            opts=[]
+            for option in row.options:
+                if getattr(option,'tenant_id',None)!=t or option.group_public_id!=g.public_id or not getattr(option,'active',False):raise R2Error('R2_MODIFIER_SCOPE_MISMATCH','scope_mismatch','Modifier option escaped the effective tenant menu')
+                effect=None
+                if option.price_public_id:
+                    effect=self._owned(self.price_resolver(t,option.price_public_id),t,option.price_public_id,'R2_MODIFIER_PRICE_NOT_FOUND')
+                    if option.target_public_id is None:raise R2Error('R2_MODIFIER_PRICE_REQUIRES_TARGET','validation_failure','Priced modifier requires an operational target')
+                    ptype=self._scope_value(getattr(effect,'target_type',None));otype=self._scope_value(option.target_type)
+                    if ptype!=otype or UUID(str(getattr(effect,'target_public_id',UUID(int=0))))!=option.target_public_id:raise R2Error('R2_MODIFIER_PRICE_TARGET_MISMATCH','scope_mismatch','Modifier price does not price its operational target')
+                    if str(getattr(effect,'currency','')).upper()!=pricing.currency:raise R2Error('R2_MODIFIER_PRICE_CURRENCY_MISMATCH','scope_mismatch','Modifier price currency does not match menu pricing context')
+                    if self._scope_value(getattr(effect,'scope_type',''))!=pricing.scope_type or getattr(effect,'scope_id',None)!=pricing.scope_id:raise R2Error('R2_MODIFIER_PRICE_SCOPE_MISMATCH','scope_mismatch','Modifier price scope does not match menu pricing context')
+                    if not self._effective(effect,at):raise R2Error('R2_MODIFIER_PRICE_NOT_EFFECTIVE','invalid_state_transition','Modifier price is not effective for the menu time')
+                opts.append(MenuModifierOptionProjection(option.public_id,option.option_code,option.display_name,option.effect_type,option.target_type,option.target_public_id,option.default_quantity,option.preparation_instruction,effect,option.sort_order))
+            out.append(MenuModifierGroupProjection(g.public_id,g.group_code,g.display_name,g.selection_mode,g.minimum_selections,g.maximum_selections,row.sequence,tuple(opts)))
+        return tuple(out)
+    def menu_sections(self,t:int,catalog_public_id:UUID,effective_at:datetime):
+        self._permit(t,'restaurant.menu.read');at=self._aware(effective_at,'effective_at');self._catalog_for_menu(t,catalog_public_id,at)
+        rows=tuple(self.repo.menu_sections(t,catalog_public_id,at))
+        for x in rows:
+            if getattr(x,'tenant_id',None)!=t or x.catalog_public_id!=catalog_public_id or not self._effective(x,at):raise R2Error('R2_MENU_SECTION_SCOPE_MISMATCH','scope_mismatch','Menu section escaped the effective tenant catalog')
+        return rows
+    def modifier_configuration(self,t:int,catalog_entry_public_id:UUID,effective_at:datetime,currency:str,scope_type,scope_id:int|None):
+        self._permit(t,'restaurant.menu.read');at=self._aware(effective_at,'effective_at');entry=self._owned(self.catalog_entry_resolver(t,catalog_entry_public_id),t,catalog_entry_public_id,'R2_CATALOG_ENTRY_NOT_FOUND')
+        if not getattr(entry,'enabled',False) or not self._effective(entry,at):return ()
+        pricing=MenuPricingContext('',str(currency).strip().upper(),self._scope_value(scope_type),scope_id)
+        if len(pricing.currency)!=3 or not pricing.currency.isalpha():raise R2Error('R2_PRICE_CURRENCY_INVALID','validation_failure','Pricing currency must be a three-letter code')
+        try:SO1ScopeType(pricing.scope_type)
+        except Exception as exc:raise R2Error('R2_PRICE_SCOPE_INVALID','validation_failure','Pricing scope type is invalid') from exc
+        return self._modifier_projection(t,catalog_entry_public_id,at,pricing)
+    def menu(self,t:int,catalog_public_id:UUID,effective_at:datetime,price_code:str,currency:str,scope_type,scope_id:int|None):
+        self._permit(t,'restaurant.menu.read');at=self._aware(effective_at,'effective_at');catalog=self._catalog_for_menu(t,catalog_public_id,at);pricing=self._pricing(price_code,currency,scope_type,scope_id);sections=[]
+        for section in self.repo.menu_sections(t,catalog_public_id,at):
+            if getattr(section,'tenant_id',None)!=t or section.catalog_public_id!=catalog_public_id or not self._effective(section,at):raise R2Error('R2_MENU_SECTION_SCOPE_MISMATCH','scope_mismatch','Menu section escaped the effective tenant catalog')
+            entries=[]
+            for placement in self.repo.menu_section_entries(t,section.public_id,at):
+                if getattr(placement,'tenant_id',None)!=t or placement.section_public_id!=section.public_id:raise R2Error('R2_MENU_ENTRY_SCOPE_MISMATCH','scope_mismatch','Menu entry placement escaped the tenant section')
+                entry=self._owned(self.catalog_entry_resolver(t,placement.catalog_entry_public_id),t,placement.catalog_entry_public_id,'R2_CATALOG_ENTRY_NOT_FOUND')
+                if UUID(str(getattr(entry,'catalog_public_id',UUID(int=0))))!=catalog_public_id:raise R2Error('R2_MENU_ENTRY_CATALOG_MISMATCH','scope_mismatch','Menu section and SO1 catalog entry must belong to the same catalog')
+                if not getattr(entry,'enabled',False) or not self._effective(entry,at):continue
+                typ=self._scope_value(getattr(entry,'target_type',None))
+                resolver=self.atomic_unit_resolver if typ=='atomic_unit' else self.offer_resolver if typ=='offer' else None
+                if resolver is None:raise R2Error('R2_MENU_TARGET_TYPE_INVALID','validation_failure','Catalog entry target type is invalid')
+                target=self._owned(resolver(t,entry.target_public_id),t,entry.target_public_id,'R2_MENU_TARGET_NOT_FOUND')
+                if not getattr(target,'active',False):continue
+                price=self._price_for_entry(t,entry,pricing,at)
+                modifiers=self._modifier_projection(t,entry.public_id,at,pricing)
+                entries.append(MenuEntryProjection(entry.public_id,TargetType(typ),entry.target_public_id,target,price,modifiers,placement.sort_order))
+            entries=tuple(sorted(entries,key=lambda x:(x.sort_order,str(x.catalog_entry_public_id))))
+            sections.append(MenuSectionProjection(section.public_id,section.section_code,section.display_name,section.sort_order,entries))
+        sections=tuple(sorted(sections,key=lambda x:(x.sort_order,x.section_code,str(x.section_public_id))))
+        return MenuProjection(t,catalog,at,pricing,sections,False)
     def define_menu_section(self,c:DefineMenuSection):
         self._permit(c.tenant_id,'restaurant.menu.manage');self._owned(self.catalog_resolver(c.tenant_id,c.catalog_public_id),c.tenant_id,c.catalog_public_id,'R2_CATALOG_NOT_FOUND')
         code=self._code(c.section_code,'section_code');name=c.display_name.strip();start=self._aware(c.effective_from,'effective_from');end=self._aware(c.effective_to,'effective_to') if c.effective_to else None

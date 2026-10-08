@@ -94,7 +94,10 @@ def register_middlewares(app: FastAPI):
 # ============================================================
 def register_routes(app: FastAPI):
     from core.api.kernel_router import kernel_router
+    from restaurant.customer_channel.router import router as customer_channel_router
+
     app.include_router(kernel_router)
+    app.include_router(customer_channel_router)
 
 
 # ============================================================

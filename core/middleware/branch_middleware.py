@@ -31,7 +31,9 @@ class BranchMiddleware(BaseHTTPMiddleware):
         if (
             path.startswith("/kernel/auth/")
             or path.startswith("/auth/")
+            or path.startswith("/internal/customer-channel/v1")
             or path in ("/kernel/health", "/kernel/db-check")
+            or path == "/kernel/integrations/xafpay-v2/events"
             or path.startswith("/docs")
             or path.startswith("/redoc")
             or path.startswith("/openapi.json")

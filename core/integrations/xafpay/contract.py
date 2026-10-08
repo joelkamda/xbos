@@ -96,6 +96,103 @@ class XafPayInitiationResponse:
 
 
 @dataclass(frozen=True)
+class XafPayPaymentCreateRequest:
+    payment_attempt_public_id: UUID
+    amount: Decimal
+    currency_code: str
+    payment_method_code: str
+    payment_rail_code: str
+    channel: str
+
+    def __post_init__(self) -> None:
+        object.__setattr__(self, "payment_attempt_public_id", _uuid(self.payment_attempt_public_id, "payment_attempt_public_id"))
+        object.__setattr__(self, "amount", _money(self.amount))
+        currency = _text(self.currency_code, "currency_code", 3).upper()
+        if currency != "XAF":
+            raise XafPayIntegrationError("unsupported_currency", "the XafPay Gateway V2 boundary currently accepts XAF only")
+        object.__setattr__(self, "currency_code", currency)
+        method = _text(self.payment_method_code, "payment_method_code", 64).lower()
+        if method != "mobile_money":
+            raise XafPayIntegrationError("unsupported_method", "Gateway V2 C4 method must be mobile_money")
+        object.__setattr__(self, "payment_method_code", method)
+        rail = _text(self.payment_rail_code, "payment_rail_code", 64).lower()
+        if rail not in {"mtn_momo", "orange_money"}:
+            raise XafPayIntegrationError("unsupported_rail", "Gateway V2 C4 rail must be mtn_momo or orange_money")
+        object.__setattr__(self, "payment_rail_code", rail)
+        channel = _text(self.channel, "channel", 64).lower()
+        if not channel[0].isalnum() or any(not (ch.isalnum() or ch in "._:-") for ch in channel):
+            raise XafPayIntegrationError("invalid_channel", "Gateway channel is invalid")
+        object.__setattr__(self, "channel", channel)
+
+    @property
+    def external_reference(self) -> str:
+        return f"xbos:pay:{self.payment_attempt_public_id}"
+
+    @property
+    def idempotency_key(self) -> str:
+        return self.external_reference
+
+
+@dataclass(frozen=True)
+class XafPayPaymentCreateResponse:
+    payment_id: str
+    external_reference: str
+    status: str
+    amount: Decimal
+    currency_code: str
+    next_action: Mapping[str, Any] | None = None
+    evidence: Mapping[str, Any] = field(default_factory=dict)
+
+    def __post_init__(self) -> None:
+        payment_id = _text(self.payment_id, "payment_id", 200)
+        if not payment_id.startswith("pay_"):
+            raise XafPayIntegrationError("invalid_payment_id", "Gateway payment_id must use the pay_ prefix")
+        object.__setattr__(self, "payment_id", payment_id)
+        external_reference = _text(self.external_reference, "external_reference", 200)
+        if not external_reference.startswith("xbos:pay:"):
+            raise XafPayIntegrationError("invalid_external_reference", "Gateway external_reference is outside the XBOS payment namespace")
+        object.__setattr__(self, "external_reference", external_reference)
+        status = _text(self.status, "status", 64).upper()
+        if status not in {"CREATED", "REQUIRES_ACTION", "PENDING"}:
+            raise XafPayIntegrationError("invalid_create_status", "Gateway create response is not a supported non-terminal state")
+        object.__setattr__(self, "status", status)
+        object.__setattr__(self, "amount", _money(self.amount))
+        currency = _text(self.currency_code, "currency_code", 3).upper()
+        if currency != "XAF":
+            raise XafPayIntegrationError("unsupported_currency", "Gateway create response currency must be XAF")
+        object.__setattr__(self, "currency_code", currency)
+        if self.next_action is not None:
+            if not isinstance(self.next_action, Mapping):
+                raise XafPayIntegrationError("invalid_next_action", "Gateway next_action must be an object or null")
+            object.__setattr__(self, "next_action", dict(self.next_action))
+        try:
+            json.dumps(self.evidence, sort_keys=True)
+        except (TypeError, ValueError) as exc:
+            raise XafPayIntegrationError("invalid_evidence", "response evidence must be JSON serializable") from exc
+
+
+@dataclass(frozen=True)
+class RecordXafPayPaymentCreateCommand:
+    tenant_id: int
+    organization_unit_id: int
+    payment_attempt_public_id: UUID
+    response: XafPayPaymentCreateResponse
+    occurred_at: datetime
+    business_date: date
+    calendar_policy_version: int
+    correlation_id: UUID
+    actor_service: str = "xbos.restaurant.c4"
+
+    def __post_init__(self) -> None:
+        if self.tenant_id <= 0 or self.organization_unit_id <= 0 or self.calendar_policy_version <= 0:
+            raise XafPayIntegrationError("invalid_scope", "tenant, organization, and calendar version must be positive")
+        object.__setattr__(self, "payment_attempt_public_id", _uuid(self.payment_attempt_public_id, "payment_attempt_public_id"))
+        object.__setattr__(self, "correlation_id", _uuid(self.correlation_id, "correlation_id"))
+        object.__setattr__(self, "occurred_at", _timestamp(self.occurred_at, "occurred_at"))
+        object.__setattr__(self, "actor_service", _text(self.actor_service, "actor_service", 120))
+
+
+@dataclass(frozen=True)
 class RecordXafPayInitiationCommand:
     tenant_id: int
     organization_unit_id: int

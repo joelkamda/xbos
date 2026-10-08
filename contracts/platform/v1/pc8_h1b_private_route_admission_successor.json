@@ -1,0 +1,211 @@
+{
+  "schema": "xbos.platform.pc8-h1b-private-route-admission-successor.v1",
+  "release": "XBOS_PLATFORM_CORE_PC8_H1B_PRIVATE_ROUTE_ADMISSION_SUCCESSOR",
+  "release_class": "POSTHOC_RELEASE_INTEGRITY_SUCCESSOR_ONLY",
+  "authority": "XBOS-G02-C3-H1B-R1-CORRECTIVE-PRIVATE-ROUTE-ADMISSION-AND-PC8-SUCCESSOR-PROOF",
+  "purpose": "AUTHORIZE_CURRENT_POST_PC7_PLATFORM_COMPOSITION_BYTES_NEEDED_FOR_THE_ACCEPTED_H1B_PRIVATE_SERVICE_SEAM_WITHOUT_REWRITING_HISTORICAL_PLATFORM_RELEASES",
+  "source_base": "f4dcfbe3c555d7da17196cdc4b377fd333db7a4d",
+  "release_sequence": 8,
+  "previous_head": "ia0_neutral_interaction_authority_045",
+  "accepted_head": "ia0_neutral_interaction_authority_045",
+  "migration": null,
+  "migration_count": 0,
+  "new_platform_business_authority": false,
+  "new_platform_schema_authority": false,
+  "finance_authority_change": false,
+  "inventory_authority_change": false,
+  "private_prefix": "/internal/customer-channel/v1",
+  "caller_x_tenant_code_authority": false,
+  "caller_x_branch_code_authority": false,
+  "development_fallback_authority": false,
+  "request_state_tenant_id_preset": false,
+  "request_state_branch_id_preset": false,
+  "tenant_authority": "IA0_CONTEXT_BINDING_AT_ROUTER_SERVICE_LAYER",
+  "structural_authority": "PC1",
+  "historical_manifest_sha256": {
+    "pc1": "e072023988f2dc7681b2f49566ea3dd8ce6dbc17ffcca3bd4c629882650e4789",
+    "pc2": "56232be9832e91f006e521026d7b55f32d6179a474090cab72d02263f88bb7b5",
+    "pc3": "119b47cec24159603936163d4996a8e7d79fd6249749182bcd23a23575e415dc",
+    "pc4": "d58cce3f49ef0393153b5967cd38635f3981006aac444fa03400e43bc48c0990",
+    "pc5": "9647e78ba95cdd4e84b6af7496c36bb79275d82368aa16baea72de19a944ed35",
+    "pc6": "cb384cc1d1c79f7874e240ecdc85ff6cb8f9d069e5f28c7f8a9d96dda05e6d5d",
+    "pc7": "59380da9be25e1b596c55652e29ea7f60e9a664620389295ab09d8e89bf81ef4"
+  },
+  "accepted_base_canonical_sha256": {
+    "startup.py": "465fb8e613f66de8f77b7a3d4b4566c42dda1ad5db9435608a66cfa2fb20e698",
+    "core/middleware/auth_middleware.py": "4a8cafe8e87069499da4ee798ba060e54b757224930e131a434f8b99f18e2366",
+    "core/middleware/tenant_middleware.py": "5151239379e4b6e686bc168818d655c94e2945df324ee5452441549deb83dd9d",
+    "core/middleware/branch_middleware.py": "af0c6cc09242d60f54c7d300e5fadda872b13db2e793307afedf47036bd5554f",
+    "core/platform/interaction/sql_repository.py": "5a73e178b8f71c7a103e1dcff5df8f76bf2da389e6e627a3e3a63f9040dac5aa"
+  },
+  "fingerprint_policy": {
+    "mode": "sha256_canonical_source_v1",
+    "text_normalization": "crlf_to_lf_only",
+    "binary_normalization": "exact_bytes"
+  },
+  "candidate_path_succession": {
+    "historical_h1_authorized_path_count": 26,
+    "successor_addition_count": 6,
+    "current_candidate_path_count": 32,
+    "successor_additions": [
+      "contracts/platform/v1/pc0_h1b_composition_successor.json",
+      "core/platform/architecture_contract.py",
+      "core/platform/neutral_proof/dependency_authority.py",
+      "tests/characterization/test_reconciliation_continuity.py",
+      "tests/contracts/test_pc0_kernel_boundaries.py",
+      "tests/contracts/test_pc6_neutral_platform_proof.py"
+    ]
+  },
+  "full_regression_successor": {
+    "authority": "XBOS-G02-C3-H1B-R2-R1-R2-R1-FULL-REGRESSION-SUCCESSOR-MATERIALIZATION-AND-REEXECUTION",
+    "prior_candidate_path_count": 32,
+    "successor_addition_count": 7,
+    "current_candidate_path_count": 39,
+    "successor_additions": [
+      "tests/contracts/test_pc1_posthoc_legacy_branch_structural_bridge.py",
+      "scripts/verify_pk_aggregate_conformance_freeze.py",
+      "tests/contracts/test_pk_aggregate_conformance_freeze.py",
+      "scripts/verify_xa_frontend_experience_architecture.py",
+      "scripts/verify_so1_atomic_catalog_pricing.py",
+      "scripts/verify_pa0123_platform_administration.py",
+      "scripts/verify_pa6_platform_administration_aggregate_freeze.py"
+    ],
+    "main_collection": 2295,
+    "ia0_collection": 15,
+    "combined_collection": 2310,
+    "historical_manifest_rewrites": 0,
+    "replacements": [
+      {
+        "path": "tests/contracts/test_pc1_posthoc_legacy_branch_structural_bridge.py",
+        "historical_sha256": "580f02b6e572d6888ec7bd313e814b51a33998220054ab9e266fce889a7b7c70",
+        "descendant_sha256": "0e800b24909ed970533158e0cf9a0f031a1e71913456859a736f51120b29275b",
+        "authorized_consumers": [
+          "tests/contracts/test_pc1_posthoc_legacy_branch_structural_bridge.py"
+        ]
+      },
+      {
+        "path": "core/platform/architecture_contract.py",
+        "historical_sha256": "eae3265ad7632fcb9bc811ccda290579d59583ebc15aaf8d762a7262c93755b8",
+        "descendant_sha256": "5345e6655603ae89416568a4548dc798289f2b1702fe066cf51c29e90df64d7b",
+        "authorized_consumers": [
+          "scripts/verify_pk_aggregate_conformance_freeze.py",
+          "tests/contracts/test_pk_aggregate_conformance_freeze.py",
+          "scripts/verify_so1_atomic_catalog_pricing.py",
+          "scripts/verify_pa0123_platform_administration.py",
+          "scripts/verify_pa6_platform_administration_aggregate_freeze.py"
+        ]
+      },
+      {
+        "path": "tests/contracts/test_pc0_kernel_boundaries.py",
+        "historical_sha256": "ece19ea243bc1725ebf0e7446af69c28ff83411cd2ff0f2cf717a9de842d06f9",
+        "descendant_sha256": "cbdcb74cfed2c92ba6d6ed13dd8a6f319fab0b223ad9a24477d6550d4f3ddf94",
+        "authorized_consumers": [
+          "scripts/verify_so1_atomic_catalog_pricing.py"
+        ]
+      },
+      {
+        "path": "scripts/verify_pk_aggregate_conformance_freeze.py",
+        "historical_sha256": "b61bd1b618a9c97283a5451abfbd5acde1fe945e32dc4d28badcf6ddc00f32e9",
+        "descendant_sha256": "545ad8106a9383e6e83c9e114133a24b8423298407511b832314d6e22d9063e3",
+        "authorized_consumers": [
+          "scripts/verify_pa0123_platform_administration.py",
+          "scripts/verify_pa6_platform_administration_aggregate_freeze.py",
+          "scripts/verify_pk_aggregate_conformance_freeze.py",
+          "tests/contracts/test_pk_aggregate_conformance_freeze.py"
+        ]
+      },
+      {
+        "path": "tests/contracts/test_pk_aggregate_conformance_freeze.py",
+        "historical_sha256": "df0e10bf3190c20d74279fd7f6b7b1523a5aea3a5a29286bc7831d15deb66032",
+        "descendant_sha256": "33e1a4f1abea1e562e41f7c9de8b5b79a704ccb7a1202078b7e0b7c233127b2e",
+        "authorized_consumers": [
+          "scripts/verify_pk_aggregate_conformance_freeze.py",
+          "tests/contracts/test_pk_aggregate_conformance_freeze.py",
+          "scripts/verify_pa0123_platform_administration.py",
+          "scripts/verify_pa6_platform_administration_aggregate_freeze.py"
+        ]
+      },
+      {
+        "path": "scripts/verify_xa_frontend_experience_architecture.py",
+        "historical_sha256": "623041f48a8bb8798cb00062f5108f791edbf2879a3028b95f6a295e2259409f",
+        "descendant_sha256": "c7d4ddd6ec87999aa4191f1e31be134d9a8287e3d3f38168d38dc43937e74615",
+        "authorized_consumers": [
+          "scripts/verify_xa_frontend_experience_architecture.py"
+        ]
+      },
+      {
+        "path": "scripts/verify_so1_atomic_catalog_pricing.py",
+        "historical_sha256": "1835d16fffe36f56eeee633dac4b92e85928bdddb5ae1d32ebeb80dfbd025491",
+        "descendant_sha256": "8dcd116be63aa4735d7fd24076f86c95e4c42037703605ca3417ef62d9934415",
+        "authorized_consumers": [
+          "scripts/verify_so1_atomic_catalog_pricing.py"
+        ]
+      },
+      {
+        "path": "scripts/verify_pa0123_platform_administration.py",
+        "historical_sha256": "1e407de05ca5401809ff2f027050e89dba27895f4c4c7a5bd6b15e4f70b12c12",
+        "descendant_sha256": "9f01348b89a7ed8eef1729b83f8bcc94eea955ac622793a5966d988e2ab989c2",
+        "authorized_consumers": [
+          "scripts/verify_pa0123_platform_administration.py",
+          "scripts/verify_pa6_platform_administration_aggregate_freeze.py"
+        ]
+      },
+      {
+        "path": "scripts/verify_pa6_platform_administration_aggregate_freeze.py",
+        "historical_sha256": "46f484377737a52dad27ac135a77b2f50382e02596c115279070b8990fbc06af",
+        "descendant_sha256": "d283652c239b472181f34f8f5b4e1602b1a0c83b5b9a6a0546934325cfe708f0",
+        "authorized_consumers": [
+          "scripts/verify_pa6_platform_administration_aggregate_freeze.py"
+        ]
+      }
+    ]
+  },
+  "nce_h1b_additive_successor": {
+    "authority": "XBOS-NCE-H1B-ADDITIVE-SUCCESSOR-R1-SOURCE-MATERIALIZATION",
+    "common_parent": "f4dcfbe3c555d7da17196cdc4b377fd333db7a4d",
+    "nce_commit": "92f6dbc7db37f5e1e8cf9c3e497e5be57a03b611",
+    "nce_tag": "xbos-nce-r1-r1-e2-r1-xafpay-v2-event-consumer-accepted-20260923",
+    "h1b_commit": "d064f617489febfa95a6bab43cb96a9a8125dedd",
+    "h1b_tag": "xbos-g02-c3-h1b-customer-channel-cross-process-binding-accepted-20260925",
+    "prior_h1b_candidate_path_count": 39,
+    "nce_unique_addition_count": 7,
+    "current_combined_candidate_path_count": 46,
+    "nce_unique_additions": [
+      {
+        "path": "core/api/kernel_router.py",
+        "sha256": "a8b4a8b645ed7dd31367eb4dfa5643118ae7e518370817fdd5ddba997dd21c3d"
+      },
+      {
+        "path": "core/integrations/xafpay_v2/__init__.py",
+        "sha256": "81a784b6db2386847bab5b0a86633d85ae57986e76c003dd11e46dd5dd7fc38a"
+      },
+      {
+        "path": "core/integrations/xafpay_v2/contract.py",
+        "sha256": "8bb5e87bbd49d94b0a45499ca544c0f21964e84f867d3c9389c24afe8b54fb5f"
+      },
+      {
+        "path": "core/integrations/xafpay_v2/repository.py",
+        "sha256": "da0065acac20914b5f90063b9f72315aba41f06d15639ebd1b4e0cdbccaea8a8"
+      },
+      {
+        "path": "core/integrations/xafpay_v2/router.py",
+        "sha256": "21801c3bec26128b19426edab6066448fd98f72bc4ac56b7d477f27441b10e84"
+      },
+      {
+        "path": "core/integrations/xafpay_v2/service.py",
+        "sha256": "5af5e6484fd03bbfe843c1d21c3c01094d3166ff179ba3f8bbcf77f3f006cc51"
+      },
+      {
+        "path": "tests/contracts/test_xafpay_v2_current_checkout_contract.py",
+        "sha256": "69478c4f381321cbfbcceaf9c4f9a3f058d5b39d3698629bc7642e1e241de155"
+      }
+    ],
+    "overlap_count": 3,
+    "overlap_sha256": {
+      "core/middleware/auth_middleware.py": "abe47c31cd1bf7582671c11d677c67b2fefd76001601eb38020983c73f98fb08",
+      "core/middleware/tenant_middleware.py": "dda4211df3a6cd4e0e07a2daf9590722b0717937348bebcd4d426b463dbc1101",
+      "core/middleware/branch_middleware.py": "64d498a2644c15e10221edbcc43b499218d9f405c3823e19b7dc321998994c5e"
+    },
+    "historical_manifest_rewrites": 0
+  }
+}

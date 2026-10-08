@@ -1,0 +1,101 @@
+{
+  "schema_version": 1,
+  "authority": "PC7",
+  "authority_identity": "NEUTRAL_INTERACTION_AUTHORITY",
+  "module": "interaction",
+  "public_facade": "core.platform.interaction",
+  "source_checkpoint": "b067d0a",
+  "platform_release_predecessor_head": "pc5_identity_policy_audit_025",
+  "accepted_schema_head": "ia0_neutral_interaction_authority_045",
+  "alembic_parent": "r63_legacy_inventory_writer_compat_044",
+  "canonical_primitives": [
+    "ExternalChannelIdentity",
+    "Conversation",
+    "ConversationParticipant",
+    "InteractionSession",
+    "InteractionMessage",
+    "InteractionIntent",
+    "InteractionHandoff",
+    "InteractionEvent",
+    "InteractionCapabilityGrant",
+    "InteractionContextBinding"
+  ],
+  "internal_persistence_support": {
+    "table": "ia0_commands",
+    "classification": "INTERNAL_COMMAND_LEDGER",
+    "public_business_primitive": false
+  },
+  "authority_boundaries": {
+    "party": "PC2",
+    "authentication": "PC5",
+    "employee_membership": "PC5",
+    "workflow_task": "SO6",
+    "document_file": "SO7",
+    "transport_delivery": "SO8",
+    "payment_economic_truth": "NEUTRAL_FINANCE",
+    "provider_execution": "XAFPAY_GATEWAY",
+    "domain_business_truth": "DOMAIN_OWNER",
+    "frontend_business_truth": "NONE"
+  },
+  "ai": {
+    "role": "PROPOSER_NON_AUTHORITY",
+    "allowed_actions": [
+      "classify",
+      "extract",
+      "generate_response_proposal",
+      "observe_scoped_context",
+      "propose_command_parameters",
+      "propose_intent",
+      "request_domain_action",
+      "request_human_review",
+      "summarize"
+    ],
+    "forbidden_actions": [
+      "bypass_public_domain_contracts",
+      "declare_authentication_success",
+      "declare_payment_success",
+      "fuzzy_create_party_identity",
+      "self_grant_capability",
+      "write_domain_tables",
+      "write_finance",
+      "write_inventory"
+    ]
+  },
+  "constitutional_laws": [
+    "ai_first_class_participant",
+    "ai_ne_domain_authority",
+    "ai_ne_party",
+    "ai_ne_pc5_user",
+    "anonymous_ne_uncontrolled",
+    "authenticated_external_ne_merchant_employee",
+    "channel_identity_ne_party",
+    "channel_specific_kernel_schema_forbidden",
+    "idempotency_is_internal_command_ledger_pattern",
+    "industry_specific_kernel_contract_forbidden",
+    "intent_public_domain_command_only",
+    "interaction_event_append_only",
+    "interaction_session_ne_domain_service_session",
+    "interaction_session_ne_pc5_auth_session",
+    "participant_ne_party",
+    "participant_ne_pc5_user",
+    "party_resolved_ne_authenticated",
+    "pc5_membership_not_required_for_guest_interaction",
+    "so6_handoff_reference_only",
+    "so7_artifact_reference_only",
+    "so8_transport_reference_only"
+  ],
+  "migration": {
+    "revision": "ia0_neutral_interaction_authority_045",
+    "down_revision": "r63_legacy_inventory_writer_compat_044",
+    "new_migration_in_r1": false,
+    "table_count": 11,
+    "canonical_root_table_count": 10,
+    "internal_command_table_count": 1
+  },
+  "registration": {
+    "class": "FULL_PLATFORM_REGISTRATION",
+    "release_manifest": "pc7_release_manifest.json",
+    "release_freeze": true
+  },
+  "a3_definition": "NOT_YET_REPOSITORY_AUTHORITY"
+}

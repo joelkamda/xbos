@@ -1,0 +1,60 @@
+XBOS R6.4 — REVISION 4 DOWNSTREAM RELEASE-INTEGRITY CHAIN
+==========================================================
+
+Authoritative WND-server sequence
+---------------------------------
+Revision 3 repaired the PC0/PC6 cumulative Platform Core integrity chain and
+the server confirmed:
+
+  PC3_VERIFY=PASS
+  PC6_VERIFY=PASS
+
+The next R6.4 predecessor gate then stopped at:
+
+  SO_AGG_VERIFY=FAIL
+  SO_AGG_COMPONENT_RELEASE_MISMATCH=
+    SO1:contracts/platform/v1/pc0_frozen_finance_inventory.json
+
+Diagnosis
+---------
+The PC0/PC6 descendant fingerprints repaired in Revision 3 are intentionally
+current-state fingerprints. Every later cumulative release manifest that
+directly fingerprints those current files must therefore carry the same exact
+descendant hashes.
+
+The required dependency chain is:
+
+  PC0 / PC6
+    -> SO1 .. SO10
+    -> SO aggregate
+    -> PK0123 -> PK456 -> PK aggregate
+    -> PA0123 -> PA45 -> PA6
+    -> SC41 semantic hardening
+    -> Restaurant R1 -> R2
+
+Revision 4 updates only release-manifest SHA256 metadata along that already
+accepted cumulative dependency chain. It does NOT alter:
+
+- migration SQL or Alembic lineage;
+- runtime source behavior;
+- WND production data;
+- Finance or inventory authority;
+- writer routing;
+- R6.5 cutover scope;
+- live-cutover authorization.
+
+R0, R3, R4, R5 and all business contracts remain semantically unchanged.
+
+Validation performed against the exact frozen R6.4 source plus Revision 4:
+  PC3_VERIFY=PASS
+  PC6_VERIFY=PASS
+  SO_AGG_VERIFY=PASS
+  PK_AGG_VERIFY=PASS
+  PA6_VERIFY=PASS
+  SEMANTIC_HARDENING_VERIFY=PASS
+  R0_VERIFY=PASS
+  R1_VERIFY=PASS
+  R2_VERIFY=PASS
+  R3_VERIFY=PASS
+  R4_VERIFY=PASS
+  R5_VERIFY=PASS

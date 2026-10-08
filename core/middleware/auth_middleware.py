@@ -43,8 +43,10 @@ class AuthMiddleware(BaseHTTPMiddleware):
         bypass = (
             path.startswith("/kernel/auth/")
             or path.startswith("/auth/")
+            or path.startswith("/internal/customer-channel/v1")
             or path == "/kernel/health"
             or path == "/kernel/db-check"
+            or path == "/kernel/integrations/xafpay-v2/events"
             or path == "/health"
             or path == "/docs"
             or path.startswith("/docs/")

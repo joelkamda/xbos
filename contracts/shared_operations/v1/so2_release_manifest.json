@@ -27,23 +27,23 @@
     },
     {
       "path": "contracts/platform/v1/pc0_data_authority_register.json",
-      "sha256": "2ea28d3036d49ea6b7d5c3ee671abffe30b7dcab65c0f8824a448809304d616f"
+      "sha256": "dd59c031b0c510b6298e2803e5a5ccf690618c6ab7adaccdc00e527a85869f84"
     },
     {
       "path": "contracts/platform/v1/pc0_dependency_policy.json",
-      "sha256": "45352f7ebc1727968c819182b53cb15f57d7ed2baa270546530a5a65bed23e78"
+      "sha256": "6fafc84f76e26422071d04c17b1944e77a6e8fa90f446771ee9c8fa897db5599"
     },
     {
       "path": "contracts/platform/v1/pc0_frozen_finance_inventory.json",
-      "sha256": "85f45225fd783244f00dec1c8d3cc290f5885caa5d0e442cd83dd3c40bb843d2"
+      "sha256": "356d4cace4714e1a43de411cac3b69c2321b950a36e723123930197f6f96638b"
     },
     {
       "path": "contracts/platform/v1/pc0_module_map.json",
-      "sha256": "526f4a2c1ddf2eacf2f541b43d68b7881f48582e4fcab6e1efbbf14a8c3a6a21"
+      "sha256": "8a4396fa851e5cd9e719cf4948d7c92f2b965d41014dad83e21039500ae08840"
     },
     {
       "path": "contracts/platform/v1/pc0_public_private_interfaces.json",
-      "sha256": "bd871ee69a3f29fe17a11080d6596b552c5743f186bc794b63dbc900f145bc06"
+      "sha256": "7a7bbe78c152878cd6fae03be98add995eaf310265c8cb5c642ad8ccf727e61d"
     },
     {
       "path": "contracts/platform/v1/pc0_reference_authority_migration_register.json",
@@ -51,11 +51,11 @@
     },
     {
       "path": "contracts/platform/v1/pc0_release_manifest.json",
-      "sha256": "6e335af697bde10dfc2cf847fdd489ea4df12f315e626dfd6fb3a674b64e6a6a"
+      "sha256": "0e62b740f934e40d597ff51843c1887cef0daf1aaffe187a090926aa34d5cd88"
     },
     {
-      "path": "contracts/platform/v1/pc6_release_manifest.json",
-      "sha256": "f78330d5e40c8415b9f564ebf04d15a592a325bbeb57098ef9d5c91120317a87"
+      "path": "contracts/platform/v1/pc7_release_manifest.json",
+      "sha256": "0b2c8401af89a574260d28f5a028b8a44a9dd267c916be8af1061f7558cd3a4d"
     },
     {
       "path": "contracts/shared_operations/v1/examples/professional_service_crm_profile.json",
@@ -67,7 +67,7 @@
     },
     {
       "path": "contracts/shared_operations/v1/so1_release_manifest.json",
-      "sha256": "e604f2150f8486547044b82622826e65ad56a941b97d4ea7ec982de0cd339d85"
+      "sha256": "7366c509a90d39e997366c52581ee88d41f53eb14a84ec0496b095fe15f669f4"
     },
     {
       "path": "contracts/shared_operations/v1/so2_authority.json",
@@ -87,7 +87,7 @@
     },
     {
       "path": "core/platform/architecture_contract.py",
-      "sha256": "eae3265ad7632fcb9bc811ccda290579d59583ebc15aaf8d762a7262c93755b8"
+      "sha256": "5345e6655603ae89416568a4548dc798289f2b1702fe066cf51c29e90df64d7b"
     },
     {
       "path": "docs/shared_operations/SO2_CRM_OPERATIONAL_PARTY_RELATIONSHIPS.md",
@@ -99,7 +99,7 @@
     },
     {
       "path": "scripts/verify_so2_operational_party_relationships.py",
-      "sha256": "d3e7870140f68a1deabb1bc8810100ea2c29b32d4d4cd3dd75957afbfc968656"
+      "sha256": "22db7bc6b728a511dd51c6a7bfc2d291d5dc98bd70277ca86e4325a07bc5847f"
     },
     {
       "path": "shared_operations/so2/__init__.py",
@@ -119,11 +119,15 @@
     },
     {
       "path": "tests/contracts/test_pc6_neutral_platform_proof.py",
-      "sha256": "e1c2e1ac440b5bffbcf4181d69a9ad2fa971c80ffea177954c84189b6b3dc12b"
+      "sha256": "1464211711781df3efb2d1e55703c1f100dbe7e29afa7741bd446f75f56d6b27"
     },
     {
       "path": "tests/contracts/test_so2_operational_party_relationships.py",
       "sha256": "64443b1ee9416395843bfc5cd9293b5f7f4a0d36c54b7dd79a9a8c9f16548943"
+    },
+    {
+      "path": "contracts/platform/v1/pc6_release_manifest.json",
+      "sha256": "af0919c69b0931eda8464640e50fb093ef61a8d4c2d4e32754a96d34b7a82fcf"
     }
   ],
   "commit": "NOT_CREATED",

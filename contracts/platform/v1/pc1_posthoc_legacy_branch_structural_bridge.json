@@ -1,0 +1,72 @@
+{
+  "schema_version": 1,
+  "contract": "XBOS_PC1_POSTHOC_LEGACY_BRANCH_STRUCTURAL_BRIDGE",
+  "authority": "PC1PosthocLegacyBranchStructuralBridgeAuthority",
+  "command": "EnsureLegacyBranchStructuralBridge",
+  "owner": "PLATFORM_CORE_PC1_DESCENDANT",
+  "source_base": "192d0becb83929a0807537a80eea9b57559d5145",
+  "inputs": ["tenant_id", "organization_unit_id", "location_id"],
+  "caller_supplied_branch_identity": false,
+  "derived_branch_identity": {
+    "branch_code": "location.code",
+    "branch_name": "location.name"
+  },
+  "result_fields": [
+    "tenant_id",
+    "legacy_branch_id",
+    "organization_unit_id",
+    "location_id",
+    "legal_entity_id",
+    "replayed"
+  ],
+  "canonical_authority": {
+    "tenant": "PC1_Tenant",
+    "organization_unit": "PC1_OrganizationUnit",
+    "location": "PC1_Location",
+    "legal_entity": "PC1_LegalEntity",
+    "legacy_branch": "COMPATIBILITY_IDENTITY_ONLY"
+  },
+  "transaction": {
+    "branch_and_mapping": "ONE_DATABASE_TRANSACTION",
+    "partial_branch_without_mapping": "FORBIDDEN",
+    "operator_direct_sql": "FORBIDDEN",
+    "application_repository_sql": "ALLOWED"
+  },
+  "idempotency": {
+    "model": "STATE_IDEMPOTENCY",
+    "identity": ["tenant_id", "organization_unit_id", "location_id"],
+    "new_idempotency_table": false,
+    "exact_replay": "RETURN_SAME_BRANCH_ID_AND_MAPPING",
+    "same_organization_different_location": "FAIL_CLOSED",
+    "same_location_different_organization": "FAIL_CLOSED"
+  },
+  "duplicate_guards": [
+    "UNIQUE(tenant_id,branch_id)",
+    "UNIQUE(tenant_id,organization_unit_id)",
+    "UNIQUE(tenant_id,location_id)",
+    "tenant-qualified branch-code collision check"
+  ],
+  "cross_tenant_guards": {
+    "tenant_explicit": true,
+    "organization_lookup": "TENANT_QUALIFIED",
+    "location_lookup": "TENANT_QUALIFIED",
+    "mapping_lookup": "TENANT_QUALIFIED",
+    "branch_insert": "EXPLICIT_TENANT_ONLY",
+    "cross_tenant_reference": "FAIL_CLOSED"
+  },
+  "concurrency": {
+    "exact_commands": "ONE_BRANCH_ONE_MAPPING_SAME_RESULT",
+    "mechanism": "TRANSACTION_SCOPED_POSTGRESQL_ADVISORY_LOCK",
+    "new_lock_table": false
+  },
+  "boundaries": {
+    "schema_change": false,
+    "migration": "NONE",
+    "finance_effect": "ZERO",
+    "c3_mutation": false,
+    "gateway_effect": "ZERO",
+    "pc4_configuration_effect": "ZERO",
+    "r1_order_effect": "ZERO"
+  },
+  "test_count": 25
+}

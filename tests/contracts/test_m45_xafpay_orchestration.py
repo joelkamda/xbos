@@ -6,6 +6,7 @@ import hashlib
 import hmac
 import json
 from datetime import date, datetime, timezone
+from decimal import Decimal
 from pathlib import Path
 from uuid import UUID
 
@@ -16,6 +17,7 @@ from core.integrations.xafpay.contract import (
     ProcessXafPayCallbackCommand,
     XafPayInitiationRequest,
     XafPayIntegrationError,
+    XafPayPaymentCreateRequest,
 )
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -225,3 +227,117 @@ def test_acceptance_counts_the_triggered_and_commanded_settlement_transitions():
     source = (ROOT / "scripts/verify_m45_xafpay_orchestration.py").read_text(encoding="utf-8")
     assert '"payment_settlement_transitions":2' in source
     assert '[(1,None,"pending"),(2,"pending","confirmed")]' in source
+
+
+def _v2_request(**changes):
+    values = dict(
+        payment_attempt_public_id=UUID("45000000-0000-0000-0000-000000000099"),
+        amount="12500",
+        currency_code="XAF",
+        payment_method_code="mobile_money",
+        payment_rail_code="mtn_momo",
+        channel="customer-channel",
+    )
+    values.update(changes)
+    return XafPayPaymentCreateRequest(**values)
+
+
+class _V2Transport:
+    def __init__(self, *, status="CREATED"):
+        self.status = status
+        self.calls = []
+
+    def post(self, *, path, headers, body):
+        self.calls.append((path, headers, body))
+        return {
+            "payment_id": "pay_45000000-0000-0000-0000-000000000099",
+            "external_reference": body["external_reference"],
+            "status": self.status,
+            "amount": dict(body["amount"]),
+            "next_action": (
+                {"type": "MOBILE_APPROVAL", "url": None}
+                if self.status == "REQUIRES_ACTION"
+                else None
+            ),
+        }
+
+
+def test_c4_gateway_v2_envelope_is_exact_and_provider_free():
+    headers, body = XafPayAdapter.payment_create_envelope(
+        _v2_request(),
+        service_credential="opaque-service-secret",
+    )
+    assert headers == {
+        "Authorization": "Bearer opaque-service-secret",
+        "Content-Type": "application/json",
+        "Idempotency-Key": "xbos:pay:45000000-0000-0000-0000-000000000099",
+    }
+    assert body == {
+        "external_reference": "xbos:pay:45000000-0000-0000-0000-000000000099",
+        "amount": {"minor": 12500, "currency": "XAF"},
+        "requested_method": "MOBILE_MONEY",
+        "requested_rail": "MTN_MOMO",
+        "channel": "customer-channel",
+    }
+    assert "provider" not in body
+    assert "provider_account_id" not in body
+    assert "tenant_id" not in body
+    assert "organization_unit_id" not in body
+
+
+def test_c4_gateway_v2_orange_mapping_is_exact():
+    _, body = XafPayAdapter.payment_create_envelope(
+        _v2_request(payment_rail_code="orange_money"),
+        service_credential="opaque",
+    )
+    assert body["requested_method"] == "MOBILE_MONEY"
+    assert body["requested_rail"] == "ORANGE_MONEY"
+
+
+def test_c4_gateway_external_reference_and_idempotency_are_same_stable_attempt_identity():
+    request = _v2_request()
+    expected = "xbos:pay:45000000-0000-0000-0000-000000000099"
+    assert request.external_reference == expected
+    assert request.idempotency_key == expected
+
+
+def test_c4_current_gateway_v2_route_is_used_and_legacy_routes_are_not_called():
+    transport = _V2Transport()
+    response = XafPayAdapter.create_payment(
+        _v2_request(),
+        service_credential="opaque",
+        transport=transport,
+    )
+    assert [call[0] for call in transport.calls] == ["/v2/payments"]
+    assert "/v1/payment-intents" not in [call[0] for call in transport.calls]
+    assert "/api/v1/payment-intents" not in [call[0] for call in transport.calls]
+    assert response.payment_id.startswith("pay_")
+
+
+def test_c4_gateway_create_response_remains_nonterminal():
+    for status in ("CREATED", "PENDING", "REQUIRES_ACTION"):
+        response = XafPayAdapter.create_payment(
+            _v2_request(),
+            service_credential="opaque",
+            transport=_V2Transport(status=status),
+        )
+        assert response.status == status
+        assert response.external_reference == _v2_request().external_reference
+        assert response.amount == Decimal("12500")
+        assert response.currency_code == "XAF"
+
+
+def test_c4_gateway_v2_requires_bearer_service_credential():
+    with pytest.raises(XafPayIntegrationError) as caught:
+        XafPayAdapter.payment_create_envelope(_v2_request(), service_credential=" ")
+    assert caught.value.code == "service_credential_required"
+
+
+def test_c4_record_payment_create_has_no_settlement_or_provider_execution_path():
+    source = (INTEGRATION / "orchestration_service.py").read_text(encoding="utf-8")
+    c4 = source.split("def record_payment_create", 1)[1].split("def prepare_initiation", 1)[0].lower()
+    assert "transactionalpaymentsettlementengine" not in c4
+    assert "createpaymentsettlementcommand" not in c4
+    assert "provider_account(" not in c4
+    assert '"succeeded"' not in c4
+    assert '"paid"' not in c4

@@ -1,0 +1,128 @@
+{
+  "schema": "xbos.platform.pc0-h1b-composition-successor.v1",
+  "authority": "XBOS-G02-C3-H1B-R2-R1-PC0-PC6-SUCCESSOR-REPAIR-AND-FULL-REGRESSION",
+  "successor_class": "POSTHOC_PC0_COMPOSITION_AND_NON_FINANCE_EXTENSION_SUCCESSOR_ONLY",
+  "source_base": "f4dcfbe3c555d7da17196cdc4b377fd333db7a4d",
+  "historical_pc0_composition_baseline_mutated": false,
+  "historical_pc0_finance_inventory_mutated": false,
+  "historical_pc0_release_manifest_mutated": false,
+  "composition_override": {
+    "path": "startup.py",
+    "historical_sha256": "465fb8e613f66de8f77b7a3d4b4566c42dda1ad5db9435608a66cfa2fb20e698",
+    "successor_sha256": "fde45446f8f85df518e1997a5b5005308f6314ed4088a582a7fefeb6eee90dce",
+    "required_markers": [
+      "from restaurant.customer_channel.router import router as customer_channel_router",
+      "app.include_router(customer_channel_router)"
+    ]
+  },
+  "non_finance_extensions": [
+    {
+      "owner": "H1B_CUSTOMER_CHANNEL",
+      "root": "alembic_neutral",
+      "path": "sql/cch_customer_channel_checkout_authority_up.sql",
+      "sha256": "a8e9663911a11c1b3df9dea462ceb20ca6598329baf1144af2f9f50fa937a3fb",
+      "reason": "H1B_CUSTOMER_CHANNEL_NON_FINANCE_SCHEMA_EXTENSION"
+    },
+    {
+      "owner": "H1B_CUSTOMER_CHANNEL",
+      "root": "alembic_neutral",
+      "path": "sql/cch_customer_channel_checkout_authority_down.sql",
+      "sha256": "4344980ab4d8821076185a1987c6cb0df744d3ccc782138923a844708af10c01",
+      "reason": "H1B_CUSTOMER_CHANNEL_NON_FINANCE_SCHEMA_EXTENSION"
+    },
+    {
+      "owner": "H1B_CUSTOMER_CHANNEL",
+      "root": "alembic_neutral",
+      "path": "versions/cch_customer_channel_checkout_authority_047.py",
+      "sha256": "8f9b6ca94353c6fe83843a37ae1e4be619442debfdf55a12f460a16dc57d6859",
+      "reason": "H1B_CUSTOMER_CHANNEL_NON_FINANCE_SCHEMA_EXTENSION"
+    }
+  ],
+  "migration": {
+    "revision": "cch_customer_channel_checkout_authority_047",
+    "parent": "r1_restaurant_order_line_lifecycle_046",
+    "new_table_count": 2,
+    "financial_effect": "ZERO"
+  },
+  "pc0_release_replacements": [
+    {
+      "path": "core/platform/architecture_contract.py",
+      "historical_sha256": "eae3265ad7632fcb9bc811ccda290579d59583ebc15aaf8d762a7262c93755b8",
+      "successor_sha256": "5345e6655603ae89416568a4548dc798289f2b1702fe066cf51c29e90df64d7b"
+    },
+    {
+      "path": "tests/contracts/test_pc0_kernel_boundaries.py",
+      "historical_sha256": "ece19ea243bc1725ebf0e7446af69c28ff83411cd2ff0f2cf717a9de842d06f9",
+      "successor_sha256": "cbdcb74cfed2c92ba6d6ed13dd8a6f319fab0b223ad9a24477d6550d4f3ddf94"
+    }
+  ],
+  "allowed_paths": [
+    "alembic_neutral/sql/cch_customer_channel_checkout_authority_down.sql",
+    "alembic_neutral/sql/cch_customer_channel_checkout_authority_up.sql",
+    "alembic_neutral/versions/cch_customer_channel_checkout_authority_047.py",
+    "core/api/kernel_router.py",
+    "core/integrations/xafpay_v2/__init__.py",
+    "core/integrations/xafpay_v2/contract.py",
+    "core/integrations/xafpay_v2/repository.py",
+    "core/integrations/xafpay_v2/router.py",
+    "core/integrations/xafpay_v2/service.py",
+    "core/platform/architecture_contract.py",
+    "startup.py",
+    "tests/contracts/test_pc0_kernel_boundaries.py"
+  ],
+  "nce_additive_successor": {
+    "authority": "XBOS-NCE-H1B-ADDITIVE-SUCCESSOR-R1-SOURCE-MATERIALIZATION",
+    "nce_commit": "92f6dbc7db37f5e1e8cf9c3e497e5be57a03b611",
+    "nce_tag": "xbos-nce-r1-r1-e2-r1-xafpay-v2-event-consumer-accepted-20260923",
+    "common_parent": "f4dcfbe3c555d7da17196cdc4b377fd333db7a4d",
+    "kernel_router_override": {
+      "path": "core/api/kernel_router.py",
+      "historical_sha256": "e3bd3ee9be4006337ecb07eb53f61fb01838c2d952f915c3361481d0fd109d7f",
+      "successor_sha256": "a8b4a8b645ed7dd31367eb4dfa5643118ae7e518370817fdd5ddba997dd21c3d",
+      "required_markers": [
+        "from core.integrations.xafpay_v2.router import router as xafpay_v2_router",
+        "prefix=\"/integrations/xafpay-v2\""
+      ]
+    },
+    "module_overlay": {
+      "module_code": "xafpay",
+      "source_root": "core/integrations/xafpay_v2",
+      "files": [
+        {
+          "path": "core/integrations/xafpay_v2/__init__.py",
+          "sha256": "81a784b6db2386847bab5b0a86633d85ae57986e76c003dd11e46dd5dd7fc38a"
+        },
+        {
+          "path": "core/integrations/xafpay_v2/contract.py",
+          "sha256": "8bb5e87bbd49d94b0a45499ca544c0f21964e84f867d3c9389c24afe8b54fb5f"
+        },
+        {
+          "path": "core/integrations/xafpay_v2/repository.py",
+          "sha256": "da0065acac20914b5f90063b9f72315aba41f06d15639ebd1b4e0cdbccaea8a8"
+        },
+        {
+          "path": "core/integrations/xafpay_v2/router.py",
+          "sha256": "21801c3bec26128b19426edab6066448fd98f72bc4ac56b7d477f27441b10e84"
+        },
+        {
+          "path": "core/integrations/xafpay_v2/service.py",
+          "sha256": "5af5e6484fd03bbfe843c1d21c3c01094d3166ff179ba3f8bbcf77f3f006cc51"
+        }
+      ]
+    },
+    "authorized_dependency_edges": [
+      {
+        "source_path": "core/api/kernel_router.py",
+        "import_name": "core.integrations.xafpay_v2.router",
+        "source_module": "composition",
+        "target_module": "xafpay"
+      },
+      {
+        "source_path": "core/integrations/xafpay_v2/router.py",
+        "import_name": "database",
+        "source_module": "xafpay",
+        "target_module": "application"
+      }
+    ]
+  }
+}

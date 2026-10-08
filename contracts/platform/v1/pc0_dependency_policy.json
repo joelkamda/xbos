@@ -107,7 +107,8 @@
       "operating_context",
       "security_authority",
       "packs"
-    ]
+    ],
+    "interaction": []
   },
   "law": [
     "composition may assemble modules but domain modules may not depend on composition",

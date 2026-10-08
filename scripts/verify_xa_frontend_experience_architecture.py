@@ -14,8 +14,9 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from core.platform.architecture_contract import validate_pc0
-from core.platform.release_integrity import verify_latest_release
+from core.platform.release_integrity import verify_historical_release, verify_latest_release
 from experience_contracts import validate_experience
+from scripts.verify_pc8_h1b_private_route_admission_successor import require_full_regression_replacement
 
 CONTRACTS = ROOT / "contracts/experience/v1"
 EXAMPLES = CONTRACTS / "examples"
@@ -99,10 +100,19 @@ def _verify_release() -> int:
     expected |= {"XA_INSTALL_MANIFEST.txt", "XBOS_XA_INSTALL_AND_VERIFY.txt", "XBOS_XA_RUN_ACCEPTANCE.cmd"}
     if listed != expected:
         raise RuntimeError(f"XA_RELEASE_INVENTORY={sorted(listed ^ expected)}")
+    if _canonical_sha(CONTRACTS / "xa_release_manifest.json") != "fe3c8a84bf225300d5b13da4e3daa9dc02b55ddbd79ec5f0226f20bd92527a08":
+        raise RuntimeError("XA_HISTORICAL_RELEASE_MANIFEST_CHANGED")
+    latest = verify_latest_release(ROOT)["latest"]
+    if latest > 6 and verify_historical_release(ROOT, 6)["latest"] != latest:
+        raise RuntimeError("XA_PLATFORM_CORE_DESCENDANT_RESOLUTION")
     for item in manifest["artifacts"]:
         path = ROOT / item["path"]
-        if not path.is_file() or _canonical_sha(path) != item["sha256"]:
-            raise RuntimeError(f"XA_RELEASE_MANIFEST_MISMATCH={item['path']}")
+        actual = _canonical_sha(path) if path.is_file() else None
+        if actual != item["sha256"]:
+            require_full_regression_replacement(
+                item["path"], item["sha256"], actual,
+                "scripts/verify_xa_frontend_experience_architecture.py",
+            )
     return len(listed)
 
 
@@ -116,8 +126,10 @@ def verify_xa(root: Path = ROOT) -> dict:
         raise RuntimeError("XA_MIGRATION_FORBIDDEN")
     pc0 = validate_pc0(ROOT)
     latest = verify_latest_release(ROOT)
-    if latest["latest"] != 6:
+    if latest["latest"] < 6:
         raise RuntimeError("XA_PLATFORM_CORE_FREEZE")
+    if latest["latest"] > 6 and verify_historical_release(ROOT, 6)["latest"] != latest["latest"]:
+        raise RuntimeError("XA_PLATFORM_CORE_DESCENDANT_RESOLUTION")
     interfaces = _verify_public_consumption()
     examples = _verify_examples()
     artifacts = _verify_release()

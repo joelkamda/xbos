@@ -61,9 +61,18 @@ def _verify_release() -> int:
     listed = {item["path"] for item in manifest.get("artifacts", [])}
     if listed != expected:
         raise RuntimeError(f"SO0-RELEASE-INVENTORY={sorted(listed ^ expected)}")
+    if _canonical_sha(CONTRACTS / "so0_release_manifest.json") != "69e5af59af71a666d029ec536c80316a9d007f451ad1e677cdf30212520527cd":
+        raise RuntimeError("SO0-HISTORICAL-RELEASE-MANIFEST-CHANGED")
+    latest=verify_latest_release(ROOT)["latest"]
+    descendant_artifacts={}
+    if latest>6:
+        descendant_artifacts={item["path"]:item["sha256"] for item in _json("so1_release_manifest.json")["artifacts"]}
     for item in manifest["artifacts"]:
         path = ROOT / item["path"]
-        if not path.is_file() or _canonical_sha(path) != item["sha256"]:
+        actual=_canonical_sha(path) if path.is_file() else None
+        if actual != item["sha256"]:
+            if item["path"]=="scripts/verify_so0_shared_operations.py" and latest>6 and descendant_artifacts.get(item["path"])==actual:
+                continue
             raise RuntimeError(f"SO0-RELEASE-MISMATCH={item['path']}")
     return len(listed)
 
@@ -138,9 +147,9 @@ def verify_so0() -> dict:
                 if any(term.lower() in data.lower() for term in forbidden):
                     raise RuntimeError(f"SO0-ACTIVE-INDUSTRY-LEAKAGE={path.relative_to(ROOT)}")
     pc0 = validate_pc0(ROOT)
-    pc6 = verify_latest_release(ROOT)
+    platform_release = verify_latest_release(ROOT)
     xa = verify_xa()
-    if pc6["latest"] != 6 or xa["status"] != "PASS":
+    if platform_release["latest"] < 6 or xa["status"] != "PASS":
         raise RuntimeError("SO0-FROZEN-UPSTREAM-CONTRACT")
     artifacts = _verify_release()
     return {

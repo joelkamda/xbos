@@ -15,6 +15,8 @@ from .contract import (
     XafPayInitiationRequest,
     XafPayInitiationResponse,
     XafPayIntegrationError,
+    XafPayPaymentCreateRequest,
+    XafPayPaymentCreateResponse,
 )
 
 
@@ -25,10 +27,63 @@ class XafPayTransport(Protocol):
 
 
 class XafPayAdapter:
+    PAYMENT_CREATE_PATH = "/v2/payments"
     INITIATION_PATH = "/v1/payment-intents"
     RAILS = {"mtn_momo": "mtn", "orange_money": "orange"}
     EVENT_HEADER = "x-xafpay-event-id"
     SIGNATURE_HEADER = "x-xafpay-signature"
+
+    @classmethod
+    def payment_create_envelope(
+        cls,
+        request: XafPayPaymentCreateRequest,
+        *,
+        service_credential: str,
+    ) -> tuple[dict[str, str], dict[str, Any]]:
+        credential = str(service_credential).strip()
+        if not credential:
+            raise XafPayIntegrationError("service_credential_required", "Gateway V2 service credential is required")
+        body = {
+            "external_reference": request.external_reference,
+            "amount": {"minor": int(request.amount), "currency": request.currency_code},
+            "requested_method": request.payment_method_code.upper(),
+            "requested_rail": request.payment_rail_code.upper(),
+            "channel": request.channel,
+        }
+        headers = {
+            "Authorization": f"Bearer {credential}",
+            "Content-Type": "application/json",
+            "Idempotency-Key": request.idempotency_key,
+        }
+        return headers, body
+
+    @classmethod
+    def create_payment(
+        cls,
+        request: XafPayPaymentCreateRequest,
+        *,
+        service_credential: str,
+        transport: XafPayTransport,
+    ) -> XafPayPaymentCreateResponse:
+        headers, body = cls.payment_create_envelope(request, service_credential=service_credential)
+        response = transport.post(path=cls.PAYMENT_CREATE_PATH, headers=headers, body=body)
+        try:
+            amount = response["amount"]
+            if not isinstance(amount, Mapping):
+                raise TypeError
+            return XafPayPaymentCreateResponse(
+                payment_id=str(response["payment_id"]),
+                external_reference=str(response["external_reference"]),
+                status=str(response["status"]),
+                amount=amount["minor"],
+                currency_code=str(amount["currency"]),
+                next_action=response.get("next_action"),
+                evidence=dict(response),
+            )
+        except (KeyError, TypeError, ValueError, AttributeError) as exc:
+            if isinstance(exc, XafPayIntegrationError):
+                raise
+            raise XafPayIntegrationError("invalid_payment_create_response", "Gateway V2 payment create response is incomplete") from exc
 
     @classmethod
     def initiation_envelope(cls, request: XafPayInitiationRequest, *, api_key: str) -> tuple[dict[str, str], dict[str, Any]]:

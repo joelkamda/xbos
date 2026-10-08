@@ -27,15 +27,15 @@
     },
     {
       "path": "contracts/platform/v1/pc0_frozen_finance_inventory.json",
-      "sha256": "85f45225fd783244f00dec1c8d3cc290f5885caa5d0e442cd83dd3c40bb843d2"
+      "sha256": "356d4cace4714e1a43de411cac3b69c2321b950a36e723123930197f6f96638b"
     },
     {
       "path": "contracts/platform/v1/pc0_release_manifest.json",
-      "sha256": "6e335af697bde10dfc2cf847fdd489ea4df12f315e626dfd6fb3a674b64e6a6a"
+      "sha256": "0e62b740f934e40d597ff51843c1887cef0daf1aaffe187a090926aa34d5cd88"
     },
     {
-      "path": "contracts/platform/v1/pc6_release_manifest.json",
-      "sha256": "f78330d5e40c8415b9f564ebf04d15a592a325bbeb57098ef9d5c91120317a87"
+      "path": "contracts/platform/v1/pc7_release_manifest.json",
+      "sha256": "0b2c8401af89a574260d28f5a028b8a44a9dd267c916be8af1061f7558cd3a4d"
     },
     {
       "path": "contracts/shared_operations/v1/examples/professional_service_profile.json",
@@ -59,7 +59,7 @@
     },
     {
       "path": "contracts/shared_operations/v1/so1_public_interfaces.json",
-      "sha256": "01e4833455258962230c5e7145e30de33043ae953e95167ffd3acc82781d5ff7"
+      "sha256": "ddd6444cf14fae44a016f7a2a0127024e0a3001161d64dee32a45188eafb722f"
     },
     {
       "path": "contracts/shared_operations/v1/so1_xa_metadata.json",
@@ -67,7 +67,7 @@
     },
     {
       "path": "core/platform/architecture_contract.py",
-      "sha256": "eae3265ad7632fcb9bc811ccda290579d59583ebc15aaf8d762a7262c93755b8"
+      "sha256": "5345e6655603ae89416568a4548dc798289f2b1702fe066cf51c29e90df64d7b"
     },
     {
       "path": "docs/shared_operations/SO1_ATOMIC_UNITS_CATALOG_OFFERS_PRICING.md",
@@ -79,11 +79,11 @@
     },
     {
       "path": "scripts/verify_so0_shared_operations.py",
-      "sha256": "9d6f13c5fdfba1fa84f78b94828b0d17c02a841ddfc677a59f67d7f9fce6a4bd"
+      "sha256": "15be22825b64c0f2e33de54ae710a3aa554de6780335c41b9dd382f0bbaa1ae9"
     },
     {
       "path": "scripts/verify_so1_atomic_catalog_pricing.py",
-      "sha256": "72adade18b1be25292d1bba520c9759bb64f942a68b2a794e4ba756ac3f2f498"
+      "sha256": "8dcd116be63aa4735d7fd24076f86c95e4c42037703605ca3417ef62d9934415"
     },
     {
       "path": "shared_operations/so1/__init__.py",
@@ -91,23 +91,27 @@
     },
     {
       "path": "shared_operations/so1/contracts.py",
-      "sha256": "84d827ba6bfc52945cd45c91fd67d10024f6cf6065573df1260125a2acb937b1"
+      "sha256": "f20ddcbde49511132c591339e1c78acec76dfb9b4d1ca006252843d8137e9405"
     },
     {
       "path": "shared_operations/so1/service.py",
-      "sha256": "5ede283f303f0e05f107de699e351fe5ef875b472ba81c407e873a4508fd19da"
+      "sha256": "21505d81d241e2ee44c5ebba478d069672decd75f335c032e5509e1747275ae5"
     },
     {
       "path": "shared_operations/so1/sql_repository.py",
-      "sha256": "2c9f816d0a4b898e1ecc40c6d9a3ac57c576db478bc97905e0a40aaf4abd5e8a"
+      "sha256": "b6b7299b67f045fbe0cf161c9c0df3a7abfde46620f44db60e89963b76418ecc"
     },
     {
       "path": "tests/contracts/test_pc0_kernel_boundaries.py",
-      "sha256": "ece19ea243bc1725ebf0e7446af69c28ff83411cd2ff0f2cf717a9de842d06f9"
+      "sha256": "cbdcb74cfed2c92ba6d6ed13dd8a6f319fab0b223ad9a24477d6550d4f3ddf94"
     },
     {
       "path": "tests/contracts/test_so1_atomic_catalog_pricing.py",
-      "sha256": "ab7072608093fd4361e9a56d145b7c76598c2b24f2f283bd66f1db1bf1055032"
+      "sha256": "64655f14b81cbf94ce7ffecd143dbaf01e164e91d7c4bb4c685a6afe0541a33d"
+    },
+    {
+      "path": "contracts/platform/v1/pc6_release_manifest.json",
+      "sha256": "af0919c69b0931eda8464640e50fb093ef61a8d4c2d4e32754a96d34b7a82fcf"
     }
   ],
   "commit": "NOT_CREATED",
@@ -118,5 +122,12 @@
   "schema_version": 1,
   "source_checkpoint": "f72f4b5",
   "source_checkpoint_full": "f72f4b5d8ad8e576212347615458fcd801e9f7bd",
-  "tag": "NOT_CREATED"
+  "tag": "NOT_CREATED",
+  "historical_xa_replacements": [
+    {
+      "path": "scripts/verify_xa_frontend_experience_architecture.py",
+      "historical_sha256": "623041f48a8bb8798cb00062f5108f791edbf2879a3028b95f6a295e2259409f",
+      "descendant_sha256": "c7d4ddd6ec87999aa4191f1e31be134d9a8287e3d3f38168d38dc43937e74615"
+    }
+  ]
 }
