@@ -29,6 +29,9 @@ SAFE_MESSAGES = {
     "SERVICE_AUTH_REQUIRED": "Customer Channel service authentication is required.",
     "SERVICE_AUTH_FORBIDDEN": "Customer Channel service authentication is not authorized for this context.",
     "IDEMPOTENCY_CONFLICT": "The submission reference conflicts with an existing checkout attempt.",
+    "DRAFT_NOT_FOUND": "The draft was not found in the current checkout context.",
+    "DRAFT_STATE_CONFLICT": "The draft changed or is no longer open.",
+    "COMMAND_RESULT_UNKNOWN": "The command result could not be recovered.",
 }
 
 _STATUS = {
@@ -42,6 +45,9 @@ _STATUS = {
     "ORDER_NOT_READY": 409,
     "PAYMENT_OPTIONS_UNAVAILABLE": 409,
     "UNSUPPORTED_METHOD": 422,
+    "DRAFT_NOT_FOUND": 404,
+    "DRAFT_STATE_CONFLICT": 409,
+    "COMMAND_RESULT_UNKNOWN": 404,
 }
 
 

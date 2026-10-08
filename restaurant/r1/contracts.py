@@ -74,6 +74,9 @@ class ChangeOrderLineQuantity:
 class RemoveOrderLine:
     command_key:str; tenant_id:int; order_public_id:UUID; order_line_public_id:UUID; expected_order_version:int; expected_line_version:int; occurred_at:datetime
 @dataclass(frozen=True)
+class ChangeOrderFulfillment:
+    command_key:str; tenant_id:int; order_public_id:UUID; expected_version:int; mode_code:str; occurred_at:datetime; session_public_id:UUID|None=None; party_public_id:UUID|None=None
+@dataclass(frozen=True)
 class SubmitOrder:
     command_key:str; tenant_id:int; order_public_id:UUID; expected_version:int; occurred_at:datetime
 @dataclass(frozen=True)

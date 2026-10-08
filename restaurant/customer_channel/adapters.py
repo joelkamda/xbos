@@ -108,9 +108,15 @@ class AcceptedAuthorityAdapters:
         option_refs: tuple[UUID, ...],
         at: datetime,
         currency: str,
+        catalog_public_id: UUID | None = None,
+        price_code: str = PRICE_CODE,
+        price_scope_type: ScopeType = ScopeType.LOCATION,
+        price_scope_id: int | None = None,
     ) -> AuthoritativeLine:
         entry = self.so1_repo.catalog_entry(scope.tenant_id, catalog_entry_ref)
         if entry is None or not entry.enabled or not self._effective(entry, at):
+            raise H1BError("ORDER_NOT_READY", correlation_ref=scope.correlation_ref)
+        if catalog_public_id is not None and entry.catalog_public_id != catalog_public_id:
             raise H1BError("ORDER_NOT_READY", correlation_ref=scope.correlation_ref)
         catalog = self.so1_repo.catalog(scope.tenant_id, entry.catalog_public_id)
         if catalog is None or not self._effective(catalog, at):
@@ -123,11 +129,20 @@ class AcceptedAuthorityAdapters:
                     scope.tenant_id,
                     entry.target_type,
                     entry.target_public_id,
-                    PRICE_CODE,
+                    price_code,
                     currency,
                     at,
-                    ScopeType.LOCATION,
-                    scope.location_id,
+                    price_scope_type,
+                    (
+                        None
+                        if price_scope_type is ScopeType.TENANT
+                        else (
+                            scope.location_id
+                            if price_scope_id is None
+                            and price_scope_type is ScopeType.LOCATION
+                            else price_scope_id
+                        )
+                    ),
                 )
             )
         except Exception as exc:

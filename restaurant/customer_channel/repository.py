@@ -438,6 +438,375 @@ class CustomerChannelRepository:
         ).scalar()
         return UUID(str(row)) if row else None
 
+
+    def catalog_binding_by_ref(
+        self, tenant_id: int, binding_public_id: UUID
+    ) -> CatalogReadBinding | None:
+        row = self.session.execute(
+            text(
+                """
+                SELECT
+                    b.public_id AS binding_ref,
+                    b.row_version AS binding_version,
+                    b.merchant_public_id,
+                    l.public_id AS location_public_id,
+                    b.tenant_id,
+                    b.catalog_public_id,
+                    b.price_code,
+                    b.currency,
+                    b.scope_type,
+                    b.scope_id,
+                    b.effective_from,
+                    b.effective_to,
+                    b.active
+                FROM restaurant_customer_catalog_read_bindings b
+                JOIN locations l
+                  ON (l.tenant_id,l.id)=(b.tenant_id,b.location_id)
+                WHERE b.tenant_id=:tenant AND b.public_id=:binding
+                """
+            ),
+            {"tenant": tenant_id, "binding": str(binding_public_id)},
+        ).mappings().first()
+        if row is None:
+            return None
+        return CatalogReadBinding(
+            binding_ref=UUID(str(row["binding_ref"])),
+            binding_version=int(row["binding_version"]),
+            merchant_public_id=UUID(str(row["merchant_public_id"])),
+            location_public_id=UUID(str(row["location_public_id"])),
+            tenant_id=int(row["tenant_id"]),
+            catalog_public_id=UUID(str(row["catalog_public_id"])),
+            price_code=str(row["price_code"]),
+            currency=str(row["currency"]),
+            scope_type=str(row["scope_type"]),
+            scope_id=int(row["scope_id"]) if row["scope_id"] is not None else None,
+            effective_from=row["effective_from"],
+            effective_to=row["effective_to"],
+            enabled=bool(row["active"]),
+        )
+
+    def location_public_id(self, tenant_id: int, location_id: int) -> UUID:
+        value = self.session.execute(
+            text(
+                """
+                SELECT public_id
+                FROM locations
+                WHERE tenant_id=:tenant AND id=:location
+                """
+            ),
+            {"tenant": tenant_id, "location": location_id},
+        ).scalar()
+        if value is None:
+            raise H1BError("CONTEXT_MISMATCH")
+        return UUID(str(value))
+
+    def draft(
+        self,
+        tenant_id: int,
+        draft_public_id: UUID,
+        *,
+        lock: bool = False,
+    ) -> dict[str, Any] | None:
+        suffix = " FOR UPDATE" if lock else ""
+        row = self.session.execute(
+            text(
+                """
+                SELECT *
+                FROM restaurant_customer_order_drafts
+                WHERE tenant_id=:tenant AND public_id=:draft
+                """ + suffix
+            ),
+            {"tenant": tenant_id, "draft": str(draft_public_id)},
+        ).mappings().first()
+        return dict(row) if row else None
+
+    def draft_by_order(
+        self,
+        tenant_id: int,
+        order_public_id: UUID,
+        *,
+        lock: bool = False,
+    ) -> dict[str, Any] | None:
+        suffix = " FOR UPDATE" if lock else ""
+        row = self.session.execute(
+            text(
+                """
+                SELECT *
+                FROM restaurant_customer_order_drafts
+                WHERE tenant_id=:tenant AND order_public_id=:order_ref
+                """ + suffix
+            ),
+            {"tenant": tenant_id, "order_ref": str(order_public_id)},
+        ).mappings().first()
+        return dict(row) if row else None
+
+    def create_draft(
+        self,
+        *,
+        public_id: UUID,
+        tenant_id: int,
+        organization_unit_id: int,
+        location_id: int,
+        merchant_public_id: UUID,
+        context_binding_public_id: UUID,
+        catalog_binding_public_id: UUID,
+        catalog_binding_version: int,
+        order_public_id: UUID,
+        service_mode: str,
+        table_resource_public_id: UUID | None,
+        contact_binding_public_id: UUID | None,
+        delivery_address_binding_public_id: UUID | None,
+    ) -> dict[str, Any]:
+        row = self.session.execute(
+            text(
+                """
+                INSERT INTO restaurant_customer_order_drafts(
+                    public_id,tenant_id,organization_unit_id,location_id,
+                    merchant_public_id,context_binding_public_id,
+                    catalog_binding_public_id,catalog_binding_version,
+                    order_public_id,service_mode,table_resource_public_id,
+                    contact_binding_public_id,delivery_address_binding_public_id
+                ) VALUES(
+                    :public_id,:tenant,:organization,:location,:merchant,:context,
+                    :catalog_binding,:catalog_version,:order_ref,:mode,:table_ref,
+                    :contact_ref,:address_ref
+                )
+                RETURNING *
+                """
+            ),
+            {
+                "public_id": str(public_id),
+                "tenant": tenant_id,
+                "organization": organization_unit_id,
+                "location": location_id,
+                "merchant": str(merchant_public_id),
+                "context": str(context_binding_public_id),
+                "catalog_binding": str(catalog_binding_public_id),
+                "catalog_version": catalog_binding_version,
+                "order_ref": str(order_public_id),
+                "mode": service_mode,
+                "table_ref": str(table_resource_public_id) if table_resource_public_id else None,
+                "contact_ref": str(contact_binding_public_id) if contact_binding_public_id else None,
+                "address_ref": (
+                    str(delivery_address_binding_public_id)
+                    if delivery_address_binding_public_id
+                    else None
+                ),
+            },
+        ).mappings().one()
+        return dict(row)
+
+    def touch_draft(
+        self,
+        *,
+        tenant_id: int,
+        draft_public_id: UUID,
+        expected_version: int,
+    ) -> dict[str, Any] | None:
+        row = self.session.execute(
+            text(
+                """
+                UPDATE restaurant_customer_order_drafts
+                SET row_version=row_version+1,updated_at=now()
+                WHERE tenant_id=:tenant
+                  AND public_id=:draft
+                  AND lifecycle_status='open'
+                  AND row_version=:version
+                RETURNING *
+                """
+            ),
+            {
+                "tenant": tenant_id,
+                "draft": str(draft_public_id),
+                "version": expected_version,
+            },
+        ).mappings().first()
+        return dict(row) if row else None
+
+    def update_draft_fulfillment(
+        self,
+        *,
+        tenant_id: int,
+        draft_public_id: UUID,
+        expected_version: int,
+        service_mode: str,
+        table_resource_public_id: UUID | None,
+        contact_binding_public_id: UUID | None,
+        delivery_address_binding_public_id: UUID | None,
+    ) -> dict[str, Any] | None:
+        row = self.session.execute(
+            text(
+                """
+                UPDATE restaurant_customer_order_drafts
+                SET service_mode=:mode,
+                    table_resource_public_id=:table_ref,
+                    contact_binding_public_id=:contact_ref,
+                    delivery_address_binding_public_id=:address_ref,
+                    row_version=row_version+1,
+                    updated_at=now()
+                WHERE tenant_id=:tenant
+                  AND public_id=:draft
+                  AND lifecycle_status='open'
+                  AND row_version=:version
+                RETURNING *
+                """
+            ),
+            {
+                "tenant": tenant_id,
+                "draft": str(draft_public_id),
+                "version": expected_version,
+                "mode": service_mode,
+                "table_ref": str(table_resource_public_id) if table_resource_public_id else None,
+                "contact_ref": str(contact_binding_public_id) if contact_binding_public_id else None,
+                "address_ref": (
+                    str(delivery_address_binding_public_id)
+                    if delivery_address_binding_public_id
+                    else None
+                ),
+            },
+        ).mappings().first()
+        return dict(row) if row else None
+
+    def transition_draft(
+        self,
+        *,
+        tenant_id: int,
+        draft_public_id: UUID,
+        expected_version: int,
+        to_state: str,
+    ) -> dict[str, Any] | None:
+        if to_state not in {"submitted", "cancelled"}:
+            raise ValueError("unsupported draft transition")
+        row = self.session.execute(
+            text(
+                """
+                UPDATE restaurant_customer_order_drafts
+                SET lifecycle_status=:state,row_version=row_version+1,updated_at=now()
+                WHERE tenant_id=:tenant
+                  AND public_id=:draft
+                  AND lifecycle_status='open'
+                  AND row_version=:version
+                RETURNING *
+                """
+            ),
+            {
+                "tenant": tenant_id,
+                "draft": str(draft_public_id),
+                "version": expected_version,
+                "state": to_state,
+            },
+        ).mappings().first()
+        return dict(row) if row else None
+
+    def bind_draft_line(
+        self,
+        *,
+        tenant_id: int,
+        draft_public_id: UUID,
+        order_line_public_id: UUID,
+        item_public_id: UUID,
+    ) -> None:
+        self.session.execute(
+            text(
+                """
+                INSERT INTO restaurant_customer_order_draft_lines(
+                    tenant_id,draft_id,order_line_public_id,item_public_id
+                )
+                SELECT :tenant,d.id,:line_ref,:item_ref
+                FROM restaurant_customer_order_drafts d
+                WHERE d.tenant_id=:tenant AND d.public_id=:draft
+                ON CONFLICT(tenant_id,order_line_public_id) DO NOTHING
+                """
+            ),
+            {
+                "tenant": tenant_id,
+                "draft": str(draft_public_id),
+                "line_ref": str(order_line_public_id),
+                "item_ref": str(item_public_id),
+            },
+        )
+
+    def draft_line_bindings(
+        self,
+        tenant_id: int,
+        draft_public_id: UUID,
+    ) -> tuple[dict[str, Any], ...]:
+        rows = self.session.execute(
+            text(
+                """
+                SELECT x.order_line_public_id,x.item_public_id
+                FROM restaurant_customer_order_draft_lines x
+                JOIN restaurant_customer_order_drafts d
+                  ON (d.tenant_id,d.id)=(x.tenant_id,x.draft_id)
+                WHERE x.tenant_id=:tenant AND d.public_id=:draft
+                ORDER BY x.id
+                """
+            ),
+            {"tenant": tenant_id, "draft": str(draft_public_id)},
+        ).mappings().all()
+        return tuple(dict(row) for row in rows)
+
+    def command_result(
+        self,
+        tenant_id: int,
+        client_command_ref_hash: str,
+        *,
+        lock: bool = False,
+    ) -> dict[str, Any] | None:
+        if lock:
+            self.session.execute(
+                text("SELECT pg_advisory_xact_lock(hashtextextended(:key,0))"),
+                {"key": f"{tenant_id}:{client_command_ref_hash}"},
+            )
+        row = self.session.execute(
+            text(
+                """
+                SELECT *
+                FROM restaurant_customer_order_command_results
+                WHERE tenant_id=:tenant AND client_command_ref_hash=:hash
+                """
+            ),
+            {"tenant": tenant_id, "hash": client_command_ref_hash},
+        ).mappings().first()
+        return dict(row) if row else None
+
+    def record_command_result(
+        self,
+        *,
+        tenant_id: int,
+        client_command_ref_hash: str,
+        operation: str,
+        request_fingerprint: str,
+        draft_public_id: UUID,
+        line_public_id: UUID | None = None,
+        order_public_id: UUID | None = None,
+    ) -> dict[str, Any]:
+        row = self.session.execute(
+            text(
+                """
+                INSERT INTO restaurant_customer_order_command_results(
+                    tenant_id,client_command_ref_hash,operation,request_fingerprint,
+                    completion_state,draft_public_id,line_public_id,order_public_id,
+                    completed_at
+                ) VALUES(
+                    :tenant,:hash,:operation,:fingerprint,'completed',
+                    :draft,:line_ref,:order_ref,now()
+                )
+                RETURNING *
+                """
+            ),
+            {
+                "tenant": tenant_id,
+                "hash": client_command_ref_hash,
+                "operation": operation,
+                "fingerprint": request_fingerprint,
+                "draft": str(draft_public_id),
+                "line_ref": str(line_public_id) if line_public_id else None,
+                "order_ref": str(order_public_id) if order_public_id else None,
+            },
+        ).mappings().one()
+        return dict(row)
+
 class CatalogReadBindingRepository(Protocol):
     def resolve(
         self,

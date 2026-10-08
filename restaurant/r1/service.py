@@ -25,6 +25,7 @@ class R1Repository(Protocol):
     def add_line(self,c,p,price,currency,fp)->RestaurantOrder|None: ...
     def change_line_quantity(self,c,fp)->RestaurantOrder|None: ...
     def remove_order_line(self,c,fp)->RestaurantOrder|None: ...
+    def change_order_fulfillment(self,c,fp)->RestaurantOrder|None: ...
     def submit_order(self,c,fp)->RestaurantOrder|None: ...
     def cancel_order(self,c,fp)->RestaurantOrder|None: ...
     def open_tab(self,c,p,fp)->RestaurantTab|None: ...
@@ -153,6 +154,20 @@ class R1Authority:
     def remove_order_line(self,c:RemoveOrderLine):
         self._permit(c.tenant_id,'restaurant.order.remove');n=replace(c,occurred_at=self._aware(c.occurred_at,'occurred_at'));r=self.repo.remove_order_line(n,self._fp(n))
         if r is None:raise R1Error('R1_ORDER_LINE_REMOVE_CONFLICT','stale_version','Order line cannot be removed',retryable=True)
+        return r
+    def change_order_fulfillment(self,c:ChangeOrderFulfillment):
+        self._permit(c.tenant_id,'restaurant.order.change');code=self._code(c.mode_code,'mode_code');mode=self.repo.mode(c.tenant_id,code)
+        if mode is None or not mode.active:raise R1Error('R1_MODE_NOT_ACTIVE','invalid_state_transition','Active service mode required')
+        current=self.repo.order(c.tenant_id,c.order_public_id)
+        if current is None or current.status is not OrderStatus.OPEN:raise R1Error('R1_ORDER_FULFILLMENT_CONFLICT','stale_version','Order fulfillment cannot change',retryable=True)
+        if current.source_channel_code!='in_person' and not mode.allows_remote_origin:raise R1Error('R1_REMOTE_NOT_ALLOWED','validation_failure','Remote-origin order not allowed for mode')
+        if c.session_public_id:
+            sess=self.repo.session(c.tenant_id,c.session_public_id)
+            if sess is None or sess.status is not SessionStatus.OPEN or sess.mode_code!=code:raise R1Error('R1_SESSION_MODE_MISMATCH','invalid_state_transition','Order session/mode mismatch')
+        elif mode.requires_session:raise R1Error('R1_SESSION_REQUIRED','validation_failure','Service mode requires a session')
+        if c.party_public_id:self._owned(self.party_resolver(c.tenant_id,c.party_public_id),c.tenant_id,c.party_public_id,'R1_PARTY_NOT_FOUND')
+        n=replace(c,mode_code=code,occurred_at=self._aware(c.occurred_at,'occurred_at'));r=self.repo.change_order_fulfillment(n,self._fp(n))
+        if r is None:raise R1Error('R1_ORDER_FULFILLMENT_CONFLICT','stale_version','Order fulfillment cannot change',retryable=True)
         return r
     def submit_order(self,c:SubmitOrder):
         self._permit(c.tenant_id,'restaurant.order.submit');n=replace(c,occurred_at=self._aware(c.occurred_at,'occurred_at'));r=self.repo.submit_order(n,self._fp(n))

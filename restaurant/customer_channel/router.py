@@ -15,6 +15,7 @@ from .auth import bearer_from_authorization_header, catalog_bearer_from_authoriz
 from .contracts import CatalogReadError, H1BError, PRIVATE_ROUTE_PREFIX
 from .service import RestaurantCustomerChannelCheckoutAuthority
 from .catalog_read import CatalogReadTransport
+from .draft_order import CustomerChannelDraftOrderAuthority
 
 router = APIRouter(prefix=PRIVATE_ROUTE_PREFIX, tags=["Customer Channel Private Checkout"])
 
@@ -112,9 +113,9 @@ async def reconcile_order(
 ):
     trace = request.headers.get("X-Correlation-Ref")
     try:
-        service = RestaurantCustomerChannelCheckoutAuthority(db)
-        scope = _scope(service, request)
-        result = service.reconcile_order(
+        authority = CustomerChannelDraftOrderAuthority(db)
+        scope = _scope(authority.checkout, request)
+        result = authority.reconcile_submit(
             scope=scope,
             client_submit_ref=client_submit_ref,
         )
@@ -285,3 +286,238 @@ async def read_catalog_menu(
         return _catalog_failure(exc)
     except Exception:
         return _catalog_failure(CatalogReadError("CATALOG_SEMANTIC_FAILURE", correlation_ref=trace))
+
+def _optional_uuid(value: Any, trace: str | None) -> UUID | None:
+    if value is None:
+        return None
+    try:
+        return UUID(str(value))
+    except Exception as exc:
+        raise H1BError("ORDER_NOT_READY", correlation_ref=trace) from exc
+
+
+@router.post("/order-drafts")
+async def create_order_draft(
+    request: Request,
+    payload: dict[str, Any] = Body(...),
+    db: Session = Depends(get_db),
+):
+    trace = request.headers.get("X-Correlation-Ref")
+    try:
+        required = {"client_command_ref", "service_mode"}
+        allowed = required | {"table_ref", "contact_ref", "delivery_address_ref"}
+        if not required.issubset(payload) or set(payload) - allowed:
+            raise H1BError("ORDER_NOT_READY", correlation_ref=trace)
+        authority = CustomerChannelDraftOrderAuthority(db)
+        scope = _scope(authority.checkout, request)
+        result = authority.create_draft(
+            scope=scope,
+            client_command_ref=str(payload["client_command_ref"]),
+            service_mode=str(payload["service_mode"]),
+            table_ref=_optional_uuid(payload.get("table_ref"), trace),
+            contact_ref=_optional_uuid(payload.get("contact_ref"), trace),
+            delivery_address_ref=_optional_uuid(payload.get("delivery_address_ref"), trace),
+        )
+        db.commit()
+        return result
+    except H1BError as exc:
+        db.rollback()
+        return _failure(exc)
+    except Exception:
+        db.rollback()
+        return _unexpected(trace)
+
+
+@router.get("/order-drafts/by-client-command-ref/{client_command_ref}")
+async def reconcile_order_draft_create(
+    client_command_ref: str,
+    request: Request,
+    db: Session = Depends(get_db),
+):
+    trace = request.headers.get("X-Correlation-Ref")
+    try:
+        authority = CustomerChannelDraftOrderAuthority(db)
+        scope = _scope(authority.checkout, request)
+        return authority.reconcile_create(
+            scope=scope,
+            client_command_ref=client_command_ref,
+        )
+    except H1BError as exc:
+        db.rollback()
+        return _failure(exc)
+    except Exception:
+        db.rollback()
+        return _unexpected(trace)
+
+
+@router.get("/order-drafts/{draft_ref}")
+async def read_order_draft(
+    draft_ref: UUID,
+    request: Request,
+    db: Session = Depends(get_db),
+):
+    trace = request.headers.get("X-Correlation-Ref")
+    try:
+        authority = CustomerChannelDraftOrderAuthority(db)
+        scope = _scope(authority.checkout, request)
+        return authority.read_draft(scope=scope, draft_ref=draft_ref)
+    except H1BError as exc:
+        db.rollback()
+        return _failure(exc)
+    except Exception:
+        db.rollback()
+        return _unexpected(trace)
+
+
+@router.post("/order-drafts/{draft_ref}/commands")
+async def mutate_order_draft(
+    draft_ref: UUID,
+    request: Request,
+    payload: dict[str, Any] = Body(...),
+    db: Session = Depends(get_db),
+):
+    trace = request.headers.get("X-Correlation-Ref")
+    try:
+        authority = CustomerChannelDraftOrderAuthority(db)
+        scope = _scope(authority.checkout, request)
+        result = authority.mutate_draft(
+            scope=scope,
+            draft_ref=draft_ref,
+            payload=payload,
+        )
+        db.commit()
+        return result
+    except H1BError as exc:
+        db.rollback()
+        return _failure(exc)
+    except Exception:
+        db.rollback()
+        return _unexpected(trace)
+
+
+@router.get("/order-commands/by-client-ref/{client_command_ref}")
+async def reconcile_order_command(
+    client_command_ref: str,
+    request: Request,
+    db: Session = Depends(get_db),
+):
+    trace = request.headers.get("X-Correlation-Ref")
+    try:
+        authority = CustomerChannelDraftOrderAuthority(db)
+        scope = _scope(authority.checkout, request)
+        return authority.reconcile_command(
+            scope=scope,
+            client_command_ref=client_command_ref,
+        )
+    except H1BError as exc:
+        db.rollback()
+        return _failure(exc)
+    except Exception:
+        db.rollback()
+        return _unexpected(trace)
+
+
+@router.post("/order-drafts/{draft_ref}/confirmation")
+async def confirm_order_draft(
+    draft_ref: UUID,
+    request: Request,
+    payload: dict[str, Any] | None = Body(default=None),
+    db: Session = Depends(get_db),
+):
+    trace = request.headers.get("X-Correlation-Ref")
+    try:
+        if payload not in (None, {}):
+            raise H1BError("ORDER_NOT_READY", correlation_ref=trace)
+        authority = CustomerChannelDraftOrderAuthority(db)
+        scope = _scope(authority.checkout, request)
+        result = authority.confirm_draft(scope=scope, draft_ref=draft_ref)
+        db.commit()
+        return asdict(result)
+    except H1BError as exc:
+        db.rollback()
+        return _failure(exc)
+    except Exception:
+        db.rollback()
+        return _unexpected(trace)
+
+
+@router.post("/order-drafts/{draft_ref}/submit")
+async def submit_order_draft(
+    draft_ref: UUID,
+    request: Request,
+    payload: dict[str, Any] = Body(...),
+    db: Session = Depends(get_db),
+):
+    trace = request.headers.get("X-Correlation-Ref")
+    try:
+        if set(payload) != {"confirmation_ref", "client_submit_ref"}:
+            raise H1BError("IDEMPOTENCY_CONFLICT", correlation_ref=trace)
+        authority = CustomerChannelDraftOrderAuthority(db)
+        scope = _scope(authority.checkout, request)
+        result = authority.submit_draft(
+            scope=scope,
+            draft_ref=draft_ref,
+            confirmation_ref=UUID(str(payload["confirmation_ref"])),
+            client_submit_ref=str(payload["client_submit_ref"]),
+        )
+        db.commit()
+        return asdict(result)
+    except H1BError as exc:
+        db.rollback()
+        return _failure(exc)
+    except Exception:
+        db.rollback()
+        return _unexpected(trace)
+
+
+@router.get("/orders/{order_ref}")
+async def read_customer_channel_order(
+    order_ref: UUID,
+    request: Request,
+    db: Session = Depends(get_db),
+):
+    trace = request.headers.get("X-Correlation-Ref")
+    try:
+        authority = CustomerChannelDraftOrderAuthority(db)
+        scope = _scope(authority.checkout, request)
+        return authority.read_order(scope=scope, order_ref=order_ref)
+    except H1BError as exc:
+        db.rollback()
+        return _failure(exc)
+    except Exception:
+        db.rollback()
+        return _unexpected(trace)
+
+
+@router.post("/orders/{order_ref}/cancel")
+async def cancel_customer_channel_order(
+    order_ref: UUID,
+    request: Request,
+    payload: dict[str, Any] = Body(...),
+    db: Session = Depends(get_db),
+):
+    trace = request.headers.get("X-Correlation-Ref")
+    try:
+        if set(payload) != {
+            "client_command_ref",
+            "expected_draft_version",
+            "reason_code",
+        }:
+            raise H1BError("ORDER_NOT_READY", correlation_ref=trace)
+        authority = CustomerChannelDraftOrderAuthority(db)
+        scope = _scope(authority.checkout, request)
+        result = authority.cancel_order(
+            scope=scope,
+            order_ref=order_ref,
+            client_command_ref=str(payload["client_command_ref"]),
+            expected_draft_version=int(payload["expected_draft_version"]),
+            reason_code=str(payload["reason_code"]),
+        )
+        db.commit()
+        return result
+    except H1BError as exc:
+        db.rollback()
+        return _failure(exc)
+    except Exception:
+        db.rollback()
+        return _unexpected(trace)

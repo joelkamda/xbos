@@ -142,6 +142,27 @@ class SQLR1Repository:
         payload={'line_public_id':str(c.order_line_public_id),'quantity':str(line.quantity),'unit_price_snapshot':str(line.unit_price_snapshot),'currency':line.currency,'old_line_version':c.expected_line_version,'new_line_version':new_line_version}
         self.db_session.execute(text("INSERT INTO r1_restaurant_order_history(tenant_id,order_id,event_type,from_status,to_status,reason_code,occurred_at,event_payload) VALUES(:t,:o,'item_removed','open','open','item_removed',:at,CAST(:p AS jsonb))"),{'t':c.tenant_id,'o':o.id,'at':c.occurred_at,'p':json.dumps(payload,sort_keys=True)})
         self._done(c.tenant_id,c.command_key,'restaurant_order',c.order_public_id);return self.order(c.tenant_id,c.order_public_id)
+    def change_order_fulfillment(self,c,fp):
+        replay=self._command(c.tenant_id,c.command_key,fp,'change_order_fulfillment')
+        if replay.completed_at:return self.order(c.tenant_id,c.order_public_id)
+        o=self._order_row(c.tenant_id,c.order_public_id,True)
+        if not o or o.row_version!=c.expected_version or o.lifecycle_status!='open':return None
+        m=self._mode_row(c.tenant_id,code=c.mode_code,lock=True)
+        if not m or not m.active:return None
+        sid=None
+        if c.session_public_id:
+            sess=self._session_row(c.tenant_id,c.session_public_id,True)
+            if not sess or sess.lifecycle_status!='open' or sess.service_mode_id!=m.id:return None
+            sid=sess.id
+        elif m.requires_session:return None
+        party=self._party_id(c.tenant_id,c.party_public_id)
+        if c.party_public_id and party is None:return None
+        old_mode=o.mode_code
+        changed=self.db_session.execute(text("UPDATE r1_restaurant_orders SET service_mode_id=:mode,service_session_id=:session,party_id=:party,row_version=row_version+1,updated_at=now() WHERE tenant_id=:t AND id=:o AND row_version=:v AND lifecycle_status='open' RETURNING row_version"),{'mode':m.id,'session':sid,'party':party,'t':c.tenant_id,'o':o.id,'v':c.expected_version}).scalar()
+        if changed!=c.expected_version+1:return None
+        payload={'old_mode_code':old_mode,'new_mode_code':c.mode_code,'session_public_id':str(c.session_public_id) if c.session_public_id else None,'party_public_id':str(c.party_public_id) if c.party_public_id else None}
+        self.db_session.execute(text("INSERT INTO r1_restaurant_order_history(tenant_id,order_id,event_type,from_status,to_status,reason_code,occurred_at,event_payload) VALUES(:t,:o,'fulfillment_changed','open','open','fulfillment_changed',:at,CAST(:p AS jsonb))"),{'t':c.tenant_id,'o':o.id,'at':c.occurred_at,'p':json.dumps(payload,sort_keys=True)})
+        self._done(c.tenant_id,c.command_key,'restaurant_order',c.order_public_id);return self.order(c.tenant_id,c.order_public_id)
     def submit_order(self,c,fp):
         replay=self._command(c.tenant_id,c.command_key,fp,'submit_order')
         if replay.result_public_id:return self.order(c.tenant_id,replay.result_public_id)
