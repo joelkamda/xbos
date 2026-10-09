@@ -33,7 +33,9 @@ class TenantMiddleware(BaseHTTPMiddleware):
             or path.startswith("/kernel/auth/")
             or path.startswith("/auth/")
             or path.startswith("/internal/customer-channel/v1")
-            or path in ("/kernel/health", "/kernel/db-check")
+            or path in ("/health", "/kernel/health", "/kernel/db-check", "/openapi.json")
+            or path.startswith("/docs")
+            or path.startswith("/redoc")
             or path == "/kernel/integrations/xafpay-v2/events"
             or method == "OPTIONS"
         ):

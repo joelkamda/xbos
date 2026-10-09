@@ -29,7 +29,9 @@ class Settings(BaseSettings):
     # Gateway Integration (XafPay)
     # -------------------------------------------------
     GATEWAY_BASE_URL: str = "http://localhost:3000"
-    GATEWAY_API_KEY: str  # MUST exist in .env
+    # Optional ecosystem integration; standalone XBOS must boot without it.
+    # Gateway-backed operations must require their own explicit configuration.
+    GATEWAY_API_KEY: str | None = None
 
     # -------------------------------------------------
     # DEV SUPPORT
