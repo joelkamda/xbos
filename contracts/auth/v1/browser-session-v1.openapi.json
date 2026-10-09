@@ -1,0 +1,322 @@
+{
+  "components": {
+    "schemas": {
+      "BrowserSessionAccess": {
+        "properties": {
+          "access_token": {
+            "minLength": 1,
+            "title": "Access Token",
+            "type": "string"
+          },
+          "expires_in": {
+            "const": 900,
+            "default": 900,
+            "title": "Expires In",
+            "type": "integer"
+          },
+          "token_type": {
+            "const": "bearer",
+            "default": "bearer",
+            "title": "Token Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "access_token"
+        ],
+        "title": "BrowserSessionAccess",
+        "type": "object"
+      },
+      "BrowserSessionLogout": {
+        "properties": {
+          "status": {
+            "const": "logged_out",
+            "default": "logged_out",
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "title": "BrowserSessionLogout",
+        "type": "object"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "title": "Detail",
+            "type": "array"
+          }
+        },
+        "title": "HTTPValidationError",
+        "type": "object"
+      },
+      "LoginSchema": {
+        "properties": {
+          "password": {
+            "title": "Password",
+            "type": "string"
+          },
+          "username": {
+            "title": "Username",
+            "type": "string"
+          }
+        },
+        "required": [
+          "username",
+          "password"
+        ],
+        "title": "LoginSchema",
+        "type": "object"
+      },
+      "UserIdentity": {
+        "properties": {
+          "branch_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Branch Code"
+          },
+          "branch_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Branch Id"
+          },
+          "full_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Full Name"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "permissions": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Permissions",
+            "type": "array"
+          },
+          "phone": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Phone"
+          },
+          "role": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Role"
+          },
+          "tenant_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tenant Code"
+          },
+          "tenant_id": {
+            "title": "Tenant Id",
+            "type": "integer"
+          },
+          "username": {
+            "title": "Username",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "username",
+          "tenant_id"
+        ],
+        "title": "UserIdentity",
+        "type": "object"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "title": "Location",
+            "type": "array"
+          },
+          "msg": {
+            "title": "Message",
+            "type": "string"
+          },
+          "type": {
+            "title": "Error Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError",
+        "type": "object"
+      }
+    }
+  },
+  "info": {
+    "title": "XBOS Browser Session V1",
+    "version": "xbos.browser-session.v1"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/kernel/auth/me": {
+      "get": {
+        "description": "Return the current authenticated user identity.\n\nImportant:\n/kernel/auth/* routes may be bypassed by AuthMiddleware, so this endpoint\nsafely decodes the bearer token itself instead of depending only on\nrequest.state.user.",
+        "operationId": "me_kernel_auth_me_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserIdentity"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Me",
+        "tags": [
+          "Kernel",
+          "Auth",
+          "Auth"
+        ]
+      }
+    },
+    "/kernel/browser-session/v1/continue": {
+      "post": {
+        "operationId": "browser_continue_kernel_browser_session_v1_continue_post",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BrowserSessionAccess"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Browser Continue",
+        "tags": [
+          "Kernel",
+          "XBOS Browser Session v1"
+        ]
+      }
+    },
+    "/kernel/browser-session/v1/login": {
+      "post": {
+        "operationId": "browser_login_kernel_browser_session_v1_login_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginSchema"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BrowserSessionAccess"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Browser Login",
+        "tags": [
+          "Kernel",
+          "XBOS Browser Session v1"
+        ]
+      }
+    },
+    "/kernel/browser-session/v1/logout": {
+      "post": {
+        "operationId": "browser_logout_kernel_browser_session_v1_logout_post",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BrowserSessionLogout"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Browser Logout",
+        "tags": [
+          "Kernel",
+          "XBOS Browser Session v1"
+        ]
+      }
+    }
+  }
+}

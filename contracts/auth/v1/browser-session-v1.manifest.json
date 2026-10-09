@@ -1,0 +1,15 @@
+{
+  "backend_base_commit": "e0ae0123cec02cb2cb294e2bbad09df341be17c1",
+  "contract_id": "xbos.browser-session.v1",
+  "generated_file": "contracts/auth/v1/browser-session-v1.openapi.json",
+  "generated_sha256": "b9f890e11fd1a3e691600d8e70c702181a6c819ef2bceaf6ca9511caf68beaa5",
+  "generator_version": "xbos-public-openapi-export-v1",
+  "public_paths": [
+    "/kernel/browser-session/v1/login",
+    "/kernel/browser-session/v1/continue",
+    "/kernel/browser-session/v1/logout",
+    "/kernel/auth/me"
+  ],
+  "public_schema_count": 6,
+  "source": "main:app.openapi()"
+}
