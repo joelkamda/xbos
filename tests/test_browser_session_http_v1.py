@@ -100,6 +100,9 @@ class BrowserSessionHttpTests(unittest.TestCase):
         access = login.json()["access_token"]
         who = self.client.get("/kernel/whoami", headers={"Authorization": f"Bearer {access}"})
         self.assertEqual(who.status_code, 200, who.text)
+        me = self.client.get("/kernel/auth/me", headers={"Authorization": f"Bearer {access}"})
+        self.assertEqual(me.status_code, 200, me.text)
+        self.assertEqual(me.json()["tenant_id"], 101)
         self.assertEqual(who.json()["permissions"], ["sale.view"])
         refreshed = self.client.post("/kernel/browser-session/v1/continue", headers=HEADERS)
         self.assertEqual(refreshed.status_code, 200, refreshed.text)
@@ -109,6 +112,8 @@ class BrowserSessionHttpTests(unittest.TestCase):
         self.assertEqual(self.client.post("/kernel/browser-session/v1/logout", headers=HEADERS).status_code, 200)
         stale = self.client.get("/kernel/whoami", headers={"Authorization": f"Bearer {access}"})
         self.assertEqual(stale.status_code, 401, stale.text)
+        stale_me = self.client.get("/kernel/auth/me", headers={"Authorization": f"Bearer {access}"})
+        self.assertEqual(stale_me.status_code, 401, stale_me.text)
 
 if __name__ == "__main__":
     unittest.main()

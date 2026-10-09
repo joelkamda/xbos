@@ -118,6 +118,32 @@ class BrowserSessionTests(unittest.TestCase):
         self.db.expire_all()
         self.assertIsNone(self.db.get(BrowserSession, self.row.session_id).revoked_at)
 
+    def test_expired_session_denies_access_and_continuation(self):
+        from datetime import timedelta
+        self.row.expires_at = self.row.created_at - timedelta(seconds=1)
+        self.db.commit()
+        with self.assertRaises(BrowserSessionDenied):
+            validate_browser_access(self.db, self.access)
+        with self.assertRaises(BrowserSessionDenied):
+            continue_session(self.db, self.refresh)
+
+    def test_disabled_branch_denies_current_access(self):
+        branch = self.db.get(Branch, 201)
+        branch.is_active = False
+        self.db.commit()
+        with self.assertRaises(BrowserSessionDenied):
+            validate_browser_access(self.db, self.access)
+
+    def test_moved_tenant_denies_stale_access(self):
+        self.db.add(Tenant(id=102, code="OTHER", name="Other", country_code="CM",
+                           currency="XAF", locale="fr", timezone="Africa/Douala"))
+        self.db.commit()
+        user = self.db.get(User, 301)
+        user.tenant_id = 102
+        self.db.commit()
+        with self.assertRaises(BrowserSessionDenied):
+            validate_browser_access(self.db, self.access)
+
     def test_invalid_session_or_wrong_token_type_fails(self):
         with self.assertRaises(BrowserSessionDenied):
             validate_browser_access(self.db, self.refresh)
