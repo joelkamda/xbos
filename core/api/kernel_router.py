@@ -4,6 +4,7 @@ from fastapi import APIRouter, Request, Depends, HTTPException
 
 # Subsystems
 from core.auth.auth_controller import auth_router
+from core.auth.browser_session_router import router as browser_session_router
 from core.api.tenant_controller import router as tenant_router
 from core.api.orders.orders_router import router as orders_router
 from core.api.sales.sales_router import router as sales_router
@@ -79,6 +80,9 @@ def admin_health(
 # ====================================================
 # SUBSYSTEM ROUTERS
 # ====================================================
+
+# Browser session additive profile → /kernel/browser-session/v1/*
+kernel_router.include_router(browser_session_router)
 
 # Auth → /kernel/auth/*
 kernel_router.include_router(

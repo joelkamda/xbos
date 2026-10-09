@@ -159,6 +159,15 @@ def me(
 
     payload = service.jwt_service.decode_token(token)
 
+    if payload.get("type") == "browser_access":
+        from core.auth.browser_session_service import BrowserSessionDenied, validate_browser_access
+        from fastapi import HTTPException
+        try:
+            authority = validate_browser_access(db, token)
+        except BrowserSessionDenied:
+            raise HTTPException(status_code=401, detail="BROWSER_SESSION_INVALID")
+        return service.me(db=db, user_id=authority["user_id"])
+
     if payload.get("type") != "access":
         raise APIError("INVALID_ACCESS_TOKEN")
 

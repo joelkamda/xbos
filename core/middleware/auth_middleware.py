@@ -3,7 +3,6 @@
 from starlette.middleware.base import BaseHTTPMiddleware
 from fastapi import Request
 from fastapi.responses import JSONResponse
-import os
 
 from core.security.jwt_service import JWTService
 
@@ -28,20 +27,14 @@ class AuthMiddleware(BaseHTTPMiddleware):
         method = request.method.upper()
         headers = {k.lower(): v for k, v in request.headers.items()}
 
-        env = os.getenv("ENV", "development").lower()
         auth_header = headers.get("authorization")
-
-        print("\n========== AUTH MIDDLEWARE ==========")
-        print("🔥 RAW PATH:", path)
-        print("🔥 METHOD:", method)
-        print("🔥 ENV:", env)
-        print("🔥 HAS AUTH HEADER:", bool(auth_header))
 
         # =====================================================
         # 1) PUBLIC / BYPASS ROUTES
         # =====================================================
         bypass = (
-            path.startswith("/kernel/auth/")
+            path.startswith("/kernel/browser-session/v1/")
+            or path.startswith("/kernel/auth/")
             or path.startswith("/auth/")
             or path.startswith("/internal/customer-channel/v1")
             or path == "/kernel/health"
@@ -57,10 +50,7 @@ class AuthMiddleware(BaseHTTPMiddleware):
             or method == "OPTIONS"
         )
 
-        print("🔥 FINAL BYPASS =", bypass)
-
         if bypass:
-            print("🔥 AUTH BYPASSED — public/docs/health route")
             return await call_next(request)
 
         # =====================================================
@@ -99,10 +89,30 @@ class AuthMiddleware(BaseHTTPMiddleware):
                 content={"detail": str(e)},
             )
 
-        print("🔥 JWT PAYLOAD:", payload)
+        # Browser token claims are never the authorization source. Re-read
+        # current session, user, tenant, branch, role and permissions each request.
+        if payload.get("type") == "browser_access":
+            from database import SessionLocal
+            from core.auth.browser_session_service import (
+                BrowserSessionDenied, validate_browser_access,
+            )
+            db = SessionLocal()
+            try:
+                authority = validate_browser_access(db, token)
+            except BrowserSessionDenied:
+                return JSONResponse(status_code=401, content={"detail": "BROWSER_SESSION_INVALID"})
+            finally:
+                db.close()
+            request.state.user = authority
+            request.state.user_id = authority["user_id"]
+            request.state.tenant_id = authority["tenant_id"]
+            request.state.branch_id = authority["branch_id"]
+            request.state.role = authority["role"]
+            request.state.permissions = authority["permissions"]
+            return await call_next(request)
 
         # =====================================================
-        # 4) VALIDATE TOKEN TYPE
+        # 4) VALIDATE LEGACY TOKEN TYPE
         # =====================================================
         if payload.get("type") != "access":
             return JSONResponse(
@@ -164,7 +174,5 @@ class AuthMiddleware(BaseHTTPMiddleware):
         request.state.branch_id = branch_id
         request.state.role = role
         request.state.permissions = permissions
-
-        print("🔥 AUTH CONTEXT INJECTED:", request.state.user)
 
         return await call_next(request)

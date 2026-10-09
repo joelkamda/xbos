@@ -29,7 +29,8 @@ class BranchMiddleware(BaseHTTPMiddleware):
         # BYPASS ROUTES
         # =====================================================
         if (
-            path.startswith("/kernel/auth/")
+            path.startswith("/kernel/browser-session/v1/")
+            or path.startswith("/kernel/auth/")
             or path.startswith("/auth/")
             or path.startswith("/internal/customer-channel/v1")
             or path in ("/kernel/health", "/kernel/db-check")
