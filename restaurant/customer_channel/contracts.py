@@ -191,6 +191,8 @@ CATALOG_READ_SCOPE = "restaurant.menu.read"
 CATALOG_TOKEN_DIGEST_CURRENT_ENV = "XAFPAY_CUSTOMER_CHANNEL_CATALOG_READER_TOKEN_SHA256_CURRENT"
 CATALOG_TOKEN_DIGEST_NEXT_ENV = "XAFPAY_CUSTOMER_CHANNEL_CATALOG_READER_TOKEN_SHA256_NEXT"
 CATALOG_CONTEXT_PURPOSE = CONTEXT_PURPOSE
+RICH_CONTEXT_SCHEMA = "xafpay.customer-channel.xbos-context-attestation.v1"
+CUSTOMER_CHANNEL_ENTRY_PURPOSES = ("dine_in", "takeaway", "delivery", "merchant_discovery")
 
 CATALOG_SAFE_MESSAGES = {
     "CATALOG_AUTH_REQUIRED": "Catalog reader authentication is required.",
@@ -203,6 +205,8 @@ CATALOG_SAFE_MESSAGES = {
     "CATALOG_BINDING_MISMATCH": "The catalog binding does not match the request context.",
     "CATALOG_REQUEST_INVALID": "The catalog read request is invalid.",
     "CATALOG_SEMANTIC_FAILURE": "The canonical menu authority rejected the request.",
+    "CATALOG_ENTRY_PURPOSE_UNAVAILABLE": "The requested customer entry purpose is not currently available.",
+    "BLOCKED_DISPLAY_PROJECTION_SOURCE_UNPROVEN": "No authoritative display projection source is available.",
 }
 CATALOG_STATUS = {
     "CATALOG_AUTH_REQUIRED": 401,
@@ -215,6 +219,8 @@ CATALOG_STATUS = {
     "CATALOG_BINDING_MISMATCH": 409,
     "CATALOG_REQUEST_INVALID": 422,
     "CATALOG_SEMANTIC_FAILURE": 409,
+    "CATALOG_ENTRY_PURPOSE_UNAVAILABLE": 409,
+    "BLOCKED_DISPLAY_PROJECTION_SOURCE_UNPROVEN": 409,
 }
 
 class CatalogReadError(RuntimeError):

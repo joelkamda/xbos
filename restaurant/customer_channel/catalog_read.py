@@ -7,11 +7,13 @@ from uuid import UUID
 from fastapi.encoders import jsonable_encoder
 
 from core.platform.interaction.sql_repository import IA0RepositoryError
+from restaurant.r1.contracts import ResourceRole
 
 from .adapters import AcceptedAuthorityAdapters
 from .auth import authenticate_catalog_reader
 from .contracts import (
     CATALOG_CONTEXT_PURPOSE,
+    CUSTOMER_CHANNEL_ENTRY_PURPOSES,
     CatalogReadBinding,
     CatalogReadError,
 )
@@ -189,6 +191,215 @@ class CatalogReadTransport:
                 "CATALOG_BINDING_MISMATCH", correlation_ref=correlation_ref
             )
         return binding
+
+    def _active_fulfillment_modes(
+        self,
+        tenant_id: int,
+        *,
+        correlation_ref: str,
+    ) -> tuple[str, ...]:
+        try:
+            modes = tuple(self.adapters.r1.modes(tenant_id))
+        except Exception as exc:
+            raise CatalogReadError(
+                "CATALOG_SEMANTIC_FAILURE", correlation_ref=correlation_ref
+            ) from exc
+        active = {
+            str(mode.mode_code)
+            for mode in modes
+            if bool(getattr(mode, "active", False))
+        }
+        return tuple(
+            purpose
+            for purpose in CUSTOMER_CHANNEL_ENTRY_PURPOSES
+            if purpose != "merchant_discovery" and purpose in active
+        )
+
+    def _location_projection(
+        self,
+        binding: CatalogReadBinding,
+        *,
+        correlation_ref: str,
+    ):
+        if binding.scope_type != "location" or binding.scope_id is None:
+            raise CatalogReadError(
+                "CATALOG_BINDING_MISMATCH", correlation_ref=correlation_ref
+            )
+        try:
+            structural = self.adapters.structure.resolve(
+                tenant_id=binding.tenant_id,
+                location_id=int(binding.scope_id),
+            )
+        except Exception as exc:
+            raise CatalogReadError(
+                "CATALOG_BINDING_MISMATCH", correlation_ref=correlation_ref
+            ) from exc
+        location = structural.location
+        if (
+            location is None
+            or not bool(location.active)
+            or location.public_id != binding.location_public_id
+        ):
+            raise CatalogReadError(
+                "CATALOG_BINDING_MISMATCH", correlation_ref=correlation_ref
+            )
+        display_name = str(location.name or "").strip()
+        if not display_name:
+            raise CatalogReadError(
+                "BLOCKED_DISPLAY_PROJECTION_SOURCE_UNPROVEN",
+                correlation_ref=correlation_ref,
+            )
+        return structural, location, display_name
+
+    def _validate_operational_merchant(
+        self,
+        binding: CatalogReadBinding,
+        *,
+        correlation_ref: str,
+    ) -> None:
+        try:
+            merchant_ref = self.adapters.repo.operational_merchant(binding.tenant_id)
+        except Exception as exc:
+            raise CatalogReadError(
+                "CATALOG_BINDING_MISMATCH", correlation_ref=correlation_ref
+            ) from exc
+        if merchant_ref != binding.merchant_public_id:
+            raise CatalogReadError(
+                "CATALOG_BINDING_MISMATCH", correlation_ref=correlation_ref
+            )
+
+    def _validate_resource(
+        self,
+        *,
+        tenant_id: int,
+        location_id: int,
+        resource_ref: UUID,
+        role: ResourceRole,
+        required_mode: str | None,
+        correlation_ref: str,
+    ):
+        try:
+            resource = self.adapters.repo.resource(tenant_id, resource_ref)
+            profile = self.adapters.r1_repo.resource_profile(tenant_id, resource_ref)
+        except Exception as exc:
+            raise CatalogReadError(
+                "CATALOG_BINDING_MISMATCH", correlation_ref=correlation_ref
+            ) from exc
+        if (
+            resource is None
+            or profile is None
+            or int(resource.tenant_id) != tenant_id
+            or int(resource.location_id) != location_id
+            or str(resource.lifecycle_status) != "active"
+            or profile.role is not role
+        ):
+            raise CatalogReadError(
+                "CATALOG_BINDING_MISMATCH", correlation_ref=correlation_ref
+            )
+        if required_mode is not None and required_mode not in profile.service_mode_codes:
+            raise CatalogReadError(
+                "CATALOG_ENTRY_PURPOSE_UNAVAILABLE", correlation_ref=correlation_ref
+            )
+        return resource, profile
+
+    def attest_rich_context(
+        self,
+        *,
+        context_binding_ref: UUID,
+        merchant_public_id: UUID,
+        location_public_id: UUID,
+        table_ref: UUID | None,
+        dining_area_ref: UUID | None,
+        purpose: str,
+        effective_at: datetime,
+        raw_token: str | None,
+        principal: str | None,
+        scopes: str | None,
+        correlation_ref: str,
+    ) -> dict[str, Any]:
+        if purpose not in CUSTOMER_CHANNEL_ENTRY_PURPOSES:
+            raise CatalogReadError(
+                "CATALOG_REQUEST_INVALID", correlation_ref=correlation_ref
+            )
+        binding = self._resolved_binding(
+            context_binding_ref=context_binding_ref,
+            merchant_public_id=merchant_public_id,
+            location_public_id=location_public_id,
+            effective_at=effective_at,
+            raw_token=raw_token,
+            principal=principal,
+            scopes=scopes,
+            correlation_ref=correlation_ref,
+        )
+        self._validate_operational_merchant(
+            binding, correlation_ref=correlation_ref
+        )
+        structural, location, display_name = self._location_projection(
+            binding, correlation_ref=correlation_ref
+        )
+        active_modes = self._active_fulfillment_modes(
+            binding.tenant_id, correlation_ref=correlation_ref
+        )
+
+        if purpose != "merchant_discovery" and purpose not in active_modes:
+            raise CatalogReadError(
+                "CATALOG_ENTRY_PURPOSE_UNAVAILABLE", correlation_ref=correlation_ref
+            )
+        if purpose == "dine_in":
+            if table_ref is None:
+                raise CatalogReadError(
+                    "CATALOG_REQUEST_INVALID", correlation_ref=correlation_ref
+                )
+            _, table_profile = self._validate_resource(
+                tenant_id=binding.tenant_id,
+                location_id=location.id,
+                resource_ref=table_ref,
+                role=ResourceRole.TABLE,
+                required_mode="dine_in",
+                correlation_ref=correlation_ref,
+            )
+            if (
+                dining_area_ref is not None
+                and table_profile.parent_resource_public_id != dining_area_ref
+            ):
+                raise CatalogReadError(
+                    "CATALOG_BINDING_MISMATCH", correlation_ref=correlation_ref
+                )
+        elif table_ref is not None:
+            raise CatalogReadError(
+                "CATALOG_REQUEST_INVALID", correlation_ref=correlation_ref
+            )
+
+        if dining_area_ref is not None:
+            self._validate_resource(
+                tenant_id=binding.tenant_id,
+                location_id=location.id,
+                resource_ref=dining_area_ref,
+                role=ResourceRole.DINING_AREA,
+                required_mode=("dine_in" if purpose == "dine_in" else None),
+                correlation_ref=correlation_ref,
+            )
+
+        return {
+            "tenant_ref": str(structural.tenant.id),
+            "merchant_ref": str(binding.merchant_public_id),
+            "location_ref": str(binding.location_public_id),
+            "table_ref": str(table_ref) if table_ref is not None else None,
+            "dining_area_ref": (
+                str(dining_area_ref) if dining_area_ref is not None else None
+            ),
+            "purpose": purpose,
+            "context_binding_ref": str(context_binding_ref),
+            "projection": {
+                "merchant_ref": str(binding.merchant_public_id),
+                "location_ref": str(binding.location_public_id),
+                "service_available": True,
+                "display_name": display_name,
+                "terminology": [],
+                "currency": binding.currency,
+                "allowed_fulfillment_modes": list(active_modes),
+            },
+        }
 
     @staticmethod
     def _binding_dict(binding: CatalogReadBinding) -> dict[str, Any]:

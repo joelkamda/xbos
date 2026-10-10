@@ -12,7 +12,7 @@ from sqlalchemy.orm import Session
 from database import get_db
 
 from .auth import bearer_from_authorization_header, catalog_bearer_from_authorization_header
-from .contracts import CatalogReadError, H1BError, PRIVATE_ROUTE_PREFIX
+from .contracts import CatalogReadError, H1BError, PRIVATE_ROUTE_PREFIX, RICH_CONTEXT_SCHEMA
 from .service import RestaurantCustomerChannelCheckoutAuthority
 from .catalog_read import CatalogReadTransport
 from .draft_order import CustomerChannelDraftOrderAuthority
@@ -186,6 +186,11 @@ def _catalog_uuid(value: Any, trace: str) -> UUID:
     except Exception as exc:
         raise CatalogReadError("CATALOG_REQUEST_INVALID", correlation_ref=trace) from exc
 
+def _catalog_optional_uuid(value: Any, trace: str) -> UUID | None:
+    if value is None:
+        return None
+    return _catalog_uuid(value, trace)
+
 def _catalog_at(value: Any, trace: str) -> datetime:
     if not isinstance(value, str) or not value.strip():
         raise CatalogReadError("CATALOG_REQUEST_INVALID", correlation_ref=trace)
@@ -209,18 +214,46 @@ async def attest_catalog_context(
 ):
     trace = request.headers.get("X-Correlation-Ref")
     try:
-        if set(payload) != {"context_binding_ref", "effective_at"}:
-            raise CatalogReadError("CATALOG_REQUEST_INVALID", correlation_ref=trace)
+        minimal = {"context_binding_ref", "effective_at"}
+        rich = {
+            "schema",
+            "context_binding_ref",
+            "merchant_ref",
+            "location_ref",
+            "table_ref",
+            "dining_area_ref",
+            "purpose",
+            "effective_at",
+        }
+        keys = set(payload)
         trace, token, principal, scopes = _catalog_transport_call(request)
-        result = CatalogReadTransport(db).attest_context(
+        transport = CatalogReadTransport(db)
+        if keys == minimal:
+            return transport.attest_context(
+                context_binding_ref=_catalog_uuid(payload["context_binding_ref"], trace),
+                effective_at=_catalog_at(payload["effective_at"], trace),
+                raw_token=token,
+                principal=principal,
+                scopes=scopes,
+                correlation_ref=trace,
+            )
+        if keys != rich or payload.get("schema") != RICH_CONTEXT_SCHEMA:
+            raise CatalogReadError("CATALOG_REQUEST_INVALID", correlation_ref=trace)
+        return transport.attest_rich_context(
             context_binding_ref=_catalog_uuid(payload["context_binding_ref"], trace),
+            merchant_public_id=_catalog_uuid(payload["merchant_ref"], trace),
+            location_public_id=_catalog_uuid(payload["location_ref"], trace),
+            table_ref=_catalog_optional_uuid(payload.get("table_ref"), trace),
+            dining_area_ref=_catalog_optional_uuid(
+                payload.get("dining_area_ref"), trace
+            ),
+            purpose=str(payload.get("purpose") or "").strip(),
             effective_at=_catalog_at(payload["effective_at"], trace),
             raw_token=token,
             principal=principal,
             scopes=scopes,
             correlation_ref=trace,
         )
-        return result
     except CatalogReadError as exc:
         return _catalog_failure(exc)
     except Exception:
