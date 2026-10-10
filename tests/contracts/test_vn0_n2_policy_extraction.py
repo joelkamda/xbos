@@ -15,7 +15,7 @@ from core.domain.inventory.taxonomy_profile import (
     _category_family as legacy_category_family,
 )
 from core.domain.operational_policy import NEUTRAL_POLICY, OperationalPolicy
-from restaurant.r4.wnd_operational_policy import WND_POLICY
+from restaurant.wnd_operational_policy import WND_POLICY
 
 
 class N2PolicyGoldenTests(unittest.TestCase):
