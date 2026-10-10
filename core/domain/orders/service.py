@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session, selectinload
 from core.domain.orders.models import Order, OrderItem, OrderItemModifier
 from core.domain.catalog.repository import AtomicUnitRepository
 from core.domain.inventory.service import InventoryService
+from core.domain.operational_policy import OperationalPolicy, NEUTRAL_POLICY
 
 
 def _utc_now_naive() -> datetime:
@@ -121,6 +122,7 @@ class OrderService:
         branch_id: int,
         created_by_user_id: int | None,
         payload: Dict[str, Any],
+        policy: OperationalPolicy = NEUTRAL_POLICY,
     ) -> Order:
 
         items_payload = payload.get("items")
@@ -205,6 +207,7 @@ class OrderService:
             InventoryService.reserve_order_inventory(
                 db,
                 order=order,
+                policy=policy,
             )
 
             db.commit()
@@ -228,6 +231,7 @@ class OrderService:
         branch_id: int,
         order_id: int,
         payload: Dict[str, Any],
+        policy: OperationalPolicy = NEUTRAL_POLICY,
     ) -> Order:
         """
         Updates an existing pending order.
@@ -343,6 +347,7 @@ class OrderService:
                 order=order,
                 old_items=old_items_snapshot,
                 new_items=new_items_snapshot,
+                policy=policy,
             )
 
             db.query(OrderItem).filter(

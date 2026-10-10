@@ -23,6 +23,7 @@ from core.domain.taxonomy.models import (
     TaxonomyNode,
 )
 from core.domain.inventory.taxonomy_profile import resolve_inventory_profile
+from core.domain.operational_policy import OperationalPolicy, NEUTRAL_POLICY
 from datetime import datetime as _lr2_datetime, timezone as _lr2_timezone
 
 
@@ -267,6 +268,7 @@ class InventoryService:
         *,
         tenant_id: int,
         atomic_unit_id: int,
+        policy: OperationalPolicy = NEUTRAL_POLICY,
     ) -> Dict[str, Any]:
         """
         Resolve taxonomy-aware inventory policy for an atomic unit.
@@ -283,6 +285,7 @@ class InventoryService:
             db,
             tenant_id=tenant_id,
             atomic_unit_id=atomic_unit_id,
+            policy=policy,
         )
 
     @staticmethod
@@ -312,21 +315,8 @@ class InventoryService:
         - other: usually no negative
         """
 
-        if not profile:
-            return allow_negative_other
-
-        family = str(profile.get("inventory_family") or "").lower()
-
-        if "allow_negative_stock" in profile:
-            return bool(profile.get("allow_negative_stock"))
-
-        if family == "kitchen":
-            return allow_negative_food
-
-        if family == "bar":
-            return False
-
-        return allow_negative_other
+        # Explicit profile decision is sole authority. Missing policy is safe.
+        return bool(profile.get("allow_negative_stock", False)) if profile else False
 
     # ========================================================
     # Core item / movement helpers
@@ -752,6 +742,7 @@ class InventoryService:
         db: Session,
         *,
         order: Order,
+        policy: OperationalPolicy = NEUTRAL_POLICY,
         allow_negative_food: bool = True,
         allow_negative_other: bool = False,
     ) -> List[InventoryMovement]:
@@ -773,6 +764,7 @@ class InventoryService:
                 db,
                 tenant_id=order.tenant_id,
                 atomic_unit_id=atomic_unit_id,
+                policy=policy,
             )
 
             if not InventoryService.is_stock_tracked_profile(profile):
@@ -821,6 +813,7 @@ class InventoryService:
         order: Order,
         old_items: Any,
         new_items: Any,
+        policy: OperationalPolicy = NEUTRAL_POLICY,
         allow_negative_food: bool = True,
         allow_negative_other: bool = False,
     ) -> List[InventoryMovement]:
@@ -852,6 +845,7 @@ class InventoryService:
                 db,
                 tenant_id=order.tenant_id,
                 atomic_unit_id=atomic_unit_id,
+                policy=policy,
             )
 
             if not InventoryService.is_stock_tracked_profile(profile):
@@ -1586,20 +1580,9 @@ class InventoryService:
         """
 
         if not unit:
-            return allow_negative_other
-
-        meta = _atomic_meta(unit)
-
-        if "allow_negative_stock" in meta:
-            return _is_truthy(meta.get("allow_negative_stock"), default=False)
-
-        category = str(meta.get("category") or meta.get("category_name") or "").lower()
-        segment = str(meta.get("segment") or "").lower()
-
-        if category == "food" or segment == "kitchen":
-            return allow_negative_food
-
-        if category == "drinks" or segment == "bar":
             return False
 
-        return allow_negative_other
+        meta = _atomic_meta(unit)
+        # Compatibility signature retained; caller flags do not grant policy.
+        # Only the explicit inventory-unit decision may authorize negative stock.
+        return _is_truthy(meta.get("allow_negative_stock"), default=False) if "allow_negative_stock" in meta else False

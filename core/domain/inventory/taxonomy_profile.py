@@ -21,6 +21,8 @@ from typing import Any, Dict, List, Optional, Tuple
 from sqlalchemy.orm import Session
 from sqlalchemy import select
 
+from core.domain.operational_policy import OperationalPolicy, NEUTRAL_POLICY
+
 from core.domain.taxonomy.models import (
     AtomicUnit,
     AtomicUnitTaxonomy,
@@ -148,202 +150,7 @@ def _family_from_text(value: Any) -> Optional[str]:
     return None
 
 
-def _category_family(category_name: Optional[str]) -> Optional[str]:
-    text = _lower(category_name)
-
-    if text == "drinks":
-        return FAMILY_BAR
-
-    if text == "food":
-        return FAMILY_KITCHEN
-
-    if text == "others":
-        return FAMILY_OTHER
-
-    return None
-
-
-# ============================================================
-# WND-SAFE NAME HEURISTICS
-# ============================================================
-
-FOOD_KEYWORDS = {
-    "beans",
-    "eru",
-    "ndole",
-    "achu",
-    "koki",
-    "cornchaff",
-    "chicken",
-    "goat",
-    "pork",
-    "fish",
-    "snail",
-    "snails",
-    "eggs",
-    "salade",
-    "salad",
-    "breakfast",
-    "okro",
-    "egussi",
-    "egusi",
-    "kati",
-    "gambas",
-    "poulet",
-    "complement",
-    "plantain",
-    "rice",
-    "fufu",
-    "gari",
-    "towel",  # WND menu spelling / item naming context
-}
-
-DRINK_KEYWORDS = {
-    "beer",
-    "guinness",
-    "export",
-    "castel",
-    "castle",
-    "mutzig",
-    "heineken",
-    "kadji",
-    "skoll",
-    "dopple",
-    "booster",
-    "malta",
-    "smooth",
-    "origin",
-    "ice",
-    "red bull",
-    "fanta",
-    "coca",
-    "coke",
-    "sprite",
-    "top",
-    "jus",
-    "juice",
-    "whiskey",
-    "whisky",
-    "vodka",
-    "jack daniels",
-    "monkey shoulder",
-    "champagne",
-    "ruinart",
-}
-
-WINE_KEYWORDS = {
-    "wine",
-    "domaine",
-    "chenet",
-    "calvet",
-    "sauvignon",
-    "merlot",
-    "cabernet",
-    "sandara",
-    "ballart",
-    "oliver",
-    "eschenauer",
-    "chateau",
-    "château",
-    "bordeaux",
-    "rose",
-    "rosé",
-}
-
-
-def _name_suggests_family(name: str) -> Optional[str]:
-    text = _lower(name)
-
-    # Food gets priority to avoid "White Beans" being confused with white wine.
-    if any(k in text for k in FOOD_KEYWORDS):
-        return FAMILY_KITCHEN
-
-    if any(k in text for k in DRINK_KEYWORDS):
-        return FAMILY_BAR
-
-    return None
-
-
-def _subcategory_score(name: str, subcategory_name: Optional[str]) -> int:
-    """
-    Helps choose between multiple COMMERCE subcategory mappings.
-
-    Example:
-    - White Beans mapped to Main Dish + Wine
-      => food heuristic wins category first.
-    - RED BULL mapped to Beer + Wine
-      => both are Drinks, but Wine is penalized because Red Bull is not wine.
-    """
-
-    text = _lower(name)
-    sub = _lower(subcategory_name)
-
-    if not sub:
-        return 0
-
-    score = 0
-
-    if sub == "main dish":
-        if any(k in text for k in FOOD_KEYWORDS):
-            score += 20
-
-    if sub == "breakfast":
-        if any(k in text for k in {"egg", "eggs", "breakfast", "salade", "salad"}):
-            score += 20
-
-    if sub == "complement":
-        if any(k in text for k in {"complement", "plantain", "rice", "fufu", "gari"}):
-            score += 20
-
-    if sub == "beer":
-        if any(k in text for k in {
-            "beer",
-            "guinness",
-            "export",
-            "castel",
-            "castle",
-            "mutzig",
-            "heineken",
-            "kadji",
-            "skoll",
-            "dopple",
-            "booster",
-            "malta",
-            "smooth",
-            "origin",
-            "ice",
-        }):
-            score += 20
-
-        # Not perfect, but safer than Wine for common bar soft/energy drinks
-        # if the product was wrongly mapped to Beer + Wine.
-        if "red bull" in text:
-            score += 8
-
-    if sub == "soft drinks":
-        if any(k in text for k in {"red bull", "fanta", "coke", "coca", "sprite", "top"}):
-            score += 25
-
-    if sub == "wine":
-        if any(k in text for k in WINE_KEYWORDS):
-            score += 20
-        else:
-            score -= 10
-
-    if sub == "whiskey":
-        if any(k in text for k in {"whiskey", "whisky", "jack daniels", "monkey shoulder"}):
-            score += 20
-
-    if sub == "champagne":
-        if any(k in text for k in {"champagne", "ruinart"}):
-            score += 20
-
-    if sub == "juice":
-        if any(k in text for k in {"juice", "jus"}):
-            score += 20
-
-    return score
-
+# Domain-specific taxonomy/alias scoring is owned by the selected policy.
 
 # ============================================================
 # TAXONOMY LOADING
@@ -406,6 +213,7 @@ def _inventory_candidates(
     unit_name: str,
     mapping_nodes: List[TaxonomyNode],
     all_commerce_nodes: Dict[int, TaxonomyNode],
+    policy: OperationalPolicy = NEUTRAL_POLICY,
 ) -> List[Dict[str, Any]]:
     """
     Return only candidates under:
@@ -456,8 +264,8 @@ def _inventory_candidates(
                 "source_node_id": node.id,
                 "source_node_name": node.name,
                 "source_semantic_level": node.semantic_level,
-                "family": _category_family(category.name if category else None),
-                "subcategory_score": _subcategory_score(
+                "family": policy.category_family(category.name if category else None),
+                "subcategory_score": policy.subcategory_score(
                     unit_name,
                     subcategory.name if subcategory else None,
                 ),
@@ -472,6 +280,7 @@ def _choose_candidate(
     unit: AtomicUnit,
     candidates: List[Dict[str, Any]],
     meta: Dict[str, Any],
+    policy: OperationalPolicy = NEUTRAL_POLICY,
 ) -> Tuple[Optional[Dict[str, Any]], List[str]]:
     warnings: List[str] = []
 
@@ -507,7 +316,7 @@ def _choose_candidate(
         )
     )
 
-    name_family = _name_suggests_family(unit.name)
+    name_family = policy.name_family(unit.name)
 
     desired_family = explicit_family or name_family
 
@@ -550,6 +359,7 @@ def resolve_inventory_profile(
     *,
     tenant_id: int,
     atomic_unit_id: int,
+    policy: OperationalPolicy = NEUTRAL_POLICY,
 ) -> Dict[str, Any]:
     """
     Resolve inventory behavior for an atomic unit.
@@ -599,12 +409,14 @@ def resolve_inventory_profile(
         unit_name=unit.name,
         mapping_nodes=mapping_nodes,
         all_commerce_nodes=all_commerce_nodes,
+        policy=policy,
     )
 
     candidate, warnings = _choose_candidate(
         unit=unit,
         candidates=candidates,
         meta=meta,
+        policy=policy,
     )
 
     # --------------------------------------------------------
@@ -654,7 +466,7 @@ def resolve_inventory_profile(
     # --------------------------------------------------------
 
     candidate_family = candidate.get("family") if candidate else None
-    name_family = _name_suggests_family(unit.name)
+    name_family = policy.name_family(unit.name)
 
     inventory_family = (
         explicit_family
@@ -714,13 +526,8 @@ def resolve_inventory_profile(
     if explicit_allow_negative is not None:
         allow_negative_stock = explicit_allow_negative
 
-    elif inventory_family == FAMILY_KITCHEN:
-        # Temporary WND V1 rule:
-        # Kitchen recipe/ingredient depletion is not fully mapped yet.
-        allow_negative_stock = True
-
     else:
-        allow_negative_stock = False
+        allow_negative_stock = bool(policy.negative_stock(inventory_family))
 
     # --------------------------------------------------------
     # POS disable policy
@@ -729,20 +536,10 @@ def resolve_inventory_profile(
     if explicit_disable_when_out is not None:
         disable_when_out = explicit_disable_when_out
 
-    elif not stock_tracked:
-        disable_when_out = False
-
-    elif inventory_family in {FAMILY_BAR, FAMILY_OTHER}:
-        disable_when_out = True
-
-    elif inventory_family == FAMILY_KITCHEN:
-        # Kitchen can remain sellable during V1 soft-negative phase.
-        disable_when_out = False
-
     else:
-        disable_when_out = False
+        disable_when_out = bool(policy.disable_when_out(inventory_family, stock_tracked))
 
-    profile = InventoryTaxonomyProfile(
+        profile = InventoryTaxonomyProfile(
         atomic_unit_id=unit.id,
         atomic_unit_name=unit.name,
 
@@ -773,6 +570,7 @@ def resolve_inventory_profiles_for_units(
     *,
     tenant_id: int,
     atomic_unit_ids: List[int],
+    policy: OperationalPolicy = NEUTRAL_POLICY,
 ) -> Dict[int, Dict[str, Any]]:
     """
     Convenience batch helper.
@@ -789,6 +587,7 @@ def resolve_inventory_profiles_for_units(
             db,
             tenant_id=tenant_id,
             atomic_unit_id=int(atomic_unit_id),
+            policy=policy,
         )
 
     return result

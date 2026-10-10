@@ -1,0 +1,358 @@
+{
+  "baseline_commit": "fbb9e55314f20f08f4bfcfa2aeda457d9770999f",
+  "inventory_cases": [
+    {
+      "expected": {
+        "allow_negative_stock": true,
+        "atomic_unit_id": 1,
+        "atomic_unit_name": "towel",
+        "commerce_category": "Food",
+        "commerce_category_id": 2,
+        "commerce_domain": "Inventory",
+        "commerce_domain_id": 1,
+        "commerce_subcategory": "Main Dish",
+        "commerce_subcategory_id": 5,
+        "cost_mode": "expense_allocated",
+        "disable_when_out": false,
+        "inventory_family": "kitchen",
+        "mapping_warnings": [
+          "MULTIPLE_COMMERCE_INVENTORY_MAPPINGS: Food / Main Dish, Drinks / Wine"
+        ],
+        "source": "taxonomy",
+        "stock_tracked": true
+      },
+      "mappings": [
+        5,
+        6
+      ],
+      "meta": {},
+      "name": "towel"
+    },
+    {
+      "expected": {
+        "allow_negative_stock": true,
+        "atomic_unit_id": 2,
+        "atomic_unit_name": "White Beans",
+        "commerce_category": "Food",
+        "commerce_category_id": 2,
+        "commerce_domain": "Inventory",
+        "commerce_domain_id": 1,
+        "commerce_subcategory": "Main Dish",
+        "commerce_subcategory_id": 5,
+        "cost_mode": "expense_allocated",
+        "disable_when_out": false,
+        "inventory_family": "kitchen",
+        "mapping_warnings": [
+          "MULTIPLE_COMMERCE_INVENTORY_MAPPINGS: Food / Main Dish, Drinks / Wine"
+        ],
+        "source": "taxonomy",
+        "stock_tracked": true
+      },
+      "mappings": [
+        5,
+        6
+      ],
+      "meta": {},
+      "name": "White Beans"
+    },
+    {
+      "expected": {
+        "allow_negative_stock": false,
+        "atomic_unit_id": 3,
+        "atomic_unit_name": "RED BULL",
+        "commerce_category": "Drinks",
+        "commerce_category_id": 3,
+        "commerce_domain": "Inventory",
+        "commerce_domain_id": 1,
+        "commerce_subcategory": "Soft Drinks",
+        "commerce_subcategory_id": 8,
+        "cost_mode": "unit_cost",
+        "disable_when_out": true,
+        "inventory_family": "bar",
+        "mapping_warnings": [
+          "MULTIPLE_COMMERCE_INVENTORY_MAPPINGS: Drinks / Wine, Drinks / Beer, Drinks / Soft Drinks"
+        ],
+        "source": "taxonomy",
+        "stock_tracked": true
+      },
+      "mappings": [
+        6,
+        7,
+        8
+      ],
+      "meta": {},
+      "name": "RED BULL"
+    },
+    {
+      "expected": {
+        "allow_negative_stock": false,
+        "atomic_unit_id": 4,
+        "atomic_unit_name": "Beer",
+        "commerce_category": "Drinks",
+        "commerce_category_id": 3,
+        "commerce_domain": "Inventory",
+        "commerce_domain_id": 1,
+        "commerce_subcategory": "Beer",
+        "commerce_subcategory_id": 7,
+        "cost_mode": "unit_cost",
+        "disable_when_out": true,
+        "inventory_family": "bar",
+        "mapping_warnings": [],
+        "source": "taxonomy",
+        "stock_tracked": true
+      },
+      "mappings": [
+        7
+      ],
+      "meta": {},
+      "name": "Beer"
+    },
+    {
+      "expected": {
+        "allow_negative_stock": true,
+        "atomic_unit_id": 5,
+        "atomic_unit_name": "A Generic Item",
+        "commerce_category": "Food",
+        "commerce_category_id": 2,
+        "commerce_domain": "Inventory",
+        "commerce_domain_id": 1,
+        "commerce_subcategory": "Main Dish",
+        "commerce_subcategory_id": 5,
+        "cost_mode": "expense_allocated",
+        "disable_when_out": false,
+        "inventory_family": "kitchen",
+        "mapping_warnings": [
+          "MULTIPLE_COMMERCE_INVENTORY_MAPPINGS: Food / Main Dish, Drinks / Wine"
+        ],
+        "source": "taxonomy",
+        "stock_tracked": true
+      },
+      "mappings": [
+        5,
+        6
+      ],
+      "meta": {},
+      "name": "A Generic Item"
+    },
+    {
+      "expected": {
+        "allow_negative_stock": false,
+        "atomic_unit_id": 6,
+        "atomic_unit_name": "No Map",
+        "commerce_category": null,
+        "commerce_category_id": null,
+        "commerce_domain": null,
+        "commerce_domain_id": null,
+        "commerce_subcategory": null,
+        "commerce_subcategory_id": null,
+        "cost_mode": "none",
+        "disable_when_out": false,
+        "inventory_family": "non_inventory",
+        "mapping_warnings": [],
+        "source": "taxonomy_non_inventory",
+        "stock_tracked": false
+      },
+      "mappings": [],
+      "meta": {},
+      "name": "No Map"
+    },
+    {
+      "expected": {
+        "allow_negative_stock": false,
+        "atomic_unit_id": 7,
+        "atomic_unit_name": "Explicit false",
+        "commerce_category": "Food",
+        "commerce_category_id": 2,
+        "commerce_domain": "Inventory",
+        "commerce_domain_id": 1,
+        "commerce_subcategory": "Main Dish",
+        "commerce_subcategory_id": 5,
+        "cost_mode": "expense_allocated",
+        "disable_when_out": false,
+        "inventory_family": "kitchen",
+        "mapping_warnings": [],
+        "source": "taxonomy",
+        "stock_tracked": true
+      },
+      "mappings": [
+        5
+      ],
+      "meta": {
+        "allow_negative_stock": false,
+        "inventory_family": "kitchen"
+      },
+      "name": "Explicit false"
+    },
+    {
+      "expected": {
+        "allow_negative_stock": true,
+        "atomic_unit_id": 8,
+        "atomic_unit_name": "Explicit true",
+        "commerce_category": "Drinks",
+        "commerce_category_id": 3,
+        "commerce_domain": "Inventory",
+        "commerce_domain_id": 1,
+        "commerce_subcategory": "Beer",
+        "commerce_subcategory_id": 7,
+        "cost_mode": "unit_cost",
+        "disable_when_out": true,
+        "inventory_family": "bar",
+        "mapping_warnings": [],
+        "source": "taxonomy",
+        "stock_tracked": true
+      },
+      "mappings": [
+        7
+      ],
+      "meta": {
+        "allow_negative_stock": true,
+        "inventory_family": "bar"
+      },
+      "name": "Explicit true"
+    },
+    {
+      "expected": {
+        "allow_negative_stock": true,
+        "atomic_unit_id": 9,
+        "atomic_unit_name": "Untracked",
+        "commerce_category": "Food",
+        "commerce_category_id": 2,
+        "commerce_domain": "Inventory",
+        "commerce_domain_id": 1,
+        "commerce_subcategory": "Main Dish",
+        "commerce_subcategory_id": 5,
+        "cost_mode": "none",
+        "disable_when_out": false,
+        "inventory_family": "kitchen",
+        "mapping_warnings": [],
+        "source": "meta",
+        "stock_tracked": false
+      },
+      "mappings": [
+        5
+      ],
+      "meta": {
+        "track_stock": false
+      },
+      "name": "Untracked"
+    }
+  ],
+  "order_cases": [
+    {
+      "category": "MAIN DISH",
+      "expected": {
+        "commerce_category": "MAIN DISH",
+        "commerce_subcategory": "SAUCE",
+        "fulfillment_queue": "kitchen",
+        "fulfillment_station": "kitchen",
+        "fulfillment_status": "waiting",
+        "requires_fulfillment": true,
+        "requires_preparation": true,
+        "show_queue_qualifier": true
+      },
+      "names": [
+        "Inventory",
+        "MAIN DISH",
+        "SAUCE"
+      ],
+      "status": null,
+      "subcategory": "SAUCE"
+    },
+    {
+      "category": "BEER",
+      "expected": {
+        "commerce_category": "BEER",
+        "commerce_subcategory": null,
+        "fulfillment_queue": null,
+        "fulfillment_station": null,
+        "fulfillment_status": null,
+        "requires_fulfillment": false,
+        "requires_preparation": false,
+        "show_queue_qualifier": false
+      },
+      "names": [
+        "Inventory",
+        "BEER"
+      ],
+      "status": "waiting",
+      "subcategory": null
+    },
+    {
+      "category": "MAIN DISH",
+      "expected": {
+        "commerce_category": "MAIN DISH",
+        "commerce_subcategory": "BEER",
+        "fulfillment_queue": null,
+        "fulfillment_station": null,
+        "fulfillment_status": "ready",
+        "requires_fulfillment": false,
+        "requires_preparation": false,
+        "show_queue_qualifier": false
+      },
+      "names": [
+        "Inventory",
+        "MAIN DISH",
+        "BEER"
+      ],
+      "status": "ready",
+      "subcategory": "BEER"
+    },
+    {
+      "category": "HOT DRINKS",
+      "expected": {
+        "commerce_category": "HOT DRINKS",
+        "commerce_subcategory": "",
+        "fulfillment_queue": "kitchen",
+        "fulfillment_station": "kitchen",
+        "fulfillment_status": "fulfilled",
+        "requires_fulfillment": true,
+        "requires_preparation": true,
+        "show_queue_qualifier": true
+      },
+      "names": [
+        "Inventory",
+        "HOT DRINKS"
+      ],
+      "status": "fulfilled",
+      "subcategory": ""
+    },
+    {
+      "category": "UNKNOWN",
+      "expected": {
+        "commerce_category": "UNKNOWN",
+        "commerce_subcategory": null,
+        "fulfillment_queue": null,
+        "fulfillment_station": null,
+        "fulfillment_status": null,
+        "requires_fulfillment": false,
+        "requires_preparation": false,
+        "show_queue_qualifier": false
+      },
+      "names": [
+        "Inventory",
+        "UNKNOWN"
+      ],
+      "status": "waiting",
+      "subcategory": null
+    },
+    {
+      "category": "DESSERT",
+      "expected": {
+        "commerce_category": "DESSERT",
+        "commerce_subcategory": null,
+        "fulfillment_queue": "kitchen",
+        "fulfillment_station": "kitchen",
+        "fulfillment_status": "waiting",
+        "requires_fulfillment": true,
+        "requires_preparation": true,
+        "show_queue_qualifier": true
+      },
+      "names": [
+        "Inventory",
+        "DESSERT"
+      ],
+      "status": null,
+      "subcategory": null
+    }
+  ]
+}
