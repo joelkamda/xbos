@@ -96,6 +96,9 @@ class PackAuthority:
         canonical=_canonical(manifest);manifest_hash=hashlib.sha256(canonical.encode()).hexdigest()
         return self.repository.register_version(command.command_key,_fingerprint("register_pack_version",payload),manifest,canonical,manifest_hash)
 
+    def state(self,tenant_id:int,pack_code:str)->TenantPackState|None:
+        return self.repository.state(int(tenant_id),_token(pack_code,"pack_code"))
+
     def stage(self,command:StagePack)->TenantPackState:
         normalized=StagePack(command.command_key,int(command.tenant_id),_token(command.pack_code,"pack_code"),_version(command.version))
         return self.repository.stage(normalized,_fingerprint("stage_pack",normalized))
