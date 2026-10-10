@@ -309,10 +309,8 @@ class InventoryService:
         """
         Preferred taxonomy-aware negative stock policy.
 
-        Resolver encodes WND V1 behavior:
-        - kitchen: soft-negative allowed
-        - bar/drinks: no negative
-        - other: usually no negative
+        Honors only explicitly resolved inventory negative-stock authority.
+        If a profile is absent or omits the decision, returns False.
         """
 
         # Explicit profile decision is sole authority. Missing policy is safe.

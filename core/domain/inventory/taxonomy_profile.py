@@ -5,7 +5,7 @@
 # Resolve inventory behavior for an AtomicUnit using:
 # - AtomicUnit.meta explicit overrides
 # - COMMERCE taxonomy mappings
-# - Safe WND-specific heuristics for ambiguous mappings
+# - Explicitly selected domain-policy hints for ambiguous mappings
 #
 # WHY:
 # Inventory should not blindly treat every atomic unit the same.

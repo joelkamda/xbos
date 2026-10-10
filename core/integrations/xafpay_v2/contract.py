@@ -70,7 +70,7 @@ class XafPayV2CheckoutRequest:
         object.__setattr__(self, "payment_rail_code", str(self.payment_rail_code).strip().upper())
         object.__setattr__(self, "channel", str(self.channel).strip().lower())
         if self.currency_code != "XAF":
-            raise XafPayV2IntegrationError("unsupported_currency", "WND XafPay checkout requires XAF")
+            raise XafPayV2IntegrationError("unsupported_currency", "XafPay V2 checkout requires XAF")
         _whole_xaf(self.amount)
         if not re.fullmatch(r"[A-Z][A-Z0-9_]{1,63}", self.payment_method_code):
             raise XafPayV2IntegrationError("invalid_method", "payment method code is invalid")
