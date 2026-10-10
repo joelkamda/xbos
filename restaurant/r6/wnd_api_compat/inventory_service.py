@@ -19,6 +19,7 @@ from core.domain.taxonomy.models import (
     TaxonomyNode,
 )
 from core.domain.inventory.taxonomy_profile import resolve_inventory_profile
+from restaurant.operational_policy_binding import resolve_for_tenant
 
 
 # ============================================================
@@ -278,6 +279,7 @@ class InventoryService:
             db,
             tenant_id=tenant_id,
             atomic_unit_id=atomic_unit_id,
+            policy=resolve_for_tenant(db, tenant_id),
         )
 
     @staticmethod

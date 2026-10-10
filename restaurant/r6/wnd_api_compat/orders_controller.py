@@ -11,6 +11,7 @@ from core.domain.orders.models import Order
 from core.domain.sales.models import Sale
 from core.domain.taxonomy.models import AtomicUnitTaxonomy, TaxonomyNode
 from core.users.user_model import User
+from restaurant.operational_policy_binding import resolve_for_tenant
 
 
 # =====================================================
@@ -238,46 +239,18 @@ class OrdersController:
         category_upper = str(path.get("category") or "").strip().upper()
         subcategory_upper = str(path.get("subcategory") or "").strip().upper()
 
-        has_explicit_non_kitchen = bool(
-            names_upper.intersection(NON_KITCHEN_ROUTE_NAMES)
-        )
-
-        has_kitchen_match = bool(
-            names_upper.intersection(KITCHEN_ROUTE_NAMES)
-            or category_upper in KITCHEN_ROUTE_NAMES
-            or subcategory_upper in KITCHEN_ROUTE_NAMES
-        )
-
-        requires_fulfillment = bool(
-            has_kitchen_match and not has_explicit_non_kitchen
-        )
-
         final_status = str(stored_status or "waiting").strip().lower()
-
-        if requires_fulfillment:
-            return {
-                "requires_fulfillment": True,
-                "requires_preparation": True,
-                "fulfillment_queue": "kitchen",
-                "fulfillment_station": "kitchen",
-                "fulfillment_status": final_status,
-                "show_queue_qualifier": True,
-                "commerce_category": path.get("category"),
-                "commerce_subcategory": path.get("subcategory"),
-            }
-
+        authorized_policy = resolve_for_tenant(db, tenant_id)
+        outcome = authorized_policy.fulfillment(
+            names_upper, category_upper, subcategory_upper, final_status,
+        )
         return {
-            "requires_fulfillment": False,
-            "requires_preparation": False,
-            "fulfillment_queue": None,
-            "fulfillment_station": None,
-            "fulfillment_status": final_status if final_status != "waiting" else None,
-            "show_queue_qualifier": False,
+            **outcome,
             "commerce_category": path.get("category"),
             "commerce_subcategory": path.get("subcategory"),
         }
 
-    # =====================================================
+        # =====================================================
     # SERIALIZATION
     # =====================================================
 
@@ -816,6 +789,7 @@ class OrdersController:
                 branch_id=ctx["branch_id"],
                 created_by_user_id=ctx["user_id"],
                 payload=payload,
+                policy=resolve_for_tenant(db, ctx["tenant_id"]),
             )
 
             order = OrderRepository.get_by_id(db, order.id)
@@ -883,6 +857,7 @@ class OrdersController:
                 branch_id=ctx["branch_id"],
                 order_id=order_id,
                 payload=payload,
+                policy=resolve_for_tenant(db, ctx["tenant_id"]),
             )
 
             order = OrderRepository.get_by_id(db, order.id)
