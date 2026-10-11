@@ -1,0 +1,191 @@
+{
+  "schema": "xbos.platform.pc0-post-nce-accepted-source-successors.v1",
+  "authority": "XBOS-NEUTRAL-F-R1-B1-R1-PC0-R2",
+  "accepted_cutoff_commit": "47200c29b974e1c89af2080139b8b899d0778898",
+  "paths": [
+    {
+      "path": "settings.py",
+      "historical_anchor_contract": "pc0_composition_baseline.json",
+      "historical_anchor_commit": "9ce8c1a5746ec7607636d6a9be20102194e9f230",
+      "historical_anchor_sha256": "38befbb010086c27a0a6612643340e8a5f761133282b27f5fb92336b5e05476f",
+      "successors": [
+        {
+          "path": "settings.py",
+          "predecessor_sha256": "38befbb010086c27a0a6612643340e8a5f761133282b27f5fb92336b5e05476f",
+          "successor_sha256": "23952c58c849c9acfe74aeaf72503ac08910fb35713c6d0d269b9b34cec595ad",
+          "accepted_commit": "b9174cbe07a81808900f16c91f3ba229630cd680",
+          "accepted_authority": "XBOS-NEUTRAL-F-R1-B1-R1",
+          "change_class": "VN0_R1_STANDALONE_AUTH_CONFIG"
+        }
+      ]
+    },
+    {
+      "path": "core/middleware/auth_middleware.py",
+      "historical_anchor_contract": "pc0_composition_baseline.json",
+      "historical_anchor_commit": "227459dd32f54e3acc1df80b50ddf4c424a4a48e",
+      "historical_anchor_sha256": "4a8cafe8e87069499da4ee798ba060e54b757224930e131a434f8b99f18e2366",
+      "successors": [
+        {
+          "path": "core/middleware/auth_middleware.py",
+          "predecessor_sha256": "4a8cafe8e87069499da4ee798ba060e54b757224930e131a434f8b99f18e2366",
+          "successor_sha256": "f6dba4aff0700825ec393963bcb627f47dcb01c49e90a872898d82013c0638ab",
+          "accepted_commit": "92f6dbc7db37f5e1e8cf9c3e497e5be57a03b611",
+          "accepted_authority": "XBOS-NCE-H1B-ADDITIVE-SUCCESSOR-R1-SOURCE-MATERIALIZATION",
+          "change_class": "NCE_RESTORATION"
+        },
+        {
+          "path": "core/middleware/auth_middleware.py",
+          "predecessor_sha256": "f6dba4aff0700825ec393963bcb627f47dcb01c49e90a872898d82013c0638ab",
+          "successor_sha256": "c96998d7badd9516db03bd2c6435ad46af3ccc704b0073794878d4921eb77c35",
+          "accepted_commit": "d064f617489febfa95a6bab43cb96a9a8125dedd",
+          "accepted_authority": "XBOS-G02-C3-H1B-R2-R1-PC0-PC6-SUCCESSOR-REPAIR-AND-FULL-REGRESSION",
+          "change_class": "H1B_COMPOSITION"
+        },
+        {
+          "path": "core/middleware/auth_middleware.py",
+          "predecessor_sha256": "c96998d7badd9516db03bd2c6435ad46af3ccc704b0073794878d4921eb77c35",
+          "successor_sha256": "abe47c31cd1bf7582671c11d677c67b2fefd76001601eb38020983c73f98fb08",
+          "accepted_commit": "5931c901413af296c156af593ff3187b75006d5b",
+          "accepted_authority": "XBOS-G02-C3-H1B-R2-R1-PC0-PC6-SUCCESSOR-REPAIR-AND-FULL-REGRESSION",
+          "change_class": "H1B_COMPOSITION"
+        },
+        {
+          "path": "core/middleware/auth_middleware.py",
+          "predecessor_sha256": "abe47c31cd1bf7582671c11d677c67b2fefd76001601eb38020983c73f98fb08",
+          "successor_sha256": "e03e258e5ebb574445b3a29e4db950f6ef80dde7b8fc344b45d7f781dc64b8d4",
+          "accepted_commit": "51057262faf7288e0ba4a8d488c8f2ff94e5cbe0",
+          "accepted_authority": "XBOS-NEUTRAL-F-R1-B1-C2",
+          "change_class": "VN0_C2_BROWSER_COMPOSITION"
+        }
+      ]
+    },
+    {
+      "path": "core/middleware/tenant_middleware.py",
+      "historical_anchor_contract": "pc0_composition_baseline.json",
+      "historical_anchor_commit": "4fe677b50aa34d98fa122974f0ce36dae76cd767",
+      "historical_anchor_sha256": "5151239379e4b6e686bc168818d655c94e2945df324ee5452441549deb83dd9d",
+      "successors": [
+        {
+          "path": "core/middleware/tenant_middleware.py",
+          "predecessor_sha256": "5151239379e4b6e686bc168818d655c94e2945df324ee5452441549deb83dd9d",
+          "successor_sha256": "ac93413f68256aac2cbaf88bce30ae738e478dfb1e1339da5694ec625360611d",
+          "accepted_commit": "92f6dbc7db37f5e1e8cf9c3e497e5be57a03b611",
+          "accepted_authority": "XBOS-NCE-H1B-ADDITIVE-SUCCESSOR-R1-SOURCE-MATERIALIZATION",
+          "change_class": "NCE_RESTORATION"
+        },
+        {
+          "path": "core/middleware/tenant_middleware.py",
+          "predecessor_sha256": "ac93413f68256aac2cbaf88bce30ae738e478dfb1e1339da5694ec625360611d",
+          "successor_sha256": "2d30b184ea4f83860868f0c87db5326d9a424a5ac0e794f8110a0cbee1964cd3",
+          "accepted_commit": "d064f617489febfa95a6bab43cb96a9a8125dedd",
+          "accepted_authority": "XBOS-G02-C3-H1B-R2-R1-PC0-PC6-SUCCESSOR-REPAIR-AND-FULL-REGRESSION",
+          "change_class": "H1B_COMPOSITION"
+        },
+        {
+          "path": "core/middleware/tenant_middleware.py",
+          "predecessor_sha256": "2d30b184ea4f83860868f0c87db5326d9a424a5ac0e794f8110a0cbee1964cd3",
+          "successor_sha256": "dda4211df3a6cd4e0e07a2daf9590722b0717937348bebcd4d426b463dbc1101",
+          "accepted_commit": "5931c901413af296c156af593ff3187b75006d5b",
+          "accepted_authority": "XBOS-G02-C3-H1B-R2-R1-PC0-PC6-SUCCESSOR-REPAIR-AND-FULL-REGRESSION",
+          "change_class": "H1B_COMPOSITION"
+        },
+        {
+          "path": "core/middleware/tenant_middleware.py",
+          "predecessor_sha256": "dda4211df3a6cd4e0e07a2daf9590722b0717937348bebcd4d426b463dbc1101",
+          "successor_sha256": "e7218132823dce924c0f8fa62cebcf0cd584f169e0fd15e15b3790bf2f7657a9",
+          "accepted_commit": "51057262faf7288e0ba4a8d488c8f2ff94e5cbe0",
+          "accepted_authority": "XBOS-NEUTRAL-F-R1-B1-C2",
+          "change_class": "VN0_C2_BROWSER_COMPOSITION"
+        },
+        {
+          "path": "core/middleware/tenant_middleware.py",
+          "predecessor_sha256": "e7218132823dce924c0f8fa62cebcf0cd584f169e0fd15e15b3790bf2f7657a9",
+          "successor_sha256": "db8ea71d0205fbf6b40b8e857d20d12f8584283a40441a2df49869c10394d0ff",
+          "accepted_commit": "b9174cbe07a81808900f16c91f3ba229630cd680",
+          "accepted_authority": "XBOS-NEUTRAL-F-R1-B1-R1",
+          "change_class": "VN0_R1_STANDALONE_AUTH_CONFIG"
+        }
+      ]
+    },
+    {
+      "path": "core/middleware/branch_middleware.py",
+      "historical_anchor_contract": "pc0_composition_baseline.json",
+      "historical_anchor_commit": "4fe677b50aa34d98fa122974f0ce36dae76cd767",
+      "historical_anchor_sha256": "af0c6cc09242d60f54c7d300e5fadda872b13db2e793307afedf47036bd5554f",
+      "successors": [
+        {
+          "path": "core/middleware/branch_middleware.py",
+          "predecessor_sha256": "af0c6cc09242d60f54c7d300e5fadda872b13db2e793307afedf47036bd5554f",
+          "successor_sha256": "2fe968cfc640a5029a2fb57cec922dbdc35773c5eeb1d48d10f5ea0c9b91c1aa",
+          "accepted_commit": "92f6dbc7db37f5e1e8cf9c3e497e5be57a03b611",
+          "accepted_authority": "XBOS-NCE-H1B-ADDITIVE-SUCCESSOR-R1-SOURCE-MATERIALIZATION",
+          "change_class": "NCE_RESTORATION"
+        },
+        {
+          "path": "core/middleware/branch_middleware.py",
+          "predecessor_sha256": "2fe968cfc640a5029a2fb57cec922dbdc35773c5eeb1d48d10f5ea0c9b91c1aa",
+          "successor_sha256": "d395fc467c6ae3242d21e7e4aea8dfdb0e38824545c065704572e5b96323dc66",
+          "accepted_commit": "d064f617489febfa95a6bab43cb96a9a8125dedd",
+          "accepted_authority": "XBOS-G02-C3-H1B-R2-R1-PC0-PC6-SUCCESSOR-REPAIR-AND-FULL-REGRESSION",
+          "change_class": "H1B_COMPOSITION"
+        },
+        {
+          "path": "core/middleware/branch_middleware.py",
+          "predecessor_sha256": "d395fc467c6ae3242d21e7e4aea8dfdb0e38824545c065704572e5b96323dc66",
+          "successor_sha256": "64d498a2644c15e10221edbcc43b499218d9f405c3823e19b7dc321998994c5e",
+          "accepted_commit": "5931c901413af296c156af593ff3187b75006d5b",
+          "accepted_authority": "XBOS-G02-C3-H1B-R2-R1-PC0-PC6-SUCCESSOR-REPAIR-AND-FULL-REGRESSION",
+          "change_class": "H1B_COMPOSITION"
+        },
+        {
+          "path": "core/middleware/branch_middleware.py",
+          "predecessor_sha256": "64d498a2644c15e10221edbcc43b499218d9f405c3823e19b7dc321998994c5e",
+          "successor_sha256": "a53ed3985c29ce3e51c6e885f9d9b6b0746fc892b794b0478ffccfd5a42155a5",
+          "accepted_commit": "51057262faf7288e0ba4a8d488c8f2ff94e5cbe0",
+          "accepted_authority": "XBOS-NEUTRAL-F-R1-B1-C2",
+          "change_class": "VN0_C2_BROWSER_COMPOSITION"
+        },
+        {
+          "path": "core/middleware/branch_middleware.py",
+          "predecessor_sha256": "a53ed3985c29ce3e51c6e885f9d9b6b0746fc892b794b0478ffccfd5a42155a5",
+          "successor_sha256": "568d8f7ee0f1bec31d5e46ca2386b093f23a25886a390680cc4d825fd5b3dfa4",
+          "accepted_commit": "b9174cbe07a81808900f16c91f3ba229630cd680",
+          "accepted_authority": "XBOS-NEUTRAL-F-R1-B1-R1",
+          "change_class": "VN0_R1_STANDALONE_AUTH_CONFIG"
+        }
+      ]
+    },
+    {
+      "path": "core/integrations/xafpay_v2/contract.py",
+      "historical_anchor_contract": "pc0_h1b_composition_successor.json#nce_additive_successor.module_overlay",
+      "historical_anchor_commit": "92f6dbc7db37f5e1e8cf9c3e497e5be57a03b611",
+      "historical_anchor_sha256": "8bb5e87bbd49d94b0a45499ca544c0f21964e84f867d3c9389c24afe8b54fb5f",
+      "successors": [
+        {
+          "path": "core/integrations/xafpay_v2/contract.py",
+          "predecessor_sha256": "8bb5e87bbd49d94b0a45499ca544c0f21964e84f867d3c9389c24afe8b54fb5f",
+          "successor_sha256": "4cccb50f0f44dd32d63012849fb12df8a6eec5ea2fc7dd3b0637736227c8b486",
+          "accepted_commit": "81769368cf2fa9b2dc752362623cbfc9f64be21d",
+          "accepted_authority": "XBOS-NEUTRAL-F-R1-B1-R1-N2-R2",
+          "change_class": "N2_R2_TERMINOLOGY_ONLY"
+        }
+      ]
+    },
+    {
+      "path": "core/platform/architecture_contract.py",
+      "historical_anchor_contract": "pc0_h1b_composition_successor.json#pc0_release_replacements",
+      "historical_anchor_commit": "5931c901413af296c156af593ff3187b75006d5b",
+      "historical_anchor_sha256": "5345e6655603ae89416568a4548dc798289f2b1702fe066cf51c29e90df64d7b",
+      "successors": [
+        {
+          "path": "core/platform/architecture_contract.py",
+          "predecessor_sha256": "5345e6655603ae89416568a4548dc798289f2b1702fe066cf51c29e90df64d7b",
+          "successor_sha256": "bbd1de7d9f19853d651ce81251f411b2b206e3557f927e6451881ef6fb6d82c6",
+          "accepted_commit": "47200c29b974e1c89af2080139b8b899d0778898",
+          "accepted_authority": "XBOS-NEUTRAL-F-R1-B1-R1-PC0-R1",
+          "change_class": "PC0_R1_ACCEPTED_CONTRACT_REPAIR"
+        }
+      ]
+    }
+  ]
+}

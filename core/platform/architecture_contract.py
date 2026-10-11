@@ -74,6 +74,192 @@ _NCE_AUTHORIZED_EDGES = {
 }
 
 
+
+POST_NCE_SOURCE_SUCCESSORS_FILE = "pc0_post_nce_source_successors.json"
+_POST_NCE_SUCCESSOR_SCHEMA = "xbos.platform.pc0-post-nce-accepted-source-successors.v1"
+_POST_NCE_SUCCESSOR_AUTHORITY = "XBOS-NEUTRAL-F-R1-B1-R1-PC0-R2"
+_POST_NCE_ACCEPTED_CUTOFF = "47200c29b974e1c89af2080139b8b899d0778898"
+# Every accepted SHA is pinned independently of the additive registry.
+# This is a closed list of observed Git commits, never a current-hash acceptor.
+_POST_NCE_TRUSTED = {'core/integrations/xafpay_v2/contract.py': {'anchor': '8bb5e87bbd49d94b0a45499ca544c0f21964e84f867d3c9389c24afe8b54fb5f',
+                                             'commits': [('81769368cf2fa9b2dc752362623cbfc9f64be21d',
+                                                          'XBOS-NEUTRAL-F-R1-B1-R1-N2-R2',
+                                                          '4cccb50f0f44dd32d63012849fb12df8a6eec5ea2fc7dd3b0637736227c8b486')]},
+ 'core/middleware/auth_middleware.py': {'anchor': '4a8cafe8e87069499da4ee798ba060e54b757224930e131a434f8b99f18e2366',
+                                        'commits': [('92f6dbc7db37f5e1e8cf9c3e497e5be57a03b611',
+                                                     'XBOS-NCE-H1B-ADDITIVE-SUCCESSOR-R1-SOURCE-MATERIALIZATION',
+                                                     'f6dba4aff0700825ec393963bcb627f47dcb01c49e90a872898d82013c0638ab'),
+                                                    ('d064f617489febfa95a6bab43cb96a9a8125dedd',
+                                                     'XBOS-G02-C3-H1B-R2-R1-PC0-PC6-SUCCESSOR-REPAIR-AND-FULL-REGRESSION',
+                                                     'c96998d7badd9516db03bd2c6435ad46af3ccc704b0073794878d4921eb77c35'),
+                                                    ('5931c901413af296c156af593ff3187b75006d5b',
+                                                     'XBOS-G02-C3-H1B-R2-R1-PC0-PC6-SUCCESSOR-REPAIR-AND-FULL-REGRESSION',
+                                                     'abe47c31cd1bf7582671c11d677c67b2fefd76001601eb38020983c73f98fb08'),
+                                                    ('51057262faf7288e0ba4a8d488c8f2ff94e5cbe0',
+                                                     'XBOS-NEUTRAL-F-R1-B1-C2',
+                                                     'e03e258e5ebb574445b3a29e4db950f6ef80dde7b8fc344b45d7f781dc64b8d4')]},
+ 'core/middleware/branch_middleware.py': {'anchor': 'af0c6cc09242d60f54c7d300e5fadda872b13db2e793307afedf47036bd5554f',
+                                          'commits': [('92f6dbc7db37f5e1e8cf9c3e497e5be57a03b611',
+                                                       'XBOS-NCE-H1B-ADDITIVE-SUCCESSOR-R1-SOURCE-MATERIALIZATION',
+                                                       '2fe968cfc640a5029a2fb57cec922dbdc35773c5eeb1d48d10f5ea0c9b91c1aa'),
+                                                      ('d064f617489febfa95a6bab43cb96a9a8125dedd',
+                                                       'XBOS-G02-C3-H1B-R2-R1-PC0-PC6-SUCCESSOR-REPAIR-AND-FULL-REGRESSION',
+                                                       'd395fc467c6ae3242d21e7e4aea8dfdb0e38824545c065704572e5b96323dc66'),
+                                                      ('5931c901413af296c156af593ff3187b75006d5b',
+                                                       'XBOS-G02-C3-H1B-R2-R1-PC0-PC6-SUCCESSOR-REPAIR-AND-FULL-REGRESSION',
+                                                       '64d498a2644c15e10221edbcc43b499218d9f405c3823e19b7dc321998994c5e'),
+                                                      ('51057262faf7288e0ba4a8d488c8f2ff94e5cbe0',
+                                                       'XBOS-NEUTRAL-F-R1-B1-C2',
+                                                       'a53ed3985c29ce3e51c6e885f9d9b6b0746fc892b794b0478ffccfd5a42155a5'),
+                                                      ('b9174cbe07a81808900f16c91f3ba229630cd680',
+                                                       'XBOS-NEUTRAL-F-R1-B1-R1',
+                                                       '568d8f7ee0f1bec31d5e46ca2386b093f23a25886a390680cc4d825fd5b3dfa4')]},
+ 'core/middleware/tenant_middleware.py': {'anchor': '5151239379e4b6e686bc168818d655c94e2945df324ee5452441549deb83dd9d',
+                                          'commits': [('92f6dbc7db37f5e1e8cf9c3e497e5be57a03b611',
+                                                       'XBOS-NCE-H1B-ADDITIVE-SUCCESSOR-R1-SOURCE-MATERIALIZATION',
+                                                       'ac93413f68256aac2cbaf88bce30ae738e478dfb1e1339da5694ec625360611d'),
+                                                      ('d064f617489febfa95a6bab43cb96a9a8125dedd',
+                                                       'XBOS-G02-C3-H1B-R2-R1-PC0-PC6-SUCCESSOR-REPAIR-AND-FULL-REGRESSION',
+                                                       '2d30b184ea4f83860868f0c87db5326d9a424a5ac0e794f8110a0cbee1964cd3'),
+                                                      ('5931c901413af296c156af593ff3187b75006d5b',
+                                                       'XBOS-G02-C3-H1B-R2-R1-PC0-PC6-SUCCESSOR-REPAIR-AND-FULL-REGRESSION',
+                                                       'dda4211df3a6cd4e0e07a2daf9590722b0717937348bebcd4d426b463dbc1101'),
+                                                      ('51057262faf7288e0ba4a8d488c8f2ff94e5cbe0',
+                                                       'XBOS-NEUTRAL-F-R1-B1-C2',
+                                                       'e7218132823dce924c0f8fa62cebcf0cd584f169e0fd15e15b3790bf2f7657a9'),
+                                                      ('b9174cbe07a81808900f16c91f3ba229630cd680',
+                                                       'XBOS-NEUTRAL-F-R1-B1-R1',
+                                                       'db8ea71d0205fbf6b40b8e857d20d12f8584283a40441a2df49869c10394d0ff')]},
+ 'core/platform/architecture_contract.py': {'anchor': '5345e6655603ae89416568a4548dc798289f2b1702fe066cf51c29e90df64d7b',
+                                            'commits': [('47200c29b974e1c89af2080139b8b899d0778898',
+                                                         'XBOS-NEUTRAL-F-R1-B1-R1-PC0-R1',
+                                                         'bbd1de7d9f19853d651ce81251f411b2b206e3557f927e6451881ef6fb6d82c6')]},
+ 'settings.py': {'anchor': '38befbb010086c27a0a6612643340e8a5f761133282b27f5fb92336b5e05476f',
+                 'commits': [('b9174cbe07a81808900f16c91f3ba229630cd680',
+                              'XBOS-NEUTRAL-F-R1-B1-R1',
+                              '23952c58c849c9acfe74aeaf72503ac08910fb35713c6d0d269b9b34cec595ad')]}}
+
+
+_POST_NCE_TRUSTED_ORIGINS = {
+    "settings.py": ("pc0_composition_baseline.json", "9ce8c1a5746ec7607636d6a9be20102194e9f230"),
+    "core/middleware/auth_middleware.py": ("pc0_composition_baseline.json", "227459dd32f54e3acc1df80b50ddf4c424a4a48e"),
+    "core/middleware/tenant_middleware.py": ("pc0_composition_baseline.json", "4fe677b50aa34d98fa122974f0ce36dae76cd767"),
+    "core/middleware/branch_middleware.py": ("pc0_composition_baseline.json", "4fe677b50aa34d98fa122974f0ce36dae76cd767"),
+    "core/integrations/xafpay_v2/contract.py": (
+        "pc0_h1b_composition_successor.json#nce_additive_successor.module_overlay",
+        "92f6dbc7db37f5e1e8cf9c3e497e5be57a03b611",
+    ),
+    "core/platform/architecture_contract.py": (
+        "pc0_h1b_composition_successor.json#pc0_release_replacements",
+        "5931c901413af296c156af593ff3187b75006d5b",
+    ),
+}
+_POST_NCE_TRUSTED_PC8_ACCEPTED = {
+    "core/middleware/auth_middleware.py": "abe47c31cd1bf7582671c11d677c67b2fefd76001601eb38020983c73f98fb08",
+    "core/middleware/tenant_middleware.py": "dda4211df3a6cd4e0e07a2daf9590722b0717937348bebcd4d426b463dbc1101",
+    "core/middleware/branch_middleware.py": "64d498a2644c15e10221edbcc43b499218d9f405c3823e19b7dc321998994c5e",
+}
+_POST_NCE_TRUSTED_CHANGE_CLASSES = {
+    "92f6dbc7db37": "NCE_RESTORATION",
+    "d064f617489f": "H1B_COMPOSITION",
+    "5931c901413a": "H1B_COMPOSITION",
+    "51057262faf7": "VN0_C2_BROWSER_COMPOSITION",
+    "b9174cbe07a8": "VN0_R1_STANDALONE_AUTH_CONFIG",
+    "81769368cf2f": "N2_R2_TERMINOLOGY_ONLY",
+    "47200c29b974": "PC0_R1_ACCEPTED_CONTRACT_REPAIR",
+}
+
+
+def _validate_post_nce_source_successors(
+    root: Path, proposed: dict[str, Any] | None = None,
+) -> dict[str, str]:
+    """Validate every step in each accepted file lineage, against frozen SHA pins."""
+    contract_path = root / CONTRACT_DIRECTORY / POST_NCE_SOURCE_SUCCESSORS_FILE
+    if proposed is None:
+        if not contract_path.is_file():
+            return {}
+        proposed = _load_json(root, POST_NCE_SOURCE_SUCCESSORS_FILE)
+    if not isinstance(proposed, dict) or set(proposed) != {
+        "schema", "authority", "accepted_cutoff_commit", "paths"
+    }:
+        _fail("PC0-POST-NCE-SUCCESSOR-SHAPE", str(proposed))
+    if (
+        proposed["schema"] != _POST_NCE_SUCCESSOR_SCHEMA
+        or proposed["authority"] != _POST_NCE_SUCCESSOR_AUTHORITY
+        or proposed["accepted_cutoff_commit"] != _POST_NCE_ACCEPTED_CUTOFF
+    ):
+        _fail("PC0-POST-NCE-SUCCESSOR-AUTHORITY", "unrecognized registry identity")
+    declarations = proposed["paths"]
+    if not isinstance(declarations, list):
+        _fail("PC0-POST-NCE-SUCCESSOR-PATHS", "paths must be a list")
+    indexed = {item.get("path"): item for item in declarations if isinstance(item, dict)}
+    if len(indexed) != len(declarations) or set(indexed) != set(_POST_NCE_TRUSTED):
+        _fail("PC0-POST-NCE-SUCCESSOR-PATHS", str(sorted(indexed)))
+    final: dict[str, str] = {}
+    for path, trusted in _POST_NCE_TRUSTED.items():
+        item = indexed[path]
+        if set(item) != {
+            "path", "historical_anchor_contract", "historical_anchor_commit",
+            "historical_anchor_sha256", "successors"
+        }:
+            _fail("PC0-POST-NCE-SUCCESSOR-PATH", path)
+        anchor = item["historical_anchor_sha256"]
+        expected_origin, expected_commit_prefix = _POST_NCE_TRUSTED_ORIGINS[path]
+        if (
+            anchor != trusted["anchor"]
+            or item["historical_anchor_contract"] != expected_origin
+            or not isinstance(item["historical_anchor_commit"], str)
+            or item["historical_anchor_commit"] != expected_commit_prefix
+        ):
+            _fail("PC0-POST-NCE-ANCHOR-CHANGED", path)
+        steps = item["successors"]
+        if not isinstance(steps, list) or len(steps) != len(trusted["commits"]):
+            _fail("PC0-POST-NCE-STEP-COUNT", path)
+        predecessor = anchor
+        for index, (entry, expected_step) in enumerate(zip(steps, trusted["commits"])):
+            if not isinstance(entry, dict) or set(entry) != {
+                "path", "predecessor_sha256", "successor_sha256",
+                "accepted_commit", "accepted_authority", "change_class",
+            }:
+                _fail("PC0-POST-NCE-STEP-SHAPE", f"{path}@{index}")
+            commit, authority, digest = expected_step
+            if entry["path"] != path:
+                _fail("PC0-POST-NCE-STEP-PATH", f"{path}@{index}")
+            if entry["predecessor_sha256"] != predecessor:
+                _fail("PC0-POST-NCE-BROKEN-CHAIN", f"{path}@{index}")
+            if entry["accepted_commit"] != commit:
+                _fail("PC0-POST-NCE-UNACCEPTED-COMMIT", f"{path}@{index}")
+            if entry["accepted_authority"] != authority:
+                _fail("PC0-POST-NCE-UNACCEPTED-AUTHORITY", f"{path}@{index}")
+            if entry["successor_sha256"] != digest:
+                _fail("PC0-POST-NCE-SOURCE-HASH", f"{path}@{index}")
+            classification = next(
+                (label for prefix, label in _POST_NCE_TRUSTED_CHANGE_CLASSES.items()
+                 if commit.startswith(prefix)),
+                None,
+            )
+            if entry["change_class"] != classification or classification is None:
+                _fail("PC0-POST-NCE-CHANGE-CLASS", f"{path}@{index}")
+            predecessor = digest
+        final[path] = predecessor
+    return final
+
+
+def _post_nce_resolved_hash(root: Path, path: str, historical: str) -> str | None:
+    """Only a continuous, pinned chain from historical to final is permitted."""
+    finals = _validate_post_nce_source_successors(root)
+    trusted = _POST_NCE_TRUSTED.get(path)
+    if not trusted:
+        return None
+    sequence = [trusted["anchor"]] + [step[2] for step in trusted["commits"]]
+    if historical not in sequence[:-1]:
+        return None
+    source_path = root / path
+    if not source_path.is_file() or _source_sha256(source_path) != finals[path]:
+        return None
+    return finals[path]
+
+
 class PC0ArchitectureError(AssertionError):
     """A deterministic PC0 contract violation."""
 
@@ -265,8 +451,11 @@ def _validate_h1b_successor_contract(root: Path, contract: dict[str, Any]) -> di
         item = by_path[relative]
         if set(item) != {"path", "sha256"} or item.get("sha256") != expected_hash:
             _fail("PC0-NCE-SOURCE-FILES", relative)
-        if _source_sha256(root / relative) != expected_hash:
-            _fail("PC0-NCE-SOURCE-CHANGED", relative)
+        actual_overlay = _source_sha256(root / relative)
+        if actual_overlay != expected_hash:
+            accepted = _post_nce_resolved_hash(root, relative, expected_hash)
+            if accepted != actual_overlay:
+                _fail("PC0-NCE-SOURCE-CHANGED", relative)
     edges = nce.get("authorized_dependency_edges")
     if not isinstance(edges, list):
         _fail("PC0-NCE-DEPENDENCY-EDGES", "missing")
@@ -351,7 +540,10 @@ def _validate_h1b_successor_contract(root: Path, contract: dict[str, Any]) -> di
         if set(item) != {"path", "historical_sha256", "successor_sha256"}:
             _fail("PC0-H1B-RELEASE-REPLACEMENTS", relative)
         actual = _source_sha256(root / relative)
-        if item.get("historical_sha256") != historical or item.get("successor_sha256") != actual:
+        accepted = _post_nce_resolved_hash(root, relative, item.get("successor_sha256"))
+        if item.get("historical_sha256") != historical or (
+            item.get("successor_sha256") != actual and accepted != actual
+        ):
             _fail("PC0-H1B-RELEASE-REPLACEMENTS", relative)
 
     allowed = contract.get("allowed_paths")
@@ -408,8 +600,15 @@ def _pc8_composition_replacements(root: Path) -> dict[str, tuple[str, str]]:
     replacements: dict[str, tuple[str, str]] = {}
     for relative, historical in expected.items():
         actual = _source_sha256(root / relative)
-        if bases.get(relative) != historical or artifacts.get(relative) != actual:
+        pc8_digest = artifacts.get(relative)
+        if pc8_digest != _POST_NCE_TRUSTED_PC8_ACCEPTED[relative]:
+            _fail("PC0-PC8-HISTORICAL-FINGERPRINT", relative)
+        if bases.get(relative) != historical:
             _fail("PC0-PC8-SUCCESSOR-INTEGRITY", relative)
+        if pc8_digest != actual:
+            accepted = _post_nce_resolved_hash(root, relative, pc8_digest)
+            if not accepted or accepted != actual:
+                _fail("PC0-PC8-SUCCESSOR-INTEGRITY", relative)
         replacements[relative] = (historical, actual)
     return replacements
 
@@ -743,6 +942,8 @@ def _validate_composition(
         pc8 = pc8_replacements.get(relative)
         if pc8 and pc8 == (expected, actual):
             continue
+        if _post_nce_resolved_hash(root, relative, expected) == actual:
+            continue
         _fail("PC0-COMPOSITION-CHANGED", f"{relative}: {actual} != {expected}")
     for relative, markers in composition.get("markers", {}).items():
         source = (root / relative).read_text(encoding="utf-8")
@@ -990,7 +1191,10 @@ def validate_pc0(root: str | Path, validate_release: bool = True) -> dict[str, A
             if actual == item["sha256"]:
                 continue
             replacement = replacements.get(item["path"])
-            if not replacement or replacement["historical_sha256"] != item["sha256"] or replacement["successor_sha256"] != actual:
+            if not replacement or replacement["historical_sha256"] != item["sha256"] or (
+                replacement["successor_sha256"] != actual
+                and _post_nce_resolved_hash(root_path, item["path"], replacement["successor_sha256"]) != actual
+            ):
                 _fail("PC0-RELEASE-MANIFEST", item["path"])
             used_replacements.add(item["path"])
         if used_replacements != set(replacements):
