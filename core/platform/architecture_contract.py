@@ -543,6 +543,8 @@ def _validate_h1b_successor_contract(root: Path, contract: dict[str, Any]) -> di
         actual = _source_sha256(root / relative)
         accepted = _post_nce_resolved_hash(root, relative, item.get("successor_sha256"))
         if accepted != actual:
+            accepted = _pc0_r6_sealed_successor(root,relative,item.get("successor_sha256"))
+        if accepted != actual:
             accepted = _pc0_r5_sealed_successor(root,relative,item.get("successor_sha256"))
         if accepted != actual:
             accepted = _pc0_r4_sealed_successor(root,relative,item.get("successor_sha256"))
@@ -1219,7 +1221,9 @@ def _validate_vn2_a1_implementation_seal(root: Path, proposed: dict[str, Any] | 
     return indexed
 
 
-def _validate_vn2_a1_r5_validator_seal(root: Path, proposed: dict[str, Any] | None = None) -> str | None:
+def _validate_vn2_a1_r5_validator_seal(
+    root: Path, proposed: dict[str, Any] | None = None, *, historical_only: bool = False,
+) -> str | None:
     if _validate_vn2_a1_admission(root) is None:
         return None
     if proposed is None:
@@ -1238,9 +1242,16 @@ def _validate_vn2_a1_r5_validator_seal(root: Path, proposed: dict[str, Any] | No
         _fail("PC0-VN2-A1-R5-BOUNDS","only the exact architecture validator may be sealed")
     digest=files[0]["successor_sha256"]
     if (not isinstance(digest,str) or len(digest)!=64 or any(c not in "0123456789abcdef" for c in digest)
-        or not (root/files[0]["path"]).is_file() or _source_sha256(root/files[0]["path"])!=digest
-        or digest==_VN2_A1_R5_PREDECESSOR):
-        _fail("PC0-VN2-A1-R5-SOURCE-CHANGED","validator SHA does not match additive R5")
+        or digest==_VN2_A1_R5_PREDECESSOR
+        or digest!=_PC0_R6_PREDECESSORS["core/platform/architecture_contract.py"]):
+        _fail("PC0-VN2-A1-R5-SOURCE-CHANGED","invalid accepted R5 predecessor/successor pair")
+    # R5 is an immutable historical source attestation. Only an exact R6
+    # successor may legitimately replace the R5-era live source.
+    if not historical_only:
+        if (root/CONTRACT_DIRECTORY/_PC0_R6_SEAL_FILE).is_file():
+            _validate_pc0_r6_validator_seal(root)
+        elif not (root/files[0]["path"]).is_file() or _source_sha256(root/files[0]["path"])!=digest:
+            _fail("PC0-VN2-A1-R5-SOURCE-CHANGED","R5 source changed without R6")
     # R3/R4 are immutable historical attestations, not self-referential current-file checks.
     r3=_load_json(root,_PC0_R3_SEAL_FILE)
     r4=_load_json(root,_PC0_R4_SEAL_FILE)
@@ -1272,6 +1283,83 @@ def _validate_vn2_a1_r5_validator_seal(root: Path, proposed: dict[str, Any] | No
 
 _VN2_A1_PRE_R4_SHA = "bb6bcc9b01657ad0069fe375526b4575f01daf58e3695c233d12721cdcc5e7c9"
 _VN2_A1_PRE_TEST_SHA = "1fc07557db90914d48a5a8cce23e485a71849649fb25f3e955580f249717d565"
+
+
+
+# A1-R2: governed R6 source lineage, exactly two changed existing paths.
+_PC0_R6_SEAL_FILE = "pc0_validator_successor_seal_r6.json"
+_PC0_R6_AUTHORITY = "XBOS-NEUTRAL-VN2-R1-C2-A1-R2"
+_PC0_R6_PREDECESSOR_COMMIT = "c5e031b437561363dcb94b43ca9b52ac25ddadf8"
+_PC0_R6_PREDECESSORS = {
+    "core/platform/architecture_contract.py": "75c42332159c9673a3e081eb6fc682303bdec8174a9a4e34c1ca6d9689d4d02f",
+    "tests/contracts/test_pc0_kernel_boundaries.py": "1fc07557db90914d48a5a8cce23e485a71849649fb25f3e955580f249717d565",
+}
+_PC0_R6_R5_FILE_SHA = "8d2846131f4c4c9ac06a109de82574ad5b20fbd7639dfc366f0b7d2e87d898cd"
+_PC0_R6_ADMISSION_SHA = "5a9501d193abd96918d6af8681a1ff9feedf5f73e3853c7600228c3b95f5c3e3"
+
+
+def _validate_pc0_r6_validator_seal(
+    root: Path, proposed: dict[str, Any] | None = None,
+) -> dict[str, str]:
+    if _source_sha256(root/CONTRACT_DIRECTORY/_VN2_A1_R5_SEAL_FILE) != _PC0_R6_R5_FILE_SHA:
+        _fail("PC0-R6-R5-HISTORY-CHANGED","accepted R5 seal changed")
+    if _source_sha256(root/CONTRACT_DIRECTORY/_VN2_A1_ADMISSION_FILE) != _PC0_R6_ADMISSION_SHA:
+        _fail("PC0-R6-ADMISSION-CHANGED","accepted A1 admission changed")
+    historical_r5 = _validate_vn2_a1_r5_validator_seal(root,historical_only=True)
+    if historical_r5 != _PC0_R6_PREDECESSORS["core/platform/architecture_contract.py"]:
+        _fail("PC0-R6-R5-LINK","R5 and R6 validator lineage disagrees")
+    if _VN2_A1_PRE_TEST_SHA != _PC0_R6_PREDECESSORS["tests/contracts/test_pc0_kernel_boundaries.py"]:
+        _fail("PC0-R6-R4-LINK","R4 and R6 test lineage disagrees")
+    if proposed is None:
+        proposed=_load_json(root,_PC0_R6_SEAL_FILE)
+    if not isinstance(proposed,dict) or set(proposed) != {
+        "schema","authority","accepted_predecessor_commit","files"
+    } or (
+        proposed["schema"] != "xbos.platform.pc0-validator-successor-seal-r6.v1"
+        or proposed["authority"] != _PC0_R6_AUTHORITY
+        or proposed["accepted_predecessor_commit"] != _PC0_R6_PREDECESSOR_COMMIT
+    ):
+        _fail("PC0-R6-AUTHORITY","schema, authority or predecessor mismatch")
+    rows=proposed["files"]
+    if not isinstance(rows,list) or len(rows)!=2:
+        _fail("PC0-R6-COUNT","exactly two authorized source files required")
+    result={}
+    for row in rows:
+        if not isinstance(row,dict) or set(row)!={
+            "path","predecessor_sha256","successor_sha256"
+        }:
+            _fail("PC0-R6-SHAPE",str(row))
+        path=row["path"]
+        if not isinstance(path,str) or path not in _PC0_R6_PREDECESSORS or path in result:
+            _fail("PC0-R6-PATH",str(path))
+        if row["predecessor_sha256"]!=_PC0_R6_PREDECESSORS[path]:
+            _fail("PC0-R6-PREDECESSOR",path)
+        digest=row["successor_sha256"]
+        if (not isinstance(digest,str) or len(digest)!=64
+            or any(ch not in "0123456789abcdef" for ch in digest)
+            or digest==row["predecessor_sha256"]):
+            _fail("PC0-R6-SUCCESSOR",path)
+        source=root/path
+        if not source.is_file() or _source_sha256(source)!=digest:
+            _fail("PC0-R6-SOURCE-CHANGED",path)
+        result[path]=digest
+    if set(result)!=set(_PC0_R6_PREDECESSORS):
+        _fail("PC0-R6-PATH","missing source")
+    return result
+
+
+def _pc0_r6_sealed_successor(
+    root: Path, path: str, registered_predecessor: str,
+) -> str | None:
+    h1b_predecessors={
+        "core/platform/architecture_contract.py": "5345e6655603ae89416568a4548dc798289f2b1702fe066cf51c29e90df64d7b",
+        "tests/contracts/test_pc0_kernel_boundaries.py": "cbdcb74cfed2c92ba6d6ed13dd8a6f319fab0b223ad9a24477d6550d4f3ddf94",
+    }
+    if path not in h1b_predecessors or registered_predecessor!=h1b_predecessors[path]:
+        return None
+    if not (root/CONTRACT_DIRECTORY/_PC0_R6_SEAL_FILE).is_file():
+        return None
+    return _validate_pc0_r6_validator_seal(root)[path]
 
 
 def _pc0_r5_sealed_successor(root: Path, path: str, registered_predecessor: str) -> str | None:
@@ -1772,6 +1860,8 @@ def validate_pc0(root: str | Path, validate_release: bool = True) -> dict[str, A
     successor = _load_h1b_successor(root_path)
     _validate_vn2_a1_admission(root_path)
     _validate_vn2_a1_r5_validator_seal(root_path)
+    if (root_path/CONTRACT_DIRECTORY/_PC0_R6_SEAL_FILE).is_file():
+        _validate_pc0_r6_validator_seal(root_path)
     vn2_c2_implementation = _validate_vn2_a1_implementation_seal(root_path)
     _validate_modules(contracts["module_map"], contracts["dependency_policy"], contracts["interfaces"])
     if set(contracts["composition"].get("files", {})) != set(contracts["module_map"].get("composition_files", [])):
@@ -1894,6 +1984,8 @@ def validate_pc0(root: str | Path, validate_release: bool = True) -> dict[str, A
                 _fail("PC0-RELEASE-MANIFEST", item["path"])
             if replacement["successor_sha256"] != actual:
                 registered = _post_nce_resolved_hash(root_path, item["path"], replacement["successor_sha256"])
+                if registered != actual:
+                    registered = _pc0_r6_sealed_successor(root_path, item["path"],replacement["successor_sha256"])
                 if registered != actual:
                     registered = _pc0_r5_sealed_successor(root_path, item["path"],replacement["successor_sha256"])
                 if registered != actual:

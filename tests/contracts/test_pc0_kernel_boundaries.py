@@ -22,6 +22,7 @@ from core.platform.architecture_contract import (
     _validate_finance,
     _validate_vn0_browser_successor,
     _post_nce_resolved_hash,
+    _validate_pc0_r6_validator_seal,
     _pc8_composition_replacements,
     _POST_NCE_TRUSTED_PC8_ACCEPTED,
     _validate_migration_lineage,
@@ -145,6 +146,9 @@ class PC0KernelBoundaryTests(unittest.TestCase):
                 "contracts/platform/v1/pc0_post_nce_source_successors.json",
                 "contracts/platform/v1/pc0_validator_successor_seal.json",
                 "contracts/platform/v1/pc0_validator_successor_seal_r4.json",
+                "contracts/platform/v1/pc0_vn2_c2_discovery_admission.json",
+                "contracts/platform/v1/pc0_validator_successor_seal_r5.json",
+                "contracts/platform/v1/pc0_validator_successor_seal_r6.json",
                 "core/platform/architecture_contract.py",
                 "tests/contracts/test_pc0_kernel_boundaries.py",
                 "alembic_neutral/sql/cch_customer_channel_checkout_authority_up.sql",
@@ -365,6 +369,45 @@ class PC0KernelBoundaryTests(unittest.TestCase):
             self.assertFalse(any(char in value for value in key for char in "*?["))
             keys.append(key)
         self.assertEqual(len(keys), len(set(keys)))
+
+    def test_r6_exact_two_file_successor_seal(self) -> None:
+        sealed = _validate_pc0_r6_validator_seal(ROOT)
+        self.assertEqual(set(sealed), {
+            "core/platform/architecture_contract.py",
+            "tests/contracts/test_pc0_kernel_boundaries.py",
+        })
+        for relative, digest in sealed.items():
+            self.assertEqual(_source_sha256(ROOT / relative), digest)
+
+    def test_r6_rejects_added_path_and_wildcard(self) -> None:
+        seal = json.loads((ROOT / "contracts/platform/v1/pc0_validator_successor_seal_r6.json").read_text(encoding="utf-8"))
+        extra = deepcopy(seal)
+        extra["files"].append({"path": "core/api/kernel_router.py", "predecessor_sha256": "0" * 64, "successor_sha256": "1" * 64})
+        with self.assertRaisesRegex(PC0ArchitectureError, "PC0-R6-COUNT"):
+            _validate_pc0_r6_validator_seal(ROOT, extra)
+        wildcard = deepcopy(seal)
+        wildcard["files"][0]["path"] = "core/*"
+        with self.assertRaisesRegex(PC0ArchitectureError, "PC0-R6-PATH"):
+            _validate_pc0_r6_validator_seal(ROOT, wildcard)
+
+    def test_r6_rejects_wrong_predecessor_or_source_digest(self) -> None:
+        seal = json.loads((ROOT / "contracts/platform/v1/pc0_validator_successor_seal_r6.json").read_text(encoding="utf-8"))
+        bad_pre = deepcopy(seal)
+        bad_pre["files"][0]["predecessor_sha256"] = "0" * 64
+        with self.assertRaisesRegex(PC0ArchitectureError, "PC0-R6-PREDECESSOR"):
+            _validate_pc0_r6_validator_seal(ROOT, bad_pre)
+        bad_sha = deepcopy(seal)
+        bad_sha["files"][1]["successor_sha256"] = "0" * 64
+        with self.assertRaisesRegex(PC0ArchitectureError, "PC0-R6-SOURCE-CHANGED"):
+            _validate_pc0_r6_validator_seal(ROOT, bad_sha)
+
+    def test_r6_rejects_wrong_authority_and_commit(self) -> None:
+        seal = json.loads((ROOT / "contracts/platform/v1/pc0_validator_successor_seal_r6.json").read_text(encoding="utf-8"))
+        for field in ("authority", "accepted_predecessor_commit"):
+            wrong = deepcopy(seal)
+            wrong[field] = "not-accepted"
+            with self.assertRaisesRegex(PC0ArchitectureError, "PC0-R6-AUTHORITY"):
+                _validate_pc0_r6_validator_seal(ROOT, wrong)
 
     def test_windows_gate_uses_only_approved_active_python(self) -> None:
         source = (ROOT / "XBOS_PC0_RUN_ACCEPTANCE.cmd").read_text(encoding="utf-8")
