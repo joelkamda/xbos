@@ -1,0 +1,588 @@
+{
+  "contract_name": "xbos.platform.pack-template-discovery.v1",
+  "design_authority": "XBOS-NEUTRAL-VN2-R1-C1",
+  "design_status": "FROZEN_CANDIDATE_NO_IMPLEMENTATION",
+  "method": "GET",
+  "canonical_path": "/api/kernel/platform/v1/pack-template-discovery",
+  "request": {
+    "body": "FORBIDDEN",
+    "query_parameters": "NONE",
+    "tenant_header_override": "FORBIDDEN",
+    "merchant_location_override": "FORBIDDEN",
+    "user_provided_pack_filter": "NONE",
+    "allowed_auth_header": "Authorization: Bearer <existing browser_access token>"
+  },
+  "authentication": {
+    "session_profile": "browser-session.v1",
+    "trusted_context_source": "server-validated browser_access and authenticated /kernel/auth/me identity",
+    "validation": "Validate existing browser_access server-side, verify non-revoked/unexpired session, resolve the same user and tenant; reject absent, mismatched or ambiguous user/tenant/branch context; never use a caller-supplied tenant, browser-selected role, legacy development fallback, or X-Tenant-Code as authority.",
+    "permission_policy": "Authenticated VN0 browser-session identity bound to an existing tenant. This contract grants no new role/permission/pack entitlement semantics.",
+    "tenant_scope": "Validated session tenant_id only, passed as bound read query parameter; left joins for pack and template tenant state MUST restrict on that tenant_id.",
+    "branch_scope": "Existing session branch must be consistent with tenant; no branch-specific pack state projected, no branch override.",
+    "failure": "fail closed on missing, invalid, expired, revoked or cross-tenant identity",
+    "middleware_hazard": "Existing TenantMiddleware/BranchMiddleware may fall back to X-Tenant-Code/X-Branch-Code or development defaults; C2 MUST NOT use that derived fallback as pack/template authority. Explicit server-side browser identity validation is mandatory."
+  },
+  "projection": {
+    "top_level_exact": [
+      "schema",
+      "tenant_ref",
+      "packs",
+      "templates"
+    ],
+    "packs": "All registered pack identities and safe registered versions; registry membership does NOT mean available, eligible, or entitled. Tenant state is a scoped LEFT JOIN only.",
+    "templates": "All registered template identities and safe immutable version metadata; tenant binding state is a scoped LEFT JOIN only.",
+    "tenant_pack_absence": {
+      "status": "ABSENT",
+      "meaning": "No installation row for verified tenant; neither eligible nor ineligible."
+    },
+    "tenant_template_absence": {
+      "status": "ABSENT",
+      "meaning": "No binding row for verified tenant; not an invitation to apply."
+    },
+    "pack_status_map": {
+      "staged": "STAGED",
+      "installed": "INSTALLED",
+      "active": "ACTIVE",
+      "disabled": "DISABLED",
+      "removed": "REMOVED"
+    },
+    "template_status_map": {
+      "binding exists": "APPLIED",
+      "no binding": "ABSENT"
+    },
+    "template_requirement_kind_map": {
+      "required": "REQUIRED",
+      "optional": "OPTIONAL",
+      "incompatible": "INCOMPATIBLE"
+    },
+    "field_provenance": [
+      {
+        "path": "/tenant_ref",
+        "source": "validated browser-access identity tenant_id",
+        "authority": "core.auth.browser_session_service.validate_browser_access / AuthService.me",
+        "meaning": "server-only tenant identification"
+      },
+      {
+        "path": "/packs/*/pack_code",
+        "source": "pk_packs.pack_code",
+        "authority": "pack_platform.sql_repository.SQLPackRepository",
+        "meaning": "registry identity, NOT tenant entitlement"
+      },
+      {
+        "path": "/packs/*/owner_code",
+        "source": "pk_packs.owner_code",
+        "authority": "pack_platform.sql_repository.SQLPackRepository",
+        "meaning": "registered pack owner"
+      },
+      {
+        "path": "/packs/*/pack_kind",
+        "source": "pk_packs.pack_kind",
+        "authority": "pack_platform.contracts.PackKind",
+        "meaning": "known classification; no UI industry defaults"
+      },
+      {
+        "path": "/packs/*/versions/*/version",
+        "source": "pk_pack_versions.pack_version",
+        "authority": "pack_platform.sql_repository.SQLPackRepository",
+        "meaning": "stored immutable version string"
+      },
+      {
+        "path": "/packs/*/versions/*/manifest_sha256",
+        "source": "pk_pack_versions.manifest_sha256",
+        "authority": "pack_platform.sql_repository.SQLPackRepository",
+        "meaning": "hash only; never raw manifest"
+      },
+      {
+        "path": "/packs/*/versions/*/retention_required",
+        "source": "pk_pack_versions.retention_required",
+        "authority": "pack_platform.sql_repository.SQLPackRepository",
+        "meaning": "boolean policy fact, not access entitlement"
+      },
+      {
+        "path": "/packs/*/tenant_state/status",
+        "source": "pk_tenant_pack_installations.lifecycle_status or no tenant+pack row",
+        "authority": "pack_platform.sql_repository.SQLPackRepository",
+        "meaning": "UPPERCASE stored value; ABSENT if no row; never eligibility"
+      },
+      {
+        "path": "/packs/*/tenant_state/version",
+        "source": "pk_pack_versions.pack_version via pk_tenant_pack_installations.pack_version_id",
+        "authority": "pack_platform.sql_repository.SQLPackRepository",
+        "meaning": "only when installation row exists"
+      },
+      {
+        "path": "/packs/*/tenant_state/row_version",
+        "source": "pk_tenant_pack_installations.row_version",
+        "authority": "pack_platform.sql_repository.SQLPackRepository",
+        "meaning": "only when installation row exists"
+      },
+      {
+        "path": "/templates/*/template_code",
+        "source": "pk_templates.template_code",
+        "authority": "pack_platform.pk456_sql_repository.SQLPK456Repository",
+        "meaning": "global registry identity"
+      },
+      {
+        "path": "/templates/*/owner_code",
+        "source": "pk_templates.owner_code",
+        "authority": "pack_platform.pk456_sql_repository.SQLPK456Repository",
+        "meaning": "registered owner, not permission"
+      },
+      {
+        "path": "/templates/*/versions/*/version",
+        "source": "pk_template_versions.template_version",
+        "authority": "pack_platform.pk456_sql_repository.SQLPK456Repository",
+        "meaning": "immutable template version string"
+      },
+      {
+        "path": "/templates/*/versions/*/template_sha256",
+        "source": "pk_template_versions.template_sha256",
+        "authority": "pack_platform.pk456_sql_repository.SQLPK456Repository",
+        "meaning": "hash only; no template_json"
+      },
+      {
+        "path": "/templates/*/versions/*/industry_semantic_ref",
+        "source": "pk_template_versions.industry_semantic_ref",
+        "authority": "pack_platform.pk456_contracts.TemplateDefinition",
+        "meaning": "stored semantic reference, not inferred UI default"
+      },
+      {
+        "path": "/templates/*/versions/*/operating_model_semantic_ref",
+        "source": "pk_template_versions.operating_model_semantic_ref",
+        "authority": "pack_platform.pk456_contracts.TemplateDefinition",
+        "meaning": "stored semantic reference, not selector/eligibility"
+      },
+      {
+        "path": "/templates/*/versions/*/requirements/*/pack_code",
+        "source": "pk_template_pack_requirements.pack_code",
+        "authority": "pack_platform.pk456_sql_repository.SQLPK456Repository",
+        "meaning": "stored requirement"
+      },
+      {
+        "path": "/templates/*/versions/*/requirements/*/version",
+        "source": "pk_template_pack_requirements.pack_version",
+        "authority": "pack_platform.pk456_sql_repository.SQLPK456Repository",
+        "meaning": "stored requirement version"
+      },
+      {
+        "path": "/templates/*/versions/*/requirements/*/kind",
+        "source": "pk_template_pack_requirements.requirement_kind",
+        "authority": "pack_platform.pk456_contracts.TemplateRequirementKind",
+        "meaning": "UPPERCASE stored enum; not tenant authorization"
+      },
+      {
+        "path": "/templates/*/tenant_state/status",
+        "source": "pk_tenant_template_bindings row presence",
+        "authority": "pack_platform.pk456_sql_repository.SQLPK456Repository",
+        "meaning": "APPLIED if tenant-scoped row exists, otherwise ABSENT"
+      },
+      {
+        "path": "/templates/*/tenant_state/version",
+        "source": "pk_template_versions.template_version via pk_tenant_template_bindings.template_version_id",
+        "authority": "pack_platform.pk456_sql_repository.SQLPK456Repository",
+        "meaning": "only with existing tenant binding"
+      },
+      {
+        "path": "/templates/*/tenant_state/row_version",
+        "source": "pk_tenant_template_bindings.row_version",
+        "authority": "pack_platform.pk456_sql_repository.SQLPK456Repository",
+        "meaning": "only with existing tenant binding"
+      },
+      {
+        "path": "/templates/*/tenant_state/selected_optional_packs/*",
+        "source": "pk_tenant_template_bindings.selected_optional_packs",
+        "authority": "pack_platform.pk456_sql_repository.SQLPK456Repository",
+        "meaning": "stored value only; lexicographically ordered for projection"
+      }
+    ]
+  },
+  "ordering": {
+    "collation": "Case-sensitive ordinal UTF-8 byte ascending (ASCII tokens/versions); compare full persisted version strings as strings, NOT semantic versions.",
+    "packs": "pack_code ASC",
+    "pack_versions": "pack_version ASC (explicit ordinal byte ordering)",
+    "templates": "template_code ASC",
+    "template_versions": "template_version ASC (explicit ordinal byte ordering)",
+    "template_requirements": "pack_code ASC, requirement_kind ASC, pack_version ASC",
+    "tenant_selected_optional_packs": "pack_code ASC",
+    "empty_lists": "[]; no default item, no automatic selection"
+  },
+  "response_schema": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "schema",
+      "tenant_ref",
+      "packs",
+      "templates"
+    ],
+    "properties": {
+      "schema": {
+        "const": "xbos.platform.pack-template-discovery.v1"
+      },
+      "tenant_ref": {
+        "type": "integer",
+        "minimum": 1
+      },
+      "packs": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "pack_code",
+            "owner_code",
+            "pack_kind",
+            "versions",
+            "tenant_state"
+          ],
+          "properties": {
+            "pack_code": {
+              "type": "string",
+              "minLength": 1
+            },
+            "owner_code": {
+              "type": "string",
+              "minLength": 1
+            },
+            "pack_kind": {
+              "type": "string",
+              "enum": [
+                "capability",
+                "industry",
+                "country",
+                "tax",
+                "payment_connector",
+                "communication_connector",
+                "accounting_connector",
+                "integration_connector"
+              ]
+            },
+            "versions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "version",
+                  "manifest_sha256",
+                  "retention_required"
+                ],
+                "properties": {
+                  "version": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "manifest_sha256": {
+                    "type": "string",
+                    "pattern": "^[a-f0-9]{64}$"
+                  },
+                  "retention_required": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            },
+            "tenant_state": {
+              "oneOf": [
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "status"
+                  ],
+                  "properties": {
+                    "status": {
+                      "const": "ABSENT"
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "status",
+                    "version",
+                    "row_version"
+                  ],
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "STAGED",
+                        "INSTALLED",
+                        "ACTIVE",
+                        "DISABLED",
+                        "REMOVED"
+                      ]
+                    },
+                    "version": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "row_version": {
+                      "type": "integer",
+                      "minimum": 1
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      },
+      "templates": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "template_code",
+            "owner_code",
+            "versions",
+            "tenant_state"
+          ],
+          "properties": {
+            "template_code": {
+              "type": "string",
+              "minLength": 1
+            },
+            "owner_code": {
+              "type": "string",
+              "minLength": 1
+            },
+            "versions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "version",
+                  "template_sha256",
+                  "industry_semantic_ref",
+                  "operating_model_semantic_ref",
+                  "requirements"
+                ],
+                "properties": {
+                  "version": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "template_sha256": {
+                    "type": "string",
+                    "pattern": "^[a-f0-9]{64}$"
+                  },
+                  "industry_semantic_ref": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "operating_model_semantic_ref": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "requirements": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "required": [
+                        "pack_code",
+                        "version",
+                        "kind"
+                      ],
+                      "properties": {
+                        "pack_code": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "version": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "kind": {
+                          "type": "string",
+                          "enum": [
+                            "REQUIRED",
+                            "OPTIONAL",
+                            "INCOMPATIBLE"
+                          ]
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "tenant_state": {
+              "oneOf": [
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "status"
+                  ],
+                  "properties": {
+                    "status": {
+                      "const": "ABSENT"
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "status",
+                    "version",
+                    "row_version",
+                    "selected_optional_packs"
+                  ],
+                  "properties": {
+                    "status": {
+                      "const": "APPLIED"
+                    },
+                    "version": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "row_version": {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    "selected_optional_packs": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "minLength": 1
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      }
+    }
+  },
+  "errors": {
+    "envelope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "error"
+      ],
+      "properties": {
+        "error": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "code"
+          ],
+          "properties": {
+            "code": {
+              "type": "string",
+              "enum": [
+                "UNAUTHENTICATED",
+                "TRUST_CONTEXT_UNAVAILABLE",
+                "TENANT_CONTEXT_UNAVAILABLE",
+                "DISCOVERY_UNAVAILABLE"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "cases": [
+      {
+        "code": "UNAUTHENTICATED",
+        "http_status": 401,
+        "when": "No accepted authenticated browser session or invalid/revoked/expired access"
+      },
+      {
+        "code": "TRUST_CONTEXT_UNAVAILABLE",
+        "http_status": 403,
+        "when": "Browser access identity cannot be authoritatively validated or reconciled to user/session"
+      },
+      {
+        "code": "TENANT_CONTEXT_UNAVAILABLE",
+        "http_status": 403,
+        "when": "Validated session lacks a consistent tenant or branch belonging to tenant"
+      },
+      {
+        "code": "DISCOVERY_UNAVAILABLE",
+        "http_status": 503,
+        "when": "Read source unavailable, incomplete/inconsistent response, or repository failure"
+      }
+    ],
+    "disclosure": "Do not include raw exception, SQL, database/table names, secrets, caller IDs or stack details in any error."
+  },
+  "read_boundary": {
+    "future_component": "Authenticated core/platform API adapter -> read-only PK0123 and PK456 projections; no direct frontend repository access.",
+    "allowed_sources": [
+      "pk_packs",
+      "pk_pack_versions",
+      "pk_tenant_pack_installations",
+      "pk_templates",
+      "pk_template_versions",
+      "pk_template_pack_requirements",
+      "pk_tenant_template_bindings"
+    ],
+    "future_route_implementation": "NOT_AUTHORIZED_UNDER_C1",
+    "read_behavior": "Fixed bounded, parameterized SELECT projections, no read that acquires row locks (FOR UPDATE forbidden).",
+    "query_authority": "Registered catalog may be visible to authenticated tenant; presentation MUST NOT claim catalog presence equals entitlement or availability.",
+    "transaction": "read-only; no initialization, migrations, seeding, commands or auto-provisioning"
+  },
+  "cache": {
+    "response": "Cache-Control: private, no-store",
+    "vary": "Authorization",
+    "etag": "not defined",
+    "stale_authority": "forbidden",
+    "client_local_selection": "volatile presentation intent only; never installation or application"
+  },
+  "forbidden_response_fields": [
+    "eligible",
+    "entitled",
+    "available_to_tenant",
+    "is_selected",
+    "is_active_default",
+    "description",
+    "icon",
+    "template_json",
+    "manifest_json",
+    "configuration_defaults",
+    "xa",
+    "terminology",
+    "semantic_references",
+    "secret_reference_keys",
+    "raw_payload",
+    "access_token",
+    "tenant_id_override",
+    "pack_status_guessed"
+  ],
+  "forbidden_runtime_actions": [
+    "register",
+    "stage",
+    "install",
+    "activate",
+    "disable",
+    "remove",
+    "certify",
+    "apply_template",
+    "upgrade_template",
+    "tenant_mutation",
+    "command_key",
+    "FOR UPDATE",
+    "INSERT",
+    "UPDATE",
+    "DELETE"
+  ],
+  "neutrality": {
+    "defaults": "NONE",
+    "hardcoded_tenant": "NONE",
+    "hardcoded_industry": "NONE",
+    "pack_selection": "server tenant_state only; UI intent is non-authoritative",
+    "template_selection": "server tenant binding only; UI intent is non-authoritative"
+  },
+  "future_architecture_review": {
+    "dependency_edge": "Any new core/platform -> pack_platform read adapter or route must be reconciled against PC0 dependency rules in a separate C2 authority. No acceptance of a new edge here."
+  }
+}
