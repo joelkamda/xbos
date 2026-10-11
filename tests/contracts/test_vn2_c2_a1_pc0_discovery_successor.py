@@ -19,6 +19,7 @@ from core.platform.architecture_contract import (
     _validate_vn2_a1_admission,
     _validate_vn2_a1_implementation_seal,
     _validate_vn2_a1_r5_validator_seal,
+    _validate_pc0_r6_validator_seal,
     _source_sha256,
     validate_pc0,
 )
@@ -36,6 +37,7 @@ class VN2C2A1R1ContractTests(unittest.TestCase):
     def setUp(self):
         self.admission=contract("pc0_vn2_c2_discovery_admission.json")
         self.r5=contract("pc0_validator_successor_seal_r5.json")
+        self.r6=contract("pc0_validator_successor_seal_r6.json")
 
     def reject_admission(self, mutate):
         candidate=copy.deepcopy(self.admission)
@@ -115,8 +117,13 @@ class VN2C2A1R1ContractTests(unittest.TestCase):
             "tests/contracts/test_pc0_kernel_boundaries.py":"1fc07557db90914d48a5a8cce23e485a71849649fb25f3e955580f249717d565",
         }
         self.assertEqual(_VN2_A1_PREDECESSORS,expected)
-        for path in ("core/api/kernel_router.py","core/middleware/auth_middleware.py","tests/contracts/test_pc0_kernel_boundaries.py"):
+        for path in ("core/api/kernel_router.py","core/middleware/auth_middleware.py"):
             self.assertEqual(_source_sha256(ROOT/path),expected[path])
+        r6_test=next(item for item in self.r6["files"] if item["path"]=="tests/contracts/test_pc0_kernel_boundaries.py")
+        self.assertEqual(r6_test["predecessor_sha256"],expected["tests/contracts/test_pc0_kernel_boundaries.py"])
+        self.assertEqual(r6_test["successor_sha256"],"7022b90767677e0707be6be752907405f7edb291561a9a4f6fb05a3f5e4c07ac")
+        self.assertEqual(_validate_pc0_r6_validator_seal(ROOT)[r6_test["path"]],r6_test["successor_sha256"])
+        self.assertEqual(_source_sha256(ROOT/r6_test["path"]),r6_test["successor_sha256"])
         self.assertNotEqual(_source_sha256(ROOT/"core/platform/architecture_contract.py"),expected["core/platform/architecture_contract.py"])
 
     def test_activation_absence_enforced_at_a1(self):
@@ -199,7 +206,14 @@ class VN2C2A1R1ContractTests(unittest.TestCase):
         self.assertEqual(len(self.r5["files"]),1)
         self.assertEqual(self.r5["files"][0]["path"],"core/platform/architecture_contract.py")
         self.assertEqual(self.r5["files"][0]["predecessor_sha256"],_VN2_A1_PREDECESSORS["core/platform/architecture_contract.py"])
-        self.assertEqual(_validate_vn2_a1_r5_validator_seal(ROOT),_source_sha256(ROOT/"core/platform/architecture_contract.py"))
+        historical_r5=_validate_vn2_a1_r5_validator_seal(ROOT)
+        self.assertEqual(historical_r5,"75c42332159c9673a3e081eb6fc682303bdec8174a9a4e34c1ca6d9689d4d02f")
+        self.assertEqual(historical_r5,self.r5["files"][0]["successor_sha256"])
+        r6_arch=next(item for item in self.r6["files"] if item["path"]=="core/platform/architecture_contract.py")
+        self.assertEqual(r6_arch["predecessor_sha256"],historical_r5)
+        self.assertEqual(r6_arch["successor_sha256"],"8d319746041073680268fd20f123a06c0190368083cd0e37b8b1565cfd5ffc9d")
+        self.assertEqual(_validate_pc0_r6_validator_seal(ROOT)[r6_arch["path"]],r6_arch["successor_sha256"])
+        self.assertEqual(_source_sha256(ROOT/r6_arch["path"]),r6_arch["successor_sha256"])
 
     def test_r5_extra_path_rejected(self):
         wrong=copy.deepcopy(self.r5)
@@ -231,7 +245,12 @@ class VN2C2A1R1ContractTests(unittest.TestCase):
         r4=contract("pc0_validator_successor_seal_r4.json")
         self.assertEqual(r3["files"][0]["successor_sha256"],r4["files"][0]["predecessor_sha256"])
         self.assertEqual(r4["files"][0]["successor_sha256"],self.r5["files"][0]["predecessor_sha256"])
-        self.assertEqual(r4["files"][1]["successor_sha256"],_source_sha256(ROOT/"tests/contracts/test_pc0_kernel_boundaries.py"))
+        r6_test=next(item for item in self.r6["files"] if item["path"]=="tests/contracts/test_pc0_kernel_boundaries.py")
+        self.assertEqual(r4["files"][1]["successor_sha256"],r6_test["predecessor_sha256"])
+        self.assertEqual(r6_test["predecessor_sha256"],"1fc07557db90914d48a5a8cce23e485a71849649fb25f3e955580f249717d565")
+        self.assertEqual(r6_test["successor_sha256"],"7022b90767677e0707be6be752907405f7edb291561a9a4f6fb05a3f5e4c07ac")
+        self.assertEqual(_validate_pc0_r6_validator_seal(ROOT)[r6_test["path"]],r6_test["successor_sha256"])
+        self.assertEqual(_source_sha256(ROOT/r6_test["path"]),r6_test["successor_sha256"])
 
     def test_release_integrity_real_repo(self):
         result=validate_pc0(ROOT)
