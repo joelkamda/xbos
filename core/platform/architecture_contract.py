@@ -541,6 +541,8 @@ def _validate_h1b_successor_contract(root: Path, contract: dict[str, Any]) -> di
             _fail("PC0-H1B-RELEASE-REPLACEMENTS", relative)
         actual = _source_sha256(root / relative)
         accepted = _post_nce_resolved_hash(root, relative, item.get("successor_sha256"))
+        if accepted != actual and relative == _PC0_R3_SEALED_SOURCE_PATH:
+            accepted = _pc0_r3_sealed_successor(root, relative, item.get("successor_sha256"))
         if item.get("historical_sha256") != historical or (
             item.get("successor_sha256") != actual and accepted != actual
         ):
@@ -620,6 +622,252 @@ def _is_transient_runtime_artifact(relative: Path) -> bool:
     if relative.suffix.lower() in {".pyc", ".pyo"}:
         return True
     return any(part in _TRANSIENT_CACHE_COMPONENTS for part in relative.parts)
+
+
+
+# Additive non-finance migration descendants: exact ten pre-accepted paths only.
+_PC0_R3_AUTHORITY = "XBOS-NEUTRAL-F-R1-B1-R1-PC0-R3"
+_PC0_R3_MIGRATIONS = {'sql/cc_catalog_binding_price_code_case_049_down.sql': {'accepted_authority': 'XAFPAY-XBOS-LOOP-B-R2-R3B1-PRICE-CODE-CASE-PRESERVING-COMPATIBILITY-SUCCESSOR',
+                                                         'accepted_commit': 'ca2b27bbc8a7c3c32b3a89c74623757da8c5e9c6',
+                                                         'owner': 'XBOS_CUSTOMER_CHANNEL',
+                                                         'reason': 'customer channel catalog binding or draft '
+                                                                   'facade compatibility',
+                                                         'revision': 'cc_catalog_binding_price_code_case_049',
+                                                         'sha256': '562be581212789fb08ed9e688e5b28614b9cc8a27bc9df3150ff2dbe2aa2ad6b'},
+ 'sql/cc_catalog_binding_price_code_case_049_up.sql': {'accepted_authority': 'XAFPAY-XBOS-LOOP-B-R2-R3B1-PRICE-CODE-CASE-PRESERVING-COMPATIBILITY-SUCCESSOR',
+                                                       'accepted_commit': 'ca2b27bbc8a7c3c32b3a89c74623757da8c5e9c6',
+                                                       'owner': 'XBOS_CUSTOMER_CHANNEL',
+                                                       'reason': 'customer channel catalog binding or draft '
+                                                                 'facade compatibility',
+                                                       'revision': 'cc_catalog_binding_price_code_case_049',
+                                                       'sha256': '6d8869ed0fd4d5647abe536441ba93e0759eab4e67089f21daca4a16e9959a4f'},
+ 'sql/cc_catalog_binding_registry_down.sql': {'accepted_authority': 'XAFPAY-XBOS-LOOP-B-R2-R3A-CATALOG-BINDING-REGISTRY-SOURCE-AND-SCHEMA-MATERIALIZATION',
+                                              'accepted_commit': 'a168df1de5041d3be2c32539e0d52544d1351ce0',
+                                              'owner': 'XBOS_CUSTOMER_CHANNEL',
+                                              'reason': 'customer channel catalog binding or draft facade '
+                                                        'compatibility',
+                                              'revision': 'cc_catalog_binding_registry_048',
+                                              'sha256': '3228d3edcb83649abd0380b814de201ad3230bb54296d007cc24294387cc0ddb'},
+ 'sql/cc_catalog_binding_registry_up.sql': {'accepted_authority': 'XAFPAY-XBOS-LOOP-B-R2-R3A-CATALOG-BINDING-REGISTRY-SOURCE-AND-SCHEMA-MATERIALIZATION',
+                                            'accepted_commit': 'a168df1de5041d3be2c32539e0d52544d1351ce0',
+                                            'owner': 'XBOS_CUSTOMER_CHANNEL',
+                                            'reason': 'customer channel catalog binding or draft facade '
+                                                      'compatibility',
+                                            'revision': 'cc_catalog_binding_registry_048',
+                                            'sha256': '5a0eb917b3ac3489c0d19e57f3e7567d29c09f44768d86094f1886b52a8df4c5'},
+ 'sql/cc_order_draft_facade_050_down.sql': {'accepted_authority': 'XAFPAY-XBOS-CC-ORDER-R1-PRIVATE-DRAFT-ORDER-FACADE-MATERIALIZATION',
+                                            'accepted_commit': 'e0ae0123cec02cb2cb294e2bbad09df341be17c1',
+                                            'owner': 'XBOS_CUSTOMER_CHANNEL',
+                                            'reason': 'customer channel catalog binding or draft facade '
+                                                      'compatibility',
+                                            'revision': 'cc_order_draft_facade_050',
+                                            'sha256': '9f396cd8c7972d8f6eab31b54bdad218826828a8daccbee8d65e390cad896916'},
+ 'sql/cc_order_draft_facade_050_up.sql': {'accepted_authority': 'XAFPAY-XBOS-CC-ORDER-R1-PRIVATE-DRAFT-ORDER-FACADE-MATERIALIZATION',
+                                          'accepted_commit': 'e0ae0123cec02cb2cb294e2bbad09df341be17c1',
+                                          'owner': 'XBOS_CUSTOMER_CHANNEL',
+                                          'reason': 'customer channel catalog binding or draft facade '
+                                                    'compatibility',
+                                          'revision': 'cc_order_draft_facade_050',
+                                          'sha256': 'bb7c8ac1b9d28618de243669efa5cb093472286a6c5d424d96c632a12dae6103'},
+ 'versions/browser_session_v1_051.py': {'accepted_authority': 'XBOS-NEUTRAL-F-R1-B1-C2',
+                                        'accepted_commit': 'bbb60a1e979727917dc1b9f55d7f56e405b23d04',
+                                        'owner': 'XBOS_PLATFORM_CORE',
+                                        'reason': 'VN0 C2 browser-session registry; non-financial authority',
+                                        'revision': 'browser_session_v1_051',
+                                        'sha256': '9fd9dafbf4dbdba707090c3ced842659d3b6cb9436a112f3e1fd78b58fabe152'},
+ 'versions/cc_catalog_binding_price_code_case_049.py': {'accepted_authority': 'XAFPAY-XBOS-LOOP-B-R2-R3B1-PRICE-CODE-CASE-PRESERVING-COMPATIBILITY-SUCCESSOR',
+                                                        'accepted_commit': 'ca2b27bbc8a7c3c32b3a89c74623757da8c5e9c6',
+                                                        'owner': 'XBOS_CUSTOMER_CHANNEL',
+                                                        'reason': 'customer channel catalog binding or draft '
+                                                                  'facade compatibility',
+                                                        'revision': 'cc_catalog_binding_price_code_case_049',
+                                                        'sha256': 'f31974da0d4dddc60519dbfa5f779ccb8f500f55158c6e4c1332dbb4951cebd8'},
+ 'versions/cc_catalog_binding_registry_048.py': {'accepted_authority': 'XAFPAY-XBOS-LOOP-B-R2-R3A-CATALOG-BINDING-REGISTRY-SOURCE-AND-SCHEMA-MATERIALIZATION',
+                                                 'accepted_commit': 'a168df1de5041d3be2c32539e0d52544d1351ce0',
+                                                 'owner': 'XBOS_CUSTOMER_CHANNEL',
+                                                 'reason': 'customer channel catalog binding or draft facade '
+                                                           'compatibility',
+                                                 'revision': 'cc_catalog_binding_registry_048',
+                                                 'sha256': 'ef557bd4a30e9a2a5e0a29e9ebd853935652aaf9ba3977cf5e38e8525d5a6dfb'},
+ 'versions/cc_order_draft_facade_050.py': {'accepted_authority': 'XAFPAY-XBOS-CC-ORDER-R1-PRIVATE-DRAFT-ORDER-FACADE-MATERIALIZATION',
+                                           'accepted_commit': 'e0ae0123cec02cb2cb294e2bbad09df341be17c1',
+                                           'owner': 'XBOS_CUSTOMER_CHANNEL',
+                                           'reason': 'customer channel catalog binding or draft facade '
+                                                     'compatibility',
+                                           'revision': 'cc_order_draft_facade_050',
+                                           'sha256': '360453965737470ad3a1c15f5a5b7465afe98b84df0a6471f83426f8397c41d5'}}
+_PC0_R3_MIGRATION_REVISIONS = (
+    "cc_catalog_binding_registry_048",
+    "cc_catalog_binding_price_code_case_049",
+    "cc_order_draft_facade_050",
+    "browser_session_v1_051",
+)
+
+
+def _validate_pc0_r3_migration_extensions(
+    root: Path, proposed: dict[str, Any] | None = None,
+) -> dict[str, str]:
+    if proposed is None:
+        proposed = _load_json(root, "pc0_non_finance_migration_successors.json")
+    if not isinstance(proposed, dict) or set(proposed) != {
+        "schema", "authority", "root", "extensions",
+    } or (
+        proposed["schema"] != "xbos.platform.pc0-non-finance-migration-successors.v1"
+        or proposed["authority"] != _PC0_R3_AUTHORITY
+        or proposed["root"] != "alembic_neutral"
+    ):
+        _fail("PC0-R3-MIGRATION-AUTHORITY", "unexpected migration successor shape or owner")
+    items = proposed["extensions"]
+    if not isinstance(items, list) or len(items) != 10:
+        _fail("PC0-R3-MIGRATION-COUNT", str(items))
+    observed = {}
+    for item in items:
+        if not isinstance(item, dict) or set(item) != {
+            "path", "sha256", "accepted_commit", "accepted_authority", "revision",
+            "owner", "reason",
+        }:
+            _fail("PC0-R3-MIGRATION-SHAPE", str(item))
+        path = item["path"]
+        if not isinstance(path, str) or "*" in path or "?" in path or "[" in path or path in observed:
+            _fail("PC0-R3-MIGRATION-PATH", str(path))
+        if path not in _PC0_R3_MIGRATIONS:
+            _fail("PC0-R3-MIGRATION-UNREGISTERED", path)
+        pinned = _PC0_R3_MIGRATIONS[path]
+        if any(item[key] != pinned[key] for key in pinned):
+            _fail("PC0-R3-MIGRATION-PROVENANCE", path)
+        target = root / "alembic_neutral" / path
+        if not target.is_file() or _source_sha256(target) != item["sha256"]:
+            _fail("PC0-R3-MIGRATION-SOURCE-CHANGED", path)
+        observed[path] = item["sha256"]
+    if set(observed) != set(_PC0_R3_MIGRATIONS):
+        _fail("PC0-R3-MIGRATION-MISSING", str(sorted(set(_PC0_R3_MIGRATIONS)-set(observed))))
+    return observed
+
+
+# N2 generic policy contract belongs to shared neutral Core, not Restaurant.
+_PC0_R3_N2_MODULE = {'accepted_authority': 'XBOS-NEUTRAL-F-R1-B1-R1-N2',
+ 'accepted_commit': '631e9280bbf4d95d5c97400d3268a7cb9d787994',
+ 'authority': 'XBOS-NEUTRAL-F-R1-B1-R1-PC0-R3',
+ 'authority_split': {'concrete_restaurant_policy': 'RESTAURANT_PACK',
+                     'generic_contract': 'NEUTRAL',
+                     'pack_activation': 'PK',
+                     'selector_resolution': 'PC4'},
+ 'module': {'code': 'operational_policy',
+            'kind': 'shared_policy_contract',
+            'owner': 'XBOS Neutral Platform',
+            'source_roots': ['core/domain/operational_policy.py']},
+ 'schema': 'xbos.platform.pc0-n2-operational-policy-module-successor.v1',
+ 'source_sha256': '42825bb06cbc6a899d260004e565a3bd2762e65dafd64a77a60dd00a5b58ef9e'}
+_PC0_R3_N2_EDGES = [{'accepted_authority': 'XBOS-NEUTRAL-F-R1-B1-R1-N2-R1',
+  'accepted_commit': '93198dafff6f1e0809e6dba2b9e4352d8a6037a8',
+  'import_name': 'core.domain.operational_policy',
+  'source_module': 'orders',
+  'source_path': 'core/api/orders/orders_controller.py',
+  'target_module': 'operational_policy'},
+ {'accepted_authority': 'XBOS-NEUTRAL-F-R1-B1-R1-N2-R1',
+  'accepted_commit': '93198dafff6f1e0809e6dba2b9e4352d8a6037a8',
+  'import_name': 'core.domain.operational_policy',
+  'source_module': 'orders',
+  'source_path': 'core/domain/orders/service.py',
+  'target_module': 'operational_policy'},
+ {'accepted_authority': 'XBOS-NEUTRAL-F-R1-B1-R1-N2-R1',
+  'accepted_commit': '93198dafff6f1e0809e6dba2b9e4352d8a6037a8',
+  'import_name': 'core.domain.operational_policy',
+  'source_module': 'inventory',
+  'source_path': 'core/domain/inventory/service.py',
+  'target_module': 'operational_policy'},
+ {'accepted_authority': 'XBOS-NEUTRAL-F-R1-B1-R1-N2-R1',
+  'accepted_commit': '93198dafff6f1e0809e6dba2b9e4352d8a6037a8',
+  'import_name': 'core.domain.operational_policy',
+  'source_module': 'inventory',
+  'source_path': 'core/domain/inventory/taxonomy_profile.py',
+  'target_module': 'operational_policy'}]
+
+
+def _validate_pc0_r3_policy_module(root: Path, proposed: dict[str, Any] | None = None) -> dict[str, Any]:
+    if proposed is None:
+        proposed = _load_json(root, "pc0_n2_operational_policy_successor.json")
+    if proposed != _PC0_R3_N2_MODULE:
+        _fail("PC0-R3-N2-MODULE-CONTRACT", "N2 neutral policy module declaration changed")
+    module = proposed["module"]
+    if module["source_roots"] != ["core/domain/operational_policy.py"] or module["code"] != "operational_policy":
+        _fail("PC0-R3-N2-MODULE-ROOT", str(module))
+    source = root / module["source_roots"][0]
+    if not source.is_file() or _source_sha256(source) != proposed["source_sha256"]:
+        _fail("PC0-R3-N2-MODULE-SOURCE-CHANGED", str(source))
+    # Explicitly forbid known restaurant selection from the generic contract.
+    content = source.read_text(encoding="utf-8")
+    if "from restaurant." in content or "import restaurant." in content:
+        _fail("PC0-R3-N2-RESTAURANT-LEAK", str(source))
+    return module
+
+
+def _validate_pc0_r3_policy_edges(
+    root: Path, proposed: dict[str, Any] | None = None,
+) -> set[tuple[str, str, str, str]]:
+    if proposed is None:
+        proposed = _load_json(root, "pc0_n2_operational_policy_edges.json")
+    if proposed != {
+        "schema": "xbos.platform.pc0-n2-exact-dependency-successor.v1",
+        "authority": _PC0_R3_AUTHORITY,
+        "edges": _PC0_R3_N2_EDGES,
+    }:
+        _fail("PC0-R3-N2-DEPENDENCY-CONTRACT", "N2 authorized import edges changed")
+    return {
+        (e["source_path"],e["import_name"],e["source_module"],e["target_module"])
+        for e in proposed["edges"]
+    }
+
+
+_PC0_R3_R2_PREDECESSOR_COMMIT = "6d3c8940d99bcda77f6522200999ef0e79859792"
+_PC0_R3_R2_PREDECESSOR_SHA256 = "2a0bccd2cc0301fca71badf6e5cc004e287a9f687d4cdf123f74ddf8f5a05689"
+_PC0_R3_SEALED_SOURCE_PATH = "core/platform/architecture_contract.py"
+_PC0_R3_SEAL_FILE = "pc0_validator_successor_seal.json"
+
+
+def _validate_pc0_r3_validator_seal(
+    root: Path, proposed: dict[str, Any] | None = None,
+) -> dict[str, str]:
+    if proposed is None:
+        proposed = _load_json(root, _PC0_R3_SEAL_FILE)
+    if not isinstance(proposed, dict) or set(proposed) != {
+        "schema", "authority", "accepted_predecessor_commit", "files",
+    } or (
+        proposed["schema"] != "xbos.platform.pc0-validator-successor-seal.v1"
+        or proposed["authority"] != _PC0_R3_AUTHORITY
+        or proposed["accepted_predecessor_commit"] != _PC0_R3_R2_PREDECESSOR_COMMIT
+    ):
+        _fail("PC0-R3-SEAL-AUTHORITY", "wrong predecessor, authority or schema")
+    entries = proposed["files"]
+    if not isinstance(entries, list) or len(entries) != 1:
+        _fail("PC0-R3-SEAL-FILE-COUNT", str(entries))
+    entry = entries[0]
+    if not isinstance(entry, dict) or set(entry) != {
+        "path", "predecessor_sha256", "successor_sha256",
+    }:
+        _fail("PC0-R3-SEAL-SHAPE", str(entry))
+    if entry["path"] != _PC0_R3_SEALED_SOURCE_PATH:
+        _fail("PC0-R3-SEAL-UNAUTHORIZED-PATH", str(entry.get("path")))
+    if entry["predecessor_sha256"] != _PC0_R3_R2_PREDECESSOR_SHA256:
+        _fail("PC0-R3-SEAL-PREDECESSOR", entry["path"])
+    digest = entry["successor_sha256"]
+    if not isinstance(digest, str) or len(digest) != 64 or any(c not in "0123456789abcdef" for c in digest):
+        _fail("PC0-R3-SEAL-HASH-SHAPE", str(digest))
+    if _source_sha256(root / entry["path"]) != digest:
+        _fail("PC0-R3-SEAL-SOURCE-CHANGED", entry["path"])
+    return {entry["path"]: digest}
+
+
+def _pc0_r3_sealed_successor(
+    root: Path, path: str, registered_predecessor: str,
+) -> str | None:
+    if path != _PC0_R3_SEALED_SOURCE_PATH:
+        return None
+    recorded = _POST_NCE_TRUSTED[path]
+    predecessor_chain = [recorded["anchor"]] + [step[2] for step in recorded["commits"]]
+    if registered_predecessor not in predecessor_chain:
+        return None
+    return _validate_pc0_r3_validator_seal(root)[path]
 
 
 def _tree_fingerprint(root: Path, relative_root: str, inventory: Iterable[str], extensions: dict[str, str] | None = None) -> tuple[int, str]:
@@ -1046,6 +1294,15 @@ def _validate_finance(
     if successor:
         for item in successor["non_finance_extensions"]:
             extensions_by_root.setdefault(item["root"], {})[item["path"]] = item["sha256"]
+    # Frozen pre-H1B fixtures must still validate their original Finance
+    # prefix without requiring future extension declarations.
+    if successor:
+        r3_extensions = _validate_pc0_r3_migration_extensions(root)
+        existing = extensions_by_root.setdefault("alembic_neutral", {})
+        for relative, digest in r3_extensions.items():
+            if relative in existing and existing[relative] != digest:
+                _fail("PC0-R3-MIGRATION-EXTENSION-CONFLICT", relative)
+            existing[relative] = digest
     for tree in finance.get("trees", []):
         declared = inventory_trees[tree["root"]]
         files = declared.get("files", [])
@@ -1059,8 +1316,13 @@ def _validate_finance(
     _validate_migration_lineage(heads, lineage, finance, accepted_heads)
     if successor:
         migration = successor["migration"]
-        if heads != [migration["revision"]] or lineage[-2:] != [migration["parent"], migration["revision"]]:
-            _fail("PC0-H1B-MIGRATION-SUCCESSOR", f"heads={heads}, tail={lineage[-2:]}")
+        expected_tail = [migration["revision"], *_PC0_R3_MIGRATION_REVISIONS]
+        if (
+            heads != [_PC0_R3_MIGRATION_REVISIONS[-1]]
+            or lineage[-len(expected_tail):] != expected_tail
+            or lineage[-len(expected_tail)-1] != migration["parent"]
+        ):
+            _fail("PC0-H1B-MIGRATION-SUCCESSOR", f"heads={heads}, tail={lineage[-len(expected_tail)-1:]}")
     boundaries = finance.get("boundaries", {})
     if boundaries.get("migration") != "NONE" or boundaries.get("schema_neutral") is not True:
         _fail("PC0-SCHEMA-NEUTRAL", "PC0 may not carry a migration")
@@ -1115,8 +1377,13 @@ def validate_pc0(root: str | Path, validate_release: bool = True) -> dict[str, A
     )
     _validate_kernel(contracts["kernel"])
 
-    roots = _module_roots(contracts["module_map"])
-    successor_edges: set[tuple[str, str, str, str]] = set()
+    n2_module = _validate_pc0_r3_policy_module(root_path)
+    roots = sorted(
+        [*_module_roots(contracts["module_map"]), (n2_module["source_roots"][0], n2_module["code"])],
+        key=lambda item: len(item[0]), reverse=True,
+    )
+    n2_policy_edges = _validate_pc0_r3_policy_edges(root_path)
+    successor_edges: set[tuple[str, str, str, str]] = set(n2_policy_edges)
     if successor:
         nce = successor["nce_additive_successor"]
         overlay = nce["module_overlay"]
@@ -1125,7 +1392,7 @@ def validate_pc0(root: str | Path, validate_release: bool = True) -> dict[str, A
             key=lambda pair: len(pair[0]),
             reverse=True,
         )
-        successor_edges = {
+        successor_edges |= {
             (
                 item["source_path"], item["import_name"],
                 item["source_module"], item["target_module"],
@@ -1191,11 +1458,14 @@ def validate_pc0(root: str | Path, validate_release: bool = True) -> dict[str, A
             if actual == item["sha256"]:
                 continue
             replacement = replacements.get(item["path"])
-            if not replacement or replacement["historical_sha256"] != item["sha256"] or (
-                replacement["successor_sha256"] != actual
-                and _post_nce_resolved_hash(root_path, item["path"], replacement["successor_sha256"]) != actual
-            ):
+            if not replacement or replacement["historical_sha256"] != item["sha256"]:
                 _fail("PC0-RELEASE-MANIFEST", item["path"])
+            if replacement["successor_sha256"] != actual:
+                registered = _post_nce_resolved_hash(root_path, item["path"], replacement["successor_sha256"])
+                if registered != actual and item["path"] == _PC0_R3_SEALED_SOURCE_PATH:
+                    registered = _pc0_r3_sealed_successor(root_path, item["path"], replacement["successor_sha256"])
+                if registered != actual:
+                    _fail("PC0-RELEASE-MANIFEST", item["path"])
             used_replacements.add(item["path"])
         if used_replacements != set(replacements):
             _fail("PC0-H1B-RELEASE-REPLACEMENTS", f"unused={sorted(set(replacements)-used_replacements)}")

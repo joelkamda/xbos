@@ -1,0 +1,38 @@
+{
+  "schema": "xbos.platform.pc0-n2-exact-dependency-successor.v1",
+  "authority": "XBOS-NEUTRAL-F-R1-B1-R1-PC0-R3",
+  "edges": [
+    {
+      "source_path": "core/api/orders/orders_controller.py",
+      "import_name": "core.domain.operational_policy",
+      "source_module": "orders",
+      "target_module": "operational_policy",
+      "accepted_commit": "93198dafff6f1e0809e6dba2b9e4352d8a6037a8",
+      "accepted_authority": "XBOS-NEUTRAL-F-R1-B1-R1-N2-R1"
+    },
+    {
+      "source_path": "core/domain/orders/service.py",
+      "import_name": "core.domain.operational_policy",
+      "source_module": "orders",
+      "target_module": "operational_policy",
+      "accepted_commit": "93198dafff6f1e0809e6dba2b9e4352d8a6037a8",
+      "accepted_authority": "XBOS-NEUTRAL-F-R1-B1-R1-N2-R1"
+    },
+    {
+      "source_path": "core/domain/inventory/service.py",
+      "import_name": "core.domain.operational_policy",
+      "source_module": "inventory",
+      "target_module": "operational_policy",
+      "accepted_commit": "93198dafff6f1e0809e6dba2b9e4352d8a6037a8",
+      "accepted_authority": "XBOS-NEUTRAL-F-R1-B1-R1-N2-R1"
+    },
+    {
+      "source_path": "core/domain/inventory/taxonomy_profile.py",
+      "import_name": "core.domain.operational_policy",
+      "source_module": "inventory",
+      "target_module": "operational_policy",
+      "accepted_commit": "93198dafff6f1e0809e6dba2b9e4352d8a6037a8",
+      "accepted_authority": "XBOS-NEUTRAL-F-R1-B1-R1-N2-R1"
+    }
+  ]
+}

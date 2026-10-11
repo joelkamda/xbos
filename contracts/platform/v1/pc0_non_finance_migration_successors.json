@@ -1,0 +1,97 @@
+{
+  "schema": "xbos.platform.pc0-non-finance-migration-successors.v1",
+  "authority": "XBOS-NEUTRAL-F-R1-B1-R1-PC0-R3",
+  "root": "alembic_neutral",
+  "extensions": [
+    {
+      "path": "sql/cc_catalog_binding_price_code_case_049_down.sql",
+      "sha256": "562be581212789fb08ed9e688e5b28614b9cc8a27bc9df3150ff2dbe2aa2ad6b",
+      "accepted_commit": "ca2b27bbc8a7c3c32b3a89c74623757da8c5e9c6",
+      "accepted_authority": "XAFPAY-XBOS-LOOP-B-R2-R3B1-PRICE-CODE-CASE-PRESERVING-COMPATIBILITY-SUCCESSOR",
+      "revision": "cc_catalog_binding_price_code_case_049",
+      "owner": "XBOS_CUSTOMER_CHANNEL",
+      "reason": "customer channel catalog binding or draft facade compatibility"
+    },
+    {
+      "path": "sql/cc_catalog_binding_price_code_case_049_up.sql",
+      "sha256": "6d8869ed0fd4d5647abe536441ba93e0759eab4e67089f21daca4a16e9959a4f",
+      "accepted_commit": "ca2b27bbc8a7c3c32b3a89c74623757da8c5e9c6",
+      "accepted_authority": "XAFPAY-XBOS-LOOP-B-R2-R3B1-PRICE-CODE-CASE-PRESERVING-COMPATIBILITY-SUCCESSOR",
+      "revision": "cc_catalog_binding_price_code_case_049",
+      "owner": "XBOS_CUSTOMER_CHANNEL",
+      "reason": "customer channel catalog binding or draft facade compatibility"
+    },
+    {
+      "path": "sql/cc_catalog_binding_registry_down.sql",
+      "sha256": "3228d3edcb83649abd0380b814de201ad3230bb54296d007cc24294387cc0ddb",
+      "accepted_commit": "a168df1de5041d3be2c32539e0d52544d1351ce0",
+      "accepted_authority": "XAFPAY-XBOS-LOOP-B-R2-R3A-CATALOG-BINDING-REGISTRY-SOURCE-AND-SCHEMA-MATERIALIZATION",
+      "revision": "cc_catalog_binding_registry_048",
+      "owner": "XBOS_CUSTOMER_CHANNEL",
+      "reason": "customer channel catalog binding or draft facade compatibility"
+    },
+    {
+      "path": "sql/cc_catalog_binding_registry_up.sql",
+      "sha256": "5a0eb917b3ac3489c0d19e57f3e7567d29c09f44768d86094f1886b52a8df4c5",
+      "accepted_commit": "a168df1de5041d3be2c32539e0d52544d1351ce0",
+      "accepted_authority": "XAFPAY-XBOS-LOOP-B-R2-R3A-CATALOG-BINDING-REGISTRY-SOURCE-AND-SCHEMA-MATERIALIZATION",
+      "revision": "cc_catalog_binding_registry_048",
+      "owner": "XBOS_CUSTOMER_CHANNEL",
+      "reason": "customer channel catalog binding or draft facade compatibility"
+    },
+    {
+      "path": "sql/cc_order_draft_facade_050_down.sql",
+      "sha256": "9f396cd8c7972d8f6eab31b54bdad218826828a8daccbee8d65e390cad896916",
+      "accepted_commit": "e0ae0123cec02cb2cb294e2bbad09df341be17c1",
+      "accepted_authority": "XAFPAY-XBOS-CC-ORDER-R1-PRIVATE-DRAFT-ORDER-FACADE-MATERIALIZATION",
+      "revision": "cc_order_draft_facade_050",
+      "owner": "XBOS_CUSTOMER_CHANNEL",
+      "reason": "customer channel catalog binding or draft facade compatibility"
+    },
+    {
+      "path": "sql/cc_order_draft_facade_050_up.sql",
+      "sha256": "bb7c8ac1b9d28618de243669efa5cb093472286a6c5d424d96c632a12dae6103",
+      "accepted_commit": "e0ae0123cec02cb2cb294e2bbad09df341be17c1",
+      "accepted_authority": "XAFPAY-XBOS-CC-ORDER-R1-PRIVATE-DRAFT-ORDER-FACADE-MATERIALIZATION",
+      "revision": "cc_order_draft_facade_050",
+      "owner": "XBOS_CUSTOMER_CHANNEL",
+      "reason": "customer channel catalog binding or draft facade compatibility"
+    },
+    {
+      "path": "versions/browser_session_v1_051.py",
+      "sha256": "9fd9dafbf4dbdba707090c3ced842659d3b6cb9436a112f3e1fd78b58fabe152",
+      "accepted_commit": "bbb60a1e979727917dc1b9f55d7f56e405b23d04",
+      "accepted_authority": "XBOS-NEUTRAL-F-R1-B1-C2",
+      "revision": "browser_session_v1_051",
+      "owner": "XBOS_PLATFORM_CORE",
+      "reason": "VN0 C2 browser-session registry; non-financial authority"
+    },
+    {
+      "path": "versions/cc_catalog_binding_price_code_case_049.py",
+      "sha256": "f31974da0d4dddc60519dbfa5f779ccb8f500f55158c6e4c1332dbb4951cebd8",
+      "accepted_commit": "ca2b27bbc8a7c3c32b3a89c74623757da8c5e9c6",
+      "accepted_authority": "XAFPAY-XBOS-LOOP-B-R2-R3B1-PRICE-CODE-CASE-PRESERVING-COMPATIBILITY-SUCCESSOR",
+      "revision": "cc_catalog_binding_price_code_case_049",
+      "owner": "XBOS_CUSTOMER_CHANNEL",
+      "reason": "customer channel catalog binding or draft facade compatibility"
+    },
+    {
+      "path": "versions/cc_catalog_binding_registry_048.py",
+      "sha256": "ef557bd4a30e9a2a5e0a29e9ebd853935652aaf9ba3977cf5e38e8525d5a6dfb",
+      "accepted_commit": "a168df1de5041d3be2c32539e0d52544d1351ce0",
+      "accepted_authority": "XAFPAY-XBOS-LOOP-B-R2-R3A-CATALOG-BINDING-REGISTRY-SOURCE-AND-SCHEMA-MATERIALIZATION",
+      "revision": "cc_catalog_binding_registry_048",
+      "owner": "XBOS_CUSTOMER_CHANNEL",
+      "reason": "customer channel catalog binding or draft facade compatibility"
+    },
+    {
+      "path": "versions/cc_order_draft_facade_050.py",
+      "sha256": "360453965737470ad3a1c15f5a5b7465afe98b84df0a6471f83426f8397c41d5",
+      "accepted_commit": "e0ae0123cec02cb2cb294e2bbad09df341be17c1",
+      "accepted_authority": "XAFPAY-XBOS-CC-ORDER-R1-PRIVATE-DRAFT-ORDER-FACADE-MATERIALIZATION",
+      "revision": "cc_order_draft_facade_050",
+      "owner": "XBOS_CUSTOMER_CHANNEL",
+      "reason": "customer channel catalog binding or draft facade compatibility"
+    }
+  ]
+}

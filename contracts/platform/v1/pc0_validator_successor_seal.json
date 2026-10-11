@@ -1,0 +1,12 @@
+{
+  "schema": "xbos.platform.pc0-validator-successor-seal.v1",
+  "authority": "XBOS-NEUTRAL-F-R1-B1-R1-PC0-R3",
+  "accepted_predecessor_commit": "6d3c8940d99bcda77f6522200999ef0e79859792",
+  "files": [
+    {
+      "path": "core/platform/architecture_contract.py",
+      "predecessor_sha256": "2a0bccd2cc0301fca71badf6e5cc004e287a9f687d4cdf123f74ddf8f5a05689",
+      "successor_sha256": "bb6bcc9b01657ad0069fe375526b4575f01daf58e3695c233d12721cdcc5e7c9"
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "schema": "xbos.platform.pc0-n2-operational-policy-module-successor.v1",
+  "authority": "XBOS-NEUTRAL-F-R1-B1-R1-PC0-R3",
+  "accepted_commit": "631e9280bbf4d95d5c97400d3268a7cb9d787994",
+  "accepted_authority": "XBOS-NEUTRAL-F-R1-B1-R1-N2",
+  "source_sha256": "42825bb06cbc6a899d260004e565a3bd2762e65dafd64a77a60dd00a5b58ef9e",
+  "module": {
+    "code": "operational_policy",
+    "owner": "XBOS Neutral Platform",
+    "kind": "shared_policy_contract",
+    "source_roots": [
+      "core/domain/operational_policy.py"
+    ]
+  },
+  "authority_split": {
+    "generic_contract": "NEUTRAL",
+    "selector_resolution": "PC4",
+    "pack_activation": "PK",
+    "concrete_restaurant_policy": "RESTAURANT_PACK"
+  }
+}
