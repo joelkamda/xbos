@@ -364,7 +364,8 @@ def _validate_vn0_browser_successor(
         _fail("PC0-VN0-C2-NCE-MARKERS", str(c2["preserved_nce_markers"]))
     source_path = root / c2["kernel_path"]
     if _source_sha256(source_path) != _VN0_C2_KERNEL_SHA256:
-        _fail("PC0-VN0-C2-KERNEL-CHANGED", c2["kernel_path"])
+        if _vn2_c2_implementation_source_sha(root,c2["kernel_path"]) != _source_sha256(source_path):
+            _fail("PC0-VN0-C2-KERNEL-CHANGED", c2["kernel_path"])
     source = source_path.read_text(encoding="utf-8")
     for marker in _VN0_BROWSER_MARKERS:
         if marker not in source:
@@ -541,6 +542,8 @@ def _validate_h1b_successor_contract(root: Path, contract: dict[str, Any]) -> di
             _fail("PC0-H1B-RELEASE-REPLACEMENTS", relative)
         actual = _source_sha256(root / relative)
         accepted = _post_nce_resolved_hash(root, relative, item.get("successor_sha256"))
+        if accepted != actual:
+            accepted = _pc0_r5_sealed_successor(root,relative,item.get("successor_sha256"))
         if accepted != actual:
             accepted = _pc0_r4_sealed_successor(root,relative,item.get("successor_sha256"))
         if accepted != actual and relative == _PC0_R3_SEALED_SOURCE_PATH:
@@ -931,7 +934,10 @@ def _validate_pc0_r4_c2_edges(root: Path, proposed: dict[str, Any] | None = None
     actual: set[tuple[str,str,str,str]] = set()
     for edge in edges:
         source = root / edge["source_path"]
-        if not source.is_file() or _git_canonical_blob_sha1(source.read_bytes()) != edge["source_git_blob"]:
+        if not source.is_file() or (
+            _git_canonical_blob_sha1(source.read_bytes()) != edge["source_git_blob"]
+            and _vn2_c2_implementation_source_sha(root,edge["source_path"]) != _source_sha256(source)
+        ):
             _fail("PC0-R4-C2-SOURCE-CHANGED", edge["source_path"])
         imports = _imports(source.read_text(encoding="utf-8"),edge["source_path"])
         if (edge["import_name"],0) not in imports:
@@ -1004,6 +1010,288 @@ def _pc0_r4_sealed_successor(root: Path, path: str, registered_predecessor: str)
     if registered_predecessor!=allowed[path]:
         return None
     return _validate_pc0_r4_validator_seal(root)[path]
+
+
+
+# VN2 C2 A1-R1: PRE-ACTIVATION governance; no discovery source is authorized here.
+_VN2_A1_AUTHORITY = "XBOS-NEUTRAL-VN2-R1-C2-A1-R1"
+_VN2_A1_PARENT = "45f2313dbb57fc3f6b50638b279c2bf581234e5e"
+_VN2_A1_ADMISSION_FILE = "pc0_vn2_c2_discovery_admission.json"
+_VN2_A1_IMPL_SEAL_FILE = "pc0_vn2_c2_discovery_implementation_seal.json"
+_VN2_A1_R5_SEAL_FILE = "pc0_validator_successor_seal_r5.json"
+_VN2_A1_R5_PREDECESSOR = "28515d9fda2ee909497cf0bb30fd3e4cfb04ecefcc99ec7e1eda60074078c888"
+_VN2_A1_EXPECTED = {'activation_law': {'accept_implementation_only_with_seal': True,
+                    'auth_middleware_unchanged': True,
+                    'future_authority': 'XBOS-NEUTRAL-VN2-R1-C2',
+                    'future_edges_absent': True,
+                    'future_implementation_seal': 'pc0_vn2_c2_discovery_implementation_seal.json',
+                    'future_implementation_seal_absent': True,
+                    'historical_vn0_c2_sha_preserved': True,
+                    'kernel_unchanged': True,
+                    'pre_activation': True,
+                    'r5_validator_seal': 'pc0_validator_successor_seal_r5.json',
+                    'read_model_absent': True,
+                    'router_absent': True},
+ 'authority': 'XBOS-NEUTRAL-VN2-R1-C2-A1-R1',
+ 'contract_name': 'xbos.platform.pack-template-discovery.v1',
+ 'current_source_predecessors': [{'a1_mutation': False,
+                                  'path': 'core/api/kernel_router.py',
+                                  'sha256': '243a6f77c8804eaff82cb131f8edc5d6dcd24e47ecafd6fa7f8ae660f2d97b00'},
+                                 {'a1_mutation': False,
+                                  'path': 'core/middleware/auth_middleware.py',
+                                  'sha256': 'e03e258e5ebb574445b3a29e4db950f6ef80dde7b8fc344b45d7f781dc64b8d4'},
+                                 {'a1_mutation': True,
+                                  'path': 'core/platform/architecture_contract.py',
+                                  'sha256': '28515d9fda2ee909497cf0bb30fd3e4cfb04ecefcc99ec7e1eda60074078c888'},
+                                 {'a1_mutation': False,
+                                  'path': 'tests/contracts/test_pc0_kernel_boundaries.py',
+                                  'sha256': '1fc07557db90914d48a5a8cce23e485a71849649fb25f3e955580f249717d565'}],
+ 'exact_dependency_edges': [{'import_name': 'database',
+                             'source_module': 'identity',
+                             'source_path': 'core/auth/pack_template_discovery_router.py',
+                             'target_module': 'application'},
+                            {'import_name': 'pack_platform.discovery_read_model',
+                             'source_module': 'identity',
+                             'source_path': 'core/auth/pack_template_discovery_router.py',
+                             'target_module': 'packs'}],
+ 'future_source_paths': [{'module': 'identity',
+                          'owner': 'PC5',
+                          'path': 'core/auth/pack_template_discovery_router.py',
+                          'role': 'authenticated_http_adapter'},
+                         {'module': 'packs',
+                          'owner': 'PK',
+                          'path': 'pack_platform/discovery_read_model.py',
+                          'role': 'read_only_projection'}],
+ 'parent_head': '45f2313dbb57fc3f6b50638b279c2bf581234e5e',
+ 'public_interface_overlay': {'add_public': ['pack_platform.discovery_read_model'],
+                              'historical_interface_baseline_mutation': False,
+                              'module': 'packs',
+                              'owner': 'PK',
+                              'private_repositories_preserved': ['pack_platform.sql_repository.SQLPackRepository',
+                                                                 'pack_platform.pk456_sql_repository.SQLPK456Repository'],
+                              'source_root': 'pack_platform'},
+ 'read_only_invariants': {'db_session_source': 'database.get_db',
+                          'db_transaction': 'READ ONLY',
+                          'no_business_or_financial_effect': True,
+                          'no_data_writes': True,
+                          'no_for_update': True,
+                          'no_pack_or_template_activation': True,
+                          'pack_sources': ['pk_packs', 'pk_pack_versions', 'pk_tenant_pack_installations'],
+                          'template_sources': ['pk_templates',
+                                               'pk_template_versions',
+                                               'pk_template_pack_requirements',
+                                               'pk_tenant_template_bindings']},
+ 'route': {'kernel_path': '/kernel/platform/v1/pack-template-discovery',
+           'method': 'GET',
+           'public_path': '/api/kernel/platform/v1/pack-template-discovery'},
+ 'schema': 'xbos.platform.pc0-vn2-c2-discovery-admission.v1',
+ 'security_invariants': {'dev_tenant_fallback_authority': False,
+                         'eligibility_field': False,
+                         'entitlement_field': False,
+                         'future_exact_path_error_normalization': '/kernel/platform/v1/pack-template-discovery',
+                         'general_policy_allowance': False,
+                         'header_tenant_authority': False,
+                         'identity_semantics': 'core.auth.auth_service.AuthService.me',
+                         'legacy_access_token_authority': False,
+                         'request_state_fallback_authority': False,
+                         'session_profile': 'browser-session.v1',
+                         'session_validation': 'core.auth.browser_session_service.validate_browser_access',
+                         'trusted_tenant': 'server_validated_browser_access_only'}}
+_VN2_A1_EDGES = {
+    (entry["source_path"],entry["import_name"],entry["source_module"],entry["target_module"])
+    for entry in _VN2_A1_EXPECTED["exact_dependency_edges"]
+}
+_VN2_A1_PREDECESSORS = {
+    item["path"]: item["sha256"] for item in _VN2_A1_EXPECTED["current_source_predecessors"]
+}
+_VN2_A1_FUTURE = tuple(entry["path"] for entry in _VN2_A1_EXPECTED["future_source_paths"])
+_VN2_A1_IMPL_PATHS = (
+    "core/api/kernel_router.py",
+    "core/middleware/auth_middleware.py",
+    *_VN2_A1_FUTURE,
+)
+
+
+def _validate_vn2_a1_admission(root: Path, proposed: dict[str, Any] | None = None) -> dict[str, Any] | None:
+    if proposed is None:
+        if not (root / CONTRACT_DIRECTORY / _VN2_A1_ADMISSION_FILE).is_file():
+            if (root / CONTRACT_DIRECTORY / _VN2_A1_IMPL_SEAL_FILE).exists():
+                _fail("PC0-VN2-A1-ADMISSION-MISSING","implementation seal without admission")
+            return None
+        proposed = _load_json(root,_VN2_A1_ADMISSION_FILE)
+    if proposed != _VN2_A1_EXPECTED:
+        _fail("PC0-VN2-A1-ADMISSION-DRIFT","expected exact PCR-pinned topology and safe read contract")
+    c1 = root / CONTRACT_DIRECTORY / "vn2_pack_template_discovery_v1.json"
+    if c1.is_file():
+        frozen = json.loads(c1.read_text(encoding="utf-8"))
+        if (
+            frozen.get("contract_name") != proposed["contract_name"]
+            or frozen.get("canonical_path") != proposed["route"]["public_path"]
+            or frozen.get("method") != proposed["route"]["method"]
+            or frozen.get("authentication",{}).get("tenant_scope","").find("session tenant_id") < 0
+        ):
+            _fail("PC0-VN2-A1-C1-DRIFT","discovery contract does not match the accepted C1 scope")
+    return proposed
+
+
+def _validate_vn2_a1_implementation_seal(root: Path, proposed: dict[str, Any] | None = None) -> dict[str, str] | None:
+    if _validate_vn2_a1_admission(root) is None:
+        return None
+    seal_path = root / CONTRACT_DIRECTORY / _VN2_A1_IMPL_SEAL_FILE
+    if proposed is None and not seal_path.is_file():
+        # Pre-activation is the only authority A1 itself confers.
+        for future in _VN2_A1_FUTURE:
+            if (root / future).exists():
+                _fail("PC0-VN2-A1-PREACTIVATION-SOURCE", future)
+        for path in ("core/api/kernel_router.py","core/middleware/auth_middleware.py"):
+            if not (root/path).is_file() or _source_sha256(root/path) != _VN2_A1_PREDECESSORS[path]:
+                _fail("PC0-VN2-A1-PREACTIVATION-SOURCE",path)
+        return None
+    if proposed is None:
+        proposed = _load_json(root,_VN2_A1_IMPL_SEAL_FILE)
+    if not isinstance(proposed,dict) or set(proposed) != {
+        "schema","authority","admission_parent_head","files","exact_dependency_edges",
+        "required_route_markers","read_only_markers",
+    } or (
+        proposed["schema"] != "xbos.platform.pc0-vn2-c2-discovery-implementation-seal.v1"
+        or proposed["authority"] != _VN2_A1_EXPECTED["activation_law"]["future_authority"]
+        or proposed["admission_parent_head"] != _VN2_A1_PARENT
+        or proposed["exact_dependency_edges"] != _VN2_A1_EXPECTED["exact_dependency_edges"]
+    ):
+        _fail("PC0-VN2-C2-IMPLEMENTATION-AUTHORITY","unexpected future implementation seal")
+    rows = proposed["files"]
+    if not isinstance(rows,list) or len(rows) != len(_VN2_A1_IMPL_PATHS):
+        _fail("PC0-VN2-C2-IMPLEMENTATION-PATHS","four exact source paths required")
+    indexed = {}
+    for row in rows:
+        if not isinstance(row,dict) or set(row) != {"path","predecessor_sha256","successor_sha256"}:
+            _fail("PC0-VN2-C2-IMPLEMENTATION-SHAPE",str(row))
+        path = row["path"]
+        if not isinstance(path,str) or path not in _VN2_A1_IMPL_PATHS or path in indexed:
+            _fail("PC0-VN2-C2-IMPLEMENTATION-PATHS",str(path))
+        predecessor = _VN2_A1_PREDECESSORS.get(path)
+        if row["predecessor_sha256"] != predecessor:
+            _fail("PC0-VN2-C2-IMPLEMENTATION-PREDECESSOR",path)
+        actual = root/path
+        digest = row["successor_sha256"]
+        if (
+            not isinstance(digest,str) or len(digest)!=64
+            or any(c not in "0123456789abcdef" for c in digest)
+            or not actual.is_file() or _source_sha256(actual)!=digest
+            or digest==predecessor
+        ):
+            _fail("PC0-VN2-C2-IMPLEMENTATION-UNSEALED",path)
+        indexed[path]=digest
+    if set(indexed)!=set(_VN2_A1_IMPL_PATHS):
+        _fail("PC0-VN2-C2-IMPLEMENTATION-PATHS","incomplete source set")
+    expected_markers = {
+        "core/api/kernel_router.py": [
+            "from core.auth.pack_template_discovery_router import router as pack_template_discovery_router",
+            "kernel_router.include_router(pack_template_discovery_router)",
+        ],
+        "core/auth/pack_template_discovery_router.py": [
+            '"/platform/v1/pack-template-discovery"',
+            "validate_browser_access",
+            "pack_platform.discovery_read_model",
+        ],
+        "core/middleware/auth_middleware.py": [
+            '"/kernel/platform/v1/pack-template-discovery"',
+        ],
+    }
+    if proposed["required_route_markers"] != expected_markers or proposed["read_only_markers"] != {
+        "pack_platform/discovery_read_model.py": ["SELECT"],
+        "forbidden_sql_tokens": ["FOR UPDATE","INSERT INTO","UPDATE ","DELETE FROM"],
+    }:
+        _fail("PC0-VN2-C2-IMPLEMENTATION-MARKER-TRUST","unrecognized future source markers")
+    for path,markers in expected_markers.items():
+        content=(root/path).read_text(encoding="utf-8")
+        if any(marker not in content for marker in markers):
+            _fail("PC0-VN2-C2-IMPLEMENTATION-MARKER-MISSING",path)
+    read_source=(root/"pack_platform/discovery_read_model.py").read_text(encoding="utf-8")
+    if "SELECT" not in read_source.upper() or any(
+        token in read_source.upper() for token in ("FOR UPDATE","INSERT INTO","UPDATE ","DELETE FROM")
+    ):
+        _fail("PC0-VN2-C2-IMPLEMENTATION-READ-WRITE","read projection must not write or lock rows")
+    router_source=(root/_VN2_A1_FUTURE[0]).read_text(encoding="utf-8")
+    actual_imports = set(_imports(router_source,_VN2_A1_FUTURE[0]))
+    if any((name,0) not in actual_imports for _,name,_,_ in _VN2_A1_EDGES):
+        _fail("PC0-VN2-C2-IMPLEMENTATION-EDGE-MISSING","exact future dependencies absent")
+    return indexed
+
+
+def _validate_vn2_a1_r5_validator_seal(root: Path, proposed: dict[str, Any] | None = None) -> str | None:
+    if _validate_vn2_a1_admission(root) is None:
+        return None
+    if proposed is None:
+        proposed = _load_json(root,_VN2_A1_R5_SEAL_FILE)
+    expected = {"schema":"xbos.platform.pc0-validator-successor-seal-r5.v1",
+                "authority":_VN2_A1_AUTHORITY,
+                "accepted_predecessor_commit":_VN2_A1_PARENT}
+    if not isinstance(proposed,dict) or set(proposed)!=set(expected)|{"files"} or any(
+        proposed[k]!=v for k,v in expected.items()
+    ):
+        _fail("PC0-VN2-A1-R5-AUTHORITY","incorrect R5 predecessor or authority")
+    files = proposed["files"]
+    if not isinstance(files,list) or len(files)!=1 or not isinstance(files[0],dict) or set(files[0])!={
+        "path","predecessor_sha256","successor_sha256"
+    } or files[0]["path"]!="core/platform/architecture_contract.py" or files[0]["predecessor_sha256"]!=_VN2_A1_R5_PREDECESSOR:
+        _fail("PC0-VN2-A1-R5-BOUNDS","only the exact architecture validator may be sealed")
+    digest=files[0]["successor_sha256"]
+    if (not isinstance(digest,str) or len(digest)!=64 or any(c not in "0123456789abcdef" for c in digest)
+        or not (root/files[0]["path"]).is_file() or _source_sha256(root/files[0]["path"])!=digest
+        or digest==_VN2_A1_R5_PREDECESSOR):
+        _fail("PC0-VN2-A1-R5-SOURCE-CHANGED","validator SHA does not match additive R5")
+    # R3/R4 are immutable historical attestations, not self-referential current-file checks.
+    r3=_load_json(root,_PC0_R3_SEAL_FILE)
+    r4=_load_json(root,_PC0_R4_SEAL_FILE)
+    if r3 != {
+        "schema":"xbos.platform.pc0-validator-successor-seal.v1",
+        "authority":_PC0_R3_AUTHORITY,
+        "accepted_predecessor_commit":_PC0_R3_R2_PREDECESSOR_COMMIT,
+        "files":[{"path":"core/platform/architecture_contract.py",
+                  "predecessor_sha256":_PC0_R3_R2_PREDECESSOR_SHA256,
+                  "successor_sha256":_VN2_A1_PRE_R4_SHA}],
+    }:
+        _fail("PC0-VN2-A1-R3-HISTORY","accepted R3 source seal changed")
+    if r4 != {
+        "schema":"xbos.platform.pc0-validator-successor-seal-r4.v1",
+        "authority":_PC0_R4_AUTHORITY,
+        "accepted_predecessor_commit":_PC0_R4_PREDECESSOR_COMMIT,
+        "files":[
+            {"path":"core/platform/architecture_contract.py",
+             "predecessor_sha256":_VN2_A1_PRE_R4_SHA,
+             "successor_sha256":_VN2_A1_R5_PREDECESSOR},
+            {"path":"tests/contracts/test_pc0_kernel_boundaries.py",
+             "predecessor_sha256":_PC0_R4_PREDECESSORS["tests/contracts/test_pc0_kernel_boundaries.py"],
+             "successor_sha256":_VN2_A1_PRE_TEST_SHA},
+        ],
+    }:
+        _fail("PC0-VN2-A1-R4-HISTORY","accepted R4 source seal changed")
+    return digest
+
+
+_VN2_A1_PRE_R4_SHA = "bb6bcc9b01657ad0069fe375526b4575f01daf58e3695c233d12721cdcc5e7c9"
+_VN2_A1_PRE_TEST_SHA = "1fc07557db90914d48a5a8cce23e485a71849649fb25f3e955580f249717d565"
+
+
+def _pc0_r5_sealed_successor(root: Path, path: str, registered_predecessor: str) -> str | None:
+    if path == "tests/contracts/test_pc0_kernel_boundaries.py":
+        if registered_predecessor != "cbdcb74cfed2c92ba6d6ed13dd8a6f319fab0b223ad9a24477d6550d4f3ddf94":
+            return None
+        _validate_vn2_a1_r5_validator_seal(root)
+        if _source_sha256(root/path) != _VN2_A1_PRE_TEST_SHA:
+            _fail("PC0-VN2-A1-TEST-SOURCE-CHANGED",path)
+        return _VN2_A1_PRE_TEST_SHA
+    if path != "core/platform/architecture_contract.py" or registered_predecessor != (
+        "5345e6655603ae89416568a4548dc798289f2b1702fe066cf51c29e90df64d7b"
+    ):
+        return None
+    return _validate_vn2_a1_r5_validator_seal(root)
+
+
+def _vn2_c2_implementation_source_sha(root: Path, path: str) -> str | None:
+    impl=_validate_vn2_a1_implementation_seal(root)
+    return impl.get(path) if impl else None
 
 
 def _tree_fingerprint(root: Path, relative_root: str, inventory: Iterable[str], extensions: dict[str, str] | None = None) -> tuple[int, str]:
@@ -1299,6 +1587,8 @@ def _validate_composition(
     pc8_replacements = _pc8_composition_replacements(root)
     for relative, expected in composition.get("files", {}).items():
         actual = _source_sha256(root / relative)
+        if relative == "core/api/kernel_router.py" and _vn2_c2_implementation_source_sha(root,relative)==actual:
+            continue
         if actual == expected:
             continue
         if (
@@ -1480,6 +1770,9 @@ def validate_pc0(root: str | Path, validate_release: bool = True) -> dict[str, A
     root_path = Path(root).resolve()
     contracts = {key: _load_json(root_path, name) for key, name in CONTRACT_FILES.items()}
     successor = _load_h1b_successor(root_path)
+    _validate_vn2_a1_admission(root_path)
+    _validate_vn2_a1_r5_validator_seal(root_path)
+    vn2_c2_implementation = _validate_vn2_a1_implementation_seal(root_path)
     _validate_modules(contracts["module_map"], contracts["dependency_policy"], contracts["interfaces"])
     if set(contracts["composition"].get("files", {})) != set(contracts["module_map"].get("composition_files", [])):
         _fail("PC0-COMPOSITION-COVERAGE", "composition baseline must exactly match the module-map inventory")
@@ -1521,6 +1814,8 @@ def validate_pc0(root: str | Path, validate_release: bool = True) -> dict[str, A
     n2_policy_edges = _validate_pc0_r3_policy_edges(root_path)
     c2_browser_edges = _validate_pc0_r4_c2_edges(root_path)
     successor_edges: set[tuple[str, str, str, str]] = set(n2_policy_edges | c2_browser_edges)
+    if vn2_c2_implementation:
+        successor_edges |= _VN2_A1_EDGES
     if successor:
         nce = successor["nce_additive_successor"]
         overlay = nce["module_overlay"]
@@ -1599,6 +1894,8 @@ def validate_pc0(root: str | Path, validate_release: bool = True) -> dict[str, A
                 _fail("PC0-RELEASE-MANIFEST", item["path"])
             if replacement["successor_sha256"] != actual:
                 registered = _post_nce_resolved_hash(root_path, item["path"], replacement["successor_sha256"])
+                if registered != actual:
+                    registered = _pc0_r5_sealed_successor(root_path, item["path"],replacement["successor_sha256"])
                 if registered != actual:
                     registered = _pc0_r4_sealed_successor(root_path, item["path"],replacement["successor_sha256"])
                 if registered != actual and item["path"] == _PC0_R3_SEALED_SOURCE_PATH:

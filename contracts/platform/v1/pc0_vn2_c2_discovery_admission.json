@@ -1,0 +1,121 @@
+{
+  "schema": "xbos.platform.pc0-vn2-c2-discovery-admission.v1",
+  "authority": "XBOS-NEUTRAL-VN2-R1-C2-A1-R1",
+  "parent_head": "45f2313dbb57fc3f6b50638b279c2bf581234e5e",
+  "contract_name": "xbos.platform.pack-template-discovery.v1",
+  "route": {
+    "method": "GET",
+    "public_path": "/api/kernel/platform/v1/pack-template-discovery",
+    "kernel_path": "/kernel/platform/v1/pack-template-discovery"
+  },
+  "future_source_paths": [
+    {
+      "path": "core/auth/pack_template_discovery_router.py",
+      "module": "identity",
+      "owner": "PC5",
+      "role": "authenticated_http_adapter"
+    },
+    {
+      "path": "pack_platform/discovery_read_model.py",
+      "module": "packs",
+      "owner": "PK",
+      "role": "read_only_projection"
+    }
+  ],
+  "exact_dependency_edges": [
+    {
+      "source_path": "core/auth/pack_template_discovery_router.py",
+      "import_name": "database",
+      "source_module": "identity",
+      "target_module": "application"
+    },
+    {
+      "source_path": "core/auth/pack_template_discovery_router.py",
+      "import_name": "pack_platform.discovery_read_model",
+      "source_module": "identity",
+      "target_module": "packs"
+    }
+  ],
+  "public_interface_overlay": {
+    "module": "packs",
+    "owner": "PK",
+    "source_root": "pack_platform",
+    "add_public": [
+      "pack_platform.discovery_read_model"
+    ],
+    "private_repositories_preserved": [
+      "pack_platform.sql_repository.SQLPackRepository",
+      "pack_platform.pk456_sql_repository.SQLPK456Repository"
+    ],
+    "historical_interface_baseline_mutation": false
+  },
+  "current_source_predecessors": [
+    {
+      "path": "core/api/kernel_router.py",
+      "sha256": "243a6f77c8804eaff82cb131f8edc5d6dcd24e47ecafd6fa7f8ae660f2d97b00",
+      "a1_mutation": false
+    },
+    {
+      "path": "core/middleware/auth_middleware.py",
+      "sha256": "e03e258e5ebb574445b3a29e4db950f6ef80dde7b8fc344b45d7f781dc64b8d4",
+      "a1_mutation": false
+    },
+    {
+      "path": "core/platform/architecture_contract.py",
+      "sha256": "28515d9fda2ee909497cf0bb30fd3e4cfb04ecefcc99ec7e1eda60074078c888",
+      "a1_mutation": true
+    },
+    {
+      "path": "tests/contracts/test_pc0_kernel_boundaries.py",
+      "sha256": "1fc07557db90914d48a5a8cce23e485a71849649fb25f3e955580f249717d565",
+      "a1_mutation": false
+    }
+  ],
+  "security_invariants": {
+    "session_validation": "core.auth.browser_session_service.validate_browser_access",
+    "identity_semantics": "core.auth.auth_service.AuthService.me",
+    "session_profile": "browser-session.v1",
+    "trusted_tenant": "server_validated_browser_access_only",
+    "header_tenant_authority": false,
+    "request_state_fallback_authority": false,
+    "dev_tenant_fallback_authority": false,
+    "legacy_access_token_authority": false,
+    "entitlement_field": false,
+    "eligibility_field": false,
+    "general_policy_allowance": false,
+    "future_exact_path_error_normalization": "/kernel/platform/v1/pack-template-discovery"
+  },
+  "read_only_invariants": {
+    "db_session_source": "database.get_db",
+    "db_transaction": "READ ONLY",
+    "pack_sources": [
+      "pk_packs",
+      "pk_pack_versions",
+      "pk_tenant_pack_installations"
+    ],
+    "template_sources": [
+      "pk_templates",
+      "pk_template_versions",
+      "pk_template_pack_requirements",
+      "pk_tenant_template_bindings"
+    ],
+    "no_data_writes": true,
+    "no_for_update": true,
+    "no_pack_or_template_activation": true,
+    "no_business_or_financial_effect": true
+  },
+  "activation_law": {
+    "pre_activation": true,
+    "router_absent": true,
+    "read_model_absent": true,
+    "kernel_unchanged": true,
+    "auth_middleware_unchanged": true,
+    "future_edges_absent": true,
+    "future_implementation_seal": "pc0_vn2_c2_discovery_implementation_seal.json",
+    "future_implementation_seal_absent": true,
+    "future_authority": "XBOS-NEUTRAL-VN2-R1-C2",
+    "r5_validator_seal": "pc0_validator_successor_seal_r5.json",
+    "accept_implementation_only_with_seal": true,
+    "historical_vn0_c2_sha_preserved": true
+  }
+}
