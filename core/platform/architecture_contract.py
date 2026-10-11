@@ -115,6 +115,80 @@ def _source_sha256(path: Path) -> str:
     return hashlib.sha256(path.read_bytes().replace(b"\r\n", b"\n")).hexdigest()
 
 
+VN0_BROWSER_SUCCESSOR_FILE = "pc0_vn0_browser_session_successor.json"
+_VN0_BROWSER_SUCCESSOR_SCHEMA = "xbos.platform.pc0-vn0-browser-session-composition-successor.v1"
+_VN0_BROWSER_AUTHORITY = "XBOS-NEUTRAL-F-R1-B1-R1-PC0-R1"
+_VN0_BROWSER_CLASS = "ADDITIVE_VN0_C2_BROWSER_SESSION_KERNEL_COMPOSITION"
+_VN0_C2_COMMIT = "51057262faf7288e0ba4a8d488c8f2ff94e5cbe0"
+_VN0_C2_KERNEL_SHA256 = "243a6f77c8804eaff82cb131f8edc5d6dcd24e47ecafd6fa7f8ae660f2d97b00"
+_VN0_BROWSER_MARKERS = [
+    "from core.auth.browser_session_router import router as browser_session_router",
+    "kernel_router.include_router(browser_session_router)",
+]
+_VN0_NCE_MARKERS = [
+    "from core.integrations.xafpay_v2.router import router as xafpay_v2_router",
+    'prefix="/integrations/xafpay-v2"',
+]
+
+
+def _validate_vn0_browser_successor(
+    root: Path, contract: dict[str, Any] | None = None,
+) -> dict[str, Any] | None:
+    """Pin the accepted C2 composition without rewriting historical NCE truth."""
+    path = root / CONTRACT_DIRECTORY / VN0_BROWSER_SUCCESSOR_FILE
+    if contract is None:
+        if not path.is_file():
+            return None
+        try:
+            contract = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError) as exc:
+            _fail("PC0-VN0-SUCCESSOR-READ", str(exc))
+    if not isinstance(contract, dict) or set(contract) != {
+        "schema", "authority", "successor_class", "historical_nce", "vn0_c2",
+    }:
+        _fail("PC0-VN0-SUCCESSOR-SHAPE", str(contract))
+    if (
+        contract["schema"] != _VN0_BROWSER_SUCCESSOR_SCHEMA
+        or contract["authority"] != _VN0_BROWSER_AUTHORITY
+        or contract["successor_class"] != _VN0_BROWSER_CLASS
+    ):
+        _fail("PC0-VN0-SUCCESSOR-AUTHORITY", "schema, authority or class mismatch")
+    nce = contract["historical_nce"]
+    if nce != {
+        "authority": _NCE_AUTHORITY,
+        "commit": _NCE_COMMIT,
+        "kernel_sha256": _NCE_KERNEL_ROUTER_SUCCESSOR,
+    }:
+        _fail("PC0-VN0-NCE-HISTORY-CHANGED", str(nce))
+    c2 = contract["vn0_c2"]
+    if not isinstance(c2, dict) or set(c2) != {
+        "accepted_commit", "kernel_path", "successor_sha256",
+        "required_markers", "preserved_nce_markers",
+    }:
+        _fail("PC0-VN0-C2-SUCCESSOR-SHAPE", str(c2))
+    if (
+        c2["accepted_commit"] != _VN0_C2_COMMIT
+        or c2["kernel_path"] != "core/api/kernel_router.py"
+        or c2["successor_sha256"] != _VN0_C2_KERNEL_SHA256
+    ):
+        _fail("PC0-VN0-C2-SUCCESSOR-IDENTITY", str(c2))
+    if c2["required_markers"] != _VN0_BROWSER_MARKERS:
+        _fail("PC0-VN0-C2-BROWSER-MARKERS", str(c2["required_markers"]))
+    if c2["preserved_nce_markers"] != _VN0_NCE_MARKERS:
+        _fail("PC0-VN0-C2-NCE-MARKERS", str(c2["preserved_nce_markers"]))
+    source_path = root / c2["kernel_path"]
+    if _source_sha256(source_path) != _VN0_C2_KERNEL_SHA256:
+        _fail("PC0-VN0-C2-KERNEL-CHANGED", c2["kernel_path"])
+    source = source_path.read_text(encoding="utf-8")
+    for marker in _VN0_BROWSER_MARKERS:
+        if marker not in source:
+            _fail("PC0-VN0-C2-BROWSER-MARKER-MISSING", marker)
+    for marker in _VN0_NCE_MARKERS:
+        if marker not in source:
+            _fail("PC0-VN0-C2-NCE-MARKER-MISSING", marker)
+    return contract
+
+
 def _validate_h1b_successor_contract(root: Path, contract: dict[str, Any]) -> dict[str, Any]:
     expected_keys = {
         "schema", "authority", "successor_class", "source_base",
@@ -170,7 +244,8 @@ def _validate_h1b_successor_contract(root: Path, contract: dict[str, Any]) -> di
     ):
         _fail("PC0-NCE-KERNEL-OVERRIDE", str(kernel))
     if _source_sha256(root / "core/api/kernel_router.py") != _NCE_KERNEL_ROUTER_SUCCESSOR:
-        _fail("PC0-NCE-KERNEL-CHANGED", "core/api/kernel_router.py")
+        if _validate_vn0_browser_successor(root) is None:
+            _fail("PC0-NCE-KERNEL-CHANGED", "core/api/kernel_router.py")
     kernel_source = (root / "core/api/kernel_router.py").read_text(encoding="utf-8")
     for marker in kernel["required_markers"]:
         if marker not in kernel_source:
@@ -655,6 +730,14 @@ def _validate_composition(
             and relative == nce_override["path"]
             and expected == nce_override["historical_sha256"]
             and actual == nce_override["successor_sha256"]
+        ):
+            continue
+        if (
+            relative == "core/api/kernel_router.py"
+            and nce_override
+            and expected == nce_override["historical_sha256"]
+            and _validate_vn0_browser_successor(root) is not None
+            and actual == _VN0_C2_KERNEL_SHA256
         ):
             continue
         pc8 = pc8_replacements.get(relative)

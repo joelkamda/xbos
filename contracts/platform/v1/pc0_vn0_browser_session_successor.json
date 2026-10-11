@@ -1,0 +1,23 @@
+{
+  "schema": "xbos.platform.pc0-vn0-browser-session-composition-successor.v1",
+  "authority": "XBOS-NEUTRAL-F-R1-B1-R1-PC0-R1",
+  "successor_class": "ADDITIVE_VN0_C2_BROWSER_SESSION_KERNEL_COMPOSITION",
+  "historical_nce": {
+    "authority": "XBOS-NCE-H1B-ADDITIVE-SUCCESSOR-R1-SOURCE-MATERIALIZATION",
+    "commit": "92f6dbc7db37f5e1e8cf9c3e497e5be57a03b611",
+    "kernel_sha256": "a8b4a8b645ed7dd31367eb4dfa5643118ae7e518370817fdd5ddba997dd21c3d"
+  },
+  "vn0_c2": {
+    "accepted_commit": "51057262faf7288e0ba4a8d488c8f2ff94e5cbe0",
+    "kernel_path": "core/api/kernel_router.py",
+    "successor_sha256": "243a6f77c8804eaff82cb131f8edc5d6dcd24e47ecafd6fa7f8ae660f2d97b00",
+    "required_markers": [
+      "from core.auth.browser_session_router import router as browser_session_router",
+      "kernel_router.include_router(browser_session_router)"
+    ],
+    "preserved_nce_markers": [
+      "from core.integrations.xafpay_v2.router import router as xafpay_v2_router",
+      "prefix=\"/integrations/xafpay-v2\""
+    ]
+  }
+}
