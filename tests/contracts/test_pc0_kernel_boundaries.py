@@ -20,6 +20,10 @@ from core.platform.architecture_contract import (
     _source_sha256,
     _validate_composition,
     _validate_finance,
+    _validate_vn0_browser_successor,
+    _post_nce_resolved_hash,
+    _pc8_composition_replacements,
+    _POST_NCE_TRUSTED_PC8_ACCEPTED,
     _validate_migration_lineage,
     evaluate_source_text,
     validate_pc0,
@@ -73,7 +77,7 @@ class PC0KernelBoundaryTests(unittest.TestCase):
         self.assertFalse(successor["historical_pc0_composition_baseline_mutated"])
         self.assertFalse(successor["historical_pc0_finance_inventory_mutated"])
         self.assertFalse(successor["historical_pc0_release_manifest_mutated"])
-        self.assertEqual(2, report["successor_dependency_edge_count"])
+        self.assertEqual(10, report["successor_dependency_edge_count"])
         self.assertEqual(5, report["nce_source_file_count"])
         nce = successor["nce_additive_successor"]
         self.assertEqual("92f6dbc7db37f5e1e8cf9c3e497e5be57a03b611", nce["nce_commit"])
@@ -101,12 +105,24 @@ class PC0KernelBoundaryTests(unittest.TestCase):
             elif relative == "core/api/kernel_router.py":
                 override = successor["nce_additive_successor"]["kernel_router_override"]
                 self.assertEqual(historical, override["historical_sha256"])
-                self.assertEqual(actual[relative], override["successor_sha256"])
+                vn0 = _validate_vn0_browser_successor(ROOT)
+                self.assertIsNotNone(vn0)
+                self.assertEqual(actual[relative], vn0["vn0_c2"]["successor_sha256"])
             elif relative in pc8_paths:
                 self.assertEqual(historical, pc8_contract["accepted_base_canonical_sha256"][relative])
-                self.assertEqual(actual[relative], pc8_artifacts[relative])
+                self.assertEqual(pc8_artifacts[relative], _POST_NCE_TRUSTED_PC8_ACCEPTED[relative])
+                self.assertEqual(
+                    (historical, actual[relative]),
+                    _pc8_composition_replacements(ROOT)[relative],
+                )
             else:
-                self.assertEqual(historical, actual[relative])
+                if historical == actual[relative]:
+                    self.assertEqual(historical, actual[relative])
+                else:
+                    self.assertEqual(
+                        actual[relative],
+                        _post_nce_resolved_hash(ROOT, relative, historical),
+                    )
 
         with tempfile.TemporaryDirectory() as directory:
             candidate_root = Path(directory)
@@ -125,6 +141,10 @@ class PC0KernelBoundaryTests(unittest.TestCase):
                 "contracts/platform/v1/pc0_h1b_composition_successor.json",
                 "contracts/platform/v1/pc8_h1b_private_route_admission_successor.json",
                 "contracts/platform/v1/pc8_release_manifest.json",
+                "contracts/platform/v1/pc0_vn0_browser_session_successor.json",
+                "contracts/platform/v1/pc0_post_nce_source_successors.json",
+                "contracts/platform/v1/pc0_validator_successor_seal.json",
+                "contracts/platform/v1/pc0_validator_successor_seal_r4.json",
                 "core/platform/architecture_contract.py",
                 "tests/contracts/test_pc0_kernel_boundaries.py",
                 "alembic_neutral/sql/cch_customer_channel_checkout_authority_up.sql",

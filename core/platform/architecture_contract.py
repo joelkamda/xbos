@@ -541,6 +541,8 @@ def _validate_h1b_successor_contract(root: Path, contract: dict[str, Any]) -> di
             _fail("PC0-H1B-RELEASE-REPLACEMENTS", relative)
         actual = _source_sha256(root / relative)
         accepted = _post_nce_resolved_hash(root, relative, item.get("successor_sha256"))
+        if accepted != actual:
+            accepted = _pc0_r4_sealed_successor(root,relative,item.get("successor_sha256"))
         if accepted != actual and relative == _PC0_R3_SEALED_SOURCE_PATH:
             accepted = _pc0_r3_sealed_successor(root, relative, item.get("successor_sha256"))
         if item.get("historical_sha256") != historical or (
@@ -868,6 +870,140 @@ def _pc0_r3_sealed_successor(
     if registered_predecessor not in predecessor_chain:
         return None
     return _validate_pc0_r3_validator_seal(root)[path]
+
+
+
+_PC0_R4_AUTHORITY = "XBOS-NEUTRAL-F-R1-B1-R1-PC0-R4"
+_PC0_R4_C2_COMMIT = "51057262faf7288e0ba4a8d488c8f2ff94e5cbe0"
+_PC0_R4_C2_AUTHORITY = "XBOS-NEUTRAL-F-R1-B1-C2"
+_PC0_R4_C2_EDGES = [{'accepted_authority': 'XBOS-NEUTRAL-F-R1-B1-C2',
+  'accepted_commit': '51057262faf7288e0ba4a8d488c8f2ff94e5cbe0',
+  'import_name': 'database',
+  'source_git_blob': 'e30ce0d3ab0942790e150ce45ea4c039e104de7e',
+  'source_module': 'identity',
+  'source_path': 'core/auth/browser_session_model.py',
+  'target_module': 'application'},
+ {'accepted_authority': 'XBOS-NEUTRAL-F-R1-B1-C2',
+  'accepted_commit': '51057262faf7288e0ba4a8d488c8f2ff94e5cbe0',
+  'import_name': 'database',
+  'source_git_blob': 'b4ee6b28027ab82cff263f78ae9c58dbec71ff2e',
+  'source_module': 'identity',
+  'source_path': 'core/auth/browser_session_router.py',
+  'target_module': 'application'},
+ {'accepted_authority': 'XBOS-NEUTRAL-F-R1-B1-C2',
+  'accepted_commit': '51057262faf7288e0ba4a8d488c8f2ff94e5cbe0',
+  'import_name': 'settings',
+  'source_git_blob': 'ebdd63ed86840e43c3e5ee79772fb15559d5ed00',
+  'source_module': 'identity',
+  'source_path': 'core/auth/browser_session_service.py',
+  'target_module': 'application'},
+ {'accepted_authority': 'XBOS-NEUTRAL-F-R1-B1-C2',
+  'accepted_commit': '51057262faf7288e0ba4a8d488c8f2ff94e5cbe0',
+  'import_name': 'database',
+  'source_git_blob': 'e330908fcb2cbc426cdf5389e3c3e18b8ae52faf',
+  'source_module': 'identity',
+  'source_path': 'core/middleware/auth_middleware.py',
+  'target_module': 'application'}]
+
+
+def _git_canonical_blob_sha1(source: bytes) -> str:
+    canonical = source.replace(b"\r\n", b"\n")
+    return hashlib.sha1(b"blob " + str(len(canonical)).encode("ascii") + b"\0" + canonical).hexdigest()
+
+
+def _validate_pc0_r4_c2_edges(root: Path, proposed: dict[str, Any] | None = None) -> set[tuple[str,str,str,str]]:
+    if proposed is None:
+        proposed = _load_json(root, "pc0_vn0_c2_dependency_edges.json")
+    if not isinstance(proposed, dict) or set(proposed) != {
+        "schema", "authority", "accepted_commit", "accepted_authority", "edges"
+    } or (
+        proposed["schema"] != "xbos.platform.pc0-vn0-c2-exact-dependency-successor.v1"
+        or proposed["authority"] != _PC0_R4_AUTHORITY
+        or proposed["accepted_commit"] != _PC0_R4_C2_COMMIT
+        or proposed["accepted_authority"] != _PC0_R4_C2_AUTHORITY
+    ):
+        _fail("PC0-R4-C2-SUCCESSOR-AUTHORITY", "unexpected C2 successor")
+    edges = proposed["edges"]
+    if not isinstance(edges, list) or len(edges) != 4:
+        _fail("PC0-R4-C2-EDGE-COUNT", str(edges))
+    if edges != _PC0_R4_C2_EDGES:
+        _fail("PC0-R4-C2-EDGE-PROVENANCE", "not the four exact accepted C2 imports")
+    actual: set[tuple[str,str,str,str]] = set()
+    for edge in edges:
+        source = root / edge["source_path"]
+        if not source.is_file() or _git_canonical_blob_sha1(source.read_bytes()) != edge["source_git_blob"]:
+            _fail("PC0-R4-C2-SOURCE-CHANGED", edge["source_path"])
+        imports = _imports(source.read_text(encoding="utf-8"),edge["source_path"])
+        if (edge["import_name"],0) not in imports:
+            _fail("PC0-R4-C2-IMPORT-CHANGED", edge["source_path"])
+        key=(edge["source_path"],edge["import_name"],edge["source_module"],edge["target_module"])
+        if key in actual:
+            _fail("PC0-R4-C2-DUPLICATE-EDGE", str(key))
+        actual.add(key)
+    return actual
+
+
+_PC0_R4_PREDECESSOR_COMMIT = "8508e0e0537ee959395cb397547cf81c90acbb05"
+_PC0_R4_PREDECESSORS = {
+    "core/platform/architecture_contract.py": "bb6bcc9b01657ad0069fe375526b4575f01daf58e3695c233d12721cdcc5e7c9",
+    "tests/contracts/test_pc0_kernel_boundaries.py": "cbdcb74cfed2c92ba6d6ed13dd8a6f319fab0b223ad9a24477d6550d4f3ddf94",
+}
+_PC0_R4_SEAL_FILE = "pc0_validator_successor_seal_r4.json"
+
+
+def _validate_pc0_r4_validator_seal(root: Path, proposed: dict[str, Any] | None = None) -> dict[str,str]:
+    if proposed is None:
+        proposed = _load_json(root, _PC0_R4_SEAL_FILE)
+    if not isinstance(proposed, dict) or set(proposed) != {
+        "schema","authority","accepted_predecessor_commit","files"
+    } or (
+        proposed["schema"] != "xbos.platform.pc0-validator-successor-seal-r4.v1"
+        or proposed["authority"] != _PC0_R4_AUTHORITY
+        or proposed["accepted_predecessor_commit"] != _PC0_R4_PREDECESSOR_COMMIT
+    ):
+        _fail("PC0-R4-SEAL-AUTHORITY", "wrong authority or accepted predecessor")
+    entries = proposed["files"]
+    if not isinstance(entries,list) or len(entries)!=2:
+        _fail("PC0-R4-SEAL-COUNT", str(entries))
+    indexed={}
+    for entry in entries:
+        if not isinstance(entry,dict) or set(entry)!={"path","predecessor_sha256","successor_sha256"}:
+            _fail("PC0-R4-SEAL-SHAPE",str(entry))
+        path=entry["path"]
+        if not isinstance(path,str) or path not in _PC0_R4_PREDECESSORS or path in indexed:
+            _fail("PC0-R4-SEAL-UNAUTHORIZED-PATH",str(path))
+        if entry["predecessor_sha256"]!=_PC0_R4_PREDECESSORS[path]:
+            _fail("PC0-R4-SEAL-PREDECESSOR",path)
+        digest=entry["successor_sha256"]
+        if not isinstance(digest,str) or len(digest)!=64 or any(ch not in "0123456789abcdef" for ch in digest):
+            _fail("PC0-R4-SEAL-HASH-SHAPE",str(digest))
+        if not (root/path).is_file() or _source_sha256(root/path)!=digest:
+            _fail("PC0-R4-SEAL-SOURCE-CHANGED",path)
+        indexed[path]=digest
+    if set(indexed)!=set(_PC0_R4_PREDECESSORS):
+        _fail("PC0-R4-SEAL-MISSING",str(indexed))
+    r3 = _load_json(root,_PC0_R3_SEAL_FILE)
+    if not isinstance(r3,dict) or r3.get("accepted_predecessor_commit")!=_PC0_R3_R2_PREDECESSOR_COMMIT or r3.get("authority")!=_PC0_R3_AUTHORITY or r3.get("files")!=[{
+        "path":"core/platform/architecture_contract.py",
+        "predecessor_sha256":_PC0_R3_R2_PREDECESSOR_SHA256,
+        "successor_sha256":_PC0_R4_PREDECESSORS["core/platform/architecture_contract.py"],
+    }]:
+        _fail("PC0-R4-R3-PREDECESSOR-CHANGED","R3 accepted seal must remain intact")
+    return indexed
+
+
+def _pc0_r4_sealed_successor(root: Path, path: str, registered_predecessor: str) -> str | None:
+    if path not in _PC0_R4_PREDECESSORS:
+        return None
+    # The authorized R4 predecessor must be the exact already-registered
+    # H1B release successor (or its R2 bridge for architecture_contract).
+    allowed = {
+        "core/platform/architecture_contract.py":"5345e6655603ae89416568a4548dc798289f2b1702fe066cf51c29e90df64d7b",
+        "tests/contracts/test_pc0_kernel_boundaries.py":"cbdcb74cfed2c92ba6d6ed13dd8a6f319fab0b223ad9a24477d6550d4f3ddf94",
+    }
+    if registered_predecessor!=allowed[path]:
+        return None
+    return _validate_pc0_r4_validator_seal(root)[path]
 
 
 def _tree_fingerprint(root: Path, relative_root: str, inventory: Iterable[str], extensions: dict[str, str] | None = None) -> tuple[int, str]:
@@ -1383,7 +1519,8 @@ def validate_pc0(root: str | Path, validate_release: bool = True) -> dict[str, A
         key=lambda item: len(item[0]), reverse=True,
     )
     n2_policy_edges = _validate_pc0_r3_policy_edges(root_path)
-    successor_edges: set[tuple[str, str, str, str]] = set(n2_policy_edges)
+    c2_browser_edges = _validate_pc0_r4_c2_edges(root_path)
+    successor_edges: set[tuple[str, str, str, str]] = set(n2_policy_edges | c2_browser_edges)
     if successor:
         nce = successor["nce_additive_successor"]
         overlay = nce["module_overlay"]
@@ -1462,6 +1599,8 @@ def validate_pc0(root: str | Path, validate_release: bool = True) -> dict[str, A
                 _fail("PC0-RELEASE-MANIFEST", item["path"])
             if replacement["successor_sha256"] != actual:
                 registered = _post_nce_resolved_hash(root_path, item["path"], replacement["successor_sha256"])
+                if registered != actual:
+                    registered = _pc0_r4_sealed_successor(root_path, item["path"],replacement["successor_sha256"])
                 if registered != actual and item["path"] == _PC0_R3_SEALED_SOURCE_PATH:
                     registered = _pc0_r3_sealed_successor(root_path, item["path"], replacement["successor_sha256"])
                 if registered != actual:

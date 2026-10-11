@@ -1,0 +1,44 @@
+{
+  "schema": "xbos.platform.pc0-vn0-c2-exact-dependency-successor.v1",
+  "authority": "XBOS-NEUTRAL-F-R1-B1-R1-PC0-R4",
+  "accepted_commit": "51057262faf7288e0ba4a8d488c8f2ff94e5cbe0",
+  "accepted_authority": "XBOS-NEUTRAL-F-R1-B1-C2",
+  "edges": [
+    {
+      "source_path": "core/auth/browser_session_model.py",
+      "import_name": "database",
+      "source_module": "identity",
+      "target_module": "application",
+      "accepted_commit": "51057262faf7288e0ba4a8d488c8f2ff94e5cbe0",
+      "accepted_authority": "XBOS-NEUTRAL-F-R1-B1-C2",
+      "source_git_blob": "e30ce0d3ab0942790e150ce45ea4c039e104de7e"
+    },
+    {
+      "source_path": "core/auth/browser_session_router.py",
+      "import_name": "database",
+      "source_module": "identity",
+      "target_module": "application",
+      "accepted_commit": "51057262faf7288e0ba4a8d488c8f2ff94e5cbe0",
+      "accepted_authority": "XBOS-NEUTRAL-F-R1-B1-C2",
+      "source_git_blob": "b4ee6b28027ab82cff263f78ae9c58dbec71ff2e"
+    },
+    {
+      "source_path": "core/auth/browser_session_service.py",
+      "import_name": "settings",
+      "source_module": "identity",
+      "target_module": "application",
+      "accepted_commit": "51057262faf7288e0ba4a8d488c8f2ff94e5cbe0",
+      "accepted_authority": "XBOS-NEUTRAL-F-R1-B1-C2",
+      "source_git_blob": "ebdd63ed86840e43c3e5ee79772fb15559d5ed00"
+    },
+    {
+      "source_path": "core/middleware/auth_middleware.py",
+      "import_name": "database",
+      "source_module": "identity",
+      "target_module": "application",
+      "accepted_commit": "51057262faf7288e0ba4a8d488c8f2ff94e5cbe0",
+      "accepted_authority": "XBOS-NEUTRAL-F-R1-B1-C2",
+      "source_git_blob": "e330908fcb2cbc426cdf5389e3c3e18b8ae52faf"
+    }
+  ]
+}
