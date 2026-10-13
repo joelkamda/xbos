@@ -1,0 +1,66 @@
+{
+  "schema": "xbos.platform.pc0-vn2-c2-discovery-implementation-seal.v1",
+  "authority": "XBOS-NEUTRAL-VN2-R1-C2",
+  "admission_parent_head": "45f2313dbb57fc3f6b50638b279c2bf581234e5e",
+  "files": [
+    {
+      "path": "core/api/kernel_router.py",
+      "predecessor_sha256": "243a6f77c8804eaff82cb131f8edc5d6dcd24e47ecafd6fa7f8ae660f2d97b00",
+      "successor_sha256": "25ea82095e2deb12d5c939ad7c33cc4821264d1d5eee8b16dcc943cb80548504"
+    },
+    {
+      "path": "core/middleware/auth_middleware.py",
+      "predecessor_sha256": "e03e258e5ebb574445b3a29e4db950f6ef80dde7b8fc344b45d7f781dc64b8d4",
+      "successor_sha256": "66797bd319cfcce3fceb4b75af256e704736cd140be2d67158d4a5a66e0cbb55"
+    },
+    {
+      "path": "core/auth/pack_template_discovery_router.py",
+      "predecessor_sha256": null,
+      "successor_sha256": "f49c2cd0901025dafd7f04c7f6e0d310e98c2bd7dbaefac5c64f59ab99ec6e52"
+    },
+    {
+      "path": "pack_platform/discovery_read_model.py",
+      "predecessor_sha256": null,
+      "successor_sha256": "dfe7d36c119e7b0fa6573055a0ed33a8cee3a5faa742b6d0c6dcd8541f9bfcce"
+    }
+  ],
+  "exact_dependency_edges": [
+    {
+      "source_path": "core/auth/pack_template_discovery_router.py",
+      "import_name": "database",
+      "source_module": "identity",
+      "target_module": "application"
+    },
+    {
+      "source_path": "core/auth/pack_template_discovery_router.py",
+      "import_name": "pack_platform.discovery_read_model",
+      "source_module": "identity",
+      "target_module": "packs"
+    }
+  ],
+  "required_route_markers": {
+    "core/api/kernel_router.py": [
+      "from core.auth.pack_template_discovery_router import router as pack_template_discovery_router",
+      "kernel_router.include_router(pack_template_discovery_router)"
+    ],
+    "core/auth/pack_template_discovery_router.py": [
+      "\"/platform/v1/pack-template-discovery\"",
+      "validate_browser_access",
+      "pack_platform.discovery_read_model"
+    ],
+    "core/middleware/auth_middleware.py": [
+      "\"/kernel/platform/v1/pack-template-discovery\""
+    ]
+  },
+  "read_only_markers": {
+    "pack_platform/discovery_read_model.py": [
+      "SELECT"
+    ],
+    "forbidden_sql_tokens": [
+      "FOR UPDATE",
+      "INSERT INTO",
+      "UPDATE ",
+      "DELETE FROM"
+    ]
+  }
+}

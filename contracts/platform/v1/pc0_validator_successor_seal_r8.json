@@ -1,0 +1,22 @@
+{
+  "schema": "xbos.platform.pc0-validator-and-test-successor-seal-r8.v1",
+  "authority": "XBOS-NEUTRAL-VN2-R1-C2-PC0-R8-R1",
+  "accepted_predecessor_commit": "ab8a43456c572785ec9b61190bfbc3baef20f098",
+  "files": [
+    {
+      "path": "core/platform/architecture_contract.py",
+      "predecessor_sha256": "8bf6405ce9769edb791a7a9d002c345351701537bc0153212a41cc77f54445d8",
+      "successor_sha256": "2d04bbf17aed7c6481f0b22fa12abf4a191253043672aa92cd2083b79442925d"
+    },
+    {
+      "path": "tests/contracts/test_pc0_kernel_boundaries.py",
+      "predecessor_sha256": "7022b90767677e0707be6be752907405f7edb291561a9a4f6fb05a3f5e4c07ac",
+      "successor_sha256": "46bad44c9392fd43cde0cbc55ed742a4f3c369a6b640b4b65ce4f1625f1d7604"
+    },
+    {
+      "path": "tests/contracts/test_vn2_c2_pc8_source_successor.py",
+      "predecessor_sha256": "45a36923bd68ac33270d33c7a0ad8e84959a25a37b0f6dbb9171244e3a5fb1e8",
+      "successor_sha256": "0f60220ad5843ca5802fb83d5fa8e61f6c819e5b4f951a25ad6232b618be12e9"
+    }
+  ]
+}

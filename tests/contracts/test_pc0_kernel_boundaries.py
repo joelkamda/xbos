@@ -23,6 +23,10 @@ from core.platform.architecture_contract import (
     _validate_vn0_browser_successor,
     _post_nce_resolved_hash,
     _validate_pc0_r6_validator_seal,
+    _validate_pc0_r7_validator_seal,
+    _validate_pc0_r8_successor_seal,
+    _validate_vn2_a1_implementation_seal,
+    _VN2_A1_EDGES,
     _pc8_composition_replacements,
     _POST_NCE_TRUSTED_PC8_ACCEPTED,
     _validate_migration_lineage,
@@ -78,7 +82,11 @@ class PC0KernelBoundaryTests(unittest.TestCase):
         self.assertFalse(successor["historical_pc0_composition_baseline_mutated"])
         self.assertFalse(successor["historical_pc0_finance_inventory_mutated"])
         self.assertFalse(successor["historical_pc0_release_manifest_mutated"])
-        self.assertEqual(10, report["successor_dependency_edge_count"])
+        # Accepted pre-C2 PC0 has ten successor edges. Exactly two new
+        # C2 source-path admissions, sealed by A1, raise the current total.
+        self.assertEqual(10 + len(_VN2_A1_EDGES), report["successor_dependency_edge_count"])
+        self.assertEqual(2, len(_VN2_A1_EDGES))
+        self.assertEqual(4, len(_validate_vn2_a1_implementation_seal(ROOT)))
         self.assertEqual(5, report["nce_source_file_count"])
         nce = successor["nce_additive_successor"]
         self.assertEqual("92f6dbc7db37f5e1e8cf9c3e497e5be57a03b611", nce["nce_commit"])
@@ -108,7 +116,13 @@ class PC0KernelBoundaryTests(unittest.TestCase):
                 self.assertEqual(historical, override["historical_sha256"])
                 vn0 = _validate_vn0_browser_successor(ROOT)
                 self.assertIsNotNone(vn0)
-                self.assertEqual(actual[relative], vn0["vn0_c2"]["successor_sha256"])
+                self.assertEqual(
+                    vn0["vn0_c2"]["successor_sha256"],
+                    "243a6f77c8804eaff82cb131f8edc5d6dcd24e47ecafd6fa7f8ae660f2d97b00",
+                )
+                c2 = _validate_vn2_a1_implementation_seal(ROOT)
+                self.assertEqual(actual[relative], c2["core/api/kernel_router.py"])
+                self.assertNotEqual(actual[relative], vn0["vn0_c2"]["successor_sha256"])
             elif relative in pc8_paths:
                 self.assertEqual(historical, pc8_contract["accepted_base_canonical_sha256"][relative])
                 self.assertEqual(pc8_artifacts[relative], _POST_NCE_TRUSTED_PC8_ACCEPTED[relative])
@@ -149,6 +163,13 @@ class PC0KernelBoundaryTests(unittest.TestCase):
                 "contracts/platform/v1/pc0_vn2_c2_discovery_admission.json",
                 "contracts/platform/v1/pc0_validator_successor_seal_r5.json",
                 "contracts/platform/v1/pc0_validator_successor_seal_r6.json",
+                "contracts/platform/v1/pc0_validator_successor_seal_r7.json",
+                "contracts/platform/v1/pc0_validator_successor_seal_r8.json",
+                "contracts/platform/v1/pc0_vn2_c2_discovery_implementation_seal.json",
+                "contracts/platform/v1/vn2_pack_template_discovery_v1.json",
+                "core/auth/pack_template_discovery_router.py",
+                "pack_platform/discovery_read_model.py",
+                "tests/contracts/test_vn2_c2_pc8_source_successor.py",
                 "core/platform/architecture_contract.py",
                 "tests/contracts/test_pc0_kernel_boundaries.py",
                 "alembic_neutral/sql/cch_customer_channel_checkout_authority_up.sql",
@@ -371,13 +392,28 @@ class PC0KernelBoundaryTests(unittest.TestCase):
         self.assertEqual(len(keys), len(set(keys)))
 
     def test_r6_exact_two_file_successor_seal(self) -> None:
-        sealed = _validate_pc0_r6_validator_seal(ROOT)
-        self.assertEqual(set(sealed), {
+        # R6 is an immutable historical two-file predecessor, not a claim
+        # that the authorized R8 files still have their old R6 hashes.
+        r6 = _validate_pc0_r6_validator_seal(ROOT, historical_only=True)
+        self.assertEqual(set(r6), {
             "core/platform/architecture_contract.py",
             "tests/contracts/test_pc0_kernel_boundaries.py",
         })
-        for relative, digest in sealed.items():
-            self.assertEqual(_source_sha256(ROOT / relative), digest)
+        self.assertEqual(
+            r6["core/platform/architecture_contract.py"],
+            "8d319746041073680268fd20f123a06c0190368083cd0e37b8b1565cfd5ffc9d",
+        )
+        self.assertEqual(
+            r6["tests/contracts/test_pc0_kernel_boundaries.py"],
+            "7022b90767677e0707be6be752907405f7edb291561a9a4f6fb05a3f5e4c07ac",
+        )
+        r7 = _validate_pc0_r7_validator_seal(ROOT, historical_only=True)
+        r8 = _validate_pc0_r8_successor_seal(ROOT)
+        self.assertEqual(r7, "8bf6405ce9769edb791a7a9d002c345351701537bc0153212a41cc77f54445d8")
+        self.assertNotEqual(r7, r6["core/platform/architecture_contract.py"])
+        for path in r6:
+            self.assertNotEqual(r6[path], r8[path])
+            self.assertEqual(_source_sha256(ROOT / path), r8[path])
 
     def test_r6_rejects_added_path_and_wildcard(self) -> None:
         seal = json.loads((ROOT / "contracts/platform/v1/pc0_validator_successor_seal_r6.json").read_text(encoding="utf-8"))

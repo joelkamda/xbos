@@ -543,6 +543,10 @@ def _validate_h1b_successor_contract(root: Path, contract: dict[str, Any]) -> di
         actual = _source_sha256(root / relative)
         accepted = _post_nce_resolved_hash(root, relative, item.get("successor_sha256"))
         if accepted != actual:
+            accepted = _pc0_r8_sealed_successor(root,relative,item.get("successor_sha256"))
+        if accepted != actual:
+            accepted = _pc0_r7_sealed_successor(root,relative,item.get("successor_sha256"))
+        if accepted != actual:
             accepted = _pc0_r6_sealed_successor(root,relative,item.get("successor_sha256"))
         if accepted != actual:
             accepted = _pc0_r5_sealed_successor(root,relative,item.get("successor_sha256"))
@@ -617,7 +621,20 @@ def _pc8_composition_replacements(root: Path) -> dict[str, tuple[str, str]]:
         if pc8_digest != actual:
             accepted = _post_nce_resolved_hash(root, relative, pc8_digest)
             if not accepted or accepted != actual:
-                _fail("PC0-PC8-SUCCESSOR-INTEGRITY", relative)
+                # Exact, separately PCR-authorized C2 middleware descendant.
+                # Its source and four-file implementation seal must validate;
+                # unrelated PC8 paths retain their original fail-closed law.
+                if not (
+                    relative == "core/middleware/auth_middleware.py"
+                    and actual == _PC0_R7_C2_MIDDLEWARE_SHA
+                    and _validate_pc0_r7_validator_seal(root, historical_only=True) == (
+                        _PC0_R8_PREDECESSORS["core/platform/architecture_contract.py"]
+                    )
+                    and _validate_pc0_r8_successor_seal(root)[
+                        "core/platform/architecture_contract.py"
+                    ] == _source_sha256(root / "core/platform/architecture_contract.py")
+                ):
+                    _fail("PC0-PC8-SUCCESSOR-INTEGRITY", relative)
         replacements[relative] = (historical, actual)
     return replacements
 
@@ -1299,7 +1316,7 @@ _PC0_R6_ADMISSION_SHA = "5a9501d193abd96918d6af8681a1ff9feedf5f73e3853c7600228c3
 
 
 def _validate_pc0_r6_validator_seal(
-    root: Path, proposed: dict[str, Any] | None = None,
+    root: Path, proposed: dict[str, Any] | None = None, *, historical_only: bool = False,
 ) -> dict[str, str]:
     if _source_sha256(root/CONTRACT_DIRECTORY/_VN2_A1_R5_SEAL_FILE) != _PC0_R6_R5_FILE_SHA:
         _fail("PC0-R6-R5-HISTORY-CHANGED","accepted R5 seal changed")
@@ -1340,12 +1357,200 @@ def _validate_pc0_r6_validator_seal(
             or digest==row["predecessor_sha256"]):
             _fail("PC0-R6-SUCCESSOR",path)
         source=root/path
-        if not source.is_file() or _source_sha256(source)!=digest:
+        # A future live successor cannot make a forged historical R6 digest
+        # valid: the exact accepted R6 identities remain mandatory.
+        if path == "tests/contracts/test_pc0_kernel_boundaries.py" and digest != _PC0_R8_PREDECESSORS[path]:
+            _fail("PC0-R6-SOURCE-CHANGED", path)
+        if path == "core/platform/architecture_contract.py" and digest != _PC0_R7_PREDECESSOR:
+            _fail("PC0-R6-SOURCE-CHANGED", path)
+        if path == "core/platform/architecture_contract.py" and historical_only:
+            # An R7 successor verifies the live validator; R6 retains its
+            # exact historical source identity, never a current-hash fallback.
+            if digest != _PC0_R7_PREDECESSOR:
+                _fail("PC0-R6-R7-LINK",path)
+        elif path == "tests/contracts/test_pc0_kernel_boundaries.py" and historical_only:
+            if digest != _PC0_R8_PREDECESSORS[path]:
+                _fail("PC0-R6-R8-TEST-LINK", path)
+        elif path == "tests/contracts/test_pc0_kernel_boundaries.py" and (root/CONTRACT_DIRECTORY/_PC0_R8_SEAL_FILE).is_file():
+            _validate_pc0_r8_successor_seal(root)
+        elif path == "core/platform/architecture_contract.py" and (root/CONTRACT_DIRECTORY/_PC0_R7_SEAL_FILE).is_file():
+            _validate_pc0_r7_validator_seal(root)
+        elif not source.is_file() or _source_sha256(source)!=digest:
             _fail("PC0-R6-SOURCE-CHANGED",path)
         result[path]=digest
     if set(result)!=set(_PC0_R6_PREDECESSORS):
         _fail("PC0-R6-PATH","missing source")
     return result
+
+
+# VN2 C2 PC8-R1: one validator successor; exact previously sealed C2 middleware.
+_PC0_R7_SEAL_FILE = "pc0_validator_successor_seal_r7.json"
+_PC0_R7_AUTHORITY = "XBOS-NEUTRAL-VN2-R1-C2-PC8-R1"
+_PC0_R7_PREDECESSOR_COMMIT = "ab8a43456c572785ec9b61190bfbc3baef20f098"
+_PC0_R7_PREDECESSOR = "8d319746041073680268fd20f123a06c0190368083cd0e37b8b1565cfd5ffc9d"
+_PC0_R7_R6_SEAL_SHA = "dee99ca8480dc057bb12a23be44c0665bddaaec00225f3c3df2079f07a29352f"
+_PC0_R7_PC8_MANIFEST_SHA = "d94b0316c5c5205e3b314595f466935861cfb9851afc1d07f40a5aeaa7a6161b"
+_PC0_R7_PC8_SUCCESSOR_SHA = "e67802c9da208a5bf25952fbc7fec77082a35395fe9edcd1e77ce825df96c74b"
+_PC0_R7_C2_MIDDLEWARE_SHA = "66797bd319cfcce3fceb4b75af256e704736cd140be2d67158d4a5a66e0cbb55"
+_PC0_R7_C2_MIDDLEWARE_PREDECESSOR = "e03e258e5ebb574445b3a29e4db950f6ef80dde7b8fc344b45d7f781dc64b8d4"
+
+
+def _validate_pc0_r7_validator_seal(
+    root: Path, proposed: dict[str, Any] | None = None, *, historical_only: bool = False,
+) -> str:
+    """Admit only the exact C2 PC8 middleware descendant through the R7 source seal."""
+    # These are byte-pinned archival attestations, not general source acceptors.
+    if _source_sha256(root / CONTRACT_DIRECTORY / _PC0_R6_SEAL_FILE) != _PC0_R7_R6_SEAL_SHA:
+        _fail("PC0-R7-R6-HISTORY-CHANGED", _PC0_R6_SEAL_FILE)
+    if _source_sha256(root / CONTRACT_DIRECTORY / "pc8_release_manifest.json") != _PC0_R7_PC8_MANIFEST_SHA:
+        _fail("PC0-R7-PC8-HISTORY-CHANGED", "pc8_release_manifest.json")
+    if _source_sha256(root / CONTRACT_DIRECTORY / "pc8_h1b_private_route_admission_successor.json") != _PC0_R7_PC8_SUCCESSOR_SHA:
+        _fail("PC0-R7-PC8-HISTORY-CHANGED", "pc8_h1b_private_route_admission_successor.json")
+    r6_historical = _validate_pc0_r6_validator_seal(root, historical_only=True)
+    if r6_historical.get("core/platform/architecture_contract.py") != _PC0_R7_PREDECESSOR:
+        _fail("PC0-R7-R6-LINK", "R6 source digest not accepted R7 predecessor")
+
+    # A1 is an exact four-source implementation seal. Validate the entire
+    # source set and two admitted edges; never trust a standalone middleware hash.
+    implementation = _validate_vn2_a1_implementation_seal(root)
+    if (
+        not isinstance(implementation, dict)
+        or implementation.get("core/middleware/auth_middleware.py") != _PC0_R7_C2_MIDDLEWARE_SHA
+        or _VN2_A1_PREDECESSORS["core/middleware/auth_middleware.py"] != _PC0_R7_C2_MIDDLEWARE_PREDECESSOR
+        or _source_sha256(root / "core/middleware/auth_middleware.py") != _PC0_R7_C2_MIDDLEWARE_SHA
+    ):
+        _fail("PC0-R7-C2-MIDDLEWARE-UNSEALED", "exact accepted C2 descendant required")
+
+    if proposed is None:
+        proposed = _load_json(root, _PC0_R7_SEAL_FILE)
+    if not isinstance(proposed, dict) or set(proposed) != {
+        "schema", "authority", "accepted_predecessor_commit", "files"
+    } or (
+        proposed["schema"] != "xbos.platform.pc0-validator-successor-seal-r7.v1"
+        or proposed["authority"] != _PC0_R7_AUTHORITY
+        or proposed["accepted_predecessor_commit"] != _PC0_R7_PREDECESSOR_COMMIT
+    ):
+        _fail("PC0-R7-AUTHORITY", "exact R7 governance identity required")
+    files = proposed["files"]
+    if (
+        not isinstance(files, list) or len(files) != 1
+        or not isinstance(files[0], dict)
+        or set(files[0]) != {"path", "predecessor_sha256", "successor_sha256"}
+        or files[0]["path"] != "core/platform/architecture_contract.py"
+    ):
+        _fail("PC0-R7-SOURCE-BOUNDS", "one validator path only")
+    row = files[0]
+    if row["predecessor_sha256"] != _PC0_R7_PREDECESSOR:
+        _fail("PC0-R7-PREDECESSOR", "R7 predecessor must equal accepted R6 validator")
+    digest = row["successor_sha256"]
+    if (
+        not isinstance(digest, str) or len(digest) != 64
+        or any(c not in "0123456789abcdef" for c in digest)
+        or digest == _PC0_R7_PREDECESSOR
+        or digest != _PC0_R8_PREDECESSORS["core/platform/architecture_contract.py"]
+    ):
+        _fail("PC0-R7-SUCCESSOR-CHANGED", "only the accepted R7 historical validator successor is valid")
+    if not historical_only:
+        if (root / CONTRACT_DIRECTORY / _PC0_R8_SEAL_FILE).is_file():
+            _validate_pc0_r8_successor_seal(root)
+        elif _source_sha256(root / row["path"]) != digest:
+            _fail("PC0-R7-SUCCESSOR-CHANGED", "live validator unsealed after R7")
+    return digest
+
+
+# VN2 C2 PC0-R8-R1: immutable R7/R6 history -> exact three-file successor.
+_PC0_R8_SEAL_FILE = "pc0_validator_successor_seal_r8.json"
+_PC0_R8_AUTHORITY = "XBOS-NEUTRAL-VN2-R1-C2-PC0-R8-R1"
+_PC0_R8_BASE_COMMIT = "ab8a43456c572785ec9b61190bfbc3baef20f098"
+_PC0_R8_R7_SEAL_SHA = "fc9244d72f24d4de4a1e1c57b83ce05f16968ef3364892219065b14c9f7979bd"
+_PC0_R8_PREDECESSORS = {
+    "core/platform/architecture_contract.py":
+        "8bf6405ce9769edb791a7a9d002c345351701537bc0153212a41cc77f54445d8",
+    "tests/contracts/test_pc0_kernel_boundaries.py":
+        "7022b90767677e0707be6be752907405f7edb291561a9a4f6fb05a3f5e4c07ac",
+    "tests/contracts/test_vn2_c2_pc8_source_successor.py":
+        "45a36923bd68ac33270d33c7a0ad8e84959a25a37b0f6dbb9171244e3a5fb1e8",
+}
+_PC0_R8_H1B_PREDECESSORS = {
+    "core/platform/architecture_contract.py":
+        "5345e6655603ae89416568a4548dc798289f2b1702fe066cf51c29e90df64d7b",
+    "tests/contracts/test_pc0_kernel_boundaries.py":
+        "cbdcb74cfed2c92ba6d6ed13dd8a6f319fab0b223ad9a24477d6550d4f3ddf94",
+}
+
+
+def _validate_pc0_r8_successor_seal(
+    root: Path, proposed: dict[str, Any] | None = None,
+) -> dict[str, str]:
+    """R8 accepts only three explicitly sealed, changed source files."""
+    if _source_sha256(root / CONTRACT_DIRECTORY / _PC0_R7_SEAL_FILE) != _PC0_R8_R7_SEAL_SHA:
+        _fail("PC0-R8-R7-HISTORY-CHANGED", _PC0_R7_SEAL_FILE)
+    historical_r7 = _validate_pc0_r7_validator_seal(root, historical_only=True)
+    if historical_r7 != _PC0_R8_PREDECESSORS["core/platform/architecture_contract.py"]:
+        _fail("PC0-R8-R7-LINK", "R7 validator must be the exact R8 predecessor")
+    historical_r6 = _validate_pc0_r6_validator_seal(root, historical_only=True)
+    if historical_r6["tests/contracts/test_pc0_kernel_boundaries.py"] != (
+        _PC0_R8_PREDECESSORS["tests/contracts/test_pc0_kernel_boundaries.py"]
+    ):
+        _fail("PC0-R8-R6-TEST-LINK", "R6 test must be the exact R8 predecessor")
+    if proposed is None:
+        proposed = _load_json(root, _PC0_R8_SEAL_FILE)
+    if not isinstance(proposed, dict) or set(proposed) != {
+        "schema", "authority", "accepted_predecessor_commit", "files"
+    } or (
+        proposed["schema"] != "xbos.platform.pc0-validator-and-test-successor-seal-r8.v1"
+        or proposed["authority"] != _PC0_R8_AUTHORITY
+        or proposed["accepted_predecessor_commit"] != _PC0_R8_BASE_COMMIT
+    ):
+        _fail("PC0-R8-AUTHORITY", "R8 schema/authority/base commit must match PCR")
+    files = proposed["files"]
+    if not isinstance(files, list) or len(files) != 3:
+        _fail("PC0-R8-SOURCE-COUNT", "exactly three files may be sealed")
+    current = {}
+    for row in files:
+        if not isinstance(row, dict) or set(row) != {
+            "path", "predecessor_sha256", "successor_sha256"
+        }:
+            _fail("PC0-R8-SOURCE-SHAPE", str(row))
+        relative = row["path"]
+        if (not isinstance(relative, str) or relative not in _PC0_R8_PREDECESSORS
+            or relative in current):
+            _fail("PC0-R8-SOURCE-PATH", str(relative))
+        if row["predecessor_sha256"] != _PC0_R8_PREDECESSORS[relative]:
+            _fail("PC0-R8-PREDECESSOR", relative)
+        digest = row["successor_sha256"]
+        if (not isinstance(digest, str) or len(digest) != 64
+            or any(ch not in "0123456789abcdef" for ch in digest)
+            or digest == row["predecessor_sha256"]
+            or not (root / relative).is_file()
+            or _source_sha256(root / relative) != digest):
+            _fail("PC0-R8-SUCCESSOR-CHANGED", relative)
+        current[relative] = digest
+    if set(current) != set(_PC0_R8_PREDECESSORS):
+        _fail("PC0-R8-SOURCE-PATH", "exactly three predecessor paths required")
+    return current
+
+
+def _pc0_r8_sealed_successor(
+    root: Path, path: str, registered_predecessor: str,
+) -> str | None:
+    if (
+        path not in _PC0_R8_H1B_PREDECESSORS
+        or registered_predecessor != _PC0_R8_H1B_PREDECESSORS[path]
+        or not (root / CONTRACT_DIRECTORY / _PC0_R8_SEAL_FILE).is_file()
+    ):
+        return None
+    return _validate_pc0_r8_successor_seal(root)[path]
+
+
+def _pc0_r7_sealed_successor(root: Path, path: str, registered_predecessor: str) -> str | None:
+    if (
+        path != "core/platform/architecture_contract.py"
+        or registered_predecessor != "5345e6655603ae89416568a4548dc798289f2b1702fe066cf51c29e90df64d7b"
+        or not (root / CONTRACT_DIRECTORY / _PC0_R7_SEAL_FILE).is_file()
+    ):
+        return None
+    return _validate_pc0_r7_validator_seal(root)
 
 
 def _pc0_r6_sealed_successor(
@@ -1984,6 +2189,10 @@ def validate_pc0(root: str | Path, validate_release: bool = True) -> dict[str, A
                 _fail("PC0-RELEASE-MANIFEST", item["path"])
             if replacement["successor_sha256"] != actual:
                 registered = _post_nce_resolved_hash(root_path, item["path"], replacement["successor_sha256"])
+                if registered != actual:
+                    registered = _pc0_r8_sealed_successor(root_path, item["path"],replacement["successor_sha256"])
+                if registered != actual:
+                    registered = _pc0_r7_sealed_successor(root_path, item["path"],replacement["successor_sha256"])
                 if registered != actual:
                     registered = _pc0_r6_sealed_successor(root_path, item["path"],replacement["successor_sha256"])
                 if registered != actual:

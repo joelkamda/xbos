@@ -53,6 +53,12 @@ class AuthMiddleware(BaseHTTPMiddleware):
         if bypass:
             return await call_next(request)
 
+        # Exact C2 discovery path delegates authentication to the route's
+        # server-validated browser-session v1 authority. Legacy middleware
+        # JWT acceptance and legacy error envelopes are not applicable here.
+        if path == "/kernel/platform/v1/pack-template-discovery":
+            return await call_next(request)
+
         # =====================================================
         # 2) REQUIRE AUTHORIZATION HEADER
         # =====================================================
