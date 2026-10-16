@@ -10,6 +10,7 @@ from sqlalchemy import create_engine, text
 
 DB_NAME = "xafpay_xbos_neutral_vn2_staging"
 DB_RESOURCE_ID = "dpg-db8u70favr4c73ccf5n0-a"
+PROVIDER_PRIVATE_HOST = DB_RESOURCE_ID
 REVISION = "browser_session_v1_051"
 COLUMNS = {"session_id", "user_id", "tenant_id", "branch_id", "created_at",
            "expires_at", "revoked_at", "revocation_reason", "current_refresh_jti",
@@ -34,14 +35,14 @@ def target_url(env=None):
         raise AdmissionDenied("VN2_TARGET_CONFIG_MISSING")
     # Host must be provisioned independently from exact Render private metadata.
     # Never derive an assumed hostname from the database ID or the URL itself.
-    if not host.strip() or host != host.strip():
+    if host != PROVIDER_PRIVATE_HOST:
         raise AdmissionDenied("VN2_PRIVATE_HOST_UNVERIFIED")
     try:
         p = urlsplit(raw)
         if (p.scheme not in ("postgresql", "postgresql+psycopg2")
-                or p.hostname != host or p.port != 5432
+                or p.hostname != host or (p.port if p.port is not None else 5432) != 5432
                 or unquote(p.path) != "/" + DB_NAME
-                or p.query or p.fragment or p.username is None or not p.password):
+                or p.query or p.fragment or not p.username or not p.password):
             raise AdmissionDenied("VN2_DATABASE_IDENTITY_MISMATCH")
     except (ValueError, TypeError) as exc:
         raise AdmissionDenied("VN2_DATABASE_URL_INVALID") from exc
@@ -107,7 +108,10 @@ def require_private_route(url):
         ("10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16",
          "100.64.0.0/10", "fc00::/7"))
     try:
-        answers = socket.getaddrinfo(parsed.hostname, parsed.port, type=socket.SOCK_STREAM)
+        answers = socket.getaddrinfo(
+            parsed.hostname, parsed.port if parsed.port is not None else 5432,
+            type=socket.SOCK_STREAM,
+        )
         addresses = [ipaddress.ip_address(item[4][0]) for item in answers]
     except (OSError, ValueError, TypeError) as exc:
         raise AdmissionDenied("VN2_PRIVATE_DNS_UNAVAILABLE") from exc
@@ -129,11 +133,27 @@ def check_database(url, ready=True):
         engine.dispose()
 
 
-def predeploy():
-    url = target_url()
-    security_config()
+def predeploy(env=None):
+    """Routine deploys verify only; bootstrap requires separate PCR authority.
+
+    Neither setting an environment flag nor passing these checks grants PCR authority.
+    An independently approved, single-operator bootstrap is still required.
+    """
+    env = os.environ if env is None else env
+    mode = env.get("XBOS_VN2_PREDEPLOY_MODE", "verify")
+    if mode not in ("verify", "bootstrap"):
+        raise AdmissionDenied("VN2_PREDEPLOY_MODE_INVALID")
+    if mode == "bootstrap" and env.get("XBOS_VN2_BOOTSTRAP_AUTHORIZED") != "true":
+        raise AdmissionDenied("VN2_BOOTSTRAP_AUTHORITY_MISSING")
+    url = target_url(env)
+    security_config(env)
+    if mode == "verify":
+        check_database(url, ready=True)
+        return
+    # Bootstrap fails on any existing object or unexpected session;
+    # after migration, a second bootstrap fails its empty-schema prestate.
     check_database(url, ready=False)
-    # One subprocess invocation, no retry. Database URL is inherited in-process.
+    # One Alembic subprocess only. No retry, downgrade, or repair.
     result = subprocess.run(
         [sys.executable, "-m", "alembic", "-c", "alembic.ini",
          "upgrade", REVISION], check=False, timeout=180, capture_output=True, text=True

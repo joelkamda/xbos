@@ -160,8 +160,8 @@ def test_database_readback_is_read_only(monkeypatch):
 
 def test_migration_failure_propagated_once(monkeypatch):
     calls = []
-    monkeypatch.setattr(pd, "target_url", lambda: "synthetic")
-    monkeypatch.setattr(pd, "security_config", lambda: None)
+    monkeypatch.setattr(pd, "target_url", lambda env=None: "synthetic")
+    monkeypatch.setattr(pd, "security_config", lambda env=None: None)
     monkeypatch.setattr(pd, "check_database",
                         lambda url, ready=True: calls.append(("readback", ready)))
     def fail(args, **kwargs):
@@ -169,22 +169,24 @@ def test_migration_failure_propagated_once(monkeypatch):
         return types.SimpleNamespace(returncode=42)
     monkeypatch.setattr(pd.subprocess, "run", fail)
     with pytest.raises(pd.AdmissionDenied, match="VN2_ALEMBIC_FAILED"):
-        pd.predeploy()
+        pd.predeploy({"XBOS_VN2_PREDEPLOY_MODE": "bootstrap",
+                      "XBOS_VN2_BOOTSTRAP_AUTHORIZED": "true"})
     assert [x[0] for x in calls] == ["readback", "alembic"]
     assert calls[1][1][-2:] == ("upgrade", pd.REVISION)
 
 
 def test_migration_success_readback(monkeypatch):
     sequence = []
-    monkeypatch.setattr(pd, "target_url", lambda: "synthetic")
-    monkeypatch.setattr(pd, "security_config", lambda: None)
+    monkeypatch.setattr(pd, "target_url", lambda env=None: "synthetic")
+    monkeypatch.setattr(pd, "security_config", lambda env=None: None)
     monkeypatch.setattr(pd, "check_database",
                         lambda url, ready=True: sequence.append(("check", ready)))
     def succeed(args, **kwargs):
         sequence.append(("upgrade", tuple(args)))
         return types.SimpleNamespace(returncode=0)
     monkeypatch.setattr(pd.subprocess, "run", succeed)
-    pd.predeploy()
+    pd.predeploy({"XBOS_VN2_PREDEPLOY_MODE": "bootstrap",
+                  "XBOS_VN2_BOOTSTRAP_AUTHORIZED": "true"})
     assert [x[0] for x in sequence] == ["check", "upgrade", "check"]
     assert sequence[0][1] is False and sequence[-1][1] is True
 
@@ -214,6 +216,7 @@ def test_unready_routes_denied_even_without_lifespan(monkeypatch, path):
 
 
 def test_database_unreachable_denies_even_after_delegate_cached(monkeypatch):
+    monkeypatch.setenv("XBOS_VN2_PUBLIC_RELEASE_AUTHORIZED", "true")
     async def fake(*args):
         raise AssertionError("Unready request reached application")
     monkeypatch.setattr(guard, "_delegate", fake)
@@ -233,6 +236,7 @@ def test_unready_websocket_rejected(monkeypatch):
 
 
 def test_ready_state_delegates_without_changing_original_app(monkeypatch):
+    monkeypatch.setenv("XBOS_VN2_PUBLIC_RELEASE_AUTHORIZED", "true")
     called = []
     async def fake(scope, receive, send):
         called.append(scope["path"])
@@ -279,3 +283,244 @@ def test_private_dns_resolution_failure_denied(monkeypatch):
     with pytest.raises(pd.AdmissionDenied):
         pd.require_private_route("postgresql://fake:fake@internal.example:5432/"
                                  + pd.DB_NAME)
+
+
+@pytest.mark.parametrize("explicit", [False, True])
+def test_provider_postgres_5432_port_variants(explicit):
+    env = valid_env()
+    port = ":5432" if explicit else ""
+    env["DATABASE_URL"] = (
+        f"postgresql://synthetic:fakepass@{pd.PROVIDER_PRIVATE_HOST}"
+        f"{port}/{pd.DB_NAME}"
+    )
+    assert pd.target_url(env) == env["DATABASE_URL"]
+
+
+@pytest.mark.parametrize("port", [":5433", ":5431", ":6543", ":0"])
+def test_unapproved_postgres_port_rejected(port):
+    env = valid_env()
+    env["DATABASE_URL"] = (
+        f"postgresql://synthetic:fakepass@{pd.PROVIDER_PRIVATE_HOST}"
+        f"{port}/{pd.DB_NAME}"
+    )
+    with pytest.raises(pd.AdmissionDenied):
+        pd.target_url(env)
+
+
+@pytest.mark.parametrize("url", [
+    "postgresql://synthetic:fakepass@public.example/xafpay_xbos_neutral_vn2_staging",
+    "postgresql://synthetic:fakepass@dpg-wrong/xafpay_xbos_neutral_vn2_staging",
+    f"postgresql://synthetic:fakepass@{pd.PROVIDER_PRIVATE_HOST}/wrong_database",
+    f"postgresql://synthetic@{pd.PROVIDER_PRIVATE_HOST}/{pd.DB_NAME}",
+    f"postgresql://:fakepass@{pd.PROVIDER_PRIVATE_HOST}/{pd.DB_NAME}",
+    f"mysql://synthetic:fakepass@{pd.PROVIDER_PRIVATE_HOST}/{pd.DB_NAME}",
+    f"postgresql://synthetic:fakepass@{pd.PROVIDER_PRIVATE_HOST}/{pd.DB_NAME}?sslmode=disable",
+    f"postgresql://synthetic:fakepass@{pd.PROVIDER_PRIVATE_HOST}/{pd.DB_NAME}#fragment",
+])
+def test_strict_database_url_rejects_invalid_components(url):
+    env = valid_env()
+    env["DATABASE_URL"] = url
+    with pytest.raises(pd.AdmissionDenied):
+        pd.target_url(env)
+
+
+def test_provider_host_expected_metadata_is_not_arbitrary():
+    env = valid_env()
+    env["XBOS_VN2_EXPECTED_PRIVATE_DB_HOST"] = "other.internal"
+    env["DATABASE_URL"] = (
+        f"postgresql://synthetic:fakepass@other.internal/{pd.DB_NAME}"
+    )
+    with pytest.raises(pd.AdmissionDenied, match="VN2_PRIVATE_HOST_UNVERIFIED"):
+        pd.target_url(env)
+
+
+@pytest.mark.parametrize("explicit", [False, True])
+def test_private_dns_resolves_effective_5432(monkeypatch, explicit):
+    requests = []
+    def fake_dns(host, port, **kwargs):
+        requests.append((host, port))
+        return [(None, None, None, None, ("10.2.3.4", port))]
+    monkeypatch.setattr(pd.socket, "getaddrinfo", fake_dns)
+    port = ":5432" if explicit else ""
+    pd.require_private_route(
+        f"postgresql://synthetic:fakepass@{pd.PROVIDER_PRIVATE_HOST}{port}/{pd.DB_NAME}"
+    )
+    assert requests == [(pd.PROVIDER_PRIVATE_HOST, 5432)]
+
+
+def test_verify_only_ready_schema_without_alembic(monkeypatch):
+    order = []
+    monkeypatch.setattr(pd, "target_url", lambda env=None: "synthetic")
+    monkeypatch.setattr(pd, "security_config", lambda env=None: order.append("secrets"))
+    monkeypatch.setattr(pd, "check_database",
+                        lambda url, ready=True: order.append(("read_only", ready)))
+    monkeypatch.setattr(pd.subprocess, "run",
+                        lambda *a, **k: (_ for _ in ()).throw(
+                            AssertionError("verify-only attempted alembic")))
+    pd.predeploy({})
+    assert order == ["secrets", ("read_only", True)]
+
+
+@pytest.mark.parametrize("unready", [
+    FakeConnection(tables=set()),
+    FakeConnection(tables={"alembic_version", "xbos_browser_sessions"},
+                   revision=["incomplete_revision"]),
+    FakeConnection(tables={"other_table"}),
+])
+def test_verify_only_rejects_empty_partial_unknown_schema(monkeypatch, unready):
+    monkeypatch.setattr(pd, "target_url", lambda env=None: "synthetic")
+    monkeypatch.setattr(pd, "security_config", lambda env=None: None)
+    monkeypatch.setattr(pd, "check_database",
+                        lambda url, ready=True: pd.check_schema(unready, ready))
+    monkeypatch.setattr(pd.subprocess, "run",
+                        lambda *a, **k: (_ for _ in ()).throw(
+                            AssertionError("alembic attempted")))
+    with pytest.raises(pd.AdmissionDenied):
+        pd.predeploy({})
+
+
+@pytest.mark.parametrize("mode,approval", [
+    ("bootstrap", None), ("bootstrap", ""), ("bootstrap", "false"),
+    ("bootstrap", "True"), ("bootstrap", "1"),
+    ("other", "true"), ("", "true"),
+])
+def test_bootstrap_requires_explicit_separate_gate(monkeypatch, mode, approval):
+    monkeypatch.setattr(pd, "target_url", lambda env=None: (_ for _ in ()).throw(
+        AssertionError("Unadmitted mode reached database configuration")))
+    env = {"XBOS_VN2_PREDEPLOY_MODE": mode}
+    if approval is not None:
+        env["XBOS_VN2_BOOTSTRAP_AUTHORIZED"] = approval
+    with pytest.raises(pd.AdmissionDenied):
+        pd.predeploy(env)
+
+
+def test_bootstrap_cannot_repeat_after_first_migration(monkeypatch):
+    state = {"migrated": False, "upgrades": 0}
+    monkeypatch.setattr(pd, "target_url", lambda env=None: "synthetic")
+    monkeypatch.setattr(pd, "security_config", lambda env=None: None)
+    def check(url, ready=True):
+        if ready:
+            assert state["migrated"]
+        elif state["migrated"]:
+            raise pd.AdmissionDenied("VN2_PRESTATE_NONEMPTY_OR_ACTIVE")
+    monkeypatch.setattr(pd, "check_database", check)
+    def upgrade(*args, **kwargs):
+        state["upgrades"] += 1
+        state["migrated"] = True
+        return types.SimpleNamespace(returncode=0)
+    monkeypatch.setattr(pd.subprocess, "run", upgrade)
+    bootstrap = {"XBOS_VN2_PREDEPLOY_MODE": "bootstrap",
+                 "XBOS_VN2_BOOTSTRAP_AUTHORIZED": "true"}
+    pd.predeploy(bootstrap)
+    with pytest.raises(pd.AdmissionDenied, match="VN2_PRESTATE_NONEMPTY_OR_ACTIVE"):
+        pd.predeploy(bootstrap)
+    assert state["upgrades"] == 1
+
+
+def test_bootstrap_rejects_partial_migration_without_upgrade(monkeypatch):
+    monkeypatch.setattr(pd, "target_url", lambda env=None: "synthetic")
+    monkeypatch.setattr(pd, "security_config", lambda env=None: None)
+    conn = FakeConnection(tables={"alembic_version"}, public_objects=1)
+    monkeypatch.setattr(pd, "check_database",
+                        lambda url, ready=True: pd.check_schema(conn, ready))
+    monkeypatch.setattr(pd.subprocess, "run",
+                        lambda *a, **k: (_ for _ in ()).throw(
+                            AssertionError("Unexpected second migration")))
+    with pytest.raises(pd.AdmissionDenied):
+        pd.predeploy({"XBOS_VN2_PREDEPLOY_MODE": "bootstrap",
+                      "XBOS_VN2_BOOTSTRAP_AUTHORIZED": "true"})
+
+
+@pytest.mark.parametrize("flag", [None, "", "false", "False", "TRUE", "1", "yes", "true "])
+@pytest.mark.parametrize("route", [
+    "/kernel/browser-session/v1/login",
+    "/kernel/browser-session/v1/continue",
+    "/kernel/platform/v1/pack-template-discovery",
+    "/kernel/checkout",
+    "/kernel/auth/me",
+])
+def test_public_release_default_denies_all_customer_routes(monkeypatch, flag, route):
+    if flag is None:
+        monkeypatch.delenv("XBOS_VN2_PUBLIC_RELEASE_AUTHORIZED", raising=False)
+    else:
+        monkeypatch.setenv("XBOS_VN2_PUBLIC_RELEASE_AUTHORIZED", flag)
+    monkeypatch.setattr(guard, "_delegate", None)
+    monkeypatch.setattr(guard, "check_database",
+                        lambda *args, **kwargs: (_ for _ in ()).throw(
+                            AssertionError("Denied customer route tried database access")))
+    monkeypatch.setattr(guard, "security_config",
+                        lambda: (_ for _ in ()).throw(
+                            AssertionError("Denied customer route reached application")))
+    result = asgi_call({"type": "http", "method": "POST", "path": route})
+    assert result[0]["status"] == 503
+    assert not any(k == b"set-cookie" for k, _ in result[0]["headers"])
+    assert guard._delegate is None
+
+
+@pytest.mark.parametrize("flag", [None, "false", "TRUE", "1"])
+def test_public_release_denial_websocket_1008(monkeypatch, flag):
+    if flag is None:
+        monkeypatch.delenv("XBOS_VN2_PUBLIC_RELEASE_AUTHORIZED", raising=False)
+    else:
+        monkeypatch.setenv("XBOS_VN2_PUBLIC_RELEASE_AUTHORIZED", flag)
+    monkeypatch.setattr(guard, "_delegate", None)
+    result = asgi_call({"type": "websocket", "path": "/kernel/browser-session/v1/login"})
+    assert result == [{"type": "websocket.close", "code": 1008}]
+    assert guard._delegate is None
+
+
+def test_ready_health_is_separate_from_public_release(monkeypatch):
+    monkeypatch.delenv("XBOS_VN2_PUBLIC_RELEASE_AUTHORIZED", raising=False)
+    monkeypatch.setattr(guard, "_delegate", None)
+    readbacks = []
+    monkeypatch.setattr(guard, "security_config", lambda: None)
+    monkeypatch.setattr(guard, "target_url", lambda: "synthetic")
+    monkeypatch.setattr(guard, "check_database",
+                        lambda url, ready=True: readbacks.append((url, ready)))
+    health = asgi_call({"type": "http", "method": "GET", "path": "/health"})
+    assert health[0]["status"] == 200
+    assert health[1]["body"] == b'{"status":"ready"}'
+    customer = asgi_call({"type": "http", "method": "POST",
+                          "path": "/kernel/browser-session/v1/login"})
+    assert customer[0]["status"] == 503
+    assert readbacks == [("synthetic", True)]
+    assert guard._delegate is None
+
+
+def test_unready_health_503_even_if_release_denied(monkeypatch):
+    monkeypatch.delenv("XBOS_VN2_PUBLIC_RELEASE_AUTHORIZED", raising=False)
+    monkeypatch.setattr(guard, "_delegate", None)
+    monkeypatch.setattr(guard, "security_config", lambda: None)
+    monkeypatch.setattr(guard, "target_url", lambda: "synthetic")
+    def unready(*a, **k):
+        raise pd.AdmissionDenied("synthetic-unready")
+    monkeypatch.setattr(guard, "check_database", unready)
+    result = asgi_call({"type": "http", "path": "/health"})
+    assert result[0]["status"] == 503
+    assert guard._delegate is None
+
+
+def test_exact_true_allows_delegation_only_after_readiness(monkeypatch):
+    monkeypatch.setenv("XBOS_VN2_PUBLIC_RELEASE_AUTHORIZED", "true")
+    called = []
+    async def app_delegate(scope, receive, send):
+        called.append(scope["path"])
+        await send({"type": "http.response.start", "status": 200, "headers": []})
+        await send({"type": "http.response.body", "body": b"synthetic"})
+    monkeypatch.setattr(guard, "_delegate", app_delegate)
+    monkeypatch.setattr(guard, "security_config", lambda: None)
+    monkeypatch.setattr(guard, "target_url", lambda: "synthetic")
+    monkeypatch.setattr(guard, "check_database", lambda url, ready=True: None)
+    path = "/kernel/browser-session/v1/login"
+    result = asgi_call({"type": "http", "path": path, "method": "POST"})
+    assert result[0]["status"] == 200
+    assert called == [path]
+
+
+def test_release_denial_no_generic_import_even_if_cached(monkeypatch):
+    monkeypatch.setenv("XBOS_VN2_PUBLIC_RELEASE_AUTHORIZED", "false")
+    async def fail_delegate(*a, **kw):
+        raise AssertionError("Denied traffic entered cached generic app")
+    monkeypatch.setattr(guard, "_delegate", fail_delegate)
+    result = asgi_call({"type": "http", "path": "/kernel/checkout"})
+    assert result[0]["status"] == 503
