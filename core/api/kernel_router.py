@@ -20,6 +20,7 @@ from core.rbac.roles.role_controller import router as roles_router
 # Payments & Receipts
 from core.api.payments.payments_router import router as payments_router
 from core.api.payments.receipts_router import router as receipts_router
+from core.api.payments.wnd_attestation_router import router as wnd_attestation_router
 
 # XAFPay Webhook Router
 from core.api.xafpay_webhook import router as xafpay_webhook_router
@@ -127,6 +128,13 @@ kernel_router.include_router(
     receipts_router,
     prefix="/payments",
     tags=["Receipts"],
+)
+
+# Purpose-bound WND credential attestation (source-only/default-deny).
+kernel_router.include_router(
+    wnd_attestation_router,
+    prefix="/payments",
+    tags=["XafPay Attestation"],
 )
 
 # XAFPay Webhook → /kernel/payments/xafpay/webhook

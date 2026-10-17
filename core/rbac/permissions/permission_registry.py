@@ -26,6 +26,11 @@ class PermissionRegistry:
             ("POST", "/kernel/sales/"): "sale.create",
 
             # ============================================================
+            # PURPOSE-BOUND XAFPAY ATTESTATION
+            # ============================================================
+            ("POST", "/kernel/payments/xafpay/attestation/execute"): "xafpay.attestation.execute",
+
+            # ============================================================
             # INVENTORY
             # ============================================================
             ("GET",  "/kernel/inventory/"): "inventory.view",

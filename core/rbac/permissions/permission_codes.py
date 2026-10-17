@@ -37,6 +37,10 @@ PAY_REFUND         = "payments.refund"
 PAY_CANCEL         = "payments.cancel"
 PAY_RECONCILE      = "payments.reconcile"
 
+# Purpose-bound credential attestation is deliberately separate from
+# payments.receive and from all wildcard/admin role semantics.
+XAFPAY_ATTESTATION_EXECUTE = "xafpay.attestation.execute"
+
 
 # ----------------------------
 # ACCOUNTING / TREASURY
