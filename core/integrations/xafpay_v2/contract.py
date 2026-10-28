@@ -103,6 +103,89 @@ class XafPayV2CheckoutRequest:
 
 
 @dataclass(frozen=True)
+class WndMerchantCheckoutRequest:
+    """Server-owned WND CheckoutSession request matching Gateway P0D contract."""
+
+    payment_attempt_public_id: UUID
+    amount: Decimal
+    currency_code: str
+    payment_method_code: str
+    payment_rail_code: str
+    tenant_id: int
+    wnd_merchant_public_id: UUID
+    wnd_order_public_id: UUID
+    wnd_location_public_id: UUID
+    wnd_order_revision: int
+    wnd_catalog_version: int
+
+    def __post_init__(self) -> None:
+        for name in (
+            "payment_attempt_public_id",
+            "wnd_merchant_public_id",
+            "wnd_order_public_id",
+            "wnd_location_public_id",
+        ):
+            object.__setattr__(self, name, UUID(str(getattr(self, name))))
+        object.__setattr__(self, "currency_code", str(self.currency_code).strip().upper())
+        object.__setattr__(
+            self, "payment_method_code", str(self.payment_method_code).strip().upper()
+        )
+        object.__setattr__(
+            self, "payment_rail_code", str(self.payment_rail_code).strip().upper()
+        )
+        if self.tenant_id <= 0:
+            raise XafPayV2IntegrationError(
+                "invalid_tenant", "WND hosted checkout tenant must be positive"
+            )
+        if self.wnd_order_revision <= 0 or self.wnd_catalog_version <= 0:
+            raise XafPayV2IntegrationError(
+                "invalid_wnd_version",
+                "WND order and catalog versions must be positive",
+            )
+        if self.currency_code != "XAF":
+            raise XafPayV2IntegrationError(
+                "unsupported_currency", "WND hosted checkout requires XAF"
+            )
+        _whole_xaf(self.amount)
+        if not re.fullmatch(r"[A-Z][A-Z0-9_]{1,63}", self.payment_method_code):
+            raise XafPayV2IntegrationError(
+                "invalid_method", "payment method code is invalid"
+            )
+        if not re.fullmatch(r"[A-Z][A-Z0-9_]{1,63}", self.payment_rail_code):
+            raise XafPayV2IntegrationError(
+                "invalid_rail", "payment rail code is invalid"
+            )
+
+    @property
+    def external_reference(self) -> str:
+        return f"wnd:order:{self.wnd_order_public_id}:r{self.wnd_order_revision}"
+
+    @property
+    def idempotency_key(self) -> str:
+        return f"wnd:checkout:{self.wnd_order_public_id}:r{self.wnd_order_revision}"
+
+    def body(self) -> dict[str, Any]:
+        return {
+            "external_reference": self.external_reference,
+            "amount": {"minor": _whole_xaf(self.amount), "currency": "XAF"},
+            "permitted_options": [
+                {"method": self.payment_method_code, "rail": self.payment_rail_code}
+            ],
+            "language": "fr",
+            "branding": {"profile": "default"},
+            "expires_in_seconds": 900,
+            "channel": "wnd.whatsapp",
+            "metadata": {
+                "tenant_id": self.tenant_id,
+                "wnd_merchant_public_id": str(self.wnd_merchant_public_id),
+                "wnd_order_public_id": str(self.wnd_order_public_id),
+                "wnd_location_public_id": str(self.wnd_location_public_id),
+                "wnd_order_revision": self.wnd_order_revision,
+                "wnd_catalog_version": self.wnd_catalog_version,
+            },
+        }
+
+@dataclass(frozen=True)
 class XafPayV2CheckoutResponse:
     checkout_session_id: str
     external_reference: str

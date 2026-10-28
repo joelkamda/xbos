@@ -554,3 +554,79 @@ async def cancel_customer_channel_order(
     except Exception:
         db.rollback()
         return _unexpected(trace)
+
+
+def _gateway_checkout_runtime(request: Request, trace: str, *, require_client: bool):
+    """Feature-disabled staging composition seam.
+
+    Deployment composition must inject request.app.state.wnd_gateway_checkout_runtime
+    with a verified nonsecret merchant binding and, for checkout creation, an
+    already-constructed Gateway client. The private route never reads credentials
+    from the customer request.
+    """
+
+    runtime = getattr(request.app.state, "wnd_gateway_checkout_runtime", None)
+    binding = getattr(runtime, "binding", None) if runtime is not None else None
+    client = getattr(runtime, "client", None) if runtime is not None else None
+    if binding is None or (require_client and client is None):
+        raise H1BError("PAYMENT_OPTIONS_UNAVAILABLE", correlation_ref=trace)
+    return binding, client
+
+
+@router.post("/orders/{order_ref}/gateway-checkout")
+async def create_gateway_checkout(
+    order_ref: UUID,
+    request: Request,
+    payload: dict[str, Any] = Body(...),
+    db: Session = Depends(get_db),
+):
+    trace = request.headers.get("X-Correlation-Ref")
+    try:
+        if set(payload) != {"selected_method"}:
+            raise H1BError("PAYMENT_OPTIONS_UNAVAILABLE", correlation_ref=trace)
+        service = RestaurantCustomerChannelCheckoutAuthority(db)
+        scope = _scope(service, request)
+        binding, client = _gateway_checkout_runtime(
+            request, scope.correlation_ref, require_client=True
+        )
+        result = service.create_gateway_checkout(
+            scope=scope,
+            order_ref=order_ref,
+            selected_method=str(payload["selected_method"]),
+            binding=binding,
+            client=client,
+        )
+        db.commit()
+        return result
+    except H1BError as exc:
+        db.rollback()
+        return _failure(exc)
+    except Exception:
+        db.rollback()
+        return _unexpected(trace)
+
+
+@router.get("/orders/{order_ref}/payment-status")
+async def read_gateway_payment_status(
+    order_ref: UUID,
+    request: Request,
+    db: Session = Depends(get_db),
+):
+    trace = request.headers.get("X-Correlation-Ref")
+    try:
+        service = RestaurantCustomerChannelCheckoutAuthority(db)
+        scope = _scope(service, request)
+        binding, _ = _gateway_checkout_runtime(
+            request, scope.correlation_ref, require_client=False
+        )
+        return service.gateway_payment_status(
+            scope=scope,
+            order_ref=order_ref,
+            binding=binding,
+        )
+    except H1BError as exc:
+        db.rollback()
+        return _failure(exc)
+    except Exception:
+        db.rollback()
+        return _unexpected(trace)

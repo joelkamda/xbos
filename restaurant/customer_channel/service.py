@@ -677,3 +677,80 @@ class RestaurantCustomerChannelCheckoutAuthority:
         if len(result) != 13:
             raise H1BError("UNKNOWN_PAYMENT_REQUEST_RESULT", correlation_ref=scope.correlation_ref)
         return result
+
+
+    def create_gateway_checkout(
+        self,
+        *,
+        scope: TrustedCheckoutScope,
+        order_ref: UUID,
+        selected_method: str,
+        binding,
+        client,
+    ) -> dict[str, Any]:
+        from .gateway_checkout_bridge import WNDGatewayCheckoutBridge
+
+        try:
+            return WNDGatewayCheckoutBridge.initiate(
+                self.session,
+                authority=self,
+                scope=scope,
+                order_ref=order_ref,
+                selected_method=selected_method,
+                binding=binding,
+                client=client,
+            )
+        except H1BError:
+            raise
+        except Exception as exc:
+            raise H1BError(
+                "PAYMENT_OPTIONS_UNAVAILABLE", correlation_ref=scope.correlation_ref
+            ) from exc
+
+    def gateway_payment_status(
+        self,
+        *,
+        scope: TrustedCheckoutScope,
+        order_ref: UUID,
+        binding,
+    ) -> dict[str, Any]:
+        from .gateway_checkout_bridge import WNDGatewayCheckoutBridge
+
+        try:
+            return WNDGatewayCheckoutBridge.status(
+                self.session,
+                authority=self,
+                scope=scope,
+                order_ref=order_ref,
+                binding=binding,
+            )
+        except H1BError:
+            raise
+        except Exception as exc:
+            raise H1BError(
+                "UNKNOWN_PAYMENT_REQUEST_RESULT", correlation_ref=scope.correlation_ref
+            ) from exc
+
+    def merchant_payment_reconciliation(
+        self,
+        *,
+        scope: TrustedCheckoutScope,
+        order_ref: UUID,
+        binding,
+    ) -> dict[str, Any]:
+        from .gateway_checkout_bridge import WNDGatewayCheckoutBridge
+
+        try:
+            return WNDGatewayCheckoutBridge.merchant_reconciliation(
+                self.session,
+                authority=self,
+                scope=scope,
+                order_ref=order_ref,
+                binding=binding,
+            )
+        except H1BError:
+            raise
+        except Exception as exc:
+            raise H1BError(
+                "UNKNOWN_PAYMENT_REQUEST_RESULT", correlation_ref=scope.correlation_ref
+            ) from exc
