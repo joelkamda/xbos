@@ -114,6 +114,14 @@ def create_app() -> FastAPI:
     from scripts.p0d_r5c_wnd_one_shot_auth_projection import register_startup_diagnostic
     register_startup_diagnostic(app)
 
+    # PCR V17 R5H: a separate, default-off, nonpublic catalog-only candidate.
+    # Local source qualification only. Hosted use requires a new CEO release.
+    from scripts.p0d_r5c_wnd_one_shot_auth_projection import (
+        register_r5h_hosted_catalog_diagnostic,
+    )
+
+    register_r5h_hosted_catalog_diagnostic(app)
+
     # Middleware (CORS FIRST)
     register_middlewares(app)
 

@@ -607,3 +607,517 @@ def register_startup_diagnostic(app) -> None:
     """Register exactly one nonpublic startup hook; never add an HTTP route."""
 
     app.add_event_handler("startup", run_startup_diagnostic)
+
+
+# R5F is deliberately NOT registered by register_startup_diagnostic().
+# It cannot use the application's default DB engine and is never hosted-executable
+# under the local-only provenance guard. R5C behavior above is unchanged.
+R5F_LOCAL_ENABLE = "XAFPAY_R5F_LOCAL_FAKE_METADATA_ENABLED"
+R5F_LOCAL_EXPIRES = "XAFPAY_R5F_LOCAL_FAKE_METADATA_EXPIRES_AT"
+R5F_MAX_TTL = timedelta(minutes=10)
+R5F_EXPECTED_COUNT = len(_REQUIRED_TABLES)
+
+# Exactly one parameterless catalog SELECT. Names are frozen, not constructed from
+# caller input. No SELECT of any target relation, tenant, order or credential data.
+_R5F_FIXED_CATALOG_SQL = """
+/* r5f:fixed-local-pg-catalog-metadata-only */
+WITH targets(name) AS (
+ VALUES ('tenants'), ('pa_merchants'), ('legacy_branch_structural_mappings'),
+ ('organization_units'), ('locations'), ('service_identities'),
+ ('scoped_role_assignments'), ('authorization_roles'),
+ ('authorization_role_permissions'), ('permission_definitions'),
+ ('ia0_interaction_context_bindings'),
+ ('restaurant_customer_catalog_read_bindings'),
+ ('r1_restaurant_service_modes')
+),
+roleinfo AS (
+ SELECT oid, rolsuper, rolbypassrls, rolcreaterole, rolcreatedb,
+        rolreplication, rolinherit
+ FROM pg_catalog.pg_roles WHERE rolname = current_user
+),
+relations AS (
+ SELECT t.name, c.oid, c.relowner, c.relrowsecurity, c.relforcerowsecurity,
+        COALESCE(pg_catalog.has_table_privilege(current_user,c.oid,'SELECT'),false)
+          AS can_select,
+        (COALESCE(pg_catalog.has_table_privilege(current_user,c.oid,'INSERT'),false)
+         OR COALESCE(pg_catalog.has_table_privilege(current_user,c.oid,'UPDATE'),false)
+         OR COALESCE(pg_catalog.has_table_privilege(current_user,c.oid,'DELETE'),false)
+         OR COALESCE(pg_catalog.has_table_privilege(current_user,c.oid,'TRUNCATE'),false)
+         OR COALESCE(pg_catalog.has_table_privilege(current_user,c.oid,'REFERENCES'),false)
+         OR COALESCE(pg_catalog.has_table_privilege(current_user,c.oid,'TRIGGER'),false))
+          AS can_write,
+        (SELECT count(*) FROM pg_catalog.pg_policy pol WHERE pol.polrelid=c.oid)
+          AS policy_count
+ FROM targets t
+ LEFT JOIN pg_catalog.pg_namespace n ON n.nspname='public'
+ LEFT JOIN pg_catalog.pg_class c ON c.relnamespace=n.oid
+    AND c.relname=t.name AND c.relkind IN ('r','p')
+),
+memberships AS (
+ SELECT count(*) AS direct_count
+ FROM pg_catalog.pg_auth_members m
+ WHERE m.member=(SELECT oid FROM roleinfo)
+),
+totals AS (
+ SELECT count(*) AS target_count,
+        count(*) FILTER (WHERE oid IS NULL) AS missing_count,
+        count(*) FILTER (WHERE relowner=(SELECT oid FROM roleinfo)) AS owned_count,
+        count(*) FILTER (WHERE can_select) AS select_count,
+        count(*) FILTER (WHERE can_write) AS write_count,
+        count(*) FILTER (WHERE relrowsecurity IS TRUE) AS rls_count,
+        count(*) FILTER (WHERE relforcerowsecurity IS TRUE) AS force_rls_count,
+        COALESCE(sum(policy_count),0)::bigint AS policy_count
+ FROM relations
+)
+SELECT
+  current_user = session_user AS session_identity_match,
+  EXISTS (SELECT 1 FROM roleinfo) AS role_exists,
+  COALESCE((SELECT rolsuper FROM roleinfo),true) AS is_super,
+  COALESCE((SELECT rolbypassrls FROM roleinfo),true) AS bypass_rls,
+  COALESCE((SELECT rolcreaterole FROM roleinfo),true) AS create_role,
+  COALESCE((SELECT rolcreatedb FROM roleinfo),true) AS create_db_role,
+  COALESCE((SELECT rolreplication FROM roleinfo),true) AS replicate,
+  COALESCE((SELECT rolinherit FROM roleinfo),true) AS inherits,
+  pg_catalog.has_database_privilege(current_user,current_database(),'CREATE')
+     AS database_create,
+  pg_catalog.has_schema_privilege(current_user,'public','CREATE')
+     AS schema_create,
+  (SELECT count(*) FROM pg_catalog.pg_database d
+    WHERE d.datname=current_database() AND d.datdba=(SELECT oid FROM roleinfo))
+     AS owned_database_count,
+  (SELECT count(*) FROM pg_catalog.pg_namespace n
+    WHERE n.nspname='public' AND n.nspowner=(SELECT oid FROM roleinfo))
+     AS owned_schema_count,
+  memberships.direct_count AS direct_memberships,
+  totals.target_count, totals.missing_count, totals.owned_count,
+  totals.select_count, totals.write_count, totals.rls_count,
+  totals.force_rls_count, totals.policy_count
+FROM memberships CROSS JOIN totals
+"""
+
+_R5F_COUNTER_KEYS = (
+    "direct_memberships", "target_count", "missing_count", "owned_count",
+    "select_count", "write_count", "rls_count", "force_rls_count",
+    "policy_count", "owned_database_count", "owned_schema_count",
+)
+_R5F_BOOLEAN_KEYS = (
+    "session_identity_match", "role_exists", "is_super", "bypass_rls",
+    "create_role", "create_db_role", "replicate", "inherits",
+    "database_create", "schema_create",
+)
+
+
+def r5f_local_gate(
+    engine: Any,
+    *,
+    environ: Mapping[str, str] | None,
+    now: datetime,
+) -> str:
+    """Fail before DB connection unless explicitly isolated localhost fake PG17."""
+    if environ is None or environ.get(R5F_LOCAL_ENABLE) != "1":
+        return "DISABLED"
+    expiry = _parse_expiry(environ.get(R5F_LOCAL_EXPIRES))
+    if expiry is None or not now < expiry <= now + R5F_MAX_TTL:
+        return "HOLD_EXPIRED"
+    if any(
+        environ.get(key)
+        for key in (
+            "RENDER", "RENDER_SERVICE_ID", "RENDER_EXTERNAL_HOSTNAME",
+            "DATABASE_URL", "RENDER_POSTGRESQL_URL", "PGHOST",
+        )
+    ):
+        return "HOLD_HOSTED_CONTEXT"
+    url = getattr(engine, "url", None)
+    if (
+        url is None
+        or getattr(url, "drivername", "") not in
+            ("postgresql", "postgresql+psycopg2", "postgresql+psycopg")
+        or getattr(url, "host", "") != "127.0.0.1"
+        or not isinstance(getattr(url, "port", None), int)
+        or getattr(url, "port", None) in (5432, 8001)
+        or not (1024 <= getattr(url, "port", 0) <= 65535)
+        or not str(getattr(url, "database", "")).startswith("r5f_fixture_")
+        or not str(getattr(url, "username", "")).startswith("r5f_")
+        or getattr(url, "password", None) is not None
+    ):
+        return "HOLD_NONLOCAL_ENGINE"
+    return "PASS"
+
+
+def run_r5f_local_metadata(
+    engine: Any,
+    *,
+    environ: Mapping[str, str] | None = None,
+    now: datetime | None = None,
+) -> dict[str, str | int]:
+    """One local fake-only catalog SELECT; no startup registration or logging.
+
+    Never call from the deployed WND application. This is NOT an admitted
+    hosted writer exception, hosted reader, or tenant-isolation proof.
+    """
+    at = (now or _utc_now()).astimezone(timezone.utc)
+    result: dict[str, str | int] = {
+        "generation": "p0d-r5f-local-r0",
+        "gate": r5f_local_gate(engine, environ=environ, now=at),
+        "metadata": "NOT_RUN",
+        "reader": "HOLD_UNPROVEN",
+        "tenant_isolation": "HOLD_UNPROVEN",
+    }
+    if result["gate"] != "PASS":
+        return result
+
+    transaction = None
+    try:
+        with engine.connect() as connection:
+            transaction = connection.begin()
+            connection.execute(text("SET TRANSACTION READ ONLY"))
+            connection.execute(text("SET LOCAL statement_timeout='2000ms'"))
+            connection.execute(text("SET LOCAL lock_timeout='500ms'"))
+            connection.execute(text("SET LOCAL idle_in_transaction_session_timeout='3000ms'"))
+            row = connection.execute(text(_R5F_FIXED_CATALOG_SQL)).mappings().one()
+            counts: dict[str, int] = {}
+            for key in _R5F_COUNTER_KEYS:
+                value = row[key]
+                if type(value) is not int or not 0 <= value <= 100:
+                    raise ProjectionHold("HOLD_OUTPUT_BOUNDS")
+                counts[key] = value
+            flags: dict[str, bool] = {}
+            for key in _R5F_BOOLEAN_KEYS:
+                if type(row[key]) is not bool:
+                    raise ProjectionHold("HOLD_OUTPUT_BOUNDS")
+                flags[key] = row[key]
+            if (
+                counts["target_count"] != R5F_EXPECTED_COUNT
+                or counts["missing_count"] > R5F_EXPECTED_COUNT
+                or any(
+                    counts[key] > R5F_EXPECTED_COUNT
+                    for key in (
+                        "owned_count", "select_count", "write_count",
+                        "rls_count", "force_rls_count",
+                    )
+                )
+            ):
+                raise ProjectionHold("HOLD_SCHEMA_BOUNDS")
+
+            result["metadata"] = "PASS" if counts["missing_count"] == 0 else "HOLD_SCHEMA"
+            result["target_count"] = counts["target_count"]
+            result["missing_count"] = counts["missing_count"]
+            result["direct_memberships"] = counts["direct_memberships"]
+            result["select_count"] = counts["select_count"]
+            result["write_count"] = counts["write_count"]
+            result["owned_count"] = counts["owned_count"]
+            result["rls_count"] = counts["rls_count"]
+            result["force_rls_count"] = counts["force_rls_count"]
+            result["policy_count"] = counts["policy_count"]
+            overbroad = (
+                not flags["session_identity_match"]
+                or not flags["role_exists"]
+                or any(
+                    flags[key]
+                    for key in (
+                        "is_super", "bypass_rls", "create_role",
+                        "create_db_role", "replicate", "database_create",
+                        "schema_create",
+                    )
+                )
+                or counts["direct_memberships"] > 0
+                or counts["owned_database_count"] > 0
+                or counts["owned_schema_count"] > 0
+                or counts["owned_count"] > 0
+                or counts["write_count"] > 0
+            )
+            if counts["missing_count"]:
+                result["reader"] = "HOLD_SCHEMA"
+            elif overbroad:
+                result["reader"] = "HOLD_OVERBROAD_READER"
+            elif counts["select_count"]:
+                result["reader"] = "HOLD_BROAD_BASE_SELECT"
+            else:
+                result["reader"] = "PASS_CATALOG_ONLY_NO_BASE_SELECT"
+            # Catalog flags are never evidence of server-side 910001 isolation.
+            return result
+    except ProjectionHold as exc:
+        result["metadata"] = str(exc)
+        return result
+    except Exception:  # noqa: BLE001 - never expose DB errors/values.
+        result["metadata"] = "HOLD_DATABASE_FAILURE"
+        return result
+    finally:
+        if transaction is not None and getattr(transaction, "is_active", True):
+            try:
+                transaction.rollback()
+            except Exception:  # noqa: BLE001 - fail closed even on cleanup failure.
+                result["metadata"] = "HOLD_CLEANUP_FAILURE"
+                result["reader"] = "HOLD_UNPROVEN"
+
+
+# PCR V17 R5H: distinct, INERT-by-default hosted source-only candidate.
+# This is NEVER an approval to publish, to use the existing application writer,
+# or to perform a protected database read. R5C and R5F remain intact.
+R5H_ENABLE_ENV = "XAFPAY_R5H_WND_CATALOG_ENABLED"
+R5H_EXPIRES_ENV = "XAFPAY_R5H_WND_CATALOG_EXPIRES_AT"
+R5H_APPROVED_SHA_ENV = "XAFPAY_R5H_WND_CATALOG_APPROVED_SOURCE_SHA"
+R5H_EVENT_ENV = "XAFPAY_R5H_WND_CATALOG_RELEASE_EVENT"
+R5H_INSTANCE_SERVICE_ENV = "XAFPAY_R5H_WND_CATALOG_APPROVED_SERVICE_ID"
+R5H_MAX_TTL = timedelta(minutes=10)
+R5H_EXPECTED_REGION = "frankfurt"
+_R5H_LOCK = threading.Lock()
+_R5H_CLAIMED = False
+_R5H_LOGGER = logging.getLogger("xbos.p0d_r5h")
+
+# A single constant, typed, bounded identity probe. Only these preapproved
+# string parameters, never caller-controlled SQL, relation names or tenant IDs.
+_R5H_IDENTITY_SQL = """
+/* r5h:identity */
+SELECT
+  current_database() = :approved_database AS database_ok,
+  current_user = :approved_principal AS current_user_ok,
+  session_user = :approved_principal AS session_user_ok
+"""
+
+
+def _r5h_gate(environment: Mapping[str, str], now: datetime) -> str:
+    if str(environment.get(R5H_ENABLE_ENV, "")).strip() != "1":
+        if not environment.get(R5H_ENABLE_ENV):
+            return "DISABLED"
+        return "HOLD_ENABLE_INVALID"
+
+    expiry = _parse_expiry(environment.get(R5H_EXPIRES_ENV))
+    if expiry is None or not now < expiry <= now + R5H_MAX_TTL:
+        return "HOLD_EXPIRED_OR_OVERSCOPED"
+
+    expected = {
+        "RENDER": "true",
+        "RENDER_SERVICE_ID": EXPECTED_RENDER_SERVICE_ID,
+        "RENDER_SERVICE_TYPE": "web",
+        "RENDER_EXTERNAL_HOSTNAME": EXPECTED_RENDER_HOST,
+        "RENDER_GIT_BRANCH": EXPECTED_RENDER_BRANCH,
+        "RENDER_REGION": R5H_EXPECTED_REGION,
+    }
+    for key, expected_value in expected.items():
+        if str(environment.get(key, "")).strip() != expected_value:
+            return "HOLD_RUNTIME_ATTESTATION"
+
+    deployed_sha = str(environment.get("RENDER_GIT_COMMIT", "")).strip().lower()
+    admitted_sha = str(environment.get(R5H_APPROVED_SHA_ENV, "")).strip().lower()
+    if (
+        len(deployed_sha) != 40
+        or any(char not in "0123456789abcdef" for char in deployed_sha)
+        or deployed_sha != admitted_sha
+    ):
+        return "HOLD_SOURCE_ATTESTATION"
+
+    release_event = str(environment.get(R5H_EVENT_ENV, "")).strip()
+    if (
+        len(release_event) != 16
+        or any(char not in "0123456789abcdefABCDEF" for char in release_event)
+    ):
+        return "HOLD_RELEASE_EVENT"
+
+    # A process-local guard alone is NOT a distributed execution lease:
+    # release custody must independently verify this running instance and
+    # permit exactly one startup. No fallback if the identity is unavailable.
+    runtime_instance = str(environment.get("HOSTNAME", "")).strip()
+    approved_service = str(environment.get(R5H_INSTANCE_SERVICE_ENV, "")).strip()
+    if (
+        approved_service != EXPECTED_RENDER_SERVICE_ID
+        or not runtime_instance.startswith(EXPECTED_RENDER_SERVICE_ID + "-")
+        or not 8 <= len(runtime_instance) <= 96
+        or any(not (c.isalnum() or c == "-") for c in runtime_instance)
+        or os.getpid() <= 0
+    ):
+        return "HOLD_INSTANCE_ATTESTATION"
+
+    # Explicit rejection of accidental concurrent reactivation of R5C.
+    if str(environment.get(ENABLE_ENV, "")).strip() == "1":
+        return "HOLD_R5C_CONFLICT"
+    return "PASS"
+
+
+def _r5h_claim_once() -> bool:
+    global _R5H_CLAIMED
+    with _R5H_LOCK:
+        if _R5H_CLAIMED:
+            return False
+        _R5H_CLAIMED = True
+        return True
+
+
+def _r5h_result(gate: str) -> dict[str, str | int]:
+    return {
+        "generation": "p0d-r5h-catalog-r0",
+        "gate": gate,
+        "identity": "NOT_RUN",
+        "metadata": "NOT_RUN",
+        "reader": "HOLD_UNPROVEN",
+        "tenant_isolation": "HOLD_UNPROVEN",
+    }
+
+
+def _r5h_bounded_catalog(row: Mapping[str, Any]) -> dict[str, str | int]:
+    """Only approved booleans and 0..100 metadata counts, never source rows."""
+    counts: dict[str, int] = {}
+    for key in _R5F_COUNTER_KEYS:
+        value = row[key]
+        if type(value) is not int or not 0 <= value <= 100:
+            raise ProjectionHold("HOLD_OUTPUT_BOUNDS")
+        counts[key] = value
+    flags: dict[str, bool] = {}
+    for key in _R5F_BOOLEAN_KEYS:
+        if type(row[key]) is not bool:
+            raise ProjectionHold("HOLD_OUTPUT_BOUNDS")
+        flags[key] = row[key]
+    if (
+        counts["target_count"] != R5F_EXPECTED_COUNT
+        or any(
+            counts[key] > R5F_EXPECTED_COUNT
+            for key in (
+                "missing_count", "owned_count", "select_count",
+                "write_count", "rls_count", "force_rls_count",
+            )
+        )
+    ):
+        raise ProjectionHold("HOLD_SCHEMA_BOUNDS")
+    if counts["missing_count"] > 0:
+        return {"metadata": "HOLD_SCHEMA", "reader": "HOLD_UNPROVEN"}
+
+    overbroad = (
+        not flags["session_identity_match"]
+        or not flags["role_exists"]
+        or any(
+            flags[key]
+            for key in (
+                "is_super", "bypass_rls", "create_role", "create_db_role",
+                "replicate", "database_create", "schema_create",
+            )
+        )
+        or counts["owned_database_count"] > 0
+        or counts["owned_schema_count"] > 0
+        or counts["owned_count"] > 0
+        or counts["write_count"] > 0
+        or counts["direct_memberships"] > 0
+    )
+    if overbroad:
+        reader = "HOLD_OVERBROAD_READER"
+    elif counts["select_count"] > 0:
+        reader = "HOLD_BROAD_BASE_SELECT"
+    else:
+        reader = "PASS_CATALOG_ONLY_NO_BASE_SELECT"
+
+    return {
+        "metadata": "PASS",
+        "reader": reader,
+        "target_count": counts["target_count"],
+        "missing_count": counts["missing_count"],
+        "direct_memberships": counts["direct_memberships"],
+        "select_count": counts["select_count"],
+        "write_count": counts["write_count"],
+        "owned_count": counts["owned_count"],
+        "rls_count": counts["rls_count"],
+        "force_rls_count": counts["force_rls_count"],
+        "policy_count": counts["policy_count"],
+    }
+
+
+def run_r5h_hosted_catalog(
+    engine: Any,
+    *,
+    environ: Mapping[str, str] | None = None,
+    now: datetime | None = None,
+) -> dict[str, str | int]:
+    """Nonpublic metadata ONLY, with independent admission and no tenant reads.
+
+    This is a future source candidate, not authorization to run on Render.
+    """
+    environment = os.environ if environ is None else environ
+    at = (now or _utc_now()).astimezone(timezone.utc)
+    result = _r5h_result(_r5h_gate(environment, at))
+    if result["gate"] != "PASS":
+        return result
+
+    # Claim even if the connection fails: no automatic retry after a
+    # partial startup, cancellation or failure.
+    if not _r5h_claim_once():
+        result["gate"] = "HOLD_ALREADY_EXECUTED"
+        return result
+
+    transaction = None
+    try:
+        with engine.connect() as connection:
+            transaction = connection.begin()
+            connection.execute(text("SET TRANSACTION READ ONLY"))
+            connection.execute(text("SET LOCAL statement_timeout='2000ms'"))
+            connection.execute(text("SET LOCAL lock_timeout='500ms'"))
+            connection.execute(
+                text("SET LOCAL idle_in_transaction_session_timeout='3000ms'")
+            )
+            identity = connection.execute(
+                text(_R5H_IDENTITY_SQL),
+                {
+                    "approved_database": EXPECTED_DATABASE,
+                    "approved_principal": EXPECTED_DATABASE_USER,
+                },
+            ).mappings().one()
+            if not all(
+                type(identity.get(key)) is bool and identity[key]
+                for key in ("database_ok", "current_user_ok", "session_user_ok")
+            ):
+                result["identity"] = "HOLD_DB_IDENTITY"
+                return result
+            result["identity"] = "PASS"
+            catalog = connection.execute(
+                text(_R5F_FIXED_CATALOG_SQL)
+            ).mappings().one()
+            result.update(_r5h_bounded_catalog(catalog))
+            return result
+    except ProjectionHold as exc:
+        result["metadata"] = str(exc)
+        return result
+    except Exception:  # noqa: BLE001 - no DB errors/secrets in status or logs.
+        result["metadata"] = "HOLD_DATABASE_FAILURE"
+        return result
+    finally:
+        if transaction is not None and getattr(transaction, "is_active", True):
+            try:
+                transaction.rollback()
+            except Exception:  # noqa: BLE001 - never hide rollback failure.
+                result["metadata"] = "HOLD_CLEANUP_FAILURE"
+                result["reader"] = "HOLD_UNPROVEN"
+
+
+def run_r5h_hosted_startup_diagnostic() -> None:
+    """Only registered startup path; off by default, no HTTP route.
+
+    An operator cannot infer CEO admission from these environment controls.
+    Effective authorization, exact deployments, instance custody and any
+    application-principal exception require separate CEO issuance.
+    """
+    now = _utc_now()
+    environment = os.environ
+    gate = _r5h_gate(environment, now)
+    if gate != "PASS":
+        return
+    try:
+        from database import engine as application_engine
+
+        result = run_r5h_hosted_catalog(
+            application_engine, environ=environment, now=now
+        )
+    except Exception:  # noqa: BLE001
+        result = _r5h_result("PASS")
+        result["metadata"] = "HOLD_DATABASE_FAILURE"
+
+    # Never include database identifiers, raw rows, SQL exceptions, DSNs,
+    # runtime environment variables, PII, secrets or financial values.
+    allowed = ("generation", "gate", "identity", "metadata",
+               "reader", "tenant_isolation")
+    safe = {key: str(result[key]) for key in allowed}
+    _R5H_LOGGER.warning(
+        "P0D_R5H_WND_HOSTED_CATALOG %s",
+        json.dumps(safe, sort_keys=True, separators=(",", ":")),
+    )
+
+
+def register_r5h_hosted_catalog_diagnostic(app) -> None:
+    """Separate startup registration, no tenant route or publication."""
+    app.add_event_handler("startup", run_r5h_hosted_startup_diagnostic)
