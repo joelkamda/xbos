@@ -110,6 +110,10 @@ def create_app() -> FastAPI:
     # provisioning establishes data; importing main:app must require neither.
     validate_permissions()
 
+    # PCR V16 P0D R5C: default-off, nonpublic one-shot startup diagnostic.
+    from scripts.p0d_r5c_wnd_one_shot_auth_projection import register_startup_diagnostic
+    register_startup_diagnostic(app)
+
     # Middleware (CORS FIRST)
     register_middlewares(app)
 
