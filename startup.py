@@ -103,7 +103,7 @@ def register_routes(app: FastAPI):
 # ============================================================
 # 6) MAIN APPLICATION FACTORY
 # ============================================================
-def create_app() -> FastAPI:
+def create_app(*, gateway_runtime_admission=None) -> FastAPI:
     app = FastAPI(title="XBOS Kernel")
 
     # Pure contract validation only. Alembic installs schema and explicit
@@ -121,6 +121,18 @@ def create_app() -> FastAPI:
     )
 
     register_r5h_hosted_catalog_diagnostic(app)
+
+    # SWES B2: TEST-only, default-off; requires independently attested B1
+    # merchant/service/Gateway evidence, never environment-only binding.
+    import os
+
+    from restaurant.customer_channel.swes_staging_checkout_runtime import (
+        install_staging_checkout_runtime,
+    )
+
+    install_staging_checkout_runtime(
+        app, admission=gateway_runtime_admission, environ=os.environ
+    )
 
     # Middleware (CORS FIRST)
     register_middlewares(app)
