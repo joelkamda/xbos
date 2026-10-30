@@ -156,3 +156,66 @@ def test_source_faithful_pg17_atomic_bootstrap(disposable_url, monkeypatch):
             assert row.amount == 1000
     finally:
         eng.dispose()
+
+def test_swes_r3_menu_disposable_pg17_atomic_and_duplicate(disposable_url, monkeypatch):
+    from scripts import swes_r3_wnd_test_menu_publish as menu
+
+    initial = target.execute(disposable_url, "dry-run", hosted=False)
+    if all(n == 0 for n in initial["before"].values()):
+        target.execute(disposable_url, "apply", hosted=False)
+    else:
+        assert initial["before"]["tenants"] == 1
+        assert initial["before"]["so1_catalog_entries"] == 1
+
+    before = menu.publish(disposable_url, apply=False, hosted=False)
+    assert before["before"] == {
+        "r2_restaurant_menu_sections": 0,
+        "r2_restaurant_menu_section_entries": 0,
+    }
+    original = menu.create_engine
+    instrumented = original(disposable_url)
+
+    def injected_failure(_conn, _cur, sql, _params, _ctx, _many):
+        if "INSERT INTO public.r2_restaurant_menu_section_entries" in sql:
+            raise RuntimeError("SWES_R3_DISPOSABLE_TEST_ROLLBACK")
+
+    event.listen(instrumented, "before_cursor_execute", injected_failure)
+    try:
+        with monkeypatch.context() as patch:
+            patch.setattr(menu, "create_engine", lambda *_a, **_kw: instrumented)
+            with pytest.raises(RuntimeError, match="TEST_ROLLBACK"):
+                menu.publish(disposable_url, apply=True, hosted=False)
+    finally:
+        event.remove(instrumented, "before_cursor_execute", injected_failure)
+        instrumented.dispose()
+
+    assert menu.publish(disposable_url, apply=False, hosted=False)["before"] == before["before"]
+    created = menu.publish(disposable_url, apply=True, hosted=False)
+    assert created["after"] == {
+        "r2_restaurant_menu_sections": 1,
+        "r2_restaurant_menu_section_entries": 1,
+    }
+    with pytest.raises(RuntimeError, match="MENU_ALREADY_PRESENT"):
+        menu.publish(disposable_url, apply=True, hosted=False)
+
+    engine = original(disposable_url)
+    try:
+        with engine.connect() as c:
+            menu_current = c.execute(text("""
+                SELECT count(*)
+                FROM public.r2_restaurant_menu_sections s
+                JOIN public.r2_restaurant_menu_section_entries x
+                  ON x.tenant_id=s.tenant_id AND x.section_id=s.id
+                JOIN public.so1_catalogs cat
+                  ON cat.tenant_id=s.tenant_id AND cat.id=s.catalog_id
+                WHERE s.tenant_id=:t AND cat.public_id=CAST(:catalog AS uuid)
+                  AND x.catalog_entry_public_id=CAST(:entry AS uuid)
+                  AND s.active AND s.effective_from<=now()
+                  AND x.effective_from<=now()
+            """), {
+                "t": target.TENANT, "catalog": menu.CATALOG,
+                "entry": menu.ENTRY,
+            }).scalar_one()
+            assert menu_current == 1
+    finally:
+        engine.dispose()
