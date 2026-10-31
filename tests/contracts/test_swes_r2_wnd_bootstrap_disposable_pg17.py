@@ -769,3 +769,165 @@ def test_swes_r4_pa_owner_preflight_readonly_on_disposable_pg17(disposable_url):
     assert result["real_PC1_PK_PC4_PC5_readiness_proven"] is False
     assert result["secrets_or_protected_values_read"] is False
     assert result["database_writes"] is False
+
+
+def test_swes_wnd36_real_pg17_cc_catalog_resolution_and_denials(
+    disposable_url, monkeypatch,
+):
+    """Use accepted CC adapters with actual SO1/R2 tables; no hosted auth."""
+    from dataclasses import replace
+    from datetime import datetime, timezone
+    from decimal import Decimal
+    from uuid import NAMESPACE_URL, uuid5
+
+    from sqlalchemy.orm import Session
+
+    monkeypatch.setenv("DATABASE_URL", disposable_url)
+    from restaurant.customer_channel.contracts import H1BError, TrustedCheckoutScope
+    from restaurant.customer_channel.draft_order import (
+        CustomerChannelDraftOrderAuthority,
+    )
+    from scripts import swes_r3_wnd_test_menu_publish as menu
+    from scripts import swes_r4_wnd_phase1_bundle as bundle
+    from shared_operations.so1.contracts import ScopeType
+
+    first = target.execute(disposable_url, "dry-run", hosted=False)
+    if first["before"]["tenants"] == 0:
+        target.execute(disposable_url, "apply", hosted=False)
+    menu_state = menu.publish(disposable_url, apply=False, hosted=False)
+    if menu_state["before"]["r2_restaurant_menu_sections"] == 0:
+        menu.publish(disposable_url, apply=True, hosted=False)
+
+    engine = create_engine(disposable_url)
+    try:
+        with engine.connect() as conn:
+            binding = conn.execute(text("""
+                SELECT location_id,scope_type,scope_id,row_version
+                FROM public.restaurant_customer_catalog_read_bindings
+                WHERE tenant_id=:t
+            """), {"t": target.TENANT}).mappings().one()
+        if binding["scope_type"] == "tenant":
+            bundle.execute(disposable_url, apply=True, hosted=False)
+
+        with Session(engine) as session:
+            row = session.execute(text("""
+                SELECT b.id AS branch_id,ou.id AS organization_unit_id,
+                       l.id AS location_id
+                FROM public.branches b
+                JOIN public.organization_units ou ON ou.tenant_id=b.tenant_id
+                JOIN public.locations l ON l.tenant_id=b.tenant_id
+                WHERE b.tenant_id=:t LIMIT 1
+            """), {"t": target.TENANT}).mappings().one()
+            scope = TrustedCheckoutScope(
+                tenant_id=target.TENANT,
+                branch_id=row["branch_id"],
+                organization_unit_id=row["organization_unit_id"],
+                location_id=row["location_id"],
+                merchant_public_id=target.IDS["merchant"],
+                context_binding_public_id=uuid5(NAMESPACE_URL, "swes:test:context"),
+                service_identity_public_id=uuid5(NAMESPACE_URL, "swes:test:cc"),
+                currency="XAF",
+                correlation_ref="swes-wnd36-pg17",
+            )
+            authority = CustomerChannelDraftOrderAuthority(session)
+            now = datetime.now(timezone.utc)
+            resolved = authority._binding_for_scope(scope, at=now)
+            assert resolved.price_code == "swes-retail"
+            assert resolved.scope_type == "location"
+            assert resolved.scope_id == scope.location_id
+            assert resolved.binding_version >= 2
+            assert resolved.catalog_public_id == target.IDS["catalog"]
+
+            def line(**kw):
+                arguments = {
+                    "scope": scope,
+                    "catalog_entry_ref": target.IDS["entry"],
+                    "quantity": Decimal(1),
+                    "option_refs": (),
+                    "at": now,
+                    "currency": "XAF",
+                    "catalog_public_id": resolved.catalog_public_id,
+                    "price_code": resolved.price_code,
+                    "price_scope_type": ScopeType.LOCATION,
+                    "price_scope_id": scope.location_id,
+                }
+                arguments.update(kw)
+                return authority.adapters.resolve_item_line(**arguments)
+
+            item = line()
+            assert item.catalog_entry_ref == target.IDS["entry"]
+            assert item.price_ref == target.IDS["price"]
+            assert item.unit_price == Decimal(1000)
+            assert item.total == Decimal(1000)
+            assert item.currency == "XAF"
+            assert item.price_version == 1
+
+            with pytest.raises(H1BError) as bad_code:
+                line(price_code="retail")
+            assert bad_code.value.code == "ORDER_NOT_READY"
+            with pytest.raises(H1BError) as bad_currency:
+                line(currency="USD")
+            assert bad_currency.value.code == "ORDER_NOT_READY"
+            with pytest.raises(H1BError) as bad_catalog:
+                line(catalog_public_id=uuid5(NAMESPACE_URL, "wrong:catalog"))
+            assert bad_catalog.value.code == "ORDER_NOT_READY"
+            with pytest.raises(H1BError) as wrong_merchant:
+                authority._binding_for_scope(
+                    replace(scope, merchant_public_id=uuid5(NAMESPACE_URL,"wrong:merchant")),
+                    at=now,
+                )
+            assert wrong_merchant.value.code in {"ORDER_NOT_READY", "CONTEXT_MISMATCH"}
+            with pytest.raises(H1BError) as no_takeaway_contact:
+                authority._fulfillment(
+                    scope=scope, service_mode="takeaway",
+                    table_ref=None, contact_ref=None,
+                    delivery_address_ref=None, at=now,
+                )
+            assert no_takeaway_contact.value.code == "CONTEXT_MISMATCH"
+
+            # Negative branches are isolated with PostgreSQL SAVEPOINTs:
+            # revoked price, menu or binding must deny catalog resolution.
+            for relation, update, params in (
+                (
+                    "price",
+                    ("UPDATE public.so1_prices SET active=false "
+                     "WHERE tenant_id=:t AND public_id=CAST(:ref AS uuid)"),
+                    {"t": target.TENANT, "ref": str(target.IDS["price"])},
+                ),
+                (
+                    "menu",
+                    ("UPDATE public.r2_restaurant_menu_sections SET active=false "
+                     "WHERE tenant_id=:t"),
+                    {"t": target.TENANT},
+                ),
+                (
+                    "binding",
+                    ("UPDATE public.restaurant_customer_catalog_read_bindings "
+                     "SET active=false WHERE tenant_id=:t"),
+                    {"t": target.TENANT},
+                ),
+            ):
+                savepoint = session.begin_nested()
+                try:
+                    assert session.execute(text(update), params).rowcount == 1, relation
+                    if relation == "binding":
+                        with pytest.raises(H1BError) as inactive:
+                            authority._binding_for_scope(scope, at=now)
+                    else:
+                        with pytest.raises(H1BError) as inactive:
+                            line()
+                    assert inactive.value.code in {
+                        "ORDER_NOT_READY", "CONTEXT_MISMATCH",
+                    }
+                finally:
+                    savepoint.rollback()
+            # No negative-case mutations or orders survive.
+            assert line().total == Decimal(1000)
+            session.rollback()
+        with engine.connect() as check:
+            assert check.execute(text(
+                "SELECT count(*) FROM public.r1_restaurant_orders "
+                "WHERE tenant_id=:t"
+            ), {"t": target.TENANT}).scalar_one() == 0
+    finally:
+        engine.dispose()
