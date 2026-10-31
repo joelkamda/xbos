@@ -99,6 +99,14 @@ def register_routes(app: FastAPI):
     app.include_router(kernel_router)
     app.include_router(customer_channel_router)
 
+    # SWES PA OIDC R10 candidate: routes are unpublished unless explicitly
+    # mounted in an authorized WND release. Mounting does NOT enable login.
+    # Keep SWES_OIDC_ENABLED=false through default-off staging qualification.
+    import os
+    if os.getenv("SWES_OIDC_ROUTE_REGISTERED") == "true":
+        from platform_admin.swes_google_oidc_router_r7 import router as oidc_router
+        app.include_router(oidc_router)
+
 
 # ============================================================
 # 6) MAIN APPLICATION FACTORY

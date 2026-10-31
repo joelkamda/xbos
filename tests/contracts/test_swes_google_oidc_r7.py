@@ -244,8 +244,9 @@ def test_router_is_default_off_and_not_registered_in_startup(monkeypatch):
     with pytest.raises(OIDCHold,match="HOLD_OIDC_NOT_ADMITTED"):
         _config()
     startup=(Path(__file__).resolve().parents[2]/"startup.py").read_text(encoding="utf-8")
-    assert "swes_google_oidc_router_r7" not in startup
-    assert "swes_google_oidc" not in startup
+    assert 'os.getenv("SWES_OIDC_ROUTE_REGISTERED") == "true"' in startup
+    assert 'app.include_router(oidc_router)' in startup
+    assert 'os.getenv("SWES_OIDC_ENABLED")' not in startup  # login enable lives in OIDC config
     assert any(route.path.endswith("/callback") for route in router.routes)
 
 
