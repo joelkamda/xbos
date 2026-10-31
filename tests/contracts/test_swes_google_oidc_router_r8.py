@@ -140,3 +140,48 @@ def test_unexpected_login_start_dependency_error_never_leaks_internal_detail(mon
     assert resp.status_code==503
     assert resp.json()=={"detail":"HOLD_OIDC_RUNTIME_UNAVAILABLE"}
     assert "sensitive internal diagnostic" not in resp.text
+
+
+
+def test_missing_dedicated_writer_fails_with_owner_database_url_present(monkeypatch):
+    """A valid-seeming shared database cannot substitute for OIDC-only LOGIN."""
+    from cryptography.fernet import Fernet
+    monkeypatch.setenv("SWES_OIDC_ENABLED", "true")
+    monkeypatch.setenv("SWES_OIDC_CLIENT_ID", CLIENT_ID)
+    monkeypatch.setenv("SWES_OIDC_CLIENT_SECRET", "local-fake-client-secret")
+    monkeypatch.setenv("SWES_OIDC_REDIRECT_URI", CALLBACK)
+    monkeypatch.setenv(
+        "SWES_OIDC_CHALLENGE_FERNET_KEY",
+        Fernet.generate_key().decode("ascii"),
+    )
+    monkeypatch.setenv(
+        "DATABASE_URL",
+        "postgresql+psycopg2://wnd_xafpay_demo_austin_db_user:"
+        "local-owner-fixture@127.0.0.1:55479/wnd_xafpay_demo_austin_db",
+    )
+    monkeypatch.delenv("SWES_OIDC_WRITER_DATABASE_URL", raising=False)
+    response=client().get("/internal/swes/pa/oidc/start",follow_redirects=False)
+    assert response.status_code==503
+    assert response.json()=={"detail":"HOLD_OIDC_DEDICATED_WRITER_URL_ABSENT"}
+    assert "local-owner-fixture" not in response.text
+
+
+def test_oidc_db_url_rejects_general_owner_before_connection(monkeypatch):
+    from cryptography.fernet import Fernet
+    monkeypatch.setenv("SWES_OIDC_ENABLED", "true")
+    monkeypatch.setenv("SWES_OIDC_CLIENT_ID", CLIENT_ID)
+    monkeypatch.setenv("SWES_OIDC_CLIENT_SECRET", "local-fake-client-secret")
+    monkeypatch.setenv("SWES_OIDC_REDIRECT_URI", CALLBACK)
+    monkeypatch.setenv(
+        "SWES_OIDC_CHALLENGE_FERNET_KEY",
+        Fernet.generate_key().decode("ascii"),
+    )
+    monkeypatch.setenv(
+        "SWES_OIDC_WRITER_DATABASE_URL",
+        "postgresql+psycopg2://wnd_xafpay_demo_austin_db_user:"
+        "local-owner-fixture@127.0.0.1:55479/wnd_xafpay_demo_austin_db",
+    )
+    response=client().get("/internal/swes/pa/oidc/start",follow_redirects=False)
+    assert response.status_code==503
+    assert response.json()=={"detail":"HOLD_OIDC_WRITER_URL_UNTRUSTED"}
+    assert "local-owner-fixture" not in response.text
