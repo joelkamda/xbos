@@ -112,7 +112,8 @@ def begin(config: OIDCConfig, store: DurableChallengeStore, *, now: datetime):
 
 
 def _verified_google_claims(token: str, config: OIDCConfig, *, nonce_digest: str,
-                            now: datetime, keys: dict) -> dict:
+                            now: datetime, keys: dict,
+                            access_token: str | None = None) -> dict:
     if not isinstance(token, str) or len(token) > 16384:
         raise OIDCHold("HOLD_INVALID_ID_TOKEN")
     try:
@@ -129,8 +130,13 @@ def _verified_google_claims(token: str, config: OIDCConfig, *, nonce_digest: str
         ]
         if len(matches) != 1:
             raise OIDCHold("HOLD_UNTRUSTED_KEY_ID")
+        # Google code exchanges can return a signed ID token containing
+        # 'at_hash'. python-jose verifies at_hash by default and MUST receive
+        # the corresponding token-endpoint access_token to verify the binding.
+        # Never disable verify_at_hash, signature, audience or issuer checks.
         claims = jwt.decode(
             token, matches[0], algorithms=["RS256"], audience=config.client_id,
+            access_token=access_token,
             options={"verify_iss": False, "verify_exp": True, "verify_aud": True},
         )
     except OIDCHold:
@@ -192,7 +198,8 @@ def finish(config: OIDCConfig, store: DurableChallengeStore, *,
         # Do not echo secrets, tokens, URLs or provider error bodies.
         raise OIDCHold("HOLD_GOOGLE_EXCHANGE_OR_JWKS_UNAVAILABLE") from exc
     claims = _verified_google_claims(
-        id_token, config, nonce_digest=challenge.nonce_digest, now=now, keys=keys
+        id_token, config, nonce_digest=challenge.nonce_digest, now=now, keys=keys,
+        access_token=tokens.get("access_token"),
     )
     return VerifiedIdentity(
         ISSUER, subject_digest(claims["sub"]), config.client_id,
