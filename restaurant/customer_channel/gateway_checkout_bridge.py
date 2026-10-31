@@ -91,6 +91,20 @@ class WNDGatewayCheckoutBridge:
         )
         draft = authority.repo.draft_by_order(scope.tenant_id, order.public_id)
         if draft is not None:
+            # The draft is the authoritative checkout context. Matching the
+            # tenant alone is insufficient for a multi-location merchant.
+            if (
+                draft.get("tenant_id") != scope.tenant_id
+                or draft.get("organization_unit_id") != scope.organization_unit_id
+                or draft.get("location_id") != scope.location_id
+                or str(draft.get("merchant_public_id")) != str(scope.merchant_public_id)
+                or str(draft.get("context_binding_public_id"))
+                != str(scope.context_binding_public_id)
+                or str(draft.get("order_public_id")) != str(order.public_id)
+            ):
+                raise H1BError(
+                    "CONTEXT_MISMATCH", correlation_ref=scope.correlation_ref
+                )
             version = int(draft.get("catalog_binding_version") or 0)
             if version <= 0:
                 raise H1BError(

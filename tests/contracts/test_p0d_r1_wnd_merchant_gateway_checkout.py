@@ -94,7 +94,15 @@ class FakeAuthority:
         self.adapters = SimpleNamespace(r1_repo=FakeR1Repo())
         self.repo = SimpleNamespace(
             location_public_id=lambda tenant_id, location_id: LOCATION_PUBLIC,
-            draft_by_order=lambda tenant_id, order_ref: {"catalog_binding_version": 4},
+            draft_by_order=lambda tenant_id, order_ref: {
+                "tenant_id": TENANT,
+                "organization_unit_id": ORG,
+                "location_id": LOCATION,
+                "merchant_public_id": MERCHANT,
+                "context_binding_public_id": CONTEXT,
+                "order_public_id": ORDER,
+                "catalog_binding_version": 4,
+            },
         )
         self.calls = 0
 
@@ -311,6 +319,42 @@ def test_wrong_tenant_or_merchant_binding_fails_before_finance(canonical_finance
         )
     assert exc.value.code == "CONTEXT_MISMATCH"
     assert authority.calls == 0
+
+
+@pytest.mark.parametrize(
+    "field,other_scope",
+    [
+        ("tenant_id", 9999),
+        ("organization_unit_id", 9999),
+        ("location_id", 9999),
+        ("merchant_public_id", UUID("20000000-0000-4000-8000-000000000999")),
+        ("context_binding_public_id", UUID("20000000-0000-4000-8000-000000000998")),
+        ("order_public_id", UUID("20000000-0000-4000-8000-000000000997")),
+    ],
+)
+def test_checkout_rejects_draft_owned_by_another_scope_before_payment_request(
+    canonical_finance, field, other_scope
+):
+    authority = FakeAuthority()
+    original_draft = authority.repo.draft_by_order(TENANT, ORDER)
+    authority.repo.draft_by_order = lambda _tenant, _order: {
+        **original_draft,
+        field: other_scope,
+    }
+    client = FakeClient()
+    with pytest.raises(H1BError) as exc:
+        WNDGatewayCheckoutBridge.initiate(
+            object(),
+            authority=authority,
+            scope=scope(),
+            order_ref=ORDER,
+            selected_method="mtn_mobile_money",
+            binding=binding(),
+            client=client,
+        )
+    assert exc.value.code == "CONTEXT_MISMATCH"
+    assert authority.calls == 0
+    assert client.requests == []
 
 
 def test_canonical_order_to_hosted_checkout_reuses_c3_c4_identities(canonical_finance):
