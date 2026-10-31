@@ -219,3 +219,122 @@ def test_swes_r3_menu_disposable_pg17_atomic_and_duplicate(disposable_url, monke
             assert menu_current == 1
     finally:
         engine.dispose()
+
+def test_swes_wnd01_inventory_category_policy_for_seeded_item(disposable_url, monkeypatch):
+    """Establish actual resolver semantics for SWES-16, not a mock category."""
+    monkeypatch.setenv("DATABASE_URL", disposable_url)
+    from types import SimpleNamespace
+
+    import core.domain.inventory.taxonomy_profile as taxonomy
+    from core.domain.inventory.service import InventoryService
+
+    prestate = target.execute(disposable_url, "dry-run", hosted=False)
+    if prestate["before"]["tenants"] == 0:
+        target.execute(disposable_url, "apply", hosted=False)
+    else:
+        assert prestate["before"]["tenants"] == 1
+
+    engine = create_engine(disposable_url)
+    try:
+        with engine.connect() as conn:
+            row = conn.execute(text("""
+                SELECT id, name, sku, unit_type, is_active, meta
+                FROM public.atomic_units
+                WHERE tenant_id=:tenant AND public_id=CAST(:uid AS uuid)
+            """), {
+                "tenant": target.TENANT,
+                "uid": str(target.IDS["unit"]),
+            }).mappings().one()
+            unit_id = row["id"]
+            assert row["sku"] == target.SKU
+            assert row["unit_type"] == "product"
+            assert row["is_active"] is True
+            assert row["meta"] == {
+                "test_only": True, "campaign": "PCR_V17_SWES_R2",
+            }
+            taxonomy_count = conn.execute(text("""
+                SELECT count(*) FROM public.atomic_unit_taxonomy
+                WHERE atomic_unit_id=:unit
+            """), {"unit": unit_id}).scalar_one()
+            assert taxonomy_count == 0
+            item_count = conn.execute(text("""
+                SELECT count(*) FROM public.inventory_items
+                WHERE tenant_id=:tenant AND atomic_unit_id=:unit
+            """), {"tenant": target.TENANT, "unit": unit_id}).scalar_one()
+            assert item_count == 0
+        # Use the true PG17 fixture row, while binding ORM loader edges
+        # explicitly. An unrelated Payment model registry is not initialized
+        # in this isolated test and must not be represented as a policy failure.
+        unit = SimpleNamespace(
+            id=unit_id, name=row["name"], meta=row["meta"],
+        )
+        monkeypatch.setattr(taxonomy, "_load_atomic_unit", lambda *_a, **_k: unit)
+        monkeypatch.setattr(taxonomy, "_load_commerce_nodes", lambda *_a, **_k: {})
+        monkeypatch.setattr(
+            taxonomy, "_load_unit_commerce_mapping_nodes", lambda *_a, **_k: [],
+        )
+        profile = taxonomy.resolve_inventory_profile(
+            None, tenant_id=target.TENANT, atomic_unit_id=unit_id,
+        )
+        assert profile["stock_tracked"] is False
+        assert profile["inventory_family"] == "non_inventory"
+        assert profile["cost_mode"] == "none"
+        assert profile["allow_negative_stock"] is False
+        assert profile["disable_when_out"] is False
+        assert profile["source"] == "taxonomy_non_inventory"
+        status = InventoryService.stock_status_for_quantity(
+            quantity_on_hand=0, is_active=True,
+        )
+        assert status["stock_status"] == "out_of_stock"
+        assert status["is_sellable"] is False
+        # The real inventory-service sale gate is disable_when_out;
+        # the zero-quantity generic TEST item is NOT disabled by that gate.
+        assert not (profile["disable_when_out"] and
+                    status["stock_status"] == "out_of_stock")
+    finally:
+        engine.dispose()
+
+@pytest.mark.parametrize(
+    ("policy_meta", "expected_family", "expected_stock", "expected_disable",
+     "expected_negative"),
+    [
+        ({"inventory_family": "bar", "track_stock": True},
+         "bar", True, True, False),
+        ({"inventory_family": "kitchen", "track_stock": True},
+         "kitchen", True, False, True),
+        ({"inventory_family": "other", "track_stock": True},
+         "other", True, True, False),
+        ({"inventory_family": "non_inventory", "track_stock": False},
+         "non_inventory", False, False, False),
+    ],
+)
+def test_swes_wnd01_explicit_category_stock_policy_matrix(
+    disposable_url, monkeypatch, policy_meta, expected_family,
+    expected_stock, expected_disable, expected_negative,
+):
+    """Exercise genuine taxonomy policy alternatives without live mutation."""
+    from types import SimpleNamespace
+
+    monkeypatch.setenv("DATABASE_URL", disposable_url)
+    import core.domain.inventory.taxonomy_profile as taxonomy
+
+    mock_unit = SimpleNamespace(
+        id=1001, name="SWES Synthetic Menu Item", meta=policy_meta,
+    )
+    monkeypatch.setattr(
+        taxonomy, "_load_atomic_unit", lambda *_a, **_kw: mock_unit,
+    )
+    monkeypatch.setattr(
+        taxonomy, "_load_commerce_nodes", lambda *_a, **_kw: {},
+    )
+    monkeypatch.setattr(
+        taxonomy, "_load_unit_commerce_mapping_nodes", lambda *_a, **_kw: [],
+    )
+    profile = taxonomy.resolve_inventory_profile(
+        None, tenant_id=target.TENANT, atomic_unit_id=mock_unit.id,
+    )
+    assert profile["inventory_family"] == expected_family
+    assert profile["stock_tracked"] is expected_stock
+    assert profile["disable_when_out"] is expected_disable
+    assert profile["allow_negative_stock"] is expected_negative
+    assert profile["source"] == "meta"
