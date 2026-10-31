@@ -1,6 +1,12 @@
 # main.py
 
 from fastapi import FastAPI
+
+from core.security.oidc_access_log_redaction import install_access_log_filter
+
+# Configure the worker access logger before the ASGI app can receive requests.
+install_access_log_filter()
+
 from startup import create_app
 
 # ---------------------------------------------------------

@@ -437,3 +437,52 @@ def test_first_owner_replay_and_existing_admin_prestate_fail_closed(monkeypatch,
         enrollment.enroll_verified_ceo(
             db_session=Session(),identity=identity,config=approved,
             ceo_approval_registered=True,at=NOW)
+
+
+
+def _google_at_hash(access_token: str) -> str:
+    """OIDC RS256 at_hash: left half of SHA256(access_token), base64url."""
+    import hashlib
+    return base64.urlsafe_b64encode(
+        hashlib.sha256(access_token.encode("ascii")).digest()[:16]
+    ).rstrip(b"=").decode("ascii")
+
+
+class HTTPWithAccessToken(HTTP):
+    def __init__(self, token, jwks, access_token):
+        super().__init__(token, jwks)
+        self.access_token = access_token
+
+    def post(self, url, *, data, timeout, follow_redirects):
+        result = super().post(
+            url, data=data, timeout=timeout, follow_redirects=follow_redirects
+        )
+        return Response({"id_token": result.json()["id_token"],
+                         "access_token": self.access_token})
+
+
+def test_google_authorization_code_id_token_with_valid_at_hash(config, signer):
+    """Google code exchange may return an ID token binding the access token."""
+    access_token = "synthetic-test-only-google-access-token"
+    id_token = signed(signer, valid_claims(at_hash=_google_at_hash(access_token)))
+    verified = redeem(
+        config, make(), HTTPWithAccessToken(id_token, signer[1], access_token)
+    )
+    assert verified.assurance_level == 1
+    assert verified.subject_sha256 == subject_digest("google-sub-unique-123")
+
+
+def test_google_at_hash_rejects_mismatched_access_token(config, signer):
+    access_token = "synthetic-test-only-google-access-token"
+    id_token = signed(signer, valid_claims(at_hash=_google_at_hash(access_token)))
+    with pytest.raises(OIDCHold, match="HOLD_INVALID_GOOGLE_SIGNATURE_OR_CLAIMS"):
+        redeem(config, make(), HTTPWithAccessToken(
+            id_token, signer[1], "different-test-only-access-token"
+        ))
+
+
+def test_google_at_hash_rejects_missing_access_token(config, signer):
+    access_token = "synthetic-test-only-google-access-token"
+    id_token = signed(signer, valid_claims(at_hash=_google_at_hash(access_token)))
+    with pytest.raises(OIDCHold, match="HOLD_INVALID_GOOGLE_SIGNATURE_OR_CLAIMS"):
+        redeem(config, make(), HTTP(id_token, signer[1]))
