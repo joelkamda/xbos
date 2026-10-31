@@ -680,7 +680,37 @@ def test_swes_wnd_phase1_independent_readback_on_disposable_pg17(disposable_url)
     state = menu.publish(disposable_url, apply=False, hosted=False)
     if state["before"]["r2_restaurant_menu_sections"] == 0:
         menu.publish(disposable_url, apply=True, hosted=False)
-    bundle.execute(disposable_url, apply=True, hosted=False)
+    engine = create_engine(disposable_url)
+    try:
+        with engine.connect() as conn:
+            scope = conn.execute(text("""
+                SELECT scope_type FROM public.restaurant_customer_catalog_read_bindings
+                WHERE tenant_id=:t
+            """), {"t": target.TENANT}).scalar_one()
+            meta = conn.execute(text("""
+                SELECT meta FROM public.atomic_units WHERE tenant_id=:t AND sku=:sku
+            """), {"t": target.TENANT, "sku": target.SKU}).scalar_one()
+        if scope == "tenant":
+            # A preceding inventory-policy test may have updated this
+            # disposable item, without publishing its scope or service mode.
+            if meta == bundle.FOOD_META:
+                with engine.begin() as conn:
+                    conn.execute(text("""
+                        UPDATE public.atomic_units
+                        SET meta=CAST(:previous AS jsonb),row_version=row_version+1
+                        WHERE tenant_id=:t AND sku=:sku
+                    """), {"previous": json.dumps(bundle.PREVIOUS),
+                           "t": target.TENANT, "sku": target.SKU})
+            else:
+                assert meta == bundle.PREVIOUS
+            bundle.execute(disposable_url, apply=True, hosted=False)
+        else:
+            # Earlier local bundle may already have committed on this
+            # disposable test database; no hosted rerun is implied.
+            assert scope == "location"
+            assert meta == bundle.FOOD_META
+    finally:
+        engine.dispose()
 
     script = (
         Path(__file__).resolve().parents[4]
@@ -697,7 +727,14 @@ def test_swes_wnd_phase1_independent_readback_on_disposable_pg17(disposable_url)
     assert spec is not None and spec.loader is not None
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
-    observed = module.verify(disposable_url, hosted=False)
+    with create_engine(disposable_url).connect() as conn:
+        disposable_version = int(conn.execute(text("""
+            SELECT row_version FROM public.atomic_units
+            WHERE tenant_id=:t AND sku=:sku
+        """), {"t": target.TENANT, "sku": target.SKU}).scalar_one())
+    observed = module.verify(
+        disposable_url, hosted=False, expected_item_row_version=disposable_version,
+    )
     assert observed["durable_phase1_pass"] is True
     assert observed["published_menu_price_joins"] == 1
     assert observed["binding_scope_id"] == observed["binding_location_id"]
