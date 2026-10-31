@@ -67,10 +67,12 @@ def install_staging_checkout_runtime(
         or admission.deployed_source_sha != source_sha
     ):
         raise RuntimeError("SWES_WND_SOURCE_PIN_HOLD")
+    # Admit only actual Boolean attestations; strings such as "false" and
+    # integers such as 1 must not satisfy private operator proof requirements.
     if not all((
-        admission.isolated_synthetic_tenant_proven,
-        admission.authenticated_service_checkout_scope_proven,
-        admission.sandbox_provider_only_proven,
+        admission.isolated_synthetic_tenant_proven is True,
+        admission.authenticated_service_checkout_scope_proven is True,
+        admission.sandbox_provider_only_proven is True,
     )):
         raise RuntimeError("SWES_WND_PROTECTED_PROOF_HOLD")
     if (

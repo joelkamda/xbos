@@ -90,6 +90,26 @@ def test_missing_private_evidence_holds(changes, reason):
         install_staging_checkout_runtime(app(), admission=admission(**changes), environ=environment())
 
 
+@pytest.mark.parametrize(
+    "proof_field",
+    [
+        "isolated_synthetic_tenant_proven",
+        "authenticated_service_checkout_scope_proven",
+        "sandbox_provider_only_proven",
+    ],
+)
+@pytest.mark.parametrize("improper_value", ["false", 1])
+def test_runtime_rejects_truthy_nonboolean_proofs(proof_field, improper_value):
+    """A claim must be independently attested Boolean True, not truthy input."""
+    target = app()
+    spoofed = replace(admission(), **{proof_field: improper_value})
+    with pytest.raises(RuntimeError, match="PROTECTED_PROOF_HOLD"):
+        install_staging_checkout_runtime(
+            target, admission=spoofed, environ=environment()
+        )
+    assert not hasattr(target.state, "wnd_gateway_checkout_runtime")
+
+
 def test_physical_wnd_tenant_rejected():
     wrong = admission()
     binding = replace(wrong.binding, tenant_id=2)
