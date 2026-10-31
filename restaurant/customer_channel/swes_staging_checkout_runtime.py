@@ -9,6 +9,7 @@ from __future__ import annotations
 from collections.abc import Mapping
 from dataclasses import dataclass
 from types import SimpleNamespace
+from uuid import UUID
 
 from core.integrations.xafpay_v2.client import XafPayV2Client
 
@@ -19,6 +20,8 @@ _HOST = "wnd-xafpay-demo-austin-backend.onrender.com"
 _BRANCH = "compat/wnd-demo-cc-r1-legacy-neutral-bridge"
 _DATABASE = "dpg-db3rd17lk1mc73ckrie0-a"
 _GATEWAY = "https://xafpay-gateway-staging.onrender.com"
+_TEST_TENANT = 910001
+_TEST_MERCHANT = UUID("4b196022-65a1-548c-b122-f1f9e4b78bea")
 _FLAG = "XAFPAY_SWES_WND_CHECKOUT_TEST_ENABLED"
 
 
@@ -73,7 +76,8 @@ def install_staging_checkout_runtime(
     if (
         not isinstance(admission.binding, VerifiedGatewayMerchantBinding)
         or admission.binding.verification_state != "verified"
-        or admission.binding.tenant_id == 2
+        or admission.binding.tenant_id != _TEST_TENANT
+        or admission.binding.merchant_public_id != _TEST_MERCHANT
         or not isinstance(admission.client, XafPayV2Client)
         or admission.client.base_url != _GATEWAY
     ):

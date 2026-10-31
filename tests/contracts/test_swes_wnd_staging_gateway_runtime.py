@@ -35,7 +35,7 @@ def admission(**changes):
     data = {
         "binding": VerifiedGatewayMerchantBinding(
             tenant_id=910001,
-            merchant_public_id=UUID("20000000-0000-4000-8000-000000000102"),
+            merchant_public_id=UUID("4b196022-65a1-548c-b122-f1f9e4b78bea"),
             gateway_merchant_id="mch_swes_demo_only",
             service_credential_reference="opaque-swes-only",
         ),
@@ -111,3 +111,47 @@ def test_exact_private_admission_wires_once():
     assert target.state.wnd_gateway_checkout_runtime.client is proof.client
     with pytest.raises(RuntimeError, match="ALREADY_BOUND"):
         install_staging_checkout_runtime(target, admission=proof, environ=environment())
+
+@pytest.mark.parametrize(
+    "candidate_tenant",
+    [1, 2, 910002],
+)
+def test_only_exact_swes_synthetic_tenant_accepted(candidate_tenant):
+    wrong = admission()
+    wrong_binding = replace(wrong.binding, tenant_id=candidate_tenant)
+    target = app()
+    with pytest.raises(RuntimeError, match="BINDING_HOLD"):
+        install_staging_checkout_runtime(
+            target,
+            admission=replace(wrong, binding=wrong_binding),
+            environ=environment(),
+        )
+    assert not hasattr(target.state, "wnd_gateway_checkout_runtime")
+
+
+def test_other_synthetic_merchant_cannot_claim_wnd_austin_gateway_runtime():
+    wrong = admission()
+    wrong_binding = replace(
+        wrong.binding,
+        merchant_public_id=UUID("4b196022-65a1-548c-b122-f1f9e4b78beb"),
+    )
+    target = app()
+    with pytest.raises(RuntimeError, match="BINDING_HOLD"):
+        install_staging_checkout_runtime(
+            target,
+            admission=replace(wrong, binding=wrong_binding),
+            environ=environment(),
+        )
+    assert not hasattr(target.state, "wnd_gateway_checkout_runtime")
+
+
+def test_disabled_runtime_does_not_install_even_when_identity_candidate_is_bad():
+    wrong = admission()
+    wrong_binding = replace(wrong.binding, tenant_id=910002)
+    target = app()
+    assert install_staging_checkout_runtime(
+        target,
+        admission=replace(wrong, binding=wrong_binding),
+        environ={"XAFPAY_SWES_WND_CHECKOUT_TEST_ENABLED": "0"},
+    ) is False
+    assert not hasattr(target.state, "wnd_gateway_checkout_runtime")
