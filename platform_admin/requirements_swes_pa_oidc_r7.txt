@@ -1,0 +1,3 @@
+# R7 OIDC candidate only; not in the hosted production install command.
+# Add to an expressly authorized deployment build only after source and trust admission.
+cryptography==50.0.1

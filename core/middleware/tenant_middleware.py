@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 
 from database import SessionLocal
 from core.tenants.tenant_model import Tenant
+from platform_admin.swes_oidc_route_admission_r10 import is_public_oidc_handshake
 
 
 class TenantMiddleware(BaseHTTPMiddleware):
@@ -29,7 +30,8 @@ class TenantMiddleware(BaseHTTPMiddleware):
         # BYPASS ROUTES
         # =====================================================
         if (
-            path.startswith("/kernel/auth/")
+            is_public_oidc_handshake(path, method)
+            or path.startswith("/kernel/auth/")
             or path.startswith("/auth/")
             or path.startswith("/internal/customer-channel/v1")
             or path in ("/kernel/health", "/kernel/db-check")

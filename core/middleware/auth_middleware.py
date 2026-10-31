@@ -6,6 +6,7 @@ from fastapi.responses import JSONResponse
 import os
 
 from core.security.jwt_service import JWTService
+from platform_admin.swes_oidc_route_admission_r10 import is_public_oidc_handshake
 
 
 class AuthMiddleware(BaseHTTPMiddleware):
@@ -41,7 +42,8 @@ class AuthMiddleware(BaseHTTPMiddleware):
         # 1) PUBLIC / BYPASS ROUTES
         # =====================================================
         bypass = (
-            path.startswith("/kernel/auth/")
+            is_public_oidc_handshake(path, method)
+            or path.startswith("/kernel/auth/")
             or path.startswith("/auth/")
             or path.startswith("/internal/customer-channel/v1")
             or path == "/kernel/health"
