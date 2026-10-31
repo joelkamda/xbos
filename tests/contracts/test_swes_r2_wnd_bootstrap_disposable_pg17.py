@@ -702,3 +702,33 @@ def test_swes_wnd_phase1_independent_readback_on_disposable_pg17(disposable_url)
     assert observed["published_menu_price_joins"] == 1
     assert observed["binding_scope_id"] == observed["binding_location_id"]
     assert observed["database_writes"] is False
+
+def test_swes_r4_pa_owner_preflight_readonly_on_disposable_pg17(disposable_url):
+    """PA P2A read-only counts/shape are not misreported as readiness proofs."""
+    import importlib.util
+
+    pre = target.execute(disposable_url, "dry-run", hosted=False)
+    if pre["before"]["tenants"] == 0:
+        target.execute(disposable_url, "apply", hosted=False)
+
+    script = (
+        Path(__file__).resolve().parents[4]
+        / "PCR_SHARED_EVIDENCE_INBOX"
+        / "V17"
+        / "Wave1"
+        / "03_lanes"
+        / "xbos_wnd"
+        / "outbox"
+        / "SWES_R1_CONDITIONAL_BATCHES_20261030"
+        / "36_SWES_R4_PA_P2A_OWNER_READONLY_SNAPSHOT_R0.py"
+    )
+    spec = importlib.util.spec_from_file_location("wnd_pa_readback", script)
+    assert spec is not None and spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    result = module.inspect_pa(disposable_url, hosted=False)
+    assert result["tenant"] == target.TENANT
+    assert result["merchant_identity_state_version"][0]["administration_state"] == "registered"
+    assert result["real_PC1_PK_PC4_PC5_readiness_proven"] is False
+    assert result["secrets_or_protected_values_read"] is False
+    assert result["database_writes"] is False
