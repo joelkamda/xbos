@@ -8,18 +8,28 @@ proof provides assurance 1 only; high-risk PA permission requires level 2.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
 from uuid import uuid4
 
 from sqlalchemy import text
 
 from core.platform.security_authority import (
-    ActorType, AuditEnvelope, AuthorizationRequest, Decision,
-    PermissionDefinition, RoleAssignment, ScopeType, SecurityAuthority,
-    SQLSecurityRepository, StructuralScope,
+    ActorType,
+    AuditEnvelope,
+    AuthorizationRequest,
+    Decision,
+    PermissionDefinition,
+    RoleAssignment,
+    ScopeType,
+    SecurityAuthority,
+    SQLSecurityRepository,
+    StructuralScope,
 )
 from platform_admin.swes_google_oidc_r7 import (
-    ISSUER, OIDCConfig, OIDCHold, TENANT_ID, VerifiedIdentity,
+    TENANT_ID,
+    OIDCConfig,
+    OIDCHold,
+    VerifiedIdentity,
     owner_binding_gate,
 )
 

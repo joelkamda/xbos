@@ -13,7 +13,10 @@ from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import JSONResponse, RedirectResponse
 
 from platform_admin.swes_google_oidc_r7 import (
-    OIDCConfig, OIDCHold, begin, finish, owner_binding_gate,
+    OIDCConfig,
+    OIDCHold,
+    begin,
+    finish,
 )
 from platform_admin.swes_google_oidc_sql_r7 import SQLChallengeStore
 
@@ -33,10 +36,18 @@ def _config() -> OIDCConfig:
 
 
 def _store() -> SQLChallengeStore:
+    # Reject absent or malformed challenge-sealing keys before importing any
+    # application DB configuration. Never expose a DATABASE_URL or key error.
+    from cryptography.fernet import Fernet
+    key = os.environ.get("SWES_OIDC_CHALLENGE_FERNET_KEY")
+    if not key:
+        raise OIDCHold("HOLD_CHALLENGE_SEAL_KEY_ABSENT")
+    try:
+        Fernet(key.encode("ascii"))
+    except (ValueError, TypeError, UnicodeError) as exc:
+        raise OIDCHold("HOLD_CHALLENGE_SEAL_KEY_INVALID") from exc
     from database import engine
-    return SQLChallengeStore(
-        engine, fernet_key=os.environ.get("SWES_OIDC_CHALLENGE_FERNET_KEY", "")
-    )
+    return SQLChallengeStore(engine, fernet_key=key)
 
 
 @router.get("/start")
@@ -45,6 +56,8 @@ def oidc_start():
         url, state = begin(_config(), _store(), now=datetime.now(timezone.utc))
     except OIDCHold as exc:
         raise HTTPException(status_code=503, detail=exc.code) from None
+    except Exception:  # noqa: BLE001 - fail-closed HTTP trust boundary
+        raise HTTPException(status_code=503, detail="HOLD_OIDC_RUNTIME_UNAVAILABLE") from None
     response = RedirectResponse(url, status_code=303)
     response.set_cookie(COOKIE, state, secure=True, httponly=True,
                         samesite="lax", max_age=300, path="/")
@@ -62,28 +75,23 @@ def oidc_callback(request: Request, code: str = "", state: str = ""):
                 browser_state=request.cookies.get(COOKIE, ""),
                 code=code, now=datetime.now(timezone.utc), http=http
             )
-        owner_verified = False
-        try:
-            owner_binding_gate(
-                identity, config,
-                ceo_approval_registered=os.getenv("SWES_OIDC_CEO_BINDING_APPROVED") == "true"
-            )
-            owner_verified = True
-        except OIDCHold:
-            pass  # The verified login does not automatically enroll anyone.
+        # A Render environment Boolean is not an independent CEO approval
+        # authority. Keep the public login callback explicitly non-enrolling.
+        # A separate owner-bound admission with real audit provenance must
+        # execute canonical PC5 commands after the completed human ceremony.
         response = JSONResponse({
             "status": "GOOGLE_OIDC_AUTHENTICATED_ONLY",
             "tenant_id": identity.tenant_id,
             "issuer": identity.issuer,
             "subject_sha256": identity.subject_sha256,
-            "owner_binding_verified": owner_verified,
+            "owner_binding_verified": False,
             "pc5_session_created": False,
             "administrative_permission_granted": False,
             "assurance_level": identity.assurance_level,
         })
     except OIDCHold as exc:
         response = JSONResponse({"status": "HOLD", "code": exc.code}, status_code=403)
-    except Exception:
+    except Exception:  # noqa: BLE001 - fail-closed HTTP trust boundary
         response = JSONResponse({"status": "HOLD", "code": "HOLD_OIDC_RUNTIME_UNAVAILABLE"},
                                 status_code=503)
     response.delete_cookie(COOKIE, path="/", secure=True, httponly=True, samesite="lax")

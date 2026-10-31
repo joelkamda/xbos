@@ -5,14 +5,13 @@ This is NOT a PC5 credential store or an administrator enrollment issuer.
 """
 from __future__ import annotations
 
-from datetime import timezone
-
 from cryptography.fernet import Fernet, InvalidToken
 from sqlalchemy import text
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import sessionmaker
 
-from platform_admin.swes_google_oidc_r7 import Challenge, OIDCHold, TENANT_ID
+from platform_admin.swes_google_oidc_r7 import TENANT_ID, Challenge, OIDCHold
+
 
 class SQLChallengeStore:
     def __init__(self, engine: Engine, *, fernet_key: str):

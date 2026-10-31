@@ -8,12 +8,25 @@ from urllib.parse import parse_qs, urlsplit
 
 import pytest
 from cryptography.hazmat.primitives.asymmetric import rsa
-from cryptography.hazmat.primitives.serialization import Encoding, PrivateFormat, NoEncryption
+from cryptography.hazmat.primitives.serialization import (
+    Encoding,
+    NoEncryption,
+    PrivateFormat,
+)
 from jose import jwt
 
 from platform_admin.swes_google_oidc_r7 import (
-    Challenge, OIDCConfig, OIDCHold, begin, digest, finish, owner_binding_gate,
-    subject_digest, _verified_google_claims, TOKEN_URL, JWKS_URL, ISSUER
+    ISSUER,
+    JWKS_URL,
+    TOKEN_URL,
+    Challenge,
+    OIDCConfig,
+    OIDCHold,
+    begin,
+    digest,
+    finish,
+    owner_binding_gate,
+    subject_digest,
 )
 
 CLIENT = "123456789-swes.apps.googleusercontent.com"
@@ -224,8 +237,9 @@ def test_no_mfa_assertion_even_if_unsupported_amr_present(config,signer):
 
 
 def test_router_is_default_off_and_not_registered_in_startup(monkeypatch):
-    from platform_admin.swes_google_oidc_router_r7 import _config, router
     from pathlib import Path
+
+    from platform_admin.swes_google_oidc_router_r7 import _config, router
     monkeypatch.delenv("SWES_OIDC_ENABLED",raising=False)
     with pytest.raises(OIDCHold,match="HOLD_OIDC_NOT_ADMITTED"):
         _config()
@@ -245,6 +259,7 @@ def test_sql_store_rejects_missing_or_invalid_encryption_key():
 
 def test_sql_challenge_store_emits_atomic_delete_and_seals_pkce(monkeypatch):
     from cryptography.fernet import Fernet
+
     import platform_admin.swes_google_oidc_sql_r7 as store_module
     key=Fernet.generate_key().decode()
     calls=[]
@@ -287,8 +302,9 @@ def test_sql_challenge_store_emits_atomic_delete_and_seals_pkce(monkeypatch):
 
 
 def test_sql_challenge_wrong_database_denies_before_insert(monkeypatch):
-    import platform_admin.swes_google_oidc_sql_r7 as store_module
     from cryptography.fernet import Fernet
+
+    import platform_admin.swes_google_oidc_sql_r7 as store_module
     class Session:
         def execute(self,statement,params=None):
             assert str(statement)=="SELECT current_database()"
@@ -308,8 +324,8 @@ def test_sql_challenge_wrong_database_denies_before_insert(monkeypatch):
 
 
 def test_pc5_initial_enrollment_rejects_unapproved_subject_before_any_database(config):
-    from platform_admin.swes_google_pc5_enrollment_r7 import enroll_verified_ceo
     from platform_admin.swes_google_oidc_r7 import VerifiedIdentity
+    from platform_admin.swes_google_pc5_enrollment_r7 import enroll_verified_ceo
     class NoDB:
         def execute(self,*args,**kwargs):
             raise AssertionError("NO_DB_WITHOUT_VERIFIED_OWNER")
@@ -321,8 +337,8 @@ def test_pc5_initial_enrollment_rejects_unapproved_subject_before_any_database(c
 
 
 def test_pc5_initial_enrollment_denies_wrong_database_even_with_owner_pin(config):
-    from platform_admin.swes_google_pc5_enrollment_r7 import enroll_verified_ceo
     from platform_admin.swes_google_oidc_r7 import VerifiedIdentity
+    from platform_admin.swes_google_pc5_enrollment_r7 import enroll_verified_ceo
     identity=VerifiedIdentity(ISSUER,subject_digest("test-owner"),CLIENT,NOW,
                               "d"*64,910001,1)
     approved=replace(config,owner_subject_sha256=identity.subject_sha256)
@@ -338,9 +354,10 @@ def test_pc5_initial_enrollment_denies_wrong_database_even_with_owner_pin(config
 
 def test_pc5_initial_enrollment_never_claims_admin_allowed(monkeypatch,config):
     from types import SimpleNamespace
+
     import platform_admin.swes_google_pc5_enrollment_r7 as enroll_module
-    from platform_admin.swes_google_oidc_r7 import VerifiedIdentity
     from core.platform.security_authority import Decision
+    from platform_admin.swes_google_oidc_r7 import VerifiedIdentity
 
     identity=VerifiedIdentity(ISSUER,subject_digest("cryptographic-test-owner"),CLIENT,NOW,
                               "d"*64,910001,1)
@@ -398,8 +415,8 @@ def test_pc5_initial_enrollment_never_claims_admin_allowed(monkeypatch,config):
 
 
 def test_first_owner_replay_and_existing_admin_prestate_fail_closed(monkeypatch,config):
-    from platform_admin.swes_google_oidc_r7 import VerifiedIdentity
     import platform_admin.swes_google_pc5_enrollment_r7 as enrollment
+    from platform_admin.swes_google_oidc_r7 import VerifiedIdentity
     identity=VerifiedIdentity(ISSUER,subject_digest("first-owner"),CLIENT,NOW,
                               "d"*64,910001,1)
     approved=replace(config,owner_subject_sha256=identity.subject_sha256)
