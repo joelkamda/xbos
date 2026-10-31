@@ -666,3 +666,39 @@ def test_swes_wnd05_pg17_canonical_takeaway_order_contract_rehearsal(disposable_
             ), {"t":target.TENANT}).scalar_one() == 0
     finally:
         engine.dispose()
+
+def test_swes_wnd_phase1_independent_readback_on_disposable_pg17(disposable_url):
+    """Independent read-only join after actual synthetic bundle on PostgreSQL."""
+    import importlib.util
+
+    from scripts import swes_r3_wnd_test_menu_publish as menu
+    from scripts import swes_r4_wnd_phase1_bundle as bundle
+
+    pre = target.execute(disposable_url, "dry-run", hosted=False)
+    if pre["before"]["tenants"] == 0:
+        target.execute(disposable_url, "apply", hosted=False)
+    state = menu.publish(disposable_url, apply=False, hosted=False)
+    if state["before"]["r2_restaurant_menu_sections"] == 0:
+        menu.publish(disposable_url, apply=True, hosted=False)
+    bundle.execute(disposable_url, apply=True, hosted=False)
+
+    script = (
+        Path(__file__).resolve().parents[4]
+        / "PCR_SHARED_EVIDENCE_INBOX"
+        / "V17"
+        / "Wave1"
+        / "03_lanes"
+        / "xbos_wnd"
+        / "outbox"
+        / "SWES_R1_CONDITIONAL_BATCHES_20261030"
+        / "34_SWES_R4_WND_PHASE1_HOSTED_DURABLE_READBACK_R0.py"
+    )
+    spec = importlib.util.spec_from_file_location("wnd_phase1_readback", script)
+    assert spec is not None and spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    observed = module.verify(disposable_url, hosted=False)
+    assert observed["durable_phase1_pass"] is True
+    assert observed["published_menu_price_joins"] == 1
+    assert observed["binding_scope_id"] == observed["binding_location_id"]
+    assert observed["database_writes"] is False
