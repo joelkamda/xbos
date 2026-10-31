@@ -46,8 +46,11 @@ def _store() -> SQLChallengeStore:
         Fernet(key.encode("ascii"))
     except (ValueError, TypeError, UnicodeError) as exc:
         raise OIDCHold("HOLD_CHALLENGE_SEAL_KEY_INVALID") from exc
-    from database import engine
-    return SQLChallengeStore(engine, fernet_key=key)
+    from platform_admin.swes_oidc_writer_r11 import create_restricted_oidc_engine
+    # There is no shared database.engine or DATABASE_URL fallback. This engine
+    # authenticates a separate restricted LOGIN and verifies every connection.
+    restricted_engine = create_restricted_oidc_engine()
+    return SQLChallengeStore(restricted_engine, fernet_key=key)
 
 
 @router.get("/start")
