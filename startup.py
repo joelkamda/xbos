@@ -111,7 +111,7 @@ def register_routes(app: FastAPI):
 # ============================================================
 # 6) MAIN APPLICATION FACTORY
 # ============================================================
-def create_app(*, gateway_runtime_admission=None) -> FastAPI:
+def create_app(*, gateway_runtime_admission=None, r48_receipt_attestor=None) -> FastAPI:
     app = FastAPI(title="XBOS Kernel")
 
     # Pure contract validation only. Alembic installs schema and explicit
@@ -142,6 +142,10 @@ def create_app(*, gateway_runtime_admission=None) -> FastAPI:
         app, admission=gateway_runtime_admission, environ=os.environ
     )
 
+    # R48 receiver is absent during normal main:app startup. Only a
+    # separately verified, trusted composition can install its attestor.
+    from restaurant.customer_channel.swes_r48_ia0_receiver import install_cc_receiver
+    install_cc_receiver(app, independently_verified_attestor=r48_receipt_attestor)
     # Middleware (CORS FIRST)
     register_middlewares(app)
 
