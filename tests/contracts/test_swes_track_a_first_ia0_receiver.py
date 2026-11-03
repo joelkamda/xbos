@@ -157,6 +157,12 @@ def test_default_off_even_if_app_imported(monkeypatch):
     app = create_app()
     assert (t.TRACK_A_PREFIX + "/first-ia0") not in [r.path for r in app.routes]
     assert "/internal/swes/track-a/test-only/ia0-events" not in [r.path for r in app.routes]
+    # Exact service-auth delegation is not an endpoint publication. Gate OFF
+    # yields a genuine router 404, while unrelated paths still require JWT.
+    client = TestClient(app)
+    assert client.post(t.TRACK_A_PREFIX + "/first-ia0", json=event()).status_code == 404
+    assert client.get(t.TRACK_A_PREFIX + "/first-ia0").status_code == 401
+    assert client.post("/internal/swes/track-a/test-only/ia0-events", json=event()).status_code == 401
 
 
 @pytest.mark.parametrize("bad", [

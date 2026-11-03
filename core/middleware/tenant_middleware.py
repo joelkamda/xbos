@@ -34,6 +34,12 @@ class TenantMiddleware(BaseHTTPMiddleware):
             or path.startswith("/kernel/auth/")
             or path.startswith("/auth/")
             or path.startswith("/internal/customer-channel/v1")
+            # Exact TEST-only opaque-service-bearer route. This only delegates
+            # authentication to the downstream independently verified CC
+            # digest + PC5 DB role + genuine signed-receipt attestation.
+            # It never bypasses the protected RELEASE V2 endpoint.
+            or (path == "/internal/swes/track-a-sandbox/first-ia0"
+                and method == "POST")
             or path in ("/kernel/health", "/kernel/db-check")
             or path == "/kernel/integrations/xafpay-v2/events"
             or method == "OPTIONS"
