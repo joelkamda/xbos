@@ -21,7 +21,7 @@ _BRANCH = "compat/wnd-demo-cc-r1-legacy-neutral-bridge"
 _DATABASE = "dpg-db3rd17lk1mc73ckrie0-a"
 _GATEWAY = "https://xafpay-gateway-staging.onrender.com"
 _TEST_TENANT = 910001
-_TEST_MERCHANT = UUID("4b196022-65a1-548c-b122-f1f9e4b78bea")
+_TEST_MERCHANT = UUID("4b196022-55a1-548c-b122-f1f9e4b78bea")
 _FLAG = "XAFPAY_SWES_WND_CHECKOUT_TEST_ENABLED"
 
 

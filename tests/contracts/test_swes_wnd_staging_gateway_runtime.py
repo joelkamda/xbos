@@ -35,7 +35,7 @@ def admission(**changes):
     data = {
         "binding": VerifiedGatewayMerchantBinding(
             tenant_id=910001,
-            merchant_public_id=UUID("4b196022-65a1-548c-b122-f1f9e4b78bea"),
+            merchant_public_id=UUID("4b196022-55a1-548c-b122-f1f9e4b78bea"),
             gateway_merchant_id="mch_swes_demo_only",
             service_credential_reference="opaque-swes-only",
         ),

@@ -146,6 +146,15 @@ def create_app(*, gateway_runtime_admission=None, r48_receipt_attestor=None) -> 
     # separately verified, trusted composition can install its attestor.
     from restaurant.customer_channel.swes_r48_ia0_receiver import install_cc_receiver
     install_cc_receiver(app, independently_verified_attestor=r48_receipt_attestor)
+
+    # Independently authorized, isolated synthetic Track A route. The ordinary
+    # main:app startup and every missing/wrong source or feature gate return
+    # without mounting it. This NEVER installs or replaces protected V2.
+    from restaurant.customer_channel.swes_track_a_first_ia0_receiver import (
+        install_track_a_first_ia0,
+    )
+
+    install_track_a_first_ia0(app, environ=os.environ)
     # Middleware (CORS FIRST)
     register_middlewares(app)
 
