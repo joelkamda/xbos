@@ -155,6 +155,14 @@ def create_app(*, gateway_runtime_admission=None, r48_receipt_attestor=None) -> 
     )
 
     install_track_a_first_ia0(app, environ=os.environ)
+
+    # Independent, owner-source-pinned TEST order authority. Never mounts
+    # without both its explicit order flag and independently admitted SHA.
+    from restaurant.customer_channel.swes_track_a_canonical_order import (
+        install_track_a_order,
+    )
+
+    install_track_a_order(app, environ=os.environ)
     # Middleware (CORS FIRST)
     register_middlewares(app)
 

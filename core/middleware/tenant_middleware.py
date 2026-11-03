@@ -38,8 +38,10 @@ class TenantMiddleware(BaseHTTPMiddleware):
             # authentication to the downstream independently verified CC
             # digest + PC5 DB role + genuine signed-receipt attestation.
             # It never bypasses the protected RELEASE V2 endpoint.
-            or (path == "/internal/swes/track-a-sandbox/first-ia0"
-                and method == "POST")
+            or (path in (
+                "/internal/swes/track-a-sandbox/first-ia0",
+                "/internal/swes/track-a-sandbox/canonical-order",
+            ) and method == "POST")
             or path in ("/kernel/health", "/kernel/db-check")
             or path == "/kernel/integrations/xafpay-v2/events"
             or method == "OPTIONS"

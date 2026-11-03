@@ -84,7 +84,7 @@ class SQLPartyRepository:
     def _add_external_key(self, tenant_id: int, party_id: int, value: str) -> None:
         try:
             self.session.execute(text("""INSERT INTO party_identifiers(tenant_id,party_id,scheme,identifier_value,normalized_value,is_primary)
-                VALUES(:tenant,:party,'external_key',:value,lower(btrim(:value)),true)"""), {"tenant":tenant_id,"party":party_id,"value":value})
+                VALUES(:tenant,:party,'external_key',CAST(:value AS text),lower(btrim(CAST(:value AS text))),true)"""), {"tenant":tenant_id,"party":party_id,"value":value})
         except Exception as exc:
             raise PartyAuthorityError("conflicting_external_party_key") from exc
 
@@ -138,7 +138,7 @@ class SQLPartyRepository:
             try:
                 row = self.session.execute(text("""INSERT INTO party_identifiers
                     (tenant_id,party_id,scheme,identifier_value,normalized_value,is_primary,valid_from,valid_to)
-                    VALUES(:tenant,:party,lower(btrim(:scheme)),:value,lower(btrim(:value)),:primary,:start,:end)
+                    VALUES(:tenant,:party,lower(btrim(:scheme)),CAST(:value AS text),lower(btrim(CAST(:value AS text))),:primary,:start,:end)
                     RETURNING *"""), {"tenant":command.tenant_id,"party":command.party_id,"scheme":command.scheme,"value":command.value,"primary":command.is_primary,"start":command.valid_from,"end":command.valid_to}).one()
             except Exception as exc:
                 raise PartyAuthorityError("conflicting_party_identifier") from exc
@@ -153,7 +153,7 @@ class SQLPartyRepository:
             try:
                 row = self.session.execute(text("""INSERT INTO party_contacts
                     (tenant_id,party_id,contact_type,contact_value,normalized_value,is_primary,valid_from,valid_to)
-                    VALUES(:tenant,:party,lower(btrim(:type)),:value,lower(btrim(:value)),:primary,:start,:end)
+                    VALUES(:tenant,:party,lower(btrim(:type)),CAST(:value AS text),lower(btrim(CAST(:value AS text))),:primary,:start,:end)
                     RETURNING *"""), {"tenant":command.tenant_id,"party":command.party_id,"type":command.contact_type,"value":command.value,"primary":command.is_primary,"start":command.valid_from,"end":command.valid_to}).one()
             except Exception as exc:
                 raise PartyAuthorityError("conflicting_primary_party_contact") from exc
