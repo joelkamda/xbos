@@ -131,7 +131,11 @@ def make_client(monkeypatch, env=None, *, auth=True, receipt=True, rows=None):
         calls["write"] += 1
         assert authorize_service(proof) is True
         assert verify_cc_receipt(proof) is True
-        return SimpleNamespace(public_id=UUID(SESSION))
+        return SimpleNamespace(
+            public_id=UUID(SESSION),
+            conversation_public_id=UUID("c8aed62e-e458-4906-b5c7-559a01500004"),
+            participant_public_id=UUID("c8aed62e-e458-4906-b5c7-559a01500005"),
+        )
 
     monkeypatch.setattr(t, "authorize_cc_ingest", check_auth)
     monkeypatch.setattr(t, "attest_cc_signed_sender", check_receipt)
@@ -178,7 +182,9 @@ def test_local_stubbed_contract_success_not_hosted_proof(monkeypatch):
     assert response.status_code == 202, response.text
     body = response.json()
     assert body["context_binding_ref"] == CONTEXT
-    assert body["ia0_session_ref"] == SESSION
+    assert body["ia0_session_public_id"] == SESSION
+    assert body["ia0_conversation_public_id"] == "c8aed62e-e458-4906-b5c7-559a01500004"
+    assert body["ia0_participant_public_id"] == "c8aed62e-e458-4906-b5c7-559a01500005"
     assert body["verification_state"] == "channel_verified"
     assert body["order_state"] == "NOT_CREATED"
     assert (db.commits, db.rollbacks) == (1, 0)
