@@ -253,6 +253,64 @@ def install_signed_gateway_custody_receiver(
     lock = threading.Lock()
     app.state.wnd_gateway_custody_receiver_installed = True
 
+    from .swes_r48_gateway_readiness import (
+        PATH as READINESS_PATH,
+    )
+    from .swes_r48_gateway_readiness import (
+        sign_readiness_proof,
+    )
+
+    @router.post(READINESS_PATH)
+    def prove_protected_custody_ready(
+        request: Request, challenge: dict = Body(...), db=Depends(get_db)
+    ):
+        # No nonce consumption or credential creation in this operation.
+        try:
+            if getattr(app.state, "wnd_gateway_checkout_runtime", None) is not None:
+                raise CustodyDenied()
+            if db.execute(text("SELECT current_database()")).scalar_one() != DB_NAME:
+                raise CustodyDenied()
+            ready = db.execute(text("""
+                SELECT count(*)
+                FROM public.r1_restaurant_orders o
+                JOIN public.restaurant_customer_order_drafts d
+                  ON d.tenant_id=o.tenant_id AND d.order_public_id=o.public_id
+                JOIN public.pa_merchants m
+                  ON m.tenant_id=d.tenant_id AND m.public_id=d.merchant_public_id
+                JOIN public.r1_restaurant_order_lines l
+                  ON l.tenant_id=o.tenant_id AND l.order_id=o.id
+                WHERE o.tenant_id=910001
+                  AND o.public_id='cba5f76f-73f7-421b-8cce-f8b8823270df'
+                  AND o.lifecycle_status='submitted'
+                  AND d.location_id=5
+                  AND d.merchant_public_id=:merchant
+                  AND m.administration_state='registered'
+                GROUP BY o.id HAVING sum(l.quantity*l.unit_price_snapshot)=1000
+                  AND min(l.currency)='XAF' AND count(l.id)=1
+            """), {"merchant": MERCHANT}).scalar()
+            if ready != 1:
+                raise CustodyDenied()
+            nonce_used = db.execute(text("""
+                SELECT count(*) FROM public.r1_restaurant_commands
+                WHERE tenant_id=910001 AND command_key=:key
+            """), {
+                "key": "r48:gateway:checkout:" + str(admission.approved_nonce),
+            }).scalar_one()
+            if nonce_used:
+                raise CustodyDenied()
+            answer = sign_readiness_proof(
+                challenge,
+                signature_b64=request.headers.get(
+                    "X-R48-Gateway-Ready-Signature", ""
+                ),
+                admission=admission,
+                now=datetime.now(timezone.utc),
+            )
+            return JSONResponse(status_code=200, content=answer)
+        except Exception:
+            db.rollback()
+            return JSONResponse(status_code=403, content={"detail": "CUSTODY_NOT_ADMITTED"})
+
     @router.post(ENDPOINT)
     def accept_protected_checkout(
         request: Request, envelope: dict = Body(...), db=Depends(get_db)
