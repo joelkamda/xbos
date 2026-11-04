@@ -111,7 +111,7 @@ def register_routes(app: FastAPI):
 # ============================================================
 # 6) MAIN APPLICATION FACTORY
 # ============================================================
-def create_app(*, gateway_runtime_admission=None, r48_receipt_attestor=None) -> FastAPI:
+def create_app(*, gateway_runtime_admission=None, gateway_custody_admission=None, r48_receipt_attestor=None) -> FastAPI:
     app = FastAPI(title="XBOS Kernel")
 
     # Pure contract validation only. Alembic installs schema and explicit
@@ -138,8 +138,19 @@ def create_app(*, gateway_runtime_admission=None, r48_receipt_attestor=None) -> 
         install_staging_checkout_runtime,
     )
 
-    install_staging_checkout_runtime(
-        app, admission=gateway_runtime_admission, environ=os.environ
+    # The signed one-time custody lane constructs the trusted client only
+    # AFTER authenticated issuer delivery. No startup flag may synthesize it.
+    if gateway_custody_admission is None:
+        install_staging_checkout_runtime(
+            app, admission=gateway_runtime_admission, environ=os.environ
+        )
+    elif gateway_runtime_admission is not None:
+        raise RuntimeError("R48_GATEWAY_CUSTODY_CONFLICT")
+    from restaurant.customer_channel.swes_r48_gateway_custody import (
+        install_signed_gateway_custody_receiver,
+    )
+    install_signed_gateway_custody_receiver(
+        app, admission=gateway_custody_admission, environ=os.environ
     )
 
     # R48 receiver is absent during normal main:app startup. Only a
