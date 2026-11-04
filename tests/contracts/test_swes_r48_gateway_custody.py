@@ -208,6 +208,8 @@ class FakeDB:
             return Rows(m.DB_NAME)
         if "FROM public.r1_restaurant_orders" in s:
             return Rows(1)
+        if "FROM public.r1_restaurant_commands" in s:
+            return Rows(int(args["key"] in self.used))
         if "INSERT INTO public.r1_restaurant_commands" in s:
             nonce = args["key"]
             if nonce in self.used or nonce in self.pending:
