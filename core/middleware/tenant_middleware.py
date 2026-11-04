@@ -41,6 +41,8 @@ class TenantMiddleware(BaseHTTPMiddleware):
             or (path in (
                 "/internal/swes/track-a-sandbox/first-ia0",
                 "/internal/swes/track-a-sandbox/canonical-order",
+                "/internal/swes/r48/staging/gateway-checkout-custody",
+                "/internal/swes/r48/staging/gateway-checkout-custody/ready",
             ) and method == "POST")
             or path in ("/kernel/health", "/kernel/db-check")
             or path == "/kernel/integrations/xafpay-v2/events"
