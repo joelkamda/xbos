@@ -252,6 +252,35 @@ def test_real_receiver_accepts_once_and_installs_trusted_runtime(keys):
     assert db.commits == 1
 
 
+def test_restart_never_reactivates_or_replays_consumed_gateway_custody(keys):
+    """A process restart cannot silently restore temporary checkout authority."""
+    grant = make_grant(keys)
+    db = FakeDB()
+    first = FastAPI()
+    assert m.install_signed_gateway_custody_receiver(
+        first, admission=grant, environ=env(grant)
+    )
+    first.dependency_overrides[get_db] = lambda: db
+    envelope = sealed(keys, grant)
+    assert TestClient(first).post(m.ENDPOINT, json=envelope).status_code == 202
+    assert db.commits == 1
+    assert hasattr(first.state, "wnd_gateway_checkout_runtime")
+
+    # A new in-process application receives the same durable simulated DB,
+    # but no bearer/session or runtime is silently resurrected from it.
+    restarted = FastAPI()
+    assert m.install_signed_gateway_custody_receiver(
+        restarted, admission=grant, environ=env(grant)
+    )
+    restarted.dependency_overrides[get_db] = lambda: db
+    assert not hasattr(restarted.state, "wnd_gateway_checkout_runtime")
+    replay = TestClient(restarted).post(m.ENDPOINT, json=envelope)
+    assert replay.status_code == 403
+    assert db.commits == 1
+    assert not hasattr(restarted.state, "wnd_gateway_checkout_runtime")
+    assert len(db.used) == 1
+
+
 def test_wrong_signed_request_does_not_insert_custody(keys):
     grant = make_grant(keys)
     app = FastAPI()
