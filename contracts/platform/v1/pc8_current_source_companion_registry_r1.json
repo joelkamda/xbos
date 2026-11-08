@@ -1,0 +1,126 @@
+{
+  "schema": "XCOMP_PC8_ROUTE_A_CURRENT_SOURCE_COMPANION_REGISTRY_R1",
+  "companion_id": "XCOMP_PLATFORM_CORE_PC8_CURRENT_SOURCE_COMPANION_R1",
+  "version": 1,
+  "class": "NON_NUMBERED_POST_PC8_CURRENT_SOURCE_COMPANION",
+  "date": "2026-11-07",
+  "status": "PROPOSED_NONOPERATIVE",
+  "registered": false,
+  "active": false,
+  "release_sequence": null,
+  "issuer": {
+    "proposed_source_owner": "joelkamda",
+    "github_user_id": 215253523,
+    "verified_source_owner_public_key_fingerprint": "SHA256:NLjmYKfcALv6JRIO42ouo7DO4CBfWGOJg1aHjhmnySc",
+    "qualification": "ATTENDED_SOURCE_ENGINEERING_ONLY",
+    "operative_issuer_trust_anchor": null,
+    "independent_operative_signing_custody": false,
+    "controller": "PCR",
+    "operative_attestation": null
+  },
+  "authority": {
+    "pcr_source_grant_sha256": "5175a09235b1cbb9ba3801a2d95c28989bb32549e94e2efa4de82c453413f2af",
+    "pcr_root_sha256": "cd0c62360ee3628b6e988adeba618fea962a48846542f25ae28e95f7110594f6",
+    "effect": "FIVE_ADDITIVE_SOURCE_FILES_ONLY_NO_COMMIT_PUSH_CI_ACTIVATION",
+    "operative_promotion": "REQUIRES_SEPARATE_PCR_AND_INDEPENDENT_OWNER_TRUST_REGISTRATION"
+  },
+  "historical": {
+    "release": "PC8",
+    "git_commit": "5931c901413af296c156af593ff3187b75006d5b",
+    "manifest_path": "contracts/platform/v1/pc8_release_manifest.json",
+    "canonical_manifest_sha256": "d94b0316c5c5205e3b314595f466935861cfb9851afc1d07f40a5aeaa7a6161b",
+    "frozen_manifest_count": 8,
+    "artifact_count": 40,
+    "original_verifier_path": "core/platform/release_integrity.py",
+    "original_verifier_sha256_raw": "6ded92f7aa0fc0b3db5115ff5094b9e39b521a0d1f05d9ee102b96d668ab0ec4"
+  },
+  "current_predecessor": {
+    "git_head": "e89d81d6ef427b88b94e2b78df083d767a12a094",
+    "branch": "platform/neutral-vnext-vn2-pc0-discovery-successor",
+    "candidate_path": "contracts/platform/v1/pc8_postrelease_cumulative_successor_r1.json",
+    "candidate_sha256_raw": "bb3530847975ba2ac29f9116c1cc02d0ce8bf4fc2db727df75dc16321e1c33a8",
+    "unchanged_historical_artifacts": 35,
+    "exact_sealed_descendants": 5,
+    "source_state": "QUALIFIED_LOCAL_ONLY_NOT_REGISTERED"
+  },
+  "current_operative": {
+    "accepted_git_head": null,
+    "accepted_registry_sha256": null,
+    "release_owner_independent_operative_signature": null,
+    "pcr_independent_release_signature": null,
+    "required_github_check_name": "xcomp-pc8-registered-current-source",
+    "required_check_attestation": null,
+    "protected_branch_rule_receipt": null,
+    "deploy_same_commit_receipt": null,
+    "admitted": false
+  },
+  "security": {
+    "registry_local_flags_cannot_grant_authority": true,
+    "source_owner_ssh_signature_not_an_operative_release_signature": true,
+    "canonical_legacy_latest8_not_current_authority": true,
+    "require_signed_external_trust_and_ci_and_deploy": true,
+    "unsealed_sixth_or_seventh_artifact": "DENY",
+    "replay_or_revoked_attestation": "DENY",
+    "trusted_issuer_independence": "PENDING"
+  },
+  "no_effects": [
+    "PC9",
+    "FROZEN_MANIFEST_MUTATION",
+    "PC8_VERIFIER_MUTATION",
+    "GIT_COMMIT_OR_PUSH",
+    "CI_ACTIVATION",
+    "BRANCH_PROTECTION",
+    "HOSTED_OR_DB",
+    "D2_D3",
+    "F2_PAYMENT",
+    "WND_PRODUCTION",
+    "OMNI_XMP"
+  ],
+  "postcommit_source_candidate": {
+    "mode": "GITHUB_EVENT_BOUND_COMMITTED_SOURCE_PREFLIGHT_NOT_OPERATIVE",
+    "parent_before_new_five_files": "e89d81d6ef427b88b94e2b78df083d767a12a094",
+    "external_event_commit_required": true,
+    "event_repository": "joelkamda/xbos",
+    "event_allowed_types": [
+      "pull_request",
+      "push",
+      "workflow_dispatch"
+    ],
+    "event_allowed_branches": [
+      "platform/neutral-vnext-vn2-pc0-discovery-successor",
+      "main"
+    ],
+    "require_parent_ancestor": true,
+    "require_exact_event_checkout_commit": true,
+    "require_git_clean": true,
+    "require_all_eleven_past_and_new_files_tracked_and_match_checkout": true,
+    "require_frozen_pc8_and_sealed_five": true,
+    "postcommit_source_integrity_is_release_authority": false,
+    "externally_accepted_operative_commit": null,
+    "separately_verified_independent_owner_controller_release_proof": null,
+    "protected_required_branch_check_receipt": null,
+    "same_commit_deploy_admission": null,
+    "status": "NOT_COMMISSIONED",
+    "isolated_review_pull_request_gate": {
+      "schema": "XCOMP_ROUTE_A_SINGLE_REVIEW_BRANCH_GITHUB_PR_SCOPE_R0",
+      "review_head_ref": "review/xcomp-pc8-route-a-11file-20261108",
+      "accepted_event": "pull_request",
+      "exact_base_ref": "platform/neutral-vnext-vn2-pc0-discovery-successor",
+      "exact_base_sha": "e89d81d6ef427b88b94e2b78df083d767a12a094",
+      "exact_source_repository": "joelkamda/xbos",
+      "head_repository_must_equal_base_repository": true,
+      "github_event_path_payload_required": true,
+      "github_ref_must_match_pr_number_and_merge": true,
+      "github_head_ref_and_base_ref_must_match_payload": true,
+      "github_sha_must_equal_checked_out_pr_merge_sha": true,
+      "pr_head_commit_sha_must_be_merge_ancestor": true,
+      "original_parent_sha_must_be_merge_ancestor": true,
+      "push_or_manual_dispatch_to_review_branch": "DENY",
+      "allow_unrecognized_pr_branches": false,
+      "accepted_source_and_main_branch_push_or_dispatch": "PRESERVED",
+      "proof_grade": "ONLY_GITHUB_EVENT_BOUND_SOURCE_INTEGRITY_NOT_OPERATIVE_RELEASE",
+      "operative_issuer_signer_proof": null,
+      "activation_status": "SOURCE_CANDIDATE_NOT_REGISTERED"
+    }
+  }
+}
