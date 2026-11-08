@@ -16,7 +16,7 @@ permissions:
 
 jobs:
   xcomp-pc8-current-source-integrity:
-    name: xcomp-pc8-current-source-integrity
+    name: ${{ github.event_name == 'pull_request' && 'xcomp-pc8-pr-source-integrity' || 'xcomp-pc8-nonpr-source-denial' }}
     runs-on: windows-latest
     timeout-minutes: 15
     steps:
