@@ -1,0 +1,108 @@
+{
+  "schema": "XCOMP_PLATFORM_CORE_PC8_POST_RELEASE_CUMULATIVE_CANDIDATE_R1",
+  "record_state": "PENDING_NONOPERATIVE_CANDIDATE",
+  "declared_release_number": null,
+  "registered": false,
+  "active": false,
+  "successor_promoted": false,
+  "operative_authority": false,
+  "issuer": "N_PLATFORM_CORE_SOURCE_OWNER_LOCAL_TEST",
+  "date_local": "2026-11-07",
+  "pcr_parent_root_sha256": "7fa3b4c6c50545a17a3a211cdf730564bf6a5ef7ac5e5d6635ad8a30776594cf",
+  "exact_source_grant_sha256": "1890ed1e1393a55fd11522b1022ad835d3eec8de5585eca4e8d8f12a8609af12",
+  "predecessor_candidate_sha256": "dc3bb678851e61232cbc6e09557d8182d1edfee158a9c2b11f0d2553ff247a49",
+  "historical": {
+    "release": "PC8",
+    "git_commit": "5931c901413af296c156af593ff3187b75006d5b",
+    "manifest_path": "contracts/platform/v1/pc8_release_manifest.json",
+    "manifest_sha256_canonical": "d94b0316c5c5205e3b314595f466935861cfb9851afc1d07f40a5aeaa7a6161b",
+    "historical_manifest_count": 8,
+    "historical_pc8_artifact_count": 40,
+    "historical_artifact_digest_mode": "sha256_canonical_source_v1",
+    "history_integrity": "ALL_PC1_TO_PC8_MANIFESTS_IDENTICAL_TO_ACCEPTED_HISTORICAL_GIT_BLOB"
+  },
+  "cumulative_current": {
+    "branch": "platform/neutral-vnext-vn2-pc0-discovery-successor",
+    "git_commit": "e89d81d6ef427b88b94e2b78df083d767a12a094",
+    "unmodified_pc8_artifacts": 35,
+    "descendant_count": 5,
+    "exact_descendants": [
+      {
+        "path": "core/middleware/auth_middleware.py",
+        "pc8_historical_sha256": "abe47c31cd1bf7582671c11d677c67b2fefd76001601eb38020983c73f98fb08",
+        "current_descendant_sha256": "66797bd319cfcce3fceb4b75af256e704736cd140be2d67158d4a5a66e0cbb55",
+        "source_successor_seal": "contracts/platform/v1/pc0_vn2_c2_discovery_implementation_seal.json",
+        "source_evidence": "GIT_ANCESTRY_AND_SEAL_VERIFIED",
+        "admission": "PROPOSED_NONOPERATIVE"
+      },
+      {
+        "path": "core/middleware/branch_middleware.py",
+        "pc8_historical_sha256": "64d498a2644c15e10221edbcc43b499218d9f405c3823e19b7dc321998994c5e",
+        "current_descendant_sha256": "568d8f7ee0f1bec31d5e46ca2386b093f23a25886a390680cc4d825fd5b3dfa4",
+        "source_successor_seal": "contracts/platform/v1/pc0_post_nce_source_successors.json",
+        "source_evidence": "GIT_ANCESTRY_AND_SEAL_VERIFIED",
+        "admission": "PROPOSED_NONOPERATIVE"
+      },
+      {
+        "path": "core/middleware/tenant_middleware.py",
+        "pc8_historical_sha256": "dda4211df3a6cd4e0e07a2daf9590722b0717937348bebcd4d426b463dbc1101",
+        "current_descendant_sha256": "db8ea71d0205fbf6b40b8e857d20d12f8584283a40441a2df49869c10394d0ff",
+        "source_successor_seal": "contracts/platform/v1/pc0_post_nce_source_successors.json",
+        "source_evidence": "GIT_ANCESTRY_AND_SEAL_VERIFIED",
+        "admission": "PROPOSED_NONOPERATIVE"
+      },
+      {
+        "path": "core/platform/architecture_contract.py",
+        "pc8_historical_sha256": "5345e6655603ae89416568a4548dc798289f2b1702fe066cf51c29e90df64d7b",
+        "current_descendant_sha256": "2d04bbf17aed7c6481f0b22fa12abf4a191253043672aa92cd2083b79442925d",
+        "source_successor_seal": "contracts/platform/v1/pc0_validator_successor_seal_r8.json",
+        "source_evidence": "GIT_ANCESTRY_AND_SEAL_VERIFIED",
+        "admission": "PROPOSED_NONOPERATIVE"
+      },
+      {
+        "path": "tests/contracts/test_pc0_kernel_boundaries.py",
+        "pc8_historical_sha256": "cbdcb74cfed2c92ba6d6ed13dd8a6f319fab0b223ad9a24477d6550d4f3ddf94",
+        "current_descendant_sha256": "46bad44c9392fd43cde0cbc55ed742a4f3c369a6b640b4b65ce4f1625f1d7604",
+        "source_successor_seal": "contracts/platform/v1/pc0_validator_successor_seal_r8.json",
+        "source_evidence": "GIT_ANCESTRY_AND_SEAL_VERIFIED",
+        "admission": "PROPOSED_NONOPERATIVE"
+      }
+    ]
+  },
+  "verification_protocol": {
+    "historical": "GIT_SHOW_ACCEPTED_PC8_COMMIT_ALL_40_SHA_AND_PC1_PC8_FROZEN_MANIFEST_EQUALITY",
+    "current": "CURRENT_PINNED_GIT_HEAD_35_SAME_5_SEALED_DESCENDANTS",
+    "normalization": "CRLF_TO_LF_ONLY_FOR_LISTED_TEXT_TYPES",
+    "accepted_successor_seal_issuer": "EXISTING_TRACKED_PC0_SEALS_PLUS_GIT_ANCESTRY",
+    "current_legacy_pc8_validator": "EXPECTED_FAILURE_NOT_BYPASSED",
+    "negative_gates": [
+      "HISTORIC_HASH_MUTATION",
+      "HISTORIC_MANIFEST_REWRITE",
+      "CURRENT_PROTECTED_SOURCE_DIRTY",
+      "SIXTH_DESCENDANT",
+      "MISSING_DUPLICATE_OR_WRONG_SEAL",
+      "WRONG_HEAD_OR_BRANCH",
+      "FALSE_ACTIVE_OR_RELEASE_NUMBER",
+      "FINGERPRINT_DRIFT"
+    ],
+    "proof_grade": "LOCAL_SOURCE_ONLY_NO_CANONICAL_PLATFORM_RELEASE_INSTALL"
+  },
+  "rollback": {
+    "files_allowed": [
+      "contracts/platform/v1/pc8_postrelease_cumulative_successor_r1.json",
+      "scripts/verify_pc8_postrelease_cumulative_successor_r1.py",
+      "tests/contracts/test_pc8_postrelease_cumulative_successor_r1.py"
+    ],
+    "procedure": "Remove only these exact three newly created untracked source artifacts if independently approved; no git reset, clean, or frozen manifest replacement"
+  },
+  "explicit_non_effects": [
+    "NO_PC9_ISSUANCE",
+    "NO_LEGACY_RELEASE_VALIDATOR_MODIFICATION",
+    "NO_PC1_TO_PC8_MANIFEST_EDITS",
+    "NO_RUNTIME_MAIN_APP",
+    "NO_RENDER_OR_PG17",
+    "NO_D2",
+    "NO_PAYMENT_OR_WND_PRODUCTION",
+    "NO_OMNI"
+  ]
+}
