@@ -435,6 +435,11 @@ def test_synthetic_github_context_is_not_an_operative_issuer(monkeypatch):
         "COMMITTED_WORKTREE_NOT_CLEAN",
         "UNCHANGED_PRECOMMIT_SOURCE_HEAD",
         "WRONG_COMMITTED_SOURCE_SHA",
+        # Synthetic PR context may be rejected earlier by stricter
+        # GitHub event provenance checks; all remain fail-closed.
+        "MISSING_GITHUB_EVENT_PATH",
+        "MISSING_OR_WRONG_PR_NUMBER",
+        "GITHUB_PR_EVENT_REF_MISMATCH",
     )
 
 
