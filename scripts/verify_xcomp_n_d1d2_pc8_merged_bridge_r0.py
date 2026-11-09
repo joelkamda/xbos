@@ -57,7 +57,14 @@ def validate_proposed_source_event(
 def inspect(root: Path = ROOT) -> dict:
     head = _git("rev-parse", "HEAD", root=root).decode().strip()
     branch = _git("branch", "--show-current", root=root).decode().strip()
-    must(head == MERGED_HEAD, "WRONG_MERGED_SOURCE_HEAD")
+    # A source-only integration commit must descend from the accepted PR4 merge.
+    # Requiring equal HEAD would invalidate every properly committed successor.
+    # Historical manifests, sealed descendants and the frozen checker are
+    # independently byte/canonical-checked below; no release is promoted.
+    try:
+        _git("merge-base", "--is-ancestor", MERGED_HEAD, head, root=root)
+    except CandidateIntegrityDenied as exc:
+        raise CandidateIntegrityDenied("WRONG_MERGED_SOURCE_HEAD") from exc
     must(branch == INTEGRATION_BRANCH, "WRONG_MERGED_SOURCE_BRANCH")
     for ancestor in (HISTORIC, C2_COMMIT, PREMERGE_SOURCE):
         _git("merge-base", "--is-ancestor", ancestor, head, root=root)

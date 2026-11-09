@@ -19,7 +19,11 @@ def test_actual_merged_pc8_lineage_forty_historical_and_exact_five(actual_pinned
     assert result["historical_pc8_match"] == 40
     assert result["current_pc8_unchanged"] == 35
     assert result["current_descendant_count"] == 5
-    assert result["postmerge_source_head"] == bridge.MERGED_HEAD
+    # The exact accepted merge is the immutable ancestor, not the candidate HEAD.
+    from scripts.verify_xcomp_pc8_postrelease_delta import _git
+    assert result["postmerge_source_head"] == _git(
+        "rev-parse", "HEAD", root=Path(__file__).resolve().parents[2]
+    ).decode().strip()
     assert result["isolated_lane_branch"] == bridge.INTEGRATION_BRANCH
 
 
