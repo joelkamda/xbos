@@ -5,7 +5,7 @@ from uuid import uuid4
 
 import pytest
 
-from platform_admin import neutral_d1_browser_sql_composer as composer
+import xcomp_d1_browser_sql_bridge as composer
 from platform_admin.neutral_d1_pc5_binding_verifier import PC5BindingDenied
 
 NOW = datetime(2026, 11, 11, 11, 0, tzinfo=timezone.utc)

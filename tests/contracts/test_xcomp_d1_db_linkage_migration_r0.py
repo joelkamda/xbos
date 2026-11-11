@@ -13,13 +13,28 @@ from core.platform.security_authority import Lifecycle
 ROOT = Path(__file__).resolve().parents[2]
 
 
-def test_migration_is_single_successor_of_browser_051():
+def test_proposed_d1_migration_is_outside_frozen_pc0_inventory():
+    import ast
     cfg = Config(str(ROOT / "alembic_neutral.ini"))
     cfg.set_main_option("script_location", str(ROOT / "alembic_neutral"))
     scripts = ScriptDirectory.from_config(cfg)
-    assert scripts.get_heads() == ["d1_pc5_browser_link_052"]
-    s = scripts.get_revision("d1_pc5_browser_link_052")
-    assert s.down_revision == "browser_session_v1_051"
+    # Exact PC0 registered inventory remains unchanged. Only the qualified
+    # migration proposal has 052; it is not an installed migration head.
+    assert scripts.get_heads() == ["browser_session_v1_051"]
+    candidate = ROOT / "d1_migration_proposals" / "d1_pc5_browser_link_052.py"
+    assert candidate.is_file()
+    tree = ast.parse(candidate.read_text(encoding="utf-8"))
+    declarations = {}
+    for node in tree.body:
+        if (isinstance(node, ast.Assign) and len(node.targets) == 1
+                and isinstance(node.targets[0], ast.Name)
+                and node.targets[0].id in {"revision", "down_revision"}):
+            declarations[node.targets[0].id] = ast.literal_eval(node.value)
+    assert declarations == {
+        "revision": "d1_pc5_browser_link_052",
+        "down_revision": "browser_session_v1_051",
+    }
+    assert not (ROOT / "alembic_neutral/versions/d1_pc5_browser_link_052.py").exists()
 
 
 def test_sql_reader_requires_server_owned_legacy_pc5_identity_mapping():
