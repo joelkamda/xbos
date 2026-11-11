@@ -43,12 +43,26 @@ jobs:
           $allowed = @('ci/xcomp-d1d2-source-checks-20261109',
                        'ci/xcomp-p3-wrapper-admission-20261111',
                        'platform/xcomp-d1d2-integrated-source-20261109',
-                       'review/xcomp-be-current-base-wrapper-20261111')
+                       'review/xcomp-be-current-base-wrapper-20261111',
+                       'review/xcomp-pc0-v2-w-source-20261111')
           if ($p.head.ref -cnotin $allowed) { throw 'UNADMITTED_D1D2_PR_HEAD' }
           $originalSource = '9c867c224f86ca245d683ecc9fdc6b4faec7c8c5'
           if ($p.head.ref -ceq 'platform/xcomp-d1d2-integrated-source-20261109' -and
               $p.head.sha -cne $originalSource) {
             throw 'INTEGRATION_COMMIT_IDENTITY_CHANGED'
+          }
+          if ($p.head.ref -ceq 'review/xcomp-pc0-v2-w-source-20261111') {
+            # W v2 review demands the exact two-parent source admission wrapper.
+            $wSource = 'd5ffbc3c253cbd0530bd15cac1e594a0447bf8e5'
+            $parents = @((git rev-list --parents -n 1 $p.head.sha) -split ' ')
+            if ($parents.Count -ne 3 -or $parents[0] -cne $p.head.sha -or
+                $parents[1] -cne $p.base.sha -or $parents[2] -cne $wSource) {
+              throw 'W_V2_REVIEW_WRAPPER_PARENT_PROVENANCE_DENIED'
+            }
+            git merge-base --is-ancestor $p.base.sha $p.head.sha
+            if ($LASTEXITCODE -ne 0) { throw 'W_V2_PROTECTED_BASE_NOT_AN_ANCESTOR' }
+            git merge-base --is-ancestor $wSource $p.head.sha
+            if ($LASTEXITCODE -ne 0) { throw 'W_V2_QUALIFIED_SOURCE_NOT_AN_ANCESTOR' }
           }
           if ($p.head.ref -ceq 'review/xcomp-be-current-base-wrapper-20261111') {
             # The wrapper is a true two-parent merge: exact current protected
@@ -80,6 +94,35 @@ jobs:
                                          'ci/xcomp-p3-wrapper-admission-20261111')) {
             python -m pytest -q -p no:cacheprovider --tb=short tests/contracts/test_pc0_kernel_boundaries.py tests/contracts/test_pc5_identity_policy_audit.py tests/contracts/test_pa0123_platform_administration.py tests/contracts/test_pk456_pack_conformance_templates.py
             if ($LASTEXITCODE -ne 0) { throw 'BASELINE_BOOTSTRAP_CI_FAILED' }
+          } elseif ($env:GITHUB_HEAD_REF -ceq 'review/xcomp-pc0-v2-w-source-20261111') {
+            # Historical PC0 is tested on the protected base, never falsified as
+            # passing on the new W tree which historical PC0 correctly denies.
+            $p = (Get-Content -LiteralPath $env:GITHUB_EVENT_PATH -Raw | ConvertFrom-Json).pull_request
+            $baseSha = [string]$p.base.sha
+            if ($baseSha -cnotmatch '^[0-9a-f]{40}$') { throw 'W_V2_INVALID_PROTECTED_BASE' }
+            $baselineDir = Join-Path $env:RUNNER_TEMP 'xcomp-w-v2-frozen-pc0-baseline'
+            if (Test-Path -LiteralPath $baselineDir) { throw 'BASELINE_CHECKOUT_COLLISION' }
+            git worktree add --detach $baselineDir $baseSha
+            if ($LASTEXITCODE -ne 0) { throw 'BASELINE_CHECKOUT_FAILED' }
+            try {
+              Push-Location $baselineDir
+              try {
+                python -m pytest -q -p no:cacheprovider --tb=short tests/contracts/test_pc0_kernel_boundaries.py
+                if ($LASTEXITCODE -ne 0) { throw 'HISTORICAL_PC0_BASELINE_FAILED' }
+              } finally { Pop-Location }
+            } finally {
+              git worktree remove --force $baselineDir
+              if ($LASTEXITCODE -ne 0) { throw 'BASELINE_WORKTREE_CLEANUP_FAILED' }
+            }
+            $wTests = @(
+              'tests/contracts/test_pc0_local_first_restaurant_successor.py',
+              'tests/integration/test_xcomp_w_disconnected_pg17_acceptance.py',
+              'tests/contracts/test_pc5_identity_policy_audit.py',
+              'tests/contracts/test_pa0123_platform_administration.py',
+              'tests/contracts/test_pk456_pack_conformance_templates.py'
+            )
+            python -m pytest -q -p no:cacheprovider --tb=short $wTests
+            if ($LASTEXITCODE -ne 0) { throw 'W_V2_SOURCE_AND_SECURITY_REGRESSION_FAILED' }
           } else {
             # Generic required PR check separately tests the GitHub merge SHA.
             # The additive PC8 bridge requires the actual immutable source branch.
