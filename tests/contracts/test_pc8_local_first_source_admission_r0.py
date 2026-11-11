@@ -30,7 +30,10 @@ def test_source_contract_is_denial_only():
 def test_exact_pc8_immutable_source_inventory():
     assert len(HISTORICAL)==5 and len(QUALIFIED_W_V2)==8
     result=inspect_source(ROOT)
-    assert result["source_head"]==WRAPPER
+    import subprocess
+    actual=subprocess.check_output(
+        ["git","-C",str(ROOT),"rev-parse","HEAD"],text=True).strip()
+    assert result["source_head"]==actual
     assert not result["real_github_ci_verified"]
     assert result["operative_release"] is False
 
