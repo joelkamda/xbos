@@ -41,11 +41,27 @@ jobs:
           git merge-base --is-ancestor $p.base.sha HEAD
           if ($LASTEXITCODE -ne 0) { throw 'PR_BASE_NOT_IN_MERGE_CHECKOUT' }
           $allowed = @('ci/xcomp-d1d2-source-checks-20261109',
-                       'platform/xcomp-d1d2-integrated-source-20261109')
+                       'ci/xcomp-p3-wrapper-admission-20261111',
+                       'platform/xcomp-d1d2-integrated-source-20261109',
+                       'review/xcomp-be-current-base-wrapper-20261111')
           if ($p.head.ref -cnotin $allowed) { throw 'UNADMITTED_D1D2_PR_HEAD' }
+          $originalSource = '9c867c224f86ca245d683ecc9fdc6b4faec7c8c5'
           if ($p.head.ref -ceq 'platform/xcomp-d1d2-integrated-source-20261109' -and
-              $p.head.sha -cne '9c867c224f86ca245d683ecc9fdc6b4faec7c8c5') {
+              $p.head.sha -cne $originalSource) {
             throw 'INTEGRATION_COMMIT_IDENTITY_CHANGED'
+          }
+          if ($p.head.ref -ceq 'review/xcomp-be-current-base-wrapper-20261111') {
+            # The wrapper is a true two-parent merge: exact current protected
+            # base first, immutable qualified original source second.
+            $parents = @((git rev-list --parents -n 1 $p.head.sha) -split ' ')
+            if ($parents.Count -ne 3 -or $parents[0] -cne $p.head.sha -or
+                $parents[1] -cne $p.base.sha -or $parents[2] -cne $originalSource) {
+              throw 'WRAPPER_PARENTS_NOT_PINNED'
+            }
+            git merge-base --is-ancestor $originalSource $p.head.sha
+            if ($LASTEXITCODE -ne 0) { throw 'ORIGINAL_SOURCE_NOT_ANCESTOR' }
+            git merge-base --is-ancestor $p.base.sha $p.head.sha
+            if ($LASTEXITCODE -ne 0) { throw 'PROTECTED_BASE_NOT_ANCESTOR' }
           }
       - name: Install test dependencies
         shell: pwsh
@@ -60,7 +76,8 @@ jobs:
           PYTHONUTF8: '1'
         run: |
           $ErrorActionPreference = 'Stop'
-          if ($env:GITHUB_HEAD_REF -ceq 'ci/xcomp-d1d2-source-checks-20261109') {
+          if ($env:GITHUB_HEAD_REF -cin @('ci/xcomp-d1d2-source-checks-20261109',
+                                         'ci/xcomp-p3-wrapper-admission-20261111')) {
             python -m pytest -q -p no:cacheprovider --tb=short tests/contracts/test_pc0_kernel_boundaries.py tests/contracts/test_pc5_identity_policy_audit.py tests/contracts/test_pa0123_platform_administration.py tests/contracts/test_pk456_pack_conformance_templates.py
             if ($LASTEXITCODE -ne 0) { throw 'BASELINE_BOOTSTRAP_CI_FAILED' }
           } else {
@@ -68,8 +85,8 @@ jobs:
             # The additive PC8 bridge requires the actual immutable source branch.
             $p = (Get-Content -LiteralPath $env:GITHUB_EVENT_PATH -Raw | ConvertFrom-Json).pull_request
             git switch -c platform/xcomp-d1d2-integrated-source-20261109 $p.head.sha
-            if ($LASTEXITCODE -ne 0 -or (git rev-parse HEAD).Trim() -cne '9c867c224f86ca245d683ecc9fdc6b4faec7c8c5') {
-              throw 'CANNOT_BIND_PINNED_SOURCE_HEAD'
+            if ($LASTEXITCODE -ne 0 -or (git rev-parse HEAD).Trim() -cne $p.head.sha) {
+              throw 'CANNOT_BIND_ADMITTED_SOURCE_HEAD'
             }
             $s = @(
               'test_xcomp_d1d2_source_integration_readiness_r0.py',
