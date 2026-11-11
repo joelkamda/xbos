@@ -77,30 +77,62 @@ jobs:
             if ($LASTEXITCODE -ne 0) { throw 'W_V2_QUALIFIED_SOURCE_NOT_AN_ANCESTOR' }
           }
           if ($p.head.ref -ceq 'review/xcomp-pc8-local-first-v2-source-20261111') {
-            # Independent PC8 Local-First SOURCE charter. Never registers PC8 release.
-            $pc8Source = 'f48de3b02301a7de190d41fe623ccf996040d33c'
-            $pc8Ancestor = 'f68e4217395f58afbbb493bf7e772050d865ade8'
-            $pc8Allowed = @(
+            # Successor source admission only: never overrides frozen PC8.
+            $prior = '54ce7208809b2fc6beba70d2713143013d6cebd3'
+            $qualified = 'f48de3b02301a7de190d41fe623ccf996040d33c'
+            $ciSource = '3c56da02a712ec34c74c8bad0cd2cc5c5d5ae52e'
+            $historical = 'f68e4217395f58afbbb493bf7e772050d865ade8'
+            $four = @(
               '.github/workflows/xcomp-pc8-local-first-source-admission.yml',
               'contracts/platform/v2/pc8_local_first_source_admission_contract_r0.json',
               'scripts/verify_pc8_local_first_source_admission_r0.py',
               'tests/contracts/test_pc8_local_first_source_admission_r0.py'
             )
+            $two = @(
+              '.github/workflows/xcomp-d1d2-source-integrity.yml',
+              '.github/workflows/xcomp-pc0-v2-restaurant-admission.yml'
+            )
+            $parents = @((git rev-list --parents -n 1 $p.head.sha) -split ' ')
             if ($p.base.sha -cne '376547f7c037814ab2b19a1df8fd6c7aec08f864' -or
-                $p.head.sha -cne $pc8Source) { throw 'PC8_LF_REVIEW_SHA_OR_PROTECTED_BASE_DENIED' }
-            git merge-base --is-ancestor $pc8Ancestor $p.head.sha
-            if ($LASTEXITCODE -ne 0) { throw 'PC8_LF_SOURCE_ANCESTOR_DENIED' }
-            $delta = @((git diff --name-only $pc8Ancestor $p.head.sha))
-            if ($LASTEXITCODE -ne 0 -or $delta.Count -ne 4 -or
-                @($delta | Where-Object { $_ -cnotin $pc8Allowed }).Count -ne 0) {
-              throw 'PC8_LF_EXACT_FOUR_SOURCE_PATHS_DENIED'
+                $parents.Count -ne 3 -or $parents[0] -cne $p.head.sha -or
+                $parents[1] -cne $p.base.sha) {
+              throw 'PC8_LF_PROTECTED_TWO_PARENT_WRAPPER_DENIED'
             }
-            foreach ($file in $pc8Allowed) {
-              $expected = (git rev-parse ($pc8Source + ':' + $file)).Trim()
-              if ($LASTEXITCODE -ne 0) { throw 'PC8_LF_QUALIFIED_SOURCE_BLOB_MISSING' }
-              $actual = (git rev-parse ($p.head.sha + ':' + $file)).Trim()
-              if ($LASTEXITCODE -ne 0 -or $actual -cne $expected) {
-                throw 'PC8_LF_SOURCE_BLOB_DRIFT'
+            $reviewed = $parents[2]
+            git merge-base --is-ancestor $prior $reviewed
+            if ($LASTEXITCODE -ne 0) { throw 'PC8_LF_QUALIFIED_SOURCE_ANCESTRY_DENIED' }
+            $fourDelta = @((git diff --name-only $historical $qualified))
+            if ($LASTEXITCODE -ne 0 -or $fourDelta.Count -ne 4 -or
+                @($fourDelta | Where-Object { $_ -cnotin $four }).Count -ne 0) {
+              throw 'PC8_LF_ORIGINAL_FOUR_PATHS_DENIED'
+            }
+            $ciDelta = @((git diff --name-only $qualified $ciSource))
+            if ($LASTEXITCODE -ne 0 -or $ciDelta.Count -ne 2 -or
+                @($ciDelta | Where-Object { $_ -cnotin $two }).Count -ne 0) {
+              throw 'PC8_LF_ORIGINAL_CI_TWO_PATHS_DENIED'
+            }
+            $amended = @('scripts/verify_pc8_local_first_source_admission_r0.py',
+                         'tests/contracts/test_pc8_local_first_source_admission_r0.py')
+            $firstAmendment = @((git diff --name-only $ciSource $prior))
+            if ($LASTEXITCODE -ne 0 -or $firstAmendment.Count -ne 2 -or
+                @($firstAmendment | Where-Object { $_ -cnotin $amended }).Count -ne 0) {
+              throw 'PC8_LF_PRIOR_TWO_AMENDMENT_PATHS_DENIED'
+            }
+            $finalDelta = @((git diff --name-only $prior $reviewed))
+            if ($LASTEXITCODE -ne 0 -or $finalDelta.Count -ne 4 -or
+                @($finalDelta | Where-Object { $_ -cnotin ($two + $amended) }).Count -ne 0) {
+              throw 'PC8_LF_FINAL_FOUR_SOURCE_PATHS_DENIED'
+            }
+            $cumulative = @((git diff --name-only $historical $reviewed))
+            if ($LASTEXITCODE -ne 0 -or $cumulative.Count -ne 6 -or
+                @($cumulative | Where-Object { $_ -cnotin ($four + $two) }).Count -ne 0) {
+              throw 'PC8_LF_CUMULATIVE_SOURCE_PATHS_DENIED'
+            }
+            foreach ($file in $four + $two) {
+              $wrapperBlob = (git rev-parse ($p.head.sha + ':' + $file)).Trim()
+              $reviewedBlob = (git rev-parse ($reviewed + ':' + $file)).Trim()
+              if ($LASTEXITCODE -ne 0 -or $wrapperBlob -cne $reviewedBlob) {
+                throw 'PC8_LF_REVIEW_WRAPPER_BLOB_DRIFT'
               }
             }
             git merge-base --is-ancestor $p.base.sha $p.head.sha

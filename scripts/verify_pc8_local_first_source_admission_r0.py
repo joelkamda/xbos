@@ -23,6 +23,7 @@ EXACT=frozenset({
 # Two independently qualified layers, not a general source scope exception.
 PC8_FOUR_SOURCE="f48de3b02301a7de190d41fe623ccf996040d33c"
 CI_TWO_SOURCE="3c56da02a712ec34c74c8bad0cd2cc5c5d5ae52e"
+PRIOR_AMENDMENT_SOURCE="54ce7208809b2fc6beba70d2713143013d6cebd3"
 CI_PATHS=frozenset({
  ".github/workflows/xcomp-d1d2-source-integrity.yml",
  ".github/workflows/xcomp-pc0-v2-restaurant-admission.yml"})
@@ -30,6 +31,7 @@ AMENDMENT_PATHS=frozenset({
  "scripts/verify_pc8_local_first_source_admission_r0.py",
  "tests/contracts/test_pc8_local_first_source_admission_r0.py"})
 STAGED_SCOPE=EXACT | CI_PATHS
+FINAL_PATHS=CI_PATHS | AMENDMENT_PATHS
 
 HISTORICAL={
  "scripts/verify_pc8_registered_current_source_r1.py":"0dc113e08d646cb7f65f833a370e81a999929aa3356ff7d443f644b89bf6f50e",
@@ -111,28 +113,36 @@ def qualify_contract(c:dict)->dict:
             "independent_signing_verified":False}
 
 def verify_two_independently_pinned_layers(root:Path, source_head:str)->dict:
-    """Exactly 4 PC8 + 2 CI + 2 scoped amendment paths; no wildcard grant."""
+    """Independently check original 4, CI 2, amendment 2 and final 4 paths."""
     git(root,"merge-base","--is-ancestor",PC8_FOUR_SOURCE,CI_TWO_SOURCE)
-    git(root,"merge-base","--is-ancestor",CI_TWO_SOURCE,source_head)
+    git(root,"merge-base","--is-ancestor",CI_TWO_SOURCE,PRIOR_AMENDMENT_SOURCE)
+    git(root,"merge-base","--is-ancestor",PRIOR_AMENDMENT_SOURCE,source_head)
     four=set(git(root,"diff","--name-only",WRAPPER,PC8_FOUR_SOURCE).splitlines())
     require(four==EXACT,"ORIGINAL_PC8_FOUR_SOURCE_SCOPE_DENIED")
     two=set(git(root,"diff","--name-only",PC8_FOUR_SOURCE,CI_TWO_SOURCE).splitlines())
     require(two==CI_PATHS,"INDEPENDENT_CI_TWO_SOURCE_SCOPE_DENIED")
-    last=set(git(root,"diff","--name-only",CI_TWO_SOURCE,source_head).splitlines())
-    require(last==AMENDMENT_PATHS,"PC8_SCOPE_AMENDMENT_TWO_PATHS_DENIED")
+    first=set(git(root,"diff","--name-only",CI_TWO_SOURCE,PRIOR_AMENDMENT_SOURCE).splitlines())
+    require(first==AMENDMENT_PATHS,"PC8_PRIOR_AMENDMENT_TWO_PATHS_DENIED")
+    final=set(git(root,"diff","--name-only",PRIOR_AMENDMENT_SOURCE,source_head).splitlines())
+    require(final==FINAL_PATHS,"PC8_FINAL_FOUR_SOURCE_PATHS_DENIED")
     cumulative=set(git(root,"diff","--name-only",WRAPPER,source_head).splitlines())
     require(cumulative==STAGED_SCOPE,"STAGED_PC8_AND_CI_SCOPE_DENIED")
-    for name in EXACT-CI_PATHS-AMENDMENT_PATHS:
+    for name in EXACT-AMENDMENT_PATHS:
         require(git(root,"rev-parse",source_head+":"+name)==
                 git(root,"rev-parse",PC8_FOUR_SOURCE+":"+name),
                 "ORIGINAL_PC8_FOUR_BLOB_DRIFT")
     for name in CI_PATHS:
-        require(git(root,"rev-parse",source_head+":"+name)==
-                git(root,"rev-parse",CI_TWO_SOURCE+":"+name),
-                "INDEPENDENT_CI_TWO_BLOB_DRIFT")
-    return {"pc8_source":"FOUR_PATHS_PINNED",
-            "ci_source":"TWO_PATHS_PINNED",
-            "amendment":"TWO_PATHS_BOUNDED",
+        # The original two-file CI layer is pinned as provenance, while
+        # the final two workflow blobs may differ only in the approved final 4.
+        git(root,"rev-parse",CI_TWO_SOURCE+":"+name)
+        git(root,"rev-parse",source_head+":"+name)
+    for name in AMENDMENT_PATHS:
+        git(root,"rev-parse",PRIOR_AMENDMENT_SOURCE+":"+name)
+        git(root,"rev-parse",source_head+":"+name)
+    return {"pc8_source":"ORIGINAL_FOUR_PINNED",
+            "ci_source":"ORIGINAL_TWO_PINNED",
+            "prior_amendment":"TWO_PINNED",
+            "final_amendment":"FOUR_EXACT",
             "operative_release":False}
 
 def checked_source_scope(root:Path, head:str)->set[str]:
@@ -227,6 +237,14 @@ def inspect_github_pr_environment(root:Path=ROOT)->dict:
     require(len(parents)==3 and parents==[checkout,base,head],
             "GITHUB_PR_MERGE_PARENTS_DENIED")
     git(root,"merge-base","--is-ancestor",WRAPPER,head)
+    review_parents=git(root,"rev-list","--parents","-n","1",head).split()
+    require(len(review_parents)==3 and review_parents[0]==head
+            and review_parents[1]==PROTECTED,
+            "PC8_LF_REVIEW_TWO_PARENT_WRAPPER_DENIED")
+    git(root,"merge-base","--is-ancestor",PRIOR_AMENDMENT_SOURCE,review_parents[2])
+    require(git(root,"rev-parse",head+"^{tree}")==
+            git(root,"rev-parse",review_parents[2]+"^{tree}"),
+            "PC8_LF_WRAPPER_TREE_NOT_SOURCE")
     changed=checked_source_scope(root,head)
     require(changed in (EXACT,STAGED_SCOPE),"GITHUB_SOURCE_PATH_SCOPE_DENIED")
     git(root,"merge-base","--is-ancestor",head,checkout)

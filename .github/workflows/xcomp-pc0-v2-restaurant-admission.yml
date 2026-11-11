@@ -58,11 +58,10 @@ jobs:
           }
           if ((git rev-parse HEAD).Trim() -cne $env:GITHUB_SHA) { throw 'PR_MERGE_HEAD_DRIFT' }
           if ($pr.head.ref -ceq $branch) {
+            # Existing W-v2 source admission: keep the protected two-parent wrapper.
             $parents = @((git rev-list --parents -n 1 $head) -split ' ')
             if ($parents.Count -ne 3 -or $parents[0] -cne $head -or
-                $parents[1] -cne $base) {
-              throw 'W_V2_TWO_PARENT_WRAPPER_DENIED'
-            }
+                $parents[1] -cne $base) { throw 'W_V2_TWO_PARENT_WRAPPER_DENIED' }
             git merge-base --is-ancestor $source $parents[2]
             if ($LASTEXITCODE -ne 0) { throw 'W_V2_CI_WORKFLOW_SOURCE_NOT_DESCENDANT' }
             $approved = @(
@@ -74,66 +73,104 @@ jobs:
                 @($delta | Where-Object { $_ -cnotin $approved }).Count -ne 0) {
               throw 'W_V2_CI_WORKFLOW_SOURCE_SCOPE_DENIED'
             }
-          if ($pr.head.ref -ceq 'review/xcomp-pc8-local-first-v2-source-20261111') {
-            $pc8Head = 'f48de3b02301a7de190d41fe623ccf996040d33c'
-            $pc8Parent = 'f68e4217395f58afbbb493bf7e772050d865ade8'
-            $pc8Paths = @(
+            git merge-base --is-ancestor $head HEAD
+            if ($LASTEXITCODE -ne 0) { throw 'W_V2_HEAD_NOT_IN_PR_MERGE' }
+            git merge-base --is-ancestor $base HEAD
+            if ($LASTEXITCODE -ne 0) { throw 'W_V2_BASE_NOT_IN_PR_MERGE' }
+            git merge-base --is-ancestor $source $head
+            if ($LASTEXITCODE -ne 0) { throw 'W_V2_SOURCE_NOT_AN_ANCESTOR' }
+            $files = @(
+              'contracts/platform/v2/pc0_local_first_restaurant_successor.json',
+              'core/platform/local_first_restaurant_architecture_successor.py',
+              'tests/contracts/test_pc0_local_first_restaurant_successor.py',
+              'core/api/restaurant/local_first_lan_router.py',
+              'core/domain/restaurant/local_first_shift_session.py',
+              'core/domain/restaurant/local_first_stock_draft.py',
+              'core/domain/restaurant/local_first_receipt_service.py',
+              'tests/integration/test_xcomp_w_disconnected_pg17_acceptance.py'
+            )
+            foreach ($file in $files) {
+              $expected = (git rev-parse ($source + ':' + $file)).Trim()
+              if ($LASTEXITCODE -ne 0) { throw 'QUALIFIED_W_V2_BLOB_NOT_FOUND' }
+              $wrapper = (git rev-parse ($head + ':' + $file)).Trim()
+              if ($LASTEXITCODE -ne 0 -or $wrapper -cne $expected) {
+                throw 'W_V2_WRAPPER_SOURCE_BLOB_CHANGED'
+              }
+              $merged = (git rev-parse ('HEAD:' + $file)).Trim()
+              if ($LASTEXITCODE -ne 0 -or $merged -cne $expected) {
+                throw 'W_V2_PR_MERGE_SOURCE_BLOB_CHANGED'
+              }
+            }
+          } elseif ($pr.head.ref -ceq 'review/xcomp-pc8-local-first-v2-source-20261111') {
+            # Separate PC8 Local-First SOURCE gate; never operative release.
+            $prior = '54ce7208809b2fc6beba70d2713143013d6cebd3'
+            $pc8Source = 'f48de3b02301a7de190d41fe623ccf996040d33c'
+            $ciSource = '3c56da02a712ec34c74c8bad0cd2cc5c5d5ae52e'
+            $historical = 'f68e4217395f58afbbb493bf7e772050d865ade8'
+            $four = @(
               '.github/workflows/xcomp-pc8-local-first-source-admission.yml',
               'contracts/platform/v2/pc8_local_first_source_admission_contract_r0.json',
               'scripts/verify_pc8_local_first_source_admission_r0.py',
               'tests/contracts/test_pc8_local_first_source_admission_r0.py'
             )
-            if ($head -cne $pc8Head -or
-                $base -cne '376547f7c037814ab2b19a1df8fd6c7aec08f864') {
-              throw 'PC8_LF_UNQUALIFIED_SOURCE_IDENTITY'
+            $two = @(
+              '.github/workflows/xcomp-d1d2-source-integrity.yml',
+              '.github/workflows/xcomp-pc0-v2-restaurant-admission.yml'
+            )
+            $amend = @(
+              'scripts/verify_pc8_local_first_source_admission_r0.py',
+              'tests/contracts/test_pc8_local_first_source_admission_r0.py'
+            )
+            $parents = @((git rev-list --parents -n 1 $head) -split ' ')
+            if ($base -cne '376547f7c037814ab2b19a1df8fd6c7aec08f864' -or
+                $parents.Count -ne 3 -or $parents[0] -cne $head -or
+                $parents[1] -cne $base) { throw 'PC8_LF_TWO_PARENT_SOURCE_DENIED' }
+            $reviewed = $parents[2]
+            git merge-base --is-ancestor $prior $reviewed
+            if ($LASTEXITCODE -ne 0) { throw 'PC8_LF_QUALIFIED_54CE_SOURCE_DENIED' }
+            $d4 = @((git diff --name-only $historical $pc8Source))
+            if ($LASTEXITCODE -ne 0 -or $d4.Count -ne 4 -or
+                @($d4 | Where-Object { $_ -cnotin $four }).Count -ne 0) {
+              throw 'PC8_LF_ORIGINAL_FOUR_DENIED'
             }
-            git merge-base --is-ancestor $pc8Parent $head
-            if ($LASTEXITCODE -ne 0) { throw 'PC8_LF_SOURCE_ANCESTRY_FAILED' }
-            $newPaths = @((git diff --name-only $pc8Parent $head))
-            if ($LASTEXITCODE -ne 0 -or $newPaths.Count -ne 4 -or
-                @($newPaths | Where-Object { $_ -cnotin $pc8Paths }).Count -ne 0) {
-              throw 'PC8_LF_UNAPPROVED_ADDITIVE_PATH'
+            $d2 = @((git diff --name-only $pc8Source $ciSource))
+            if ($LASTEXITCODE -ne 0 -or $d2.Count -ne 2 -or
+                @($d2 | Where-Object { $_ -cnotin $two }).Count -ne 0) {
+              throw 'PC8_LF_CI_TWO_DENIED'
             }
-            foreach ($file in $pc8Paths) {
-              $pinned = (git rev-parse ($pc8Head + ':' + $file)).Trim()
-              if ($LASTEXITCODE -ne 0) { throw 'PC8_LF_SOURCE_BLOB_MISSING' }
-              $actual = (git rev-parse ($head + ':' + $file)).Trim()
-              if ($LASTEXITCODE -ne 0 -or $pinned -cne $actual) {
-                throw 'PC8_LF_SOURCE_BLOB_CHANGED'
+            $amended = @((git diff --name-only $ciSource $prior))
+            if ($LASTEXITCODE -ne 0 -or $amended.Count -ne 2 -or
+                @($amended | Where-Object { $_ -cnotin $amend }).Count -ne 0) {
+              throw 'PC8_LF_PRIOR_AMENDMENT_DENIED'
+            }
+            $last = @((git diff --name-only $prior $reviewed))
+            if ($LASTEXITCODE -ne 0 -or $last.Count -ne 4 -or
+                @($last | Where-Object { $_ -cnotin ($two + $amend) }).Count -ne 0) {
+              throw 'PC8_LF_FINAL_FOUR_DENIED'
+            }
+            $scope = @((git diff --name-only $historical $reviewed))
+            if ($LASTEXITCODE -ne 0 -or $scope.Count -ne 6 -or
+                @($scope | Where-Object { $_ -cnotin ($two + $four) }).Count -ne 0) {
+              throw 'PC8_LF_CUMULATIVE_SCOPE_DENIED'
+            }
+            git merge-base --is-ancestor $head HEAD
+            if ($LASTEXITCODE -ne 0) { throw 'PC8_LF_HEAD_NOT_MERGE_ANCESTOR' }
+            git merge-base --is-ancestor $base HEAD
+            if ($LASTEXITCODE -ne 0) { throw 'PC8_LF_BASE_NOT_MERGE_ANCESTOR' }
+            foreach ($file in $scope) {
+              $expected = (git rev-parse ($reviewed + ':' + $file)).Trim()
+              if ($LASTEXITCODE -ne 0) { throw 'PC8_LF_REVIEWED_SOURCE_MISSING' }
+              $wrapperBlob = (git rev-parse ($head + ':' + $file)).Trim()
+              if ($LASTEXITCODE -ne 0 -or $wrapperBlob -cne $expected) {
+                throw 'PC8_LF_WRAPPER_SOURCE_DRIFT'
+              }
+              $mergedBlob = (git rev-parse ('HEAD:' + $file)).Trim()
+              if ($LASTEXITCODE -ne 0 -or $mergedBlob -cne $expected) {
+                throw 'PC8_LF_PR_MERGE_SOURCE_DRIFT'
               }
             }
-          }
-          git merge-base --is-ancestor $head HEAD
-          if ($LASTEXITCODE -ne 0) { throw 'W_V2_HEAD_NOT_IN_PR_MERGE' }
-          git merge-base --is-ancestor $base HEAD
-          if ($LASTEXITCODE -ne 0) { throw 'W_V2_BASE_NOT_IN_PR_MERGE' }
-          git merge-base --is-ancestor $source $head
-          if ($LASTEXITCODE -ne 0) { throw 'W_V2_SOURCE_NOT_AN_ANCESTOR' }
-          $files = @(
-            'contracts/platform/v2/pc0_local_first_restaurant_successor.json',
-            'core/platform/local_first_restaurant_architecture_successor.py',
-            'tests/contracts/test_pc0_local_first_restaurant_successor.py',
-            'core/api/restaurant/local_first_lan_router.py',
-            'core/domain/restaurant/local_first_shift_session.py',
-            'core/domain/restaurant/local_first_stock_draft.py',
-            'core/domain/restaurant/local_first_receipt_service.py',
-            'tests/integration/test_xcomp_w_disconnected_pg17_acceptance.py'
-          )
-          foreach ($file in $files) {
-            $expected = (git rev-parse ($source + ':' + $file)).Trim()
-            if ($LASTEXITCODE -ne 0) { throw 'QUALIFIED_W_V2_BLOB_NOT_FOUND' }
-            $wrapper = (git rev-parse ($head + ':' + $file)).Trim()
-            if ($LASTEXITCODE -ne 0 -or $wrapper -cne $expected) {
-              throw 'W_V2_WRAPPER_SOURCE_BLOB_CHANGED'
-            }
-            $merged = (git rev-parse ('HEAD:' + $file)).Trim()
-            if ($LASTEXITCODE -ne 0 -or $merged -cne $expected) {
-              throw 'W_V2_PR_MERGE_SOURCE_BLOB_CHANGED'
-            }
-          }
           } else {
-            # A globally required check must actually validate historic PRs,
-            # rather than skip or deny every non-W source branch.
+            # Previously admitted D1 branches run real historical checks.
             git merge-base --is-ancestor $head HEAD
             if ($LASTEXITCODE -ne 0) { throw 'HISTORICAL_PR_HEAD_NOT_MERGE_ANCESTOR' }
             git merge-base --is-ancestor $base HEAD

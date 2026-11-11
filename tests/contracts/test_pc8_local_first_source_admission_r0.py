@@ -7,7 +7,8 @@ from scripts.verify_pc8_local_first_source_admission_r0 import (
  ROOT,REL,HISTORICAL,QUALIFIED_W_V2,EXACT,WRAPPER,PROTECTED,BRANCH,TARGET,REPO,
  SourceAdmissionDenied,qualify_contract,qualify_event,inspect_source,
  inspect_github_pr_environment,checked_source_scope,verify_two_independently_pinned_layers,
- PC8_FOUR_SOURCE,CI_TWO_SOURCE,CI_PATHS,AMENDMENT_PATHS,STAGED_SCOPE)
+ PC8_FOUR_SOURCE,CI_TWO_SOURCE,CI_PATHS,AMENDMENT_PATHS,STAGED_SCOPE,
+ PRIOR_AMENDMENT_SOURCE,FINAL_PATHS)
 
 C=json.loads((ROOT/REL).read_text(encoding="utf-8"))
 
@@ -132,7 +133,7 @@ def test_committed_source_layers_must_be_independently_pinned():
     import subprocess
     head=subprocess.check_output(
         ["git","-C",str(ROOT),"rev-parse","HEAD"],text=True).strip()
-    if head in (WRAPPER, CI_TWO_SOURCE):
+    if head in (WRAPPER, CI_TWO_SOURCE, PRIOR_AMENDMENT_SOURCE):
         with pytest.raises(SourceAdmissionDenied):
             inspect_source(ROOT,require_four_path_delta=True)
     else:
@@ -165,6 +166,8 @@ def test_frozen_ci_layer_has_exact_two_new_files():
       ".github/workflows/xcomp-d1d2-source-integrity.yml",
       ".github/workflows/xcomp-pc0-v2-restaurant-admission.yml"}
     assert len(AMENDMENT_PATHS)==2
+    assert FINAL_PATHS==CI_PATHS | AMENDMENT_PATHS
+    assert len(FINAL_PATHS)==4
 
 def test_untrusted_descendant_source_denied(monkeypatch):
     from scripts import verify_pc8_local_first_source_admission_r0 as verifier
@@ -177,13 +180,24 @@ def test_untrusted_descendant_source_denied(monkeypatch):
     with pytest.raises(SourceAdmissionDenied):
         verify_two_independently_pinned_layers(ROOT,CI_TWO_SOURCE)
 
-def test_untrusted_extra_amendment_path_denied(monkeypatch):
+def test_untrusted_extra_final_source_path_denied(monkeypatch):
+    from scripts import verify_pc8_local_first_source_admission_r0 as verifier
+    original_git=verifier.git
+    def counterfeit(root,*args):
+        if args[:3]==("diff","--name-only",PRIOR_AMENDMENT_SOURCE):
+            return "\\n".join(sorted(FINAL_PATHS|{"core/platform/release_integrity.py"}))
+        return original_git(root,*args)
+    monkeypatch.setattr(verifier,"git",counterfeit)
+    with pytest.raises(SourceAdmissionDenied,match="PC8_FINAL_FOUR_SOURCE_PATHS_DENIED"):
+        verify_two_independently_pinned_layers(ROOT,PRIOR_AMENDMENT_SOURCE)
+
+def test_prior_amendment_independent_path_rebinding_denied(monkeypatch):
     from scripts import verify_pc8_local_first_source_admission_r0 as verifier
     original_git=verifier.git
     def counterfeit(root,*args):
         if args[:3]==("diff","--name-only",CI_TWO_SOURCE):
-            return "\n".join(sorted(AMENDMENT_PATHS|{"core/platform/release_integrity.py"}))
+            return "core/platform/release_integrity.py"
         return original_git(root,*args)
     monkeypatch.setattr(verifier,"git",counterfeit)
-    with pytest.raises(SourceAdmissionDenied,match="PC8_SCOPE_AMENDMENT_TWO_PATHS_DENIED"):
-        verify_two_independently_pinned_layers(ROOT,CI_TWO_SOURCE)
+    with pytest.raises(SourceAdmissionDenied,match="PC8_PRIOR_AMENDMENT_TWO_PATHS_DENIED"):
+        verify_two_independently_pinned_layers(ROOT,PRIOR_AMENDMENT_SOURCE)
