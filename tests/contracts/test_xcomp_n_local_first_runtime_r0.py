@@ -27,3 +27,10 @@ def test_writer_fences_cross_tenant_expired_replay_and_split_brain(grant,epoch,w
 def test_session_required_even_for_read():
  with pytest.raises(TransactionDenied):
   admit_unit_of_work(UnitOfWorkContext(S,"read",None,False),now=NOW,active_epoch=3,active_writer_node="local-A")
+
+
+def test_unregistered_epoch_migration_proposal_does_not_mutate_pc0():
+    from d1_migration_proposals.d1_local_node_authority_epoch_r0 import proposed_schema_manifest
+    plan=proposed_schema_manifest()
+    assert plan["registered"] is False and plan["executable"] is False
+    assert "tenant_id" in plan["fields"] and "fenced_at" in plan["fields"]

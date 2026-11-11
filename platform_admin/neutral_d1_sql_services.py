@@ -63,3 +63,32 @@ def compose_read_only_d1_services(
         pk=PackAuthority(SQLPackRepository(db)),
         clock=clock,
     )
+
+
+def qualify_local_or_cloud_readonly_connection(
+    db, *, profile: str, tenant_id: int,
+    verified_server_node: str, trusted_node_profile_reader,
+) -> None:
+    """Admission check only: neither opens nor writes a DB connection.
+
+    A local node must already have independently verified PC5/session and
+    a signed admitted authority epoch. Profile is read from the trusted
+    server registry, never from a browser header or arbitrary URL.
+    """
+    if profile not in ("cloud", "local_server") or type(tenant_id) is not int or tenant_id <= 0:
+        raise D1ServiceAdmissionDenied("DEPLOYMENT_PROFILE_OR_TENANT_DENIED")
+    if not isinstance(verified_server_node, str) or not verified_server_node.strip():
+        raise D1ServiceAdmissionDenied("VERIFIED_NODE_REQUIRED")
+    if not callable(trusted_node_profile_reader):
+        raise D1ServiceAdmissionDenied("TRUSTED_NODE_PROFILE_READER_REQUIRED")
+    try:
+        actual = trusted_node_profile_reader(tenant_id, verified_server_node)
+        if actual != profile:
+            raise D1ServiceAdmissionDenied("NODE_DEPLOYMENT_PROFILE_MISMATCH")
+        transaction_mode = db.execute(READ_ONLY_PROOF_SQL).scalar_one()
+    except D1ServiceAdmissionDenied:
+        raise
+    except Exception as exc:
+        raise D1ServiceAdmissionDenied("TRUSTED_NODE_OR_SQL_READBACK_UNAVAILABLE") from exc
+    if str(transaction_mode).strip().lower() != "on":
+        raise D1ServiceAdmissionDenied("WRITABLE_D1_READ_TRANSACTION_FORBIDDEN")
