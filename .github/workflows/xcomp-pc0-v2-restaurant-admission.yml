@@ -59,9 +59,20 @@ jobs:
           if ($pr.head.ref -ceq $branch) {
             $parents = @((git rev-list --parents -n 1 $head) -split ' ')
             if ($parents.Count -ne 3 -or $parents[0] -cne $head -or
-              $parents[1] -cne $base -or $parents[2] -cne $source) {
-            throw 'W_V2_TWO_PARENT_WRAPPER_DENIED'
-          }
+                $parents[1] -cne $base) {
+              throw 'W_V2_TWO_PARENT_WRAPPER_DENIED'
+            }
+            git merge-base --is-ancestor $source $parents[2]
+            if ($LASTEXITCODE -ne 0) { throw 'W_V2_CI_WORKFLOW_SOURCE_NOT_DESCENDANT' }
+            $approved = @(
+              '.github/workflows/xcomp-d1d2-source-integrity.yml',
+              '.github/workflows/xcomp-pc0-v2-restaurant-admission.yml'
+            )
+            $delta = @((git diff --name-only $source $parents[2]))
+            if ($LASTEXITCODE -ne 0 -or $delta.Count -ne 2 -or
+                @($delta | Where-Object { $_ -cnotin $approved }).Count -ne 0) {
+              throw 'W_V2_CI_WORKFLOW_SOURCE_SCOPE_DENIED'
+            }
           git merge-base --is-ancestor $head HEAD
           if ($LASTEXITCODE -ne 0) { throw 'W_V2_HEAD_NOT_IN_PR_MERGE' }
           git merge-base --is-ancestor $base HEAD

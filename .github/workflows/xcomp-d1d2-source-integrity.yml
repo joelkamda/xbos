@@ -56,8 +56,19 @@ jobs:
             $wSource = 'd5ffbc3c253cbd0530bd15cac1e594a0447bf8e5'
             $parents = @((git rev-list --parents -n 1 $p.head.sha) -split ' ')
             if ($parents.Count -ne 3 -or $parents[0] -cne $p.head.sha -or
-                $parents[1] -cne $p.base.sha -or $parents[2] -cne $wSource) {
+                $parents[1] -cne $p.base.sha) {
               throw 'W_V2_REVIEW_WRAPPER_PARENT_PROVENANCE_DENIED'
+            }
+            git merge-base --is-ancestor $wSource $parents[2]
+            if ($LASTEXITCODE -ne 0) { throw 'W_V2_CI_SOURCE_NOT_DESCENDED_FROM_QUALIFIED_W' }
+            $allowedWorkflowDelta = @(
+              '.github/workflows/xcomp-d1d2-source-integrity.yml',
+              '.github/workflows/xcomp-pc0-v2-restaurant-admission.yml'
+            )
+            $changedWorkflowDelta = @((git diff --name-only $wSource $parents[2]))
+            if ($LASTEXITCODE -ne 0 -or $changedWorkflowDelta.Count -ne 2 -or
+                @($changedWorkflowDelta | Where-Object { $_ -cnotin $allowedWorkflowDelta }).Count -ne 0) {
+              throw 'W_V2_CI_SOURCE_PATH_SCOPE_DENIED'
             }
             git merge-base --is-ancestor $p.base.sha $p.head.sha
             if ($LASTEXITCODE -ne 0) { throw 'W_V2_PROTECTED_BASE_NOT_AN_ANCESTOR' }
