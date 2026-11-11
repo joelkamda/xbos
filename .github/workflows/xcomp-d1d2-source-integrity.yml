@@ -51,6 +51,7 @@ jobs:
         shell: pwsh
         run: |
           python -m pip install --disable-pip-version-check --no-cache-dir -r requirements-prod.txt -r requirements-test.txt
+          python -m pip install --disable-pip-version-check --no-cache-dir PyJWT==2.10.1 tzdata==2025.2
       - name: Verify source integration and frozen contracts
         shell: pwsh
         env:
