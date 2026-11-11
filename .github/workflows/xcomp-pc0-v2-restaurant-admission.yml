@@ -37,7 +37,8 @@ jobs:
             'ci/xcomp-d1d2-source-checks-20261109',
             'ci/xcomp-p3-wrapper-admission-20261111',
             'platform/xcomp-d1d2-integrated-source-20261109',
-            'review/xcomp-be-current-base-wrapper-20261111'
+            'review/xcomp-be-current-base-wrapper-20261111',
+            'review/xcomp-pc8-local-first-v2-source-20261111'
           )
           $baseBranch = 'platform/neutral-vnext-vn2-pc0-discovery-successor'
           if ($null -eq $pr -or $event.repository.full_name -cne $env:GITHUB_REPOSITORY -or
@@ -73,6 +74,35 @@ jobs:
                 @($delta | Where-Object { $_ -cnotin $approved }).Count -ne 0) {
               throw 'W_V2_CI_WORKFLOW_SOURCE_SCOPE_DENIED'
             }
+          if ($pr.head.ref -ceq 'review/xcomp-pc8-local-first-v2-source-20261111') {
+            $pc8Head = 'f48de3b02301a7de190d41fe623ccf996040d33c'
+            $pc8Parent = 'f68e4217395f58afbbb493bf7e772050d865ade8'
+            $pc8Paths = @(
+              '.github/workflows/xcomp-pc8-local-first-source-admission.yml',
+              'contracts/platform/v2/pc8_local_first_source_admission_contract_r0.json',
+              'scripts/verify_pc8_local_first_source_admission_r0.py',
+              'tests/contracts/test_pc8_local_first_source_admission_r0.py'
+            )
+            if ($head -cne $pc8Head -or
+                $base -cne '376547f7c037814ab2b19a1df8fd6c7aec08f864') {
+              throw 'PC8_LF_UNQUALIFIED_SOURCE_IDENTITY'
+            }
+            git merge-base --is-ancestor $pc8Parent $head
+            if ($LASTEXITCODE -ne 0) { throw 'PC8_LF_SOURCE_ANCESTRY_FAILED' }
+            $newPaths = @((git diff --name-only $pc8Parent $head))
+            if ($LASTEXITCODE -ne 0 -or $newPaths.Count -ne 4 -or
+                @($newPaths | Where-Object { $_ -cnotin $pc8Paths }).Count -ne 0) {
+              throw 'PC8_LF_UNAPPROVED_ADDITIVE_PATH'
+            }
+            foreach ($file in $pc8Paths) {
+              $pinned = (git rev-parse ($pc8Head + ':' + $file)).Trim()
+              if ($LASTEXITCODE -ne 0) { throw 'PC8_LF_SOURCE_BLOB_MISSING' }
+              $actual = (git rev-parse ($head + ':' + $file)).Trim()
+              if ($LASTEXITCODE -ne 0 -or $pinned -cne $actual) {
+                throw 'PC8_LF_SOURCE_BLOB_CHANGED'
+              }
+            }
+          }
           git merge-base --is-ancestor $head HEAD
           if ($LASTEXITCODE -ne 0) { throw 'W_V2_HEAD_NOT_IN_PR_MERGE' }
           git merge-base --is-ancestor $base HEAD
@@ -130,7 +160,9 @@ jobs:
           if ($base -cnotmatch '^[0-9a-f]{40}$') { throw 'W_V2_UNTRUSTED_BASE' }
           $dir = Join-Path $env:RUNNER_TEMP 'xcomp-w-pc0-baseline'
           if (Test-Path -LiteralPath $dir) { throw 'PC0_BASELINE_PATH_COLLISION' }
-          if ($env:GITHUB_HEAD_REF -cne 'review/xcomp-pc0-v2-w-source-20261111') {
+          if ($env:GITHUB_HEAD_REF -cnotin @(
+            'review/xcomp-pc0-v2-w-source-20261111',
+            'review/xcomp-pc8-local-first-v2-source-20261111')) {
             # Unmodified historical source PR: run PC0 on the actual PR merge.
             python -m pytest -q -p no:cacheprovider --tb=short tests/contracts/test_pc0_kernel_boundaries.py
             if ($LASTEXITCODE -ne 0) { throw 'HISTORICAL_PC0_EXISTING_PR_FAILED' }
@@ -156,7 +188,9 @@ jobs:
           PYTHONUTF8: '1'
         run: |
           $ErrorActionPreference = 'Stop'
-          if ($env:GITHUB_HEAD_REF -ceq 'review/xcomp-pc0-v2-w-source-20261111') {
+          if ($env:GITHUB_HEAD_REF -cin @(
+            'review/xcomp-pc0-v2-w-source-20261111',
+            'review/xcomp-pc8-local-first-v2-source-20261111')) {
             $tests = @(
               'tests/contracts/test_pc0_local_first_restaurant_successor.py',
               'tests/integration/test_xcomp_w_disconnected_pg17_acceptance.py',
@@ -172,6 +206,9 @@ jobs:
               'tests/contracts/test_pa0123_platform_administration.py',
               'tests/contracts/test_pk456_pack_conformance_templates.py'
             )
+          }
+          if ($env:GITHUB_HEAD_REF -ceq 'review/xcomp-pc8-local-first-v2-source-20261111') {
+            $tests += 'tests/contracts/test_pc8_local_first_source_admission_r0.py'
           }
           python -m pytest -q -p no:cacheprovider --tb=short $tests
           if ($LASTEXITCODE -ne 0) { throw 'W_V2_SECURITY_REGRESSION_FAILED' }

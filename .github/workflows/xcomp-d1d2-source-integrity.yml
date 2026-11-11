@@ -44,7 +44,8 @@ jobs:
                        'ci/xcomp-p3-wrapper-admission-20261111',
                        'platform/xcomp-d1d2-integrated-source-20261109',
                        'review/xcomp-be-current-base-wrapper-20261111',
-                       'review/xcomp-pc0-v2-w-source-20261111')
+                       'review/xcomp-pc0-v2-w-source-20261111',
+                       'review/xcomp-pc8-local-first-v2-source-20261111')
           if ($p.head.ref -cnotin $allowed) { throw 'UNADMITTED_D1D2_PR_HEAD' }
           $originalSource = '9c867c224f86ca245d683ecc9fdc6b4faec7c8c5'
           if ($p.head.ref -ceq 'platform/xcomp-d1d2-integrated-source-20261109' -and
@@ -74,6 +75,36 @@ jobs:
             if ($LASTEXITCODE -ne 0) { throw 'W_V2_PROTECTED_BASE_NOT_AN_ANCESTOR' }
             git merge-base --is-ancestor $wSource $p.head.sha
             if ($LASTEXITCODE -ne 0) { throw 'W_V2_QUALIFIED_SOURCE_NOT_AN_ANCESTOR' }
+          }
+          if ($p.head.ref -ceq 'review/xcomp-pc8-local-first-v2-source-20261111') {
+            # Independent PC8 Local-First SOURCE charter. Never registers PC8 release.
+            $pc8Source = 'f48de3b02301a7de190d41fe623ccf996040d33c'
+            $pc8Ancestor = 'f68e4217395f58afbbb493bf7e772050d865ade8'
+            $pc8Allowed = @(
+              '.github/workflows/xcomp-pc8-local-first-source-admission.yml',
+              'contracts/platform/v2/pc8_local_first_source_admission_contract_r0.json',
+              'scripts/verify_pc8_local_first_source_admission_r0.py',
+              'tests/contracts/test_pc8_local_first_source_admission_r0.py'
+            )
+            if ($p.base.sha -cne '376547f7c037814ab2b19a1df8fd6c7aec08f864' -or
+                $p.head.sha -cne $pc8Source) { throw 'PC8_LF_REVIEW_SHA_OR_PROTECTED_BASE_DENIED' }
+            git merge-base --is-ancestor $pc8Ancestor $p.head.sha
+            if ($LASTEXITCODE -ne 0) { throw 'PC8_LF_SOURCE_ANCESTOR_DENIED' }
+            $delta = @((git diff --name-only $pc8Ancestor $p.head.sha))
+            if ($LASTEXITCODE -ne 0 -or $delta.Count -ne 4 -or
+                @($delta | Where-Object { $_ -cnotin $pc8Allowed }).Count -ne 0) {
+              throw 'PC8_LF_EXACT_FOUR_SOURCE_PATHS_DENIED'
+            }
+            foreach ($file in $pc8Allowed) {
+              $expected = (git rev-parse ($pc8Source + ':' + $file)).Trim()
+              if ($LASTEXITCODE -ne 0) { throw 'PC8_LF_QUALIFIED_SOURCE_BLOB_MISSING' }
+              $actual = (git rev-parse ($p.head.sha + ':' + $file)).Trim()
+              if ($LASTEXITCODE -ne 0 -or $actual -cne $expected) {
+                throw 'PC8_LF_SOURCE_BLOB_DRIFT'
+              }
+            }
+            git merge-base --is-ancestor $p.base.sha $p.head.sha
+            if ($LASTEXITCODE -ne 0) { throw 'PC8_LF_PROTECTED_BASE_NOT_ANCESTOR' }
           }
           if ($p.head.ref -ceq 'review/xcomp-be-current-base-wrapper-20261111') {
             # The wrapper is a true two-parent merge: exact current protected
@@ -105,7 +136,9 @@ jobs:
                                          'ci/xcomp-p3-wrapper-admission-20261111')) {
             python -m pytest -q -p no:cacheprovider --tb=short tests/contracts/test_pc0_kernel_boundaries.py tests/contracts/test_pc5_identity_policy_audit.py tests/contracts/test_pa0123_platform_administration.py tests/contracts/test_pk456_pack_conformance_templates.py
             if ($LASTEXITCODE -ne 0) { throw 'BASELINE_BOOTSTRAP_CI_FAILED' }
-          } elseif ($env:GITHUB_HEAD_REF -ceq 'review/xcomp-pc0-v2-w-source-20261111') {
+          } elseif ($env:GITHUB_HEAD_REF -cin @(
+            'review/xcomp-pc0-v2-w-source-20261111',
+            'review/xcomp-pc8-local-first-v2-source-20261111')) {
             # Historical PC0 is tested on the protected base, never falsified as
             # passing on the new W tree which historical PC0 correctly denies.
             $p = (Get-Content -LiteralPath $env:GITHUB_EVENT_PATH -Raw | ConvertFrom-Json).pull_request
@@ -132,6 +165,12 @@ jobs:
               'tests/contracts/test_pa0123_platform_administration.py',
               'tests/contracts/test_pk456_pack_conformance_templates.py'
             )
+            if ($env:GITHUB_HEAD_REF -ceq 'review/xcomp-pc8-local-first-v2-source-20261111') {
+              $wTests += 'tests/contracts/test_pc8_local_first_source_admission_r0.py'
+              # PC8 source qualification cannot become operative issuer authority.
+              python scripts/verify_pc8_local_first_source_admission_r0.py --local-source
+              if ($LASTEXITCODE -ne 0) { throw 'PC8_LF_NONOPERATIVE_SOURCE_PROOF_DENIED' }
+            }
             python -m pytest -q -p no:cacheprovider --tb=short $wTests
             if ($LASTEXITCODE -ne 0) { throw 'W_V2_SOURCE_AND_SECURITY_REGRESSION_FAILED' }
           } else {
