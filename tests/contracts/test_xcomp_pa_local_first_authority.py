@@ -60,3 +60,27 @@ def test_shared_d1_local_read_requires_preissued_delegation_and_lease():
   verify_local_delegated_read(principal,**{**kwargs,"read_signed_lease":lambda tenant:replace(lease,platform_signature_verified=False)})
  with pytest.raises(PC5BindingDenied):
   verify_local_delegated_read(principal,**{**kwargs,"read_role":lambda sid:"platform_issuer"})
+
+
+def test_cloud_local_d1_read_sql_requires_server_owned_node_and_readonly_transaction():
+ from platform_admin.neutral_d1_sql_services import (
+  qualify_local_or_cloud_readonly_connection,D1ServiceAdmissionDenied,
+ )
+ class Result:
+  def __init__(self,mode):self.mode=mode
+  def scalar_one(self):return self.mode
+ class DB:
+  def __init__(self,mode):self.mode=mode
+  def execute(self,stmt):return Result(self.mode)
+ for profile in ("cloud","local_server"):
+  args=dict(db=DB("on"),profile=profile,tenant_id=7,
+    verified_server_node="node-A",
+    trusted_node_profile_reader=lambda t,n:profile)
+  assert qualify_local_or_cloud_readonly_connection(**args) is None
+  with pytest.raises(D1ServiceAdmissionDenied):
+   qualify_local_or_cloud_readonly_connection(**{**args,"db":DB("off")})
+  with pytest.raises(D1ServiceAdmissionDenied):
+   qualify_local_or_cloud_readonly_connection(**{**args,"tenant_id":8,
+     "trusted_node_profile_reader":lambda t,n:"cloud" if profile=="local_server" else "local_server"})
+  with pytest.raises(D1ServiceAdmissionDenied):
+   qualify_local_or_cloud_readonly_connection(**{**args,"verified_server_node":""})
