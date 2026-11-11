@@ -6,7 +6,8 @@ import pytest
 from scripts.verify_pc8_local_first_source_admission_r0 import (
  ROOT,REL,HISTORICAL,QUALIFIED_W_V2,EXACT,WRAPPER,PROTECTED,BRANCH,TARGET,REPO,
  SourceAdmissionDenied,qualify_contract,qualify_event,inspect_source,
- inspect_github_pr_environment)
+ inspect_github_pr_environment,checked_source_scope,verify_two_independently_pinned_layers,
+ PC8_FOUR_SOURCE,CI_TWO_SOURCE,CI_PATHS,AMENDMENT_PATHS,STAGED_SCOPE)
 
 C=json.loads((ROOT/REL).read_text(encoding="utf-8"))
 
@@ -127,14 +128,62 @@ def test_github_mode_without_real_runner_is_denied(monkeypatch):
     with pytest.raises(SourceAdmissionDenied,match="TRUSTED_GITHUB_PR_RUNNER_REQUIRED"):
         inspect_github_pr_environment(ROOT)
 
-def test_committed_four_file_gate_never_promotes_uncommitted_source():
-    # Local precommit worktree and reviewed descendant are distinct states.
+def test_committed_source_layers_must_be_independently_pinned():
     import subprocess
-    head=subprocess.check_output(["git","-C",str(ROOT),"rev-parse","HEAD"],text=True).strip()
-    if head==WRAPPER:
-        with pytest.raises(SourceAdmissionDenied,match="FOUR_FILE_SOURCE_SCOPE_DENIED"):
+    head=subprocess.check_output(
+        ["git","-C",str(ROOT),"rev-parse","HEAD"],text=True).strip()
+    if head in (WRAPPER, CI_TWO_SOURCE):
+        with pytest.raises(SourceAdmissionDenied):
             inspect_source(ROOT,require_four_path_delta=True)
     else:
         receipt=inspect_source(ROOT,require_four_path_delta=True)
         assert receipt["operative_release"] is False
         assert receipt["source_head"]==head
+        assert checked_source_scope(ROOT,head)==STAGED_SCOPE
+
+def test_pure_pr_event_accepts_separately_bounded_scope_nonoperative():
+    result=qualify_event(C,good_event(),**{**ARGS,"tracked_scope":STAGED_SCOPE})
+    assert result["operative_release"] is False
+    assert result["status"]=="PR_SOURCE_IDENTITY_ONLY"
+
+@pytest.mark.parametrize("scope",[
+    STAGED_SCOPE|{"core/platform/release_integrity.py"},
+    STAGED_SCOPE-{"scripts/verify_pc8_local_first_source_admission_r0.py"},
+    STAGED_SCOPE-{"tests/contracts/test_pc8_local_first_source_admission_r0.py"},
+    CI_PATHS,
+    AMENDMENT_PATHS
+])
+def test_staged_scope_must_be_exact(scope):
+    with pytest.raises(SourceAdmissionDenied,match="WRAPPER_ANCESTRY_OR_SOURCE_SCOPE_DENIED"):
+        qualify_event(C,good_event(),**{**ARGS,"tracked_scope":scope})
+
+def test_original_pc8_four_file_source_is_still_pinned():
+    assert checked_source_scope(ROOT,PC8_FOUR_SOURCE)==EXACT
+
+def test_frozen_ci_layer_has_exact_two_new_files():
+    assert set(CI_PATHS)=={
+      ".github/workflows/xcomp-d1d2-source-integrity.yml",
+      ".github/workflows/xcomp-pc0-v2-restaurant-admission.yml"}
+    assert len(AMENDMENT_PATHS)==2
+
+def test_untrusted_descendant_source_denied(monkeypatch):
+    from scripts import verify_pc8_local_first_source_admission_r0 as verifier
+    original_git=verifier.git
+    def counterfeit(root,*args):
+        if args[:2]==("diff","--name-only") and args[-1]==CI_TWO_SOURCE:
+            return "core/platform/release_integrity.py"
+        return original_git(root,*args)
+    monkeypatch.setattr(verifier,"git",counterfeit)
+    with pytest.raises(SourceAdmissionDenied):
+        verify_two_independently_pinned_layers(ROOT,CI_TWO_SOURCE)
+
+def test_untrusted_extra_amendment_path_denied(monkeypatch):
+    from scripts import verify_pc8_local_first_source_admission_r0 as verifier
+    original_git=verifier.git
+    def counterfeit(root,*args):
+        if args[:3]==("diff","--name-only",CI_TWO_SOURCE):
+            return "\n".join(sorted(AMENDMENT_PATHS|{"core/platform/release_integrity.py"}))
+        return original_git(root,*args)
+    monkeypatch.setattr(verifier,"git",counterfeit)
+    with pytest.raises(SourceAdmissionDenied,match="PC8_SCOPE_AMENDMENT_TWO_PATHS_DENIED"):
+        verify_two_independently_pinned_layers(ROOT,CI_TWO_SOURCE)

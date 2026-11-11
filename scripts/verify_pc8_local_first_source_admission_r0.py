@@ -20,6 +20,17 @@ EXACT=frozenset({
  "scripts/verify_pc8_local_first_source_admission_r0.py",
  "tests/contracts/test_pc8_local_first_source_admission_r0.py",
  ".github/workflows/xcomp-pc8-local-first-source-admission.yml"})
+# Two independently qualified layers, not a general source scope exception.
+PC8_FOUR_SOURCE="f48de3b02301a7de190d41fe623ccf996040d33c"
+CI_TWO_SOURCE="3c56da02a712ec34c74c8bad0cd2cc5c5d5ae52e"
+CI_PATHS=frozenset({
+ ".github/workflows/xcomp-d1d2-source-integrity.yml",
+ ".github/workflows/xcomp-pc0-v2-restaurant-admission.yml"})
+AMENDMENT_PATHS=frozenset({
+ "scripts/verify_pc8_local_first_source_admission_r0.py",
+ "tests/contracts/test_pc8_local_first_source_admission_r0.py"})
+STAGED_SCOPE=EXACT | CI_PATHS
+
 HISTORICAL={
  "scripts/verify_pc8_registered_current_source_r1.py":"0dc113e08d646cb7f65f833a370e81a999929aa3356ff7d443f644b89bf6f50e",
  "contracts/platform/v1/pc8_current_source_companion_registry_r1.json":"78374520f4d483866a07d13d99b1993584299c580877b4d422d4b7a646f010c8",
@@ -99,6 +110,40 @@ def qualify_contract(c:dict)->dict:
             "operative_release":False,"registered":False,
             "independent_signing_verified":False}
 
+def verify_two_independently_pinned_layers(root:Path, source_head:str)->dict:
+    """Exactly 4 PC8 + 2 CI + 2 scoped amendment paths; no wildcard grant."""
+    git(root,"merge-base","--is-ancestor",PC8_FOUR_SOURCE,CI_TWO_SOURCE)
+    git(root,"merge-base","--is-ancestor",CI_TWO_SOURCE,source_head)
+    four=set(git(root,"diff","--name-only",WRAPPER,PC8_FOUR_SOURCE).splitlines())
+    require(four==EXACT,"ORIGINAL_PC8_FOUR_SOURCE_SCOPE_DENIED")
+    two=set(git(root,"diff","--name-only",PC8_FOUR_SOURCE,CI_TWO_SOURCE).splitlines())
+    require(two==CI_PATHS,"INDEPENDENT_CI_TWO_SOURCE_SCOPE_DENIED")
+    last=set(git(root,"diff","--name-only",CI_TWO_SOURCE,source_head).splitlines())
+    require(last==AMENDMENT_PATHS,"PC8_SCOPE_AMENDMENT_TWO_PATHS_DENIED")
+    cumulative=set(git(root,"diff","--name-only",WRAPPER,source_head).splitlines())
+    require(cumulative==STAGED_SCOPE,"STAGED_PC8_AND_CI_SCOPE_DENIED")
+    for name in EXACT-CI_PATHS-AMENDMENT_PATHS:
+        require(git(root,"rev-parse",source_head+":"+name)==
+                git(root,"rev-parse",PC8_FOUR_SOURCE+":"+name),
+                "ORIGINAL_PC8_FOUR_BLOB_DRIFT")
+    for name in CI_PATHS:
+        require(git(root,"rev-parse",source_head+":"+name)==
+                git(root,"rev-parse",CI_TWO_SOURCE+":"+name),
+                "INDEPENDENT_CI_TWO_BLOB_DRIFT")
+    return {"pc8_source":"FOUR_PATHS_PINNED",
+            "ci_source":"TWO_PATHS_PINNED",
+            "amendment":"TWO_PATHS_BOUNDED",
+            "operative_release":False}
+
+def checked_source_scope(root:Path, head:str)->set[str]:
+    """Either the frozen original four-path candidate or the pinned successor."""
+    changed=set(git(root,"diff","--name-only",WRAPPER,head).splitlines())
+    if changed==EXACT:
+        require(head==PC8_FOUR_SOURCE,"FOUR_FILE_SOURCE_UNPINNED_HEAD")
+    else:
+        verify_two_independently_pinned_layers(root,head)
+    return changed
+
 def qualify_event(c:dict, event:dict, *,
                   checkout_sha:str,review_head_sha:str,base_sha:str,
                   tracked_scope:set[str],wrapper_ancestor:bool,
@@ -121,7 +166,7 @@ def qualify_event(c:dict, event:dict, *,
     require(isinstance(checkout_sha,str) and re.fullmatch("[0-9a-f]{40}",checkout_sha)
             and checkout_sha!=review_head_sha
             and exact_merge_checkout,"CHECKOUT_MERGE_COMMIT_DENIED")
-    require(wrapper_ancestor and tracked_scope==EXACT,
+    require(wrapper_ancestor and tracked_scope in (EXACT,STAGED_SCOPE),
             "WRAPPER_ANCESTRY_OR_SOURCE_SCOPE_DENIED")
     return {"status":"PR_SOURCE_IDENTITY_ONLY","operative_release":False,
             "future_release_authority":False}
@@ -146,8 +191,10 @@ def inspect_source(root:Path=ROOT, *, expected_head:str|None=None,
     if expected_head is not None:require(head==expected_head,"WRONG_SOURCE_HEAD")
     git(root,"merge-base","--is-ancestor",WRAPPER,head)
     if require_four_path_delta:
-        changed=set(git(root,"diff","--name-only",WRAPPER,head).splitlines())
-        require(changed==EXACT,"FOUR_FILE_SOURCE_SCOPE_DENIED")
+        # Legacy argument retained for existing callers, but the admitted
+        # source identity must prove the original four-file candidate OR
+        # the two independently pinned follow-on source layers.
+        checked_source_scope(root,head)
     return dict(result,source_head=head,source_paths=sorted(EXACT),
                 real_github_ci_verified=False,operative_release=False)
 
@@ -180,11 +227,11 @@ def inspect_github_pr_environment(root:Path=ROOT)->dict:
     require(len(parents)==3 and parents==[checkout,base,head],
             "GITHUB_PR_MERGE_PARENTS_DENIED")
     git(root,"merge-base","--is-ancestor",WRAPPER,head)
-    changed=set(git(root,"diff","--name-only",WRAPPER,head).splitlines())
-    require(changed==EXACT,"GITHUB_SOURCE_PATH_SCOPE_DENIED")
+    changed=checked_source_scope(root,head)
+    require(changed in (EXACT,STAGED_SCOPE),"GITHUB_SOURCE_PATH_SCOPE_DENIED")
     git(root,"merge-base","--is-ancestor",head,checkout)
     # W/source and 4 new files survive merge without conflict rewrite.
-    for name in tuple(QUALIFIED_W_V2)+tuple(EXACT):
+    for name in tuple(QUALIFIED_W_V2)+tuple(changed):
         require(git(root,"rev-parse","HEAD:"+name)==
                 git(root,"rev-parse",head+":"+name),
                 "GITHUB_PR_MERGE_BLOB_DRIFT")
