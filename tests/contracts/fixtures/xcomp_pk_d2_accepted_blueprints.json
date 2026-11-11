@@ -1,0 +1,283 @@
+﻿{
+    "source_d0_contract_sha256":  "555cda0afeaf515d3163088c43dedee21c82a257cba61f54d27adf877b15734a",
+    "schema":  "xcomp.MerchantBlueprint.v1",
+    "specimens":  {
+                      "restaurant":  {
+                                         "blueprint_id":  "BP-WND-TEST-910001-R1",
+                                         "revision":  1,
+                                         "merchant_profile":  "restaurant",
+                                         "idempotency":  {
+                                                             "command_key":  "bp:910001:restaurant:rev1",
+                                                             "scope":  "synthetic:910001",
+                                                             "prior_request_fingerprint":  null
+                                                         },
+                                         "tenant":  {
+                                                        "numeric_id":  910001,
+                                                        "reference":  "synthetic:910001",
+                                                        "merchant_public_uuid":  "4b196022-55a1-548c-b122-f1f9e4b78bea",
+                                                        "pc1_binding_evidence_ref":  null,
+                                                        "branch_id":  null,
+                                                        "production_wnd_tenant_2":  false
+                                                    },
+                                         "pack_alias":  "WND_RESTAURANT",
+                                         "packs":  [
+                                                       {
+                                                           "code":  "industry.restaurant",
+                                                           "version":  "1.0.0",
+                                                           "manifest_sha256":  null,
+                                                           "certification_evidence_ref":  null,
+                                                           "registry_lifecycle":  "UNVERIFIED",
+                                                           "tenant_installation_status":  "UNVERIFIED"
+                                                       }
+                                                   ],
+                                         "template":  {
+                                                          "code":  "restaurant.counter_service",
+                                                          "version":  "1.0.0",
+                                                          "template_sha256":  null,
+                                                          "pk6_plan_sha256":  null,
+                                                          "tenant_applied":  false
+                                                      },
+                                         "modules":  {
+                                                         "required":  [
+                                                                          "PC5_AUTH",
+                                                                          "SO1_CATALOG",
+                                                                          "R1_ORDER",
+                                                                          "M2_FINANCE"
+                                                                      ],
+                                                         "optional":  [
+                                                                          "XAFCHAT_WHATSAPP"
+                                                                      ],
+                                                         "deferred":  [
+                                                                          "QR_SHARED_TAB",
+                                                                          "PAYROLL_COMMISSION_PAYOUT"
+                                                                      ],
+                                                         "effective":  [
+
+                                                                       ]
+                                                     },
+                                         "owner_consent":  {
+                                                               "state":  "PENDING",
+                                                               "proof_ref":  null,
+                                                               "owner_issuer":  "PA",
+                                                               "verified_as_of":  null
+                                                           },
+                                         "security":  {
+                                                          "pc5_principal_ref":  null,
+                                                          "pc5_assurance_ref":  null,
+                                                          "pc5_current_decision_ref":  null,
+                                                          "assurance2_proven":  false
+                                                      },
+                                         "subscription":  {
+                                                              "plan_code":  "XCOMP_WND_V1_TEST_DESIGN",
+                                                              "version":  "PROPOSED",
+                                                              "commercial_status":  "PENDING",
+                                                              "pc4_effective_ref":  null,
+                                                              "pc4_module_enabled_ref":  null,
+                                                              "feature_flag_ref":  null
+                                                          },
+                                         "jurisdiction":  {
+                                                              "country":  "CM",
+                                                              "currency":  "XAF",
+                                                              "timezone":  "Africa/Douala",
+                                                              "tax_and_licensed_provider_policy":  "UNAPPROVED"
+                                                          },
+                                         "localization":  {
+                                                              "default":  "fr-CM",
+                                                              "supported":  [
+                                                                                "en",
+                                                                                "fr"
+                                                                            ],
+                                                              "full_gate3b":  "NOT_PROVEN"
+                                                          },
+                                         "channels":  {
+                                                          "xafchat":  {
+                                                                          "requested":  false,
+                                                                          "effective":  false,
+                                                                          "provider_admitted":  false
+                                                                      },
+                                                          "provider_checkout":  {
+                                                                                    "required":  false,
+                                                                                    "admitted":  false
+                                                                                },
+                                                          "pos":  {
+                                                                      "required":  true,
+                                                                      "qualified_independently":  false
+                                                                  }
+                                                      },
+                                         "business_policy":  {
+                                                                 "tenant_overrides":  {
+                                                                                          "business_day_start":  "08:00",
+                                                                                          "shifts":  [
+                                                                                                         "08:00-18:00",
+                                                                                                         "18:00-08:00"
+                                                                                                     ],
+                                                                                          "kitchen":  "FOOD_ONLY",
+                                                                                          "drinks_cogs":  "CONFIG_ONLY",
+                                                                                          "food_cost":  "MANUAL_POLICY",
+                                                                                          "receipt":  [
+                                                                                                          "80MM",
+                                                                                                          "NIU"
+                                                                                                      ]
+                                                                                      },
+                                                                 "finance_kernel_required":  true,
+                                                                 "accounting_workspace_exposed":  null
+                                                             },
+                                         "pa_readiness":  {
+                                                              "pc1_tenant_available":  null,
+                                                              "pk_template_pinned":  null,
+                                                              "pc4_entitlements_effective":  null,
+                                                              "pc5_tenant_admin_ready":  null
+                                                          },
+                                         "desired_vs_effective":  {
+                                                                      "requested":  "D0_BLUEPRINT_TEST_DESIGN",
+                                                                      "authorized":  "D0_LOCAL_ONLY",
+                                                                      "observed":  "SOURCE_CONTRACT_FIXTURE",
+                                                                      "effective":  false,
+                                                                      "activation_receipt_ref":  null
+                                                                  },
+                                         "proof_grade":  "NONOPERATIVE_DESIGN_ONLY",
+                                         "no_actual_certification":  true,
+                                         "no_real_owner_consent":  true,
+                                         "no_real_pc5_authority":  true
+                                     },
+                      "payments_only":  {
+                                            "blueprint_id":  "BP-PAYMENTS-TENANT-PENDING-R1",
+                                            "revision":  1,
+                                            "merchant_profile":  "payments_only",
+                                            "idempotency":  {
+                                                                "command_key":  "bp:payments-only:tenant-pending:rev1",
+                                                                "scope":  "independent-tenant-unissued",
+                                                                "prior_request_fingerprint":  null
+                                                            },
+                                            "tenant":  {
+                                                           "numeric_id":  null,
+                                                           "reference":  "PENDING_INDEPENDENT_ISSUANCE",
+                                                           "merchant_public_uuid":  null,
+                                                           "pc1_binding_evidence_ref":  null,
+                                                           "branch_id":  null,
+                                                           "production_wnd_tenant_2":  false
+                                                       },
+                                            "pack_alias":  "PAYMENTS_ONLY",
+                                            "packs":  [
+                                                          {
+                                                              "code":  "neutral.foundation",
+                                                              "version":  "1.0.0",
+                                                              "manifest_sha256":  null,
+                                                              "certification_evidence_ref":  null,
+                                                              "registry_lifecycle":  "UNVERIFIED",
+                                                              "tenant_installation_status":  "UNVERIFIED"
+                                                          },
+                                                          {
+                                                              "code":  "neutral.payments",
+                                                              "version":  "1.0.0",
+                                                              "manifest_sha256":  null,
+                                                              "certification_evidence_ref":  null,
+                                                              "registry_lifecycle":  "UNVERIFIED",
+                                                              "tenant_installation_status":  "UNVERIFIED"
+                                                          }
+                                                      ],
+                                            "template":  {
+                                                             "code":  "neutral.payments_only",
+                                                             "version":  "1.0.0",
+                                                             "template_sha256":  null,
+                                                             "pk6_plan_sha256":  null,
+                                                             "tenant_applied":  false
+                                                         },
+                                            "modules":  {
+                                                            "required":  [
+                                                                             "PC5_AUTH",
+                                                                             "GATEWAY_CHECKOUT",
+                                                                             "M2_FINANCE"
+                                                                         ],
+                                                            "optional":  [
+
+                                                                         ],
+                                                            "deferred":  [
+                                                                             "R2_KITCHEN",
+                                                                             "SO3_STOCK"
+                                                                         ],
+                                                            "effective":  [
+
+                                                                          ]
+                                                        },
+                                            "owner_consent":  {
+                                                                  "state":  "PENDING",
+                                                                  "proof_ref":  null,
+                                                                  "owner_issuer":  "PA",
+                                                                  "verified_as_of":  null
+                                                              },
+                                            "security":  {
+                                                             "pc5_principal_ref":  null,
+                                                             "pc5_assurance_ref":  null,
+                                                             "pc5_current_decision_ref":  null,
+                                                             "assurance2_proven":  false
+                                                         },
+                                            "subscription":  {
+                                                                 "plan_code":  "XCOMP_PAYMENTS_ONLY_V1_TEST_DESIGN",
+                                                                 "version":  "PROPOSED",
+                                                                 "commercial_status":  "PENDING",
+                                                                 "pc4_effective_ref":  null,
+                                                                 "pc4_module_enabled_ref":  null,
+                                                                 "feature_flag_ref":  null
+                                                             },
+                                            "jurisdiction":  {
+                                                                 "country":  "CM",
+                                                                 "currency":  "XAF",
+                                                                 "timezone":  "Africa/Douala",
+                                                                 "tax_and_licensed_provider_policy":  "UNAPPROVED"
+                                                             },
+                                            "localization":  {
+                                                                 "default":  "en-CM",
+                                                                 "supported":  [
+                                                                                   "en",
+                                                                                   "fr"
+                                                                               ],
+                                                                 "full_gate3b":  "NOT_PROVEN"
+                                                             },
+                                            "channels":  {
+                                                             "xafchat":  {
+                                                                             "requested":  false,
+                                                                             "effective":  false,
+                                                                             "provider_admitted":  false
+                                                                         },
+                                                             "provider_checkout":  {
+                                                                                       "required":  true,
+                                                                                       "admitted":  false
+                                                                                   },
+                                                             "pos":  {
+                                                                         "required":  false,
+                                                                         "qualified_independently":  false
+                                                                     }
+                                                         },
+                                            "business_policy":  {
+                                                                    "tenant_overrides":  {
+                                                                                             "business_day_start":  null,
+                                                                                             "shifts":  [
+
+                                                                                                        ],
+                                                                                             "kitchen":  null,
+                                                                                             "restaurant_pack_applied":  false
+                                                                                         },
+                                                                    "finance_kernel_required":  true,
+                                                                    "accounting_workspace_exposed":  false
+                                                                },
+                                            "pa_readiness":  {
+                                                                 "pc1_tenant_available":  null,
+                                                                 "pk_template_pinned":  null,
+                                                                 "pc4_entitlements_effective":  null,
+                                                                 "pc5_tenant_admin_ready":  null
+                                                             },
+                                            "desired_vs_effective":  {
+                                                                         "requested":  "D0_BLUEPRINT_TEST_DESIGN",
+                                                                         "authorized":  "D0_LOCAL_ONLY",
+                                                                         "observed":  "SOURCE_CONTRACT_FIXTURE",
+                                                                         "effective":  false,
+                                                                         "activation_receipt_ref":  null
+                                                                     },
+                                            "proof_grade":  "NONOPERATIVE_DESIGN_ONLY",
+                                            "no_actual_certification":  true,
+                                            "no_real_owner_consent":  true,
+                                            "no_real_pc5_authority":  true
+                                        }
+                  }
+}

@@ -1,0 +1,210 @@
+{
+  "schema": "xcomp.sof.d3.source_test_matrix.v1",
+  "date": "2026-11-09",
+  "classification": "SOURCE_ONLY_NONSECRET_TEST_CANDIDATE",
+  "pcr_root_sha256": "0ef6cf78ea905de810f4079d72aaaa40ae3d5264170da99c5298e8bacc3fa56e",
+  "base_source_commit": "47842917c102908e61e15318332eb5d55d50094c",
+  "accepted_evidence": "SOF/W Wave1 12-seam reciprocal design gate accepted by PCR; not repeated",
+  "pure_checker": "core/domain/finance/xcomp_d3_source_preflight.py",
+  "focused_tests": "tests/contracts/test_xcomp_sof_d3_source_preflight.py",
+  "authority": "This candidate validates structurally consistent caller-supplied references only; NO signature/PC5/PK/PC4/provider/Finance PG17 readback is independently verified",
+  "effective": {
+    "hosted": false,
+    "merchant_authorized": false,
+    "financial_writer": false,
+    "provider_finality": false,
+    "customer_paid": false,
+    "commission_payout": false,
+    "monthly_ar_bank_reset": false
+  },
+  "merchant_policy": {
+    "A": "SYNTHETIC_910001_NOT_PRODUCTION_TENANT2",
+    "B": "PC1_TENANT_AND_MERCHANT_ID_UNISSUED_NOT_ROUTED_TO_R1",
+    "vip_area": "different server price code but one canonical SO3 item stock identity; no client downprice",
+    "payroll": "deferred",
+    "ar": "unpaid may be accrual-recognized but is not cash collection or additional revenue on repayment"
+  },
+  "seams": [
+    {
+      "id": "S01",
+      "producer": "PC4/SO1",
+      "consumer": "R1",
+      "source_path": "shared_operations/so1/service.py",
+      "invariant": "source quote vs selected price/area",
+      "negative_codes": [
+        "CLIENT_SUPPLIED_PRICE_FORBIDDEN",
+        "AREA_PRICE_CODE_MISMATCH",
+        "SOURCE_PRICE_OBLIGATION_MISMATCH"
+      ],
+      "implementation_grade": "pure_preflight_partial",
+      "independent_hosted_proof": "NOT_ADMITTED"
+    },
+    {
+      "id": "S02",
+      "producer": "POS/XafChat/R1",
+      "consumer": "R1 canonical order",
+      "source_path": "restaurant/r1/contracts.py",
+      "invariant": "one tenant, one order, one origin",
+      "negative_codes": [
+        "TENANT_OR_ORDER_CROSSOVER",
+        "IDEMPOTENCY_KEY_CHANGED_PAYLOAD_DENIED"
+      ],
+      "implementation_grade": "pure_preflight_partial",
+      "independent_hosted_proof": "NOT_ADMITTED"
+    },
+    {
+      "id": "S03",
+      "producer": "R1/R2",
+      "consumer": "SO3 and SO8",
+      "source_path": "shared_operations/so3/service.py",
+      "invariant": "kitchen intent not stock valuation, one item/stock identity across VIP",
+      "negative_codes": [
+        "VIP_DUPLICATE_STOCK_IDENTITY_DENIED",
+        "VIP_DIFFERENT_ITEM_CANNOT_COMPARE"
+      ],
+      "implementation_grade": "pure_preflight_partial",
+      "independent_hosted_proof": "NOT_ADMITTED"
+    },
+    {
+      "id": "S04",
+      "producer": "R1/R3 descriptor",
+      "consumer": "M3 obligation writer",
+      "source_path": "restaurant/r3/service.py",
+      "invariant": "sum of immutable R1 priced lines equals M3 obligation; R3 executes no writes",
+      "negative_codes": [
+        "SOURCE_PRICE_OBLIGATION_MISMATCH",
+        "TENANT_OR_ORDER_CROSSOVER"
+      ],
+      "implementation_grade": "pure_preflight_partial",
+      "independent_hosted_proof": "NOT_ADMITTED"
+    },
+    {
+      "id": "S05",
+      "producer": "M3/M4",
+      "consumer": "Gateway restricted checkout",
+      "source_path": "core/domain/finance/payment_tender_engine.py",
+      "invariant": "created checkout is not settled; split capacity bounded",
+      "negative_codes": [
+        "CHECKOUT_CREATED_OR_UNKNOWN_IS_NOT_SETTLEMENT",
+        "TENDER_OVER_CAPACITY"
+      ],
+      "implementation_grade": "pure_preflight_partial",
+      "independent_hosted_proof": "NOT_ADMITTED"
+    },
+    {
+      "id": "S06",
+      "producer": "Gateway finality",
+      "consumer": "M4.5/M4 ledger-controlled settlement",
+      "source_path": "core/integrations/xafpay/orchestration_service.py",
+      "invariant": "provider event and independent merchant evidence must be verified by future trusted services",
+      "negative_codes": [
+        "INDEPENDENT_PROVIDER_AND_FINANCE_PROOF_NOT_SUPPLIED",
+        "CHECKOUT_CREATED_OR_UNKNOWN_IS_NOT_SETTLEMENT"
+      ],
+      "implementation_grade": "pure_preflight_partial",
+      "independent_hosted_proof": "NOT_ADMITTED"
+    },
+    {
+      "id": "S07",
+      "producer": "M4/M3",
+      "consumer": "M2 immutable balanced journal",
+      "source_path": "core/domain/finance/transactional_event_engine.py",
+      "invariant": "one provider reference and one matching Finance posting; no synthetic journal write",
+      "negative_codes": [
+        "IDEMPOTENCY_KEY_CHANGED_PAYLOAD_DENIED",
+        "INDEPENDENT_PROVIDER_AND_FINANCE_PROOF_NOT_SUPPLIED"
+      ],
+      "implementation_grade": "pure_preflight_partial",
+      "independent_hosted_proof": "NOT_ADMITTED"
+    },
+    {
+      "id": "S08",
+      "producer": "M3/M5",
+      "consumer": "A/R and original-linked refunds",
+      "source_path": "core/domain/finance/receivable_engine.py",
+      "invariant": "unpaid residual A/R; repayment not new revenue; refund linked",
+      "negative_codes": [
+        "AR_NOT_OUTSTANDING_REMAINDER",
+        "AR_REPAYMENT_IS_NOT_NEW_REVENUE",
+        "UNLINKED_REFUND_FORBIDDEN"
+      ],
+      "implementation_grade": "pure_preflight_partial",
+      "independent_hosted_proof": "NOT_ADMITTED"
+    },
+    {
+      "id": "S09",
+      "producer": "PC4/M6",
+      "consumer": "merchant close",
+      "source_path": "core/domain/finance/reconciliation_close_engine.py",
+      "invariant": "as-of window, independent actual and tenant calendar; no reset of books",
+      "negative_codes": [
+        "STALE_CLOSE_AS_OF",
+        "CLOSE_VARIANCE_UNEXPLAINED",
+        "MONTHLY_BANK_OR_AR_RESET_FORBIDDEN"
+      ],
+      "implementation_grade": "pure_preflight_partial",
+      "independent_hosted_proof": "NOT_ADMITTED"
+    },
+    {
+      "id": "S10",
+      "producer": "Gateway and merchant Finance readback",
+      "consumer": "XafChat/POS customer status",
+      "source_path": "contracts/finance/v1/m45_xafpay_orchestration.json",
+      "invariant": "no PAID / commission / payroll from source observations",
+      "negative_codes": [
+        "COMMISSION_BEFORE_FULL_VERIFIED_PAYMENT_DENIED",
+        "PAYROLL_OR_PAYOUT_NOT_ADMITTED"
+      ],
+      "implementation_grade": "pure_preflight_partial",
+      "independent_hosted_proof": "NOT_ADMITTED"
+    },
+    {
+      "id": "S11",
+      "producer": "SO3 quantities",
+      "consumer": "M7.2 cost evidence / M2 if independently admitted",
+      "source_path": "core/domain/finance/wnd_inventory_document_service.py",
+      "invariant": "single WND stock identity, no inference of missing food cost as zero",
+      "negative_codes": [
+        "VIP_DUPLICATE_STOCK_IDENTITY_DENIED",
+        "SOURCE_ONLY_COGS_PROVENANCE_EXTERNAL_REQUIRED"
+      ],
+      "implementation_grade": "partial_plus_future",
+      "independent_hosted_proof": "NOT_ADMITTED"
+    },
+    {
+      "id": "S12",
+      "producer": "PA/PK/PC1/PC4/PC5 merchant B",
+      "consumer": "Neutral M4 payment-only flow bypass R1",
+      "source_path": "contracts/finance/v1/m44_supported_payment_patterns.json",
+      "invariant": "B tenant unissued and no restaurant pack/stock/08:00 assumptions",
+      "negative_codes": [
+        "PAYMENTS_ONLY_MUST_BYPASS_R1",
+        "TENANT_OR_ORDER_CROSSOVER"
+      ],
+      "implementation_grade": "pure_preflight_partial",
+      "independent_hosted_proof": "NOT_ADMITTED"
+    }
+  ],
+  "missing_service_admission": [
+    "N/PC5 authenticated transport, tenant+org+branch+principal/assurance",
+    "PA/PK/PC1/PC4 effective pack and owner consent",
+    "SO1 real authenticated quote evidence and price code/server selection",
+    "R1 canonical order source bridge and canonical tariff snapshot",
+    "M3 protected obligation executor",
+    "M4 verified provider callback signed and independently read back",
+    "M2 atomic balanced PG17 source-linked journal plus outbox/inbox",
+    "M5 authentic A/R and refund/correction execution",
+    "M6 independent actual reconciliation and close authorization",
+    "SO3 nonduplicated movement and M7.2 actual cost provenance",
+    "XafChat recipient-bound, verified merchant PAID status",
+    "FE truthful bilingual receipt and customer status"
+  ],
+  "no_side_effects": [
+    "No imported repositories",
+    "No migrations",
+    "No network/provider access",
+    "No money transfers",
+    "No installed financial status",
+    "No branch merge or push"
+  ]
+}
