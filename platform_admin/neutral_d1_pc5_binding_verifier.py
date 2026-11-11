@@ -114,3 +114,53 @@ def verify_browser_to_pc5_binding(
         raise
     except Exception as exc:
         raise PC5BindingDenied("TRUSTED_AUTHORITY_UNAVAILABLE") from exc
+
+def verify_local_delegated_read(
+    principal: BoundPC5Principal,
+    *,
+    scope,
+    read_delegation,
+    read_role,
+    read_membership_active,
+    read_locally_revoked,
+    read_device_verified,
+    read_signed_lease,
+    clock,
+) -> BoundPC5Principal:
+    """Additional local-PC5/PC4 server-owned read admission, source-only.
+
+    All readers MUST resolve live local SQL + preissued signed issuer proofs.
+    No browser-provided role, node, lease, or local session ID is accepted.
+    Original D1 get_verified_pc5_binding remains 503 until independently
+    commissioned real browser->PC5 and tenant production readers.
+    """
+    from core.platform.security_authority.local_issuer import (
+        permit_local_session, LocalAuthorityDenied,
+    )
+    from core.platform.operating_context.signed_entitlement_lease import (
+        require_entitlement, LeaseDenied,
+    )
+    if not isinstance(principal, BoundPC5Principal):
+        raise PC5BindingDenied("LOCAL_PC5_PRINCIPAL_MISSING")
+    if (getattr(scope, "tenant_id", None) != principal.tenant_id or
+            getattr(scope, "branch_id", None) != principal.branch_id):
+        raise PC5BindingDenied("LOCAL_SCOPE_TENANT_BRANCH_DENIED")
+    try:
+        timestamp = clock()
+        role = read_role(principal.session_id)
+        delegation = read_delegation(principal.session_id)
+        lease = read_signed_lease(principal.tenant_id)
+        permit_local_session(
+            scope, delegation, role, timestamp,
+            active_membership=read_membership_active(principal.session_id),
+            local_revoked=read_locally_revoked(principal.session_id),
+            device_verified=read_device_verified(principal.session_id),
+        )
+        require_entitlement(
+            lease, principal.tenant_id, "neutral_read", timestamp,
+        )
+    except (LocalAuthorityDenied, LeaseDenied) as exc:
+        raise PC5BindingDenied("LOCAL_SIGNED_AUTHORITY_DENIED") from exc
+    except Exception as exc:
+        raise PC5BindingDenied("LOCAL_AUTHORITY_READBACK_UNAVAILABLE") from exc
+    return principal
