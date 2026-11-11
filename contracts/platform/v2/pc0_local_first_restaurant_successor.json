@@ -1,0 +1,56 @@
+{
+  "admission": "PROSPECTIVE_SOURCE_ONLY",
+  "ceo_approved_scope_root_sha256": "928dc8ebfa63c698789f6a46e7d618d19f98ef30ca0f8c99d788e8e3e8475826",
+  "certification": "SOURCE_CONTRACT_TESTS_ONLY_NOT_RUNTIME_ADMISSION",
+  "dependency_policy": {
+    "allowed_internal_imports": [],
+    "default": "deny",
+    "forbidden_direct_modules": [
+      "core.platform",
+      "core.domain.finance",
+      "core.integrations",
+      "platform_admin",
+      "pack_platform",
+      "shared_operations"
+    ],
+    "independent_injected_authorities": [
+      "server_verified_pc5",
+      "server_verified_epoch",
+      "server_verified_finance_readback"
+    ],
+    "wildcard_exceptions": false
+  },
+  "held_w_commit": "c94d9d15a2e684c9178c151113369fd8dca2b817",
+  "historical_pc0_sha256": {
+    "contracts/platform/v1/pc0_dependency_policy.json": "299de659767a13b67d925b76fd37e1a410affa321f43b0b5d39f59063b32183a",
+    "contracts/platform/v1/pc0_module_map.json": "8ee2b0f1f706306f42f7023a99e10400c8f538b31d2ef6be87c8563a864e8e23",
+    "core/platform/architecture_contract.py": "ddf14884560c56c9813481e8dfbb922f0a9a4206a1b7c75fe75682529567764f",
+    "tests/contracts/test_pc0_kernel_boundaries.py": "7b60eb4fa4efe4ac82b2808873e407179819088ef9087ac876f27e7e4df4f2a8"
+  },
+  "module": {
+    "code": "restaurant_local",
+    "kind": "local_operational",
+    "owner": "W / Restaurant Pack",
+    "source_files": {
+      "core/api/restaurant/local_first_lan_router.py": "7f4487999ffccab39291930394f70351ef3bf4561cd88f518a1ededd108386f2",
+      "core/domain/restaurant/local_first_receipt_service.py": "2eb91ba58b504eece152fd743fc77cf262a187106431b091a74417e42a8f2881",
+      "core/domain/restaurant/local_first_shift_session.py": "77b5f89885dfcc0e4da3e8a3a3b6f3ae4f3437763c5064f9e1a825d5858bf385",
+      "core/domain/restaurant/local_first_stock_draft.py": "abffd9e3332a08e42d70c620ce9e61e7906ea51d6219938d81ffc0cfb075489b"
+    },
+    "source_roots": [
+      "core/api/restaurant",
+      "core/domain/restaurant"
+    ]
+  },
+  "original_integrated_backend_head": "88d1a72da4c037c88a70ab2eb5c945c528253b8c",
+  "out_of_scope": [
+    "NO_LIVE_PC0_GATE_REPLACEMENT",
+    "NO_GITHUB_RULESET_CHANGE",
+    "NO_ROUTER_MOUNT",
+    "NO_PG17_MIGRATION",
+    "NO_KEY_SIGNING",
+    "NO_WND_PRODUCTION"
+  ],
+  "schema": "xbos.platform.pc0-local-first-restaurant-successor.v2",
+  "version": 2
+}
