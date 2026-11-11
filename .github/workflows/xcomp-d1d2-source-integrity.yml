@@ -43,14 +43,29 @@ jobs:
           $allowed = @('ci/xcomp-d1d2-source-checks-20261109',
                        'ci/xcomp-p3-wrapper-admission-20261111',
                        'ci/xcomp-d1-sandbox-source-admission-20261111',
+                       'ci/xcomp-d1-pc0-correction-20261111',
                        'platform/xcomp-d1d2-integrated-source-20261109',
                        'review/xcomp-be-current-base-wrapper-20261111',
-                       'review/xcomp-d1-hosted-current-base-wrapper-20261111')
+                       'review/xcomp-d1-hosted-current-base-wrapper-20261111',
+                       'review/xcomp-d1-pc0-corrected-wrapper-20261111')
           if ($p.head.ref -cnotin $allowed) { throw 'UNADMITTED_D1D2_PR_HEAD' }
           $originalSource = '9c867c224f86ca245d683ecc9fdc6b4faec7c8c5'
           if ($p.head.ref -ceq 'platform/xcomp-d1d2-integrated-source-20261109' -and
               $p.head.sha -cne $originalSource) {
             throw 'INTEGRATION_COMMIT_IDENTITY_CHANGED'
+          }
+          if ($p.head.ref -ceq 'review/xcomp-d1-pc0-corrected-wrapper-20261111') {
+            $originalD1 = '55d6cdb0a4d92cdc9ed48e28802a7c2c176916ae'
+            $correctedD1 = '0cdd60b029ef492287c48ae66c1bda2c97b20395'
+            $parents = @((git rev-list --parents -n 1 $p.head.sha) -split ' ')
+            if ($parents.Count -ne 3 -or $parents[0] -cne $p.head.sha -or
+                $parents[1] -cne $p.base.sha -or $parents[2] -cne $correctedD1) {
+              throw 'D1_PC0_CORRECTED_WRAPPER_PARENTS_NOT_PINNED'
+            }
+            foreach ($ancestor in @($originalSource,$originalD1,$correctedD1,$p.base.sha)) {
+              git merge-base --is-ancestor $ancestor $p.head.sha
+              if ($LASTEXITCODE -ne 0) { throw 'D1_PC0_CORRECTED_ANCESTOR_DENIED' }
+            }
           }
           if ($p.head.ref -ceq 'review/xcomp-d1-hosted-current-base-wrapper-20261111') {
             $originalD1 = '55d6cdb0a4d92cdc9ed48e28802a7c2c176916ae'
@@ -94,7 +109,8 @@ jobs:
           $ErrorActionPreference = 'Stop'
           if ($env:GITHUB_HEAD_REF -cin @('ci/xcomp-d1d2-source-checks-20261109',
                                          'ci/xcomp-p3-wrapper-admission-20261111',
-                                         'ci/xcomp-d1-sandbox-source-admission-20261111')) {
+                                         'ci/xcomp-d1-sandbox-source-admission-20261111',
+                                         'ci/xcomp-d1-pc0-correction-20261111')) {
             python -m pytest -q -p no:cacheprovider --tb=short tests/contracts/test_pc0_kernel_boundaries.py tests/contracts/test_pc5_identity_policy_audit.py tests/contracts/test_pa0123_platform_administration.py tests/contracts/test_pk456_pack_conformance_templates.py
             if ($LASTEXITCODE -ne 0) { throw 'BASELINE_BOOTSTRAP_CI_FAILED' }
           } else {
@@ -129,7 +145,8 @@ jobs:
             ) | ForEach-Object { "tests/contracts/$_" }
             python -m pytest -q -p no:cacheprovider --tb=short $s
             if ($LASTEXITCODE -ne 0) { throw 'D1D2_INTEGRATION_REGRESSION_FAILED' }
-            if ($env:GITHUB_HEAD_REF -ceq 'review/xcomp-d1-hosted-current-base-wrapper-20261111') {
+            if ($env:GITHUB_HEAD_REF -cin @('review/xcomp-d1-hosted-current-base-wrapper-20261111',
+                                         'review/xcomp-d1-pc0-corrected-wrapper-20261111')) {
               $d1tests = @(
                 'test_xcomp_d1_sql_services_r0.py',
                 'test_xcomp_d1_link_custody_r0.py',
