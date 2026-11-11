@@ -38,6 +38,36 @@ class BoundPC5Principal:
 
 
 @dataclass(frozen=True)
+class ServerVerifiedLocalNode:
+    """Source-only proof projection from a future trusted LAN runtime.
+
+    Never construct this from HTTP headers or browser-provided node identity.
+    This type does not authorize a PC5 principal or install any dependency.
+    """
+    tenant_id: int
+    branch_id: int
+    node_id: str
+
+
+def require_local_node_scope(
+    binding: BoundPC5Principal,
+    node: ServerVerifiedLocalNode | None,
+) -> BoundPC5Principal:
+    """Local read must bind verified PC5 context to verified server node.
+
+    Does not grant access or replace the existing PC4/PC5 _admit policy.
+    """
+    if not isinstance(binding, BoundPC5Principal):
+        raise HTTPException(status_code=401, detail="LOCAL_PC5_BINDING_ABSENT")
+    if not isinstance(node, ServerVerifiedLocalNode) or not node.node_id.strip():
+        raise HTTPException(status_code=503, detail="TRUSTED_LOCAL_NODE_NOT_ADMITTED")
+    if (binding.tenant_id != node.tenant_id or
+            binding.branch_id != node.branch_id):
+        raise HTTPException(status_code=403, detail="LOCAL_NODE_TENANT_BRANCH_DENIED")
+    return binding
+
+
+@dataclass(frozen=True)
 class NeutralReadServices:
     pc5: SecurityAuthority
     pc4: OperatingContextAuthority
