@@ -42,44 +42,101 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'PR_BASE_NOT_IN_MERGE_CHECKOUT' }
           $allowed = @('ci/xcomp-d1d2-source-checks-20261109',
                        'ci/xcomp-p3-wrapper-admission-20261111',
-                       'ci/xcomp-d1-sandbox-source-admission-20261111',
-                       'ci/xcomp-d1-pc0-correction-20261111',
                        'platform/xcomp-d1d2-integrated-source-20261109',
                        'review/xcomp-be-current-base-wrapper-20261111',
-                       'review/xcomp-d1-hosted-current-base-wrapper-20261111',
-                       'review/xcomp-d1-pc0-corrected-wrapper-20261111')
+                       'review/xcomp-pc0-v2-w-source-20261111',
+                       'review/xcomp-pc8-local-first-v2-source-20261111')
           if ($p.head.ref -cnotin $allowed) { throw 'UNADMITTED_D1D2_PR_HEAD' }
           $originalSource = '9c867c224f86ca245d683ecc9fdc6b4faec7c8c5'
           if ($p.head.ref -ceq 'platform/xcomp-d1d2-integrated-source-20261109' -and
               $p.head.sha -cne $originalSource) {
             throw 'INTEGRATION_COMMIT_IDENTITY_CHANGED'
           }
-          if ($p.head.ref -ceq 'review/xcomp-d1-pc0-corrected-wrapper-20261111') {
-            $originalD1 = '55d6cdb0a4d92cdc9ed48e28802a7c2c176916ae'
-            $correctedD1 = '0cdd60b029ef492287c48ae66c1bda2c97b20395'
+          if ($p.head.ref -ceq 'review/xcomp-pc0-v2-w-source-20261111') {
+            # W v2 review demands the exact two-parent source admission wrapper.
+            $wSource = 'd5ffbc3c253cbd0530bd15cac1e594a0447bf8e5'
             $parents = @((git rev-list --parents -n 1 $p.head.sha) -split ' ')
             if ($parents.Count -ne 3 -or $parents[0] -cne $p.head.sha -or
-                $parents[1] -cne $p.base.sha -or $parents[2] -cne $correctedD1) {
-              throw 'D1_PC0_CORRECTED_WRAPPER_PARENTS_NOT_PINNED'
+                $parents[1] -cne $p.base.sha) {
+              throw 'W_V2_REVIEW_WRAPPER_PARENT_PROVENANCE_DENIED'
             }
-            foreach ($ancestor in @($originalSource,$originalD1,$correctedD1,$p.base.sha)) {
-              git merge-base --is-ancestor $ancestor $p.head.sha
-              if ($LASTEXITCODE -ne 0) { throw 'D1_PC0_CORRECTED_ANCESTOR_DENIED' }
+            git merge-base --is-ancestor $wSource $parents[2]
+            if ($LASTEXITCODE -ne 0) { throw 'W_V2_CI_SOURCE_NOT_DESCENDED_FROM_QUALIFIED_W' }
+            $allowedWorkflowDelta = @(
+              '.github/workflows/xcomp-d1d2-source-integrity.yml',
+              '.github/workflows/xcomp-pc0-v2-restaurant-admission.yml'
+            )
+            $changedWorkflowDelta = @((git diff --name-only $wSource $parents[2]))
+            if ($LASTEXITCODE -ne 0 -or $changedWorkflowDelta.Count -ne 2 -or
+                @($changedWorkflowDelta | Where-Object { $_ -cnotin $allowedWorkflowDelta }).Count -ne 0) {
+              throw 'W_V2_CI_SOURCE_PATH_SCOPE_DENIED'
             }
-          }
-          if ($p.head.ref -ceq 'review/xcomp-d1-hosted-current-base-wrapper-20261111') {
-            $originalD1 = '55d6cdb0a4d92cdc9ed48e28802a7c2c176916ae'
-            $parents = @((git rev-list --parents -n 1 $p.head.sha) -split ' ')
-            if ($parents.Count -ne 3 -or $parents[0] -cne $p.head.sha -or
-                $parents[1] -cne $p.base.sha -or $parents[2] -cne $originalD1) {
-              throw 'D1_WRAPPER_PARENTS_NOT_PINNED'
-            }
-            git merge-base --is-ancestor $originalSource $p.head.sha
-            if ($LASTEXITCODE -ne 0) { throw 'D1_ORIGINAL_INTEGRATION_NOT_ANCESTOR' }
-            git merge-base --is-ancestor $originalD1 $p.head.sha
-            if ($LASTEXITCODE -ne 0) { throw 'D1_CURRENT_SOURCE_NOT_ANCESTOR' }
             git merge-base --is-ancestor $p.base.sha $p.head.sha
-            if ($LASTEXITCODE -ne 0) { throw 'D1_PROTECTED_BASE_NOT_ANCESTOR' }
+            if ($LASTEXITCODE -ne 0) { throw 'W_V2_PROTECTED_BASE_NOT_AN_ANCESTOR' }
+            git merge-base --is-ancestor $wSource $p.head.sha
+            if ($LASTEXITCODE -ne 0) { throw 'W_V2_QUALIFIED_SOURCE_NOT_AN_ANCESTOR' }
+          }
+          if ($p.head.ref -ceq 'review/xcomp-pc8-local-first-v2-source-20261111') {
+            # Successor source admission only: never overrides frozen PC8.
+            $prior = '54ce7208809b2fc6beba70d2713143013d6cebd3'
+            $qualified = 'f48de3b02301a7de190d41fe623ccf996040d33c'
+            $ciSource = '3c56da02a712ec34c74c8bad0cd2cc5c5d5ae52e'
+            $historical = 'f68e4217395f58afbbb493bf7e772050d865ade8'
+            $four = @(
+              '.github/workflows/xcomp-pc8-local-first-source-admission.yml',
+              'contracts/platform/v2/pc8_local_first_source_admission_contract_r0.json',
+              'scripts/verify_pc8_local_first_source_admission_r0.py',
+              'tests/contracts/test_pc8_local_first_source_admission_r0.py'
+            )
+            $two = @(
+              '.github/workflows/xcomp-d1d2-source-integrity.yml',
+              '.github/workflows/xcomp-pc0-v2-restaurant-admission.yml'
+            )
+            $parents = @((git rev-list --parents -n 1 $p.head.sha) -split ' ')
+            if ($p.base.sha -cne '376547f7c037814ab2b19a1df8fd6c7aec08f864' -or
+                $parents.Count -ne 3 -or $parents[0] -cne $p.head.sha -or
+                $parents[1] -cne $p.base.sha) {
+              throw 'PC8_LF_PROTECTED_TWO_PARENT_WRAPPER_DENIED'
+            }
+            $reviewed = $parents[2]
+            git merge-base --is-ancestor $prior $reviewed
+            if ($LASTEXITCODE -ne 0) { throw 'PC8_LF_QUALIFIED_SOURCE_ANCESTRY_DENIED' }
+            $fourDelta = @((git diff --name-only $historical $qualified))
+            if ($LASTEXITCODE -ne 0 -or $fourDelta.Count -ne 4 -or
+                @($fourDelta | Where-Object { $_ -cnotin $four }).Count -ne 0) {
+              throw 'PC8_LF_ORIGINAL_FOUR_PATHS_DENIED'
+            }
+            $ciDelta = @((git diff --name-only $qualified $ciSource))
+            if ($LASTEXITCODE -ne 0 -or $ciDelta.Count -ne 2 -or
+                @($ciDelta | Where-Object { $_ -cnotin $two }).Count -ne 0) {
+              throw 'PC8_LF_ORIGINAL_CI_TWO_PATHS_DENIED'
+            }
+            $amended = @('scripts/verify_pc8_local_first_source_admission_r0.py',
+                         'tests/contracts/test_pc8_local_first_source_admission_r0.py')
+            $firstAmendment = @((git diff --name-only $ciSource $prior))
+            if ($LASTEXITCODE -ne 0 -or $firstAmendment.Count -ne 2 -or
+                @($firstAmendment | Where-Object { $_ -cnotin $amended }).Count -ne 0) {
+              throw 'PC8_LF_PRIOR_TWO_AMENDMENT_PATHS_DENIED'
+            }
+            $finalDelta = @((git diff --name-only $prior $reviewed))
+            if ($LASTEXITCODE -ne 0 -or $finalDelta.Count -ne 4 -or
+                @($finalDelta | Where-Object { $_ -cnotin ($two + $amended) }).Count -ne 0) {
+              throw 'PC8_LF_FINAL_FOUR_SOURCE_PATHS_DENIED'
+            }
+            $cumulative = @((git diff --name-only $historical $reviewed))
+            if ($LASTEXITCODE -ne 0 -or $cumulative.Count -ne 6 -or
+                @($cumulative | Where-Object { $_ -cnotin ($four + $two) }).Count -ne 0) {
+              throw 'PC8_LF_CUMULATIVE_SOURCE_PATHS_DENIED'
+            }
+            foreach ($file in $four + $two) {
+              $wrapperBlob = (git rev-parse ($p.head.sha + ':' + $file)).Trim()
+              $reviewedBlob = (git rev-parse ($reviewed + ':' + $file)).Trim()
+              if ($LASTEXITCODE -ne 0 -or $wrapperBlob -cne $reviewedBlob) {
+                throw 'PC8_LF_REVIEW_WRAPPER_BLOB_DRIFT'
+              }
+            }
+            git merge-base --is-ancestor $p.base.sha $p.head.sha
+            if ($LASTEXITCODE -ne 0) { throw 'PC8_LF_PROTECTED_BASE_NOT_ANCESTOR' }
           }
           if ($p.head.ref -ceq 'review/xcomp-be-current-base-wrapper-20261111') {
             # The wrapper is a true two-parent merge: exact current protected
@@ -108,11 +165,46 @@ jobs:
         run: |
           $ErrorActionPreference = 'Stop'
           if ($env:GITHUB_HEAD_REF -cin @('ci/xcomp-d1d2-source-checks-20261109',
-                                         'ci/xcomp-p3-wrapper-admission-20261111',
-                                         'ci/xcomp-d1-sandbox-source-admission-20261111',
-                                         'ci/xcomp-d1-pc0-correction-20261111')) {
+                                         'ci/xcomp-p3-wrapper-admission-20261111')) {
             python -m pytest -q -p no:cacheprovider --tb=short tests/contracts/test_pc0_kernel_boundaries.py tests/contracts/test_pc5_identity_policy_audit.py tests/contracts/test_pa0123_platform_administration.py tests/contracts/test_pk456_pack_conformance_templates.py
             if ($LASTEXITCODE -ne 0) { throw 'BASELINE_BOOTSTRAP_CI_FAILED' }
+          } elseif ($env:GITHUB_HEAD_REF -cin @(
+            'review/xcomp-pc0-v2-w-source-20261111',
+            'review/xcomp-pc8-local-first-v2-source-20261111')) {
+            # Historical PC0 is tested on the protected base, never falsified as
+            # passing on the new W tree which historical PC0 correctly denies.
+            $p = (Get-Content -LiteralPath $env:GITHUB_EVENT_PATH -Raw | ConvertFrom-Json).pull_request
+            $baseSha = [string]$p.base.sha
+            if ($baseSha -cnotmatch '^[0-9a-f]{40}$') { throw 'W_V2_INVALID_PROTECTED_BASE' }
+            $baselineDir = Join-Path $env:RUNNER_TEMP 'xcomp-w-v2-frozen-pc0-baseline'
+            if (Test-Path -LiteralPath $baselineDir) { throw 'BASELINE_CHECKOUT_COLLISION' }
+            git worktree add --detach $baselineDir $baseSha
+            if ($LASTEXITCODE -ne 0) { throw 'BASELINE_CHECKOUT_FAILED' }
+            try {
+              Push-Location $baselineDir
+              try {
+                python -m pytest -q -p no:cacheprovider --tb=short tests/contracts/test_pc0_kernel_boundaries.py
+                if ($LASTEXITCODE -ne 0) { throw 'HISTORICAL_PC0_BASELINE_FAILED' }
+              } finally { Pop-Location }
+            } finally {
+              git worktree remove --force $baselineDir
+              if ($LASTEXITCODE -ne 0) { throw 'BASELINE_WORKTREE_CLEANUP_FAILED' }
+            }
+            $wTests = @(
+              'tests/contracts/test_pc0_local_first_restaurant_successor.py',
+              'tests/integration/test_xcomp_w_disconnected_pg17_acceptance.py',
+              'tests/contracts/test_pc5_identity_policy_audit.py',
+              'tests/contracts/test_pa0123_platform_administration.py',
+              'tests/contracts/test_pk456_pack_conformance_templates.py'
+            )
+            if ($env:GITHUB_HEAD_REF -ceq 'review/xcomp-pc8-local-first-v2-source-20261111') {
+              $wTests += 'tests/contracts/test_pc8_local_first_source_admission_r0.py'
+              # PC8 source qualification cannot become operative issuer authority.
+              python scripts/verify_pc8_local_first_source_admission_r0.py --local-source
+              if ($LASTEXITCODE -ne 0) { throw 'PC8_LF_NONOPERATIVE_SOURCE_PROOF_DENIED' }
+            }
+            python -m pytest -q -p no:cacheprovider --tb=short $wTests
+            if ($LASTEXITCODE -ne 0) { throw 'W_V2_SOURCE_AND_SECURITY_REGRESSION_FAILED' }
           } else {
             # Generic required PR check separately tests the GitHub merge SHA.
             # The additive PC8 bridge requires the actual immutable source branch.
@@ -145,19 +237,4 @@ jobs:
             ) | ForEach-Object { "tests/contracts/$_" }
             python -m pytest -q -p no:cacheprovider --tb=short $s
             if ($LASTEXITCODE -ne 0) { throw 'D1D2_INTEGRATION_REGRESSION_FAILED' }
-            if ($env:GITHUB_HEAD_REF -cin @('review/xcomp-d1-hosted-current-base-wrapper-20261111',
-                                         'review/xcomp-d1-pc0-corrected-wrapper-20261111')) {
-              $d1tests = @(
-                'test_xcomp_d1_sql_services_r0.py',
-                'test_xcomp_d1_link_custody_r0.py',
-                'test_xcomp_d1_browser_sql_composer_r0.py',
-                'test_xcomp_d1_db_linkage_migration_r0.py',
-                'test_xcomp_d1_pc5_binding_verifier_r0.py',
-                'test_xcomp_d1_isolated_app_route_boundary_r0.py',
-                'test_xcomp_n_d1d2_neutral_http_source_r0.py',
-                'test_xcomp_d1d2_source_integration_readiness_r0.py'
-              ) | ForEach-Object { "tests/contracts/$_" }
-              python -m pytest -q -p no:cacheprovider --tb=short $d1tests
-              if ($LASTEXITCODE -ne 0) { throw 'D1_HOSTED_TRUST_SOURCE_REGRESSION_FAILED' }
-            }
           }

@@ -1,0 +1,70 @@
+{
+  "exact_additive_source_paths": [
+    "contracts/platform/v2/pc8_local_first_source_admission_contract_r0.json",
+    "scripts/verify_pc8_local_first_source_admission_r0.py",
+    "tests/contracts/test_pc8_local_first_source_admission_r0.py",
+    ".github/workflows/xcomp-pc8-local-first-source-admission.yml"
+  ],
+  "immutable_historical_pc8_artifacts": {
+    ".github/workflows/xcomp-pc8-registered-current-source.yml": "62e5691ad81a8b23aea3efe1afb4a812d1b0ae3a2d1cf4909dbe73a4cadda7a5",
+    "XBOS_PC8_CURRENT_SOURCE_RUN_ACCEPTANCE.cmd": "ccff3a24b968fef94ddf51e5093c4dc5d9ec7f48cf30ec77459554179826bce0",
+    "contracts/platform/v1/pc8_current_source_companion_registry_r1.json": "78374520f4d483866a07d13d99b1993584299c580877b4d422d4b7a646f010c8",
+    "core/platform/release_integrity.py": "6ded92f7aa0fc0b3db5115ff5094b9e39b521a0d1f05d9ee102b96d668ab0ec4",
+    "scripts/verify_pc8_registered_current_source_r1.py": "0dc113e08d646cb7f65f833a370e81a999929aa3356ff7d443f644b89bf6f50e"
+  },
+  "immutable_qualified_w_v2_files": {
+    "contracts/platform/v2/pc0_local_first_restaurant_successor.json": "8d351639e4f3cd18d663d8494d294510e81021c30b470e53eb2d4200976dc5ef",
+    "core/api/restaurant/local_first_lan_router.py": "7f4487999ffccab39291930394f70351ef3bf4561cd88f518a1ededd108386f2",
+    "core/domain/restaurant/local_first_receipt_service.py": "2eb91ba58b504eece152fd743fc77cf262a187106431b091a74417e42a8f2881",
+    "core/domain/restaurant/local_first_shift_session.py": "77b5f89885dfcc0e4da3e8a3a3b6f3ae4f3437763c5064f9e1a825d5858bf385",
+    "core/domain/restaurant/local_first_stock_draft.py": "abffd9e3332a08e42d70c620ce9e61e7906ea51d6219938d81ffc0cfb075489b",
+    "core/platform/local_first_restaurant_architecture_successor.py": "37a5cbbbe0dd4c3692182d9fb3aa09647f6e3343f07b5e2b0350dae47ef179dc",
+    "tests/contracts/test_pc0_local_first_restaurant_successor.py": "15b796340dbf8abddd9a6cd66f3fa7c8085fef2b535a6d3cc837439e1bba69df",
+    "tests/integration/test_xcomp_w_disconnected_pg17_acceptance.py": "cda21a72721c8ae7bef0fc08eeee40f0588856bfccb2bfea658d171d8221ccb5"
+  },
+  "independent_trust": {
+    "approved_release_epoch": null,
+    "issuer_public_key_id": null,
+    "owner_release_signature": null,
+    "pcr_release_signature": null,
+    "required_pc8_attestation": null,
+    "signed_same_commit_deployment": null
+  },
+  "no_authority_from_source_tests": true,
+  "operative_release": false,
+  "predecessor": {
+    "accepted_pr14_wrapper": "f68e4217395f58afbbb493bf7e772050d865ade8",
+    "historical_pc8_review_branch": "review/xcomp-pc8-route-a-11file-20261108",
+    "proposed_review_branch": "review/xcomp-pc8-local-first-v2-source-20261111",
+    "protected_base": "376547f7c037814ab2b19a1df8fd6c7aec08f864",
+    "protected_target": "platform/neutral-vnext-vn2-pc0-discovery-successor",
+    "qualified_w_v2": "d5ffbc3c253cbd0530bd15cac1e594a0447bf8e5",
+    "source_repository": "joelkamda/xbos"
+  },
+  "prohibited": [
+    "MUTATE_FROZEN_PC0_OR_PC8",
+    "REWRITE_PR14",
+    "SOURCE_SELF_AUTHORIZES_RELEASE",
+    "GITHUB_PUSH_OR_PR",
+    "RULESET_MUTATION",
+    "POSTGRESQL",
+    "ISSUER_KEY_CREATION",
+    "RENDER",
+    "WND",
+    "PAYMENT"
+  ],
+  "registered": false,
+  "release_issuer_commissioned": false,
+  "required_proofs": [
+    "true PR event/checkout SHA and exact protected base match",
+    "review head descends from exact PR14 wrapper without modifying W or historical PC8 blobs",
+    "exactly four new source paths above the prior wrapper",
+    "independent historical PC0 baseline test distinct from W v2 source test",
+    "source test proof never creates issuer signing, required branch status or deploy receipt",
+    "reject third-party forks and unrecognized branch or unexpected altered module",
+    "independent operative issuer + owner/PCR signatures + revocation + same-commit deployment remain held"
+  ],
+  "schema": "XCOMP_PC8_LOCAL_FIRST_PROSPECTIVE_SOURCE_ADMISSION_R0",
+  "state": "SOURCE_CANDIDATE_ONLY_UNPUBLISHED",
+  "version": 1
+}
