@@ -1,0 +1,4 @@
+source/** -text
+R7_SOURCE_MANIFEST.json text eol=lf
+run_g4a_pavilion_noegress.sh text eol=lf
+README_G4A_R7_SOURCE_REVIEW.md text eol=lf

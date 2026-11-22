@@ -1,0 +1,79 @@
+/* XCOMP V3 real local TEST rehearsal — isolated CSS namespace */
+.v3r{min-height:100vh;background:#f5f6f8;color:#273341;font:14px/1.5 "Segoe UI",Arial,sans-serif}
+.v3r *{box-sizing:border-box}.v3r button,.v3r input,.v3r select{font:inherit}
+.v3r button{cursor:pointer}.v3r button:disabled{opacity:.45;cursor:not-allowed}
+.v3r .layout{display:grid;grid-template-columns:246px minmax(0,1fr);min-height:100vh}
+.v3r aside{position:sticky;top:0;height:100vh;background:#192532;color:#dbe1e7;display:flex;flex-direction:column}
+.v3r .brand{display:flex;align-items:center;gap:10px;padding:25px 19px;border-bottom:1px solid #ffffff20}
+.v3r .mark{width:44px;height:44px;background:#973f5d;color:white;border-radius:12px;display:grid;place-items:center;font:700 26px Georgia,serif}
+.v3r .brand strong{display:block;color:white;font-size:19px}.v3r .brand small{font-size:10px;letter-spacing:1px;color:#a4b0bd}
+.v3r .nav-label{font-size:10px;letter-spacing:1.5px;color:#93a3b1;margin:25px 20px 9px;font-weight:700}
+.v3r nav{padding:0 10px;display:grid;gap:4px}
+.v3r nav button{border:0;border-radius:10px;background:transparent;color:#c4d0da;padding:12px 14px;text-align:left;display:flex;align-items:center;gap:12px;font-weight:600}
+.v3r nav button span{font-size:18px;width:21px;text-align:center}
+.v3r nav button:hover{background:#304353}.v3r nav button.selected{background:#893b55;color:#fff}
+.v3r .nav-bottom{margin-top:auto;padding:18px;color:#c9d2db;font-size:11px}
+.v3r .nav-bottom div{border:1px solid #3c5060;border-radius:10px;background:#263747;padding:13px}
+.v3r .top{height:79px;background:white;border-bottom:1px solid #e7eaed;padding:0 32px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.v3r .top strong{display:block;color:#263747}.v3r .top small{display:block;font-size:11px;color:#8994a0}
+.v3r .top-right{display:flex;align-items:center;gap:8px}
+.v3r .flag{font-weight:700;color:#9a5c1b;background:#fff2da;padding:6px 10px;border-radius:24px;font-size:10px;white-space:nowrap;border:1px solid #f0ddb8}
+.v3r .notice{background:#fff4df;color:#92652d;border-bottom:1px solid #f2dfbd;padding:10px 32px;font-size:12px;font-weight:650}
+.v3r main{max-width:1580px;margin:0 auto;padding:29px 32px 80px}
+.v3r .eyebrow{color:#94526b;font-size:10px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase}
+.v3r .heading{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:25px}
+.v3r h1{margin:4px 0 5px;font-size:28px;letter-spacing:-.7px;line-height:1.2;font-weight:730}
+.v3r .muted{color:#8995a1}.v3r .sub{font-size:13px;color:#8794a1}
+.v3r .btn{background:white;color:#36495b;border:1px solid #dbe0e4;border-radius:9px;padding:9px 13px;font-size:12px;font-weight:700}
+.v3r .btn:hover:not(:disabled){filter:brightness(.97)}.v3r .btn.primary{background:#8e3856;border-color:#8e3856;color:white}
+.v3r .btn.secondary{background:#edf3f6;border-color:#e5eaee}.v3r .btn.danger{color:#ad3d49}
+.v3r .btn.small{padding:6px 9px;font-size:11px}.v3r .btn:focus-visible{outline:3px solid #c77b94;outline-offset:2px}
+.v3r .head-actions,.v3r .inline{display:flex;gap:9px;align-items:center;flex-wrap:wrap}
+.v3r .cards4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:15px}
+.v3r .metric{background:white;border:1px solid #e5e9ec;border-radius:14px;padding:19px;box-shadow:0 6px 26px #26374708}
+.v3r .metric .label{font-size:12px;color:#8b98a3;margin-bottom:11px}
+.v3r .metric .number{font-size:25px;font-weight:760;letter-spacing:-.5px}
+.v3r .metric .foot{font-size:11px;color:#a6794c;margin-top:7px}
+.v3r .panel{background:white;border:1px solid #e4e9ec;border-radius:14px;box-shadow:0 6px 26px #26374709;overflow:hidden}
+.v3r .panel-title{padding:16px 19px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #edf0f2}
+.v3r h3{font-size:15px;margin:0;font-weight:720}.v3r .pad{padding:18px}
+.v3r .two{display:grid;grid-template-columns:1.5fr 1fr;gap:16px;margin-top:16px}
+.v3r .cols{display:grid;grid-template-columns:minmax(0,1fr) 355px;gap:16px}
+.v3r .catalog-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.v3r .product{border:1px solid #e8ebed;background:white;border-radius:13px;padding:15px;display:flex;flex-direction:column;gap:7px;min-height:155px}
+.v3r .product h4{margin:0;font-size:14px}.v3r .product .meta{font-size:10px;color:#97a1ac}
+.v3r .product .price{display:flex;justify-content:space-between;gap:9px;align-items:center;margin-top:auto}
+.v3r .product .price strong{font-size:15px;color:#303d4b}
+.v3r .pill{border:1px solid #e4e0e4;background:#f9eef2;color:#8e3555;border-radius:22px;padding:4px 9px;font-size:10px;font-weight:760;display:inline-block}
+.v3r .pill.green{background:#ecf8f2;color:#168162;border-color:#d7ecdf}
+.v3r .pill.amber{background:#fff6e2;color:#9f712e;border-color:#efdfbe}
+.v3r .pill.grey{background:#f2f5f7;color:#758392;border-color:#e5ebed}
+.v3r .cart-row{display:grid;grid-template-columns:1fr auto;padding:11px 0;border-bottom:1px solid #edf0f2;gap:8px}
+.v3r .cart-row strong{font-size:12px}.v3r .cart-row small{color:#9ba7b0}
+.v3r .total{border-top:1px solid #e5e8ea;padding-top:13px;display:flex;justify-content:space-between;font-size:17px;font-weight:740;margin-top:16px}
+.v3r .zone-tabs{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:17px}
+.v3r .zone-tabs button{padding:8px 15px;background:white;border:1px solid #dfe5e8;border-radius:9px;font-weight:750}
+.v3r .zone-tabs button.chosen{background:#8e3856;color:#fff;border-color:#8e3856}
+.v3r .filter{display:flex;gap:9px;align-items:center;flex-wrap:wrap;margin-bottom:16px}
+.v3r input,.v3r select{border:1px solid #dfe5e9;border-radius:9px;background:#fff;padding:10px 11px;color:#2a3b49;max-width:100%}
+.v3r .filter input{min-width:210px;flex:1}.v3r .filter select{min-width:160px}
+.v3r .tablewrap{overflow:auto}.v3r table{border-collapse:collapse;width:100%;font-size:12px}
+.v3r th{text-align:left;color:#91a0aa;background:#fbfcfc;font-size:10px;text-transform:uppercase;letter-spacing:.7px;padding:13px 15px;border-bottom:1px solid #e8edef}
+.v3r td{padding:13px 15px;border-bottom:1px solid #edf1f2;vertical-align:middle}
+.v3r tbody tr:last-child td{border-bottom:0}.v3r .mono{font-family:Consolas,monospace;font-size:11px}
+.v3r .field{display:grid;gap:5px}.v3r .field label{color:#697989;font-size:11px;font-weight:700}
+.v3r .gridform{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.v3r .empty{padding:43px 18px;text-align:center;color:#8d99a3}
+.v3r .info{background:#f3f7f9;border:1px solid #e2ecf0;border-radius:11px;padding:14px;color:#536d7e;font-size:12px}
+.v3r .error{background:#fff1ef;border:1px solid #f4d3d1;color:#a34238;border-radius:10px;padding:12px;margin:11px 0}
+.v3r .hero{background:linear-gradient(115deg,#243846,#643148);border-radius:14px;color:white;padding:25px;margin-bottom:17px;display:flex;justify-content:space-between;gap:15px;align-items:center}
+.v3r .hero h2{font-size:21px;font-weight:720;margin:0 0 5px}.v3r .hero p{font-size:12px;color:#e0d9de;margin:0}
+.v3r .login{min-height:100vh;display:grid;place-items:center;background:linear-gradient(130deg,#14222e,#583345);padding:22px}
+.v3r .login-card{background:#fff;border-radius:20px;max-width:480px;width:100%;padding:35px;box-shadow:0 25px 75px #0002}
+.v3r .login-card h1{font-size:27px}.v3r .login-card p{color:#7b8894;font-size:13px}
+.v3r .login-card .field{margin:18px 0}.v3r .login-card .btn{width:100%;padding:12px}
+.v3r .toast{position:fixed;bottom:24px;right:24px;background:#263c38;color:#fff;border-radius:11px;padding:13px 17px;box-shadow:0 10px 25px #0002;z-index:100;max-width:380px}
+.v3r .highlight{border-left:3px solid #af718b;padding-left:11px}.v3r .warn{color:#a66c26;font-size:11px}
+@media(max-width:1180px){.v3r .catalog-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.v3r .cards4{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:850px){.v3r .layout{grid-template-columns:1fr}.v3r aside{position:static;height:auto}.v3r .brand{padding:11px 15px}.v3r .nav-label,.v3r .nav-bottom{display:none}.v3r nav{display:flex;overflow:auto;padding:7px}.v3r nav button{white-space:nowrap;padding:8px 10px}.v3r .top{padding:12px 15px;height:auto}.v3r main{padding:20px 15px}.v3r .notice{padding:10px 15px}.v3r .two,.v3r .cols{grid-template-columns:1fr}}
+@media(max-width:530px){.v3r .cards4,.v3r .catalog-grid,.v3r .gridform{grid-template-columns:1fr}.v3r .hero,.v3r .heading{flex-direction:column;align-items:flex-start}.v3r h1{font-size:23px}.v3r .flag{display:none}}

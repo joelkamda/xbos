@@ -1,0 +1,40 @@
+{
+  "name": "xbos-web",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "contracts:generate": "python scripts/generate_browser_contracts.py && python scripts/generate_vn0_manifest.py",
+    "contracts:check": "python scripts/generate_browser_contracts.py --check && python scripts/generate_vn0_manifest.py --check",
+    "contracts:browser:generate": "python scripts/generate_browser_contracts.py",
+    "contracts:browser:check": "python scripts/generate_browser_contracts.py --check",
+    "test:vn0": "vitest run src/lib/browserAuth.test.ts src/lib/vn0PublicContracts.test.ts",
+    "test:vn0:e2e": "node scripts/vn0_local_e2e.mjs",
+    "test:vn1": "vitest run src/lib/vn1Presentation.test.ts src/app/vn1Shell.test.tsx",
+    "test:vn1:e2e": "node scripts/vn1_shell_e2e.mjs",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-router-dom": "^6.22.0",
+    "uuid": "^13.0.0",
+    "zustand": "^5.0.9"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.31",
+    "@types/react-dom": "^18.3.7",
+    "@types/uuid": "^10.0.0",
+    "@vitejs/plugin-react": "^5.1.2",
+    "autoprefixer": "^10.4.19",
+    "playwright": "^1.55.1",
+    "postcss": "^8.4.35",
+    "tailwindcss": "^3.4.1",
+    "typescript": "^5.3.3",
+    "vite": "^7.2.7",
+    "vitest": "^3.2.4"
+  }
+}

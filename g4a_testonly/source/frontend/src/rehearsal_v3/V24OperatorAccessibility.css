@@ -1,0 +1,48 @@
+/* FE D7-15 · detached R5 TEST-only accessibility correction.
+   No service, transaction, permission or release admission changes. */
+.v24-accessible { width:100%; min-width:0; max-width:100%; overflow-wrap:anywhere; }
+.v24-accessible *, .v24-accessible *::before, .v24-accessible *::after { box-sizing:border-box; }
+.v24-accessible section, .v24-accessible div, .v24-accessible nav { min-width:0; }
+.v24-accessible input, .v24-accessible select, .v24-accessible button { max-width:100%; }
+.v24-accessible input { min-width:0; }
+.v24-accessible button { min-height:42px; }
+.v24-accessible button:focus-visible, .v24-accessible a:focus-visible,
+.v24-accessible input:focus-visible, .v24-accessible select:focus-visible,
+.v24-accessible [tabindex="-1"]:focus-visible {
+  outline:3px solid #245fc7; outline-offset:3px;
+}
+.v24-accessible .v24-skip-link {
+  position:absolute; left:-10000px; top:auto; width:1px; height:1px;
+  overflow:hidden; padding:0; border:0; white-space:nowrap;
+}
+.v24-accessible .v24-skip-link:focus {
+  position:relative; display:inline-block; left:auto; top:auto;
+  width:auto; height:auto; overflow:visible; padding:10px 14px;
+  background:#fff; color:#183a58; border:2px solid #245fc7; z-index:1;
+}
+.v24-accessible .v24-workflow-nav {
+  display:flex; align-items:center; flex-wrap:wrap; gap:8px;
+  padding:12px 0; border-bottom:1px solid #ccd7df;
+}
+.v24-accessible .v24-workflow-nav a {
+  display:inline-block; min-height:40px; padding:8px 12px;
+  border:1px solid #9bafbf; border-radius:7px;
+  color:#174b65; text-decoration:none; background:#fff;
+}
+.v24-accessible pre {
+  overflow-x:auto; max-width:100%; white-space:pre-wrap;
+  overflow-wrap:anywhere; word-break:break-word;
+}
+@media(max-width:530px) {
+  .v24-accessible { padding:12px !important; }
+  .v24-accessible h1 { font-size:clamp(21px,6vw,30px); line-height:1.3; }
+  .v24-accessible section { padding:12px !important; }
+  .v24-accessible form { padding:12px !important; }
+  .v24-accessible form input, .v24-accessible form select { min-width:0; }
+  .v24-accessible .v24-workflow-nav { gap:6px; }
+}
+@media(prefers-reduced-motion:reduce) {
+  .v24-accessible *, .v24-accessible *::before, .v24-accessible *::after {
+    animation:none !important; transition:none !important;
+  }
+}
