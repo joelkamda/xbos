@@ -32,6 +32,33 @@ The source-transfer patch cannot be merged as a production runtime without expli
 4. **N + W + Gateway**: original D7 first-write recovery, late provider-callback finality, real controlled 80mm printer, rollback and independent off-device RPO/RTO. D7-19 payments remain separately certified.
 5. **Governance:** the protected branch ruleset (26809892) requires `xcomp-neutral-pr-integrity` and `xcomp-d1d2-integration-regression`. The second workflow's November D1 head-branch allowlist excludes this new G4-A branch. This PR **must stay DRAFT/UNMERGED** until owners deliberately review and extend CI source admission; do NOT bypass, weaken, or impersonate the frozen D1 checks.
 
+## G4-A next executable canonical integration (November 23)
+
+A **new** `restaurant/g4a_canonical_product_publication.py` now implements a
+typed transaction/authorization path for merchant product review and
+MAIN/VIP/BAR price revisions. It invokes the actual canonical
+`SecurityAuthority.authorize` (PC5), `SemanticAuthority.resolve` (PC3),
+`PackAuthority.state` (PK), and `SO1Authority.atomic_unit` (SO1), and
+requires an explicit trusted SOF account/tax binding. It rejects publisher
+equals creator, stale source/zone revisions, revoked access, inactive packs,
+unknown semantics, unverified Finance and duplicate idempotency.
+
+`restaurant/g4a_canonical_product_pg_repository.py` supplies a genuine
+PostgreSQL row-locked candidate transaction and audit CAS. **Its connection
+factory is hard-fenced to one synthetic local TEST database**
+(`g4a_v24_native_product_test`, loopback 127.0.0.1:55449). The temporary
+database is explicitly provisioned, tested and dropped; there is NO Alembic
+migration or canonical production route.
+
+- Focused canonical PC5/PC3/PK/SO1 source contract: **27/27 PASS**.
+- Actual new PostgreSQL17 candidate table, concurrent row locks, denial,
+  rollback and no duplicate audit: **22/22 PASS**.
+- These are a meaningful canonical service boundary, **not yet actual
+  production PC5 issuance or canonical SO1 catalogue publication**.
+- A real source-backed account mapper/PK registry, production
+  migrations, canonical UI API and genuine PC5 actor commissioning
+  remain required before the new service can be mounted.
+
 ## Local, test-only source checks
 
 From the canonical source worktree:

@@ -51,7 +51,7 @@ jobs:
       - name: Install source-only test dependencies
         shell: pwsh
         run: |
-          python -m pip install --disable-pip-version-check --no-cache-dir -r requirements-test.txt tzdata==2025.2
+          python -m pip install --disable-pip-version-check --no-cache-dir -r requirements-test.txt tzdata==2025.2 psycopg2-binary==2.9.10
       - name: Verify source SHA, fail-closed runtime boundary and WND shift contract
         shell: pwsh
         env:
@@ -59,8 +59,10 @@ jobs:
           PYTEST_DISABLE_PLUGIN_AUTOLOAD: "1"
           PYTHONUTF8: "1"
         run: |
-          python -m pytest -q -p no:cacheprovider --tb=short tests/contracts/test_g4a_r7_canonical_source_admission.py
-          if ($LASTEXITCODE -ne 0) { throw 'G4A_SOURCE_ADMISSION_FAILED' }
+          python -m pytest -q -p no:cacheprovider --tb=short tests/contracts/test_g4a_r7_canonical_source_admission.py tests/contracts/test_g4a_canonical_product_publication.py tests/contracts/test_g4a_pg_candidate_boundary.py
+          if ($LASTEXITCODE -ne 0) { throw 'G4A_SOURCE_OR_CANONICAL_PRODUCT_ADMISSION_FAILED' }
+          python -m py_compile restaurant/g4a_canonical_product_publication.py restaurant/g4a_canonical_product_pg_repository.py
+          if ($LASTEXITCODE -ne 0) { throw 'G4A_CANONICAL_POSTGRES_REPO_COMPILE_FAILED' }
       - name: Build TEST-only R7 merchant React preview (not deployed)
         shell: pwsh
         working-directory: g4a_testonly/source/frontend
