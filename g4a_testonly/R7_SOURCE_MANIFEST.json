@@ -1,0 +1,240 @@
+{
+  "accepted_r6_root_sha256": "4061846d82aa764764603aacccf351ad17d08023693f50e2d322ff037687f394",
+  "accepted_r7_checks": {
+    "chromium_react": 38,
+    "native_postgresql": 123,
+    "total": 161
+  },
+  "accepted_r7_report_sha256": "e27ac9524b6985e6d0208ac185e073f9ecd127873b2bd640c3b079da5707fb0d",
+  "artifact_count": 54,
+  "canonical_protected_base": "376547f7c037814ab2b19a1df8fd6c7aec08f864",
+  "files": {
+    "source/backend/pack_platform/v24_pk_config_preflight.py": {
+      "bytes": 11813,
+      "sha256": "5743ca8c8aaa361d6925e284eecc1145b7e7d9b9338b4985c7f3302254cee147"
+    },
+    "source/backend/rehearsal_v3/api.py": {
+      "bytes": 17985,
+      "sha256": "23c65751474c8a182ade0834ff2a0f1e9b0d67f2c1f93b3635ea48c1ca1ee2ec"
+    },
+    "source/backend/rehearsal_v3/captive_app.py": {
+      "bytes": 153,
+      "sha256": "9fc2212968500eb16330206df855b80b54520d4a187b6a37fe2b30984b79da92"
+    },
+    "source/backend/rehearsal_v3/finance_phaseb_api.py": {
+      "bytes": 19481,
+      "sha256": "0150eeff6e89ba696970071504febd8069b7463aedd8b6582742d05241077de8"
+    },
+    "source/backend/rehearsal_v3/finance_phaseb_schema.sql": {
+      "bytes": 2327,
+      "sha256": "df1cef56062d8dc0804a06afd82f8d4850df7d9688e35f545ddcf0fc9ea8a5a9"
+    },
+    "source/backend/rehearsal_v3/g3_test_network_guard.py": {
+      "bytes": 2755,
+      "sha256": "92bdd0cabef08100febe2423599b2f8586ce944ec4107c961985a89debfdaa05"
+    },
+    "source/backend/rehearsal_v3/phaseb_app.py": {
+      "bytes": 502,
+      "sha256": "786ca11141ddf717250f2ee9dc0914adf84fd65accfaf795edead7b0a32f091b"
+    },
+    "source/backend/rehearsal_v3/schema.sql": {
+      "bytes": 2980,
+      "sha256": "c271358ecb232f29d4d7d9800de13d6d802d75c91f7d029e6de9a6d4e0264387"
+    },
+    "source/backend/rehearsal_v3/seed.py": {
+      "bytes": 898,
+      "sha256": "1b183f8c65c3fe44efc0aeb9614fdc2c78c265496cd01d7c8ee0ce89b404be06"
+    },
+    "source/backend/rehearsal_v3/test_live.py": {
+      "bytes": 8561,
+      "sha256": "29061236a164c8ade29d568230784608e07740eb089dbb6c7d060c56e904a9b8"
+    },
+    "source/backend/rehearsal_v3/v24_app.py": {
+      "bytes": 1173,
+      "sha256": "66cff9067bc8ae2e78f5e130952c29a420f7b5b7f0c6f8b67b10a8827dbd9108"
+    },
+    "source/backend/rehearsal_v3/v24_native_api.py": {
+      "bytes": 39914,
+      "sha256": "9c43648eb7909b26c8b58781236b3a3f8412d28ed5e2e9e32b9aceacfaca23ea"
+    },
+    "source/backend/rehearsal_v3/v24_pa_test_publish_grant.py": {
+      "bytes": 3271,
+      "sha256": "e8c23570096d4d5822bc2920466928cd47a49cccbbfafe71bd8c3f4b71db3ee5"
+    },
+    "source/backend/rehearsal_v3/v24_pk_native_r7.py": {
+      "bytes": 6054,
+      "sha256": "763f2ebac92d2df6e3b7c7a97b1f2f1585a26f74a2fa08540d3063d2ed0353d7"
+    },
+    "source/backend/rehearsal_v3/v24_r4_readmodels.py": {
+      "bytes": 8446,
+      "sha256": "37f090655ee6f5058aed245219dce4a9694a185e4e1c1fd922fb508bc9c460ff"
+    },
+    "source/backend/rehearsal_v3/v24_sof_ar_app.py": {
+      "bytes": 163,
+      "sha256": "13dd8699005c231a6b6e58bb59711f599a4b1d2a0f3ac6ae7142c4d7e8c13df2"
+    },
+    "source/backend/rehearsal_v3/v24_sof_ar_r6.py": {
+      "bytes": 16439,
+      "sha256": "1ed7503b26a5ff9c88305530b97fcb620de2f9a24533ce7712c102b607c7e4e0"
+    },
+    "source/backend/rehearsal_v3/v24_w_receipt_custody.py": {
+      "bytes": 8654,
+      "sha256": "531590bc8f81fd2be0a971d07689b817cff4f09c3ffeb3f60341ea930b595293"
+    },
+    "source/backend/rehearsal_v3/v24_w_shift_handoff.py": {
+      "bytes": 7861,
+      "sha256": "ecc8af483a4ddffad84f103883a2a81440564fc67b8449cc094de9d68274ce5a"
+    },
+    "source/backend/rehearsal_v3/wnd_explicit_catalog.py": {
+      "bytes": 4350,
+      "sha256": "d6fc088d366115b91914ca238b692414f0e1ad7b5e40a1d3591d844e3e014304"
+    },
+    "source/backend/restaurant/__init__.py": {
+      "bytes": 43,
+      "sha256": "ade34ae120210682232507d0622a58ff7e90318c22cb938c4a522353e43cbfb2"
+    },
+    "source/backend/restaurant/d7_wnd_cashier_kitchen_receipt.py": {
+      "bytes": 3613,
+      "sha256": "de72b9782ca5b724fb252695aed932abeca1b9cdfdfbfb22a67f6e3a49cee94a"
+    },
+    "source/backend/restaurant/wnd_operational_policy.py": {
+      "bytes": 6501,
+      "sha256": "1f7f84c4f2068301d9d6a5147d269966de6094a3a441cd824ba60bcc85de7ea8"
+    },
+    "source/backend/v24_finance_lifecycle.py": {
+      "bytes": 6031,
+      "sha256": "169b1305ef60c9fd9f9893c9eed76fa124cba980dd205bd1cb95becfcc037921"
+    },
+    "source/backend/v24_init.sql": {
+      "bytes": 8719,
+      "sha256": "21a0067084633e0d755944d4c51945c55be266a48fae9845f047a19c0760b7e3"
+    },
+    "source/backend/v24_init_r3.sql": {
+      "bytes": 9985,
+      "sha256": "123eef0f131f88d91e6c065032be2883649469d9815ed01f82694c9725b84cb2"
+    },
+    "source/backend/v24_init_r6.sql": {
+      "bytes": 12734,
+      "sha256": "9e32cd1a6a37a87b08ce989272b8136084a162e843f60d9d51092f4f97563b36"
+    },
+    "source/backend/v24_init_r7.sql": {
+      "bytes": 20306,
+      "sha256": "c6e7007aadf6de9727a2b705d6bd9be386b8750c20ee2851a9ae4c229027599a"
+    },
+    "source/backend/v24_inventory.py": {
+      "bytes": 5150,
+      "sha256": "965fd404ae52f4c37a49a33f6d321c9d8d8275bc2f28f2ee88818a49e21bb61c"
+    },
+    "source/backend/v24_native_additive_r2.sql": {
+      "bytes": 1053,
+      "sha256": "313639a637a140e783d6afe16d9ce405e682fcfd4e88fbb383242476290fe96f"
+    },
+    "source/backend/v24_native_schema.sql": {
+      "bytes": 3267,
+      "sha256": "756eac2158b9147311bd94d4e667e48bfe48350a0a8eeb54d224dec9780666a5"
+    },
+    "source/backend/v24_pa_test_publish_grant.sql": {
+      "bytes": 1015,
+      "sha256": "3a747dcbfe93f0e68b709736ffef232dca3df6f88daf077bc5548a15a5dcc27e"
+    },
+    "source/backend/v24_pk_native_r7.sql": {
+      "bytes": 4623,
+      "sha256": "6a7cbf4a0cc4b4dddbfe1b17c2d89af6523dd3aa1de5ed9721d9cfb8866beb3c"
+    },
+    "source/backend/v24_pos_preview.py": {
+      "bytes": 4208,
+      "sha256": "b8eb33d4b5bb352a5ac7dd1c7340218e3aab5218a82f834862b0748b2d1c7da9"
+    },
+    "source/backend/v24_product_admin.py": {
+      "bytes": 5757,
+      "sha256": "d69294048450c3703ec44d99796b94de7b0eb229e614535552991320578152e0"
+    },
+    "source/backend/v24_reports.py": {
+      "bytes": 3854,
+      "sha256": "98865f78ef24d4b24f80b2b1481dc2050b0ce9dc482ef7ec39d5fc03e16f02a1"
+    },
+    "source/backend/v24_sof_ar_native_r6.sql": {
+      "bytes": 2748,
+      "sha256": "bdd00c55cc11d52922b4d03a3db07e76b424a989594fcdc532c843bc127b9713"
+    },
+    "source/backend/v24_w_receipt_custody_test_only.sql": {
+      "bytes": 1931,
+      "sha256": "d9cb2a7273d90c8fe5b6ce384c8b402c89d33d12266e0fbde691b1df894ebdd2"
+    },
+    "source/frontend/package-lock.json": {
+      "bytes": 116643,
+      "sha256": "d24742dd165930cf15aafd97ea991b124d93e7ba8daefef657798f48608eaee6"
+    },
+    "source/frontend/package.json": {
+      "bytes": 1471,
+      "sha256": "ca1e11ec8a6b688735313717be7b2a3f33ad60e9ad1ad1425635c4fc74103eef"
+    },
+    "source/frontend/src/rehearsal_v3/V24IntegratedRestaurant.tsx": {
+      "bytes": 31663,
+      "sha256": "433851c68a4cf8c119f2b38dd0c77770fd3de7d08393bd20f5dcf33008775d27"
+    },
+    "source/frontend/src/rehearsal_v3/V24OperatorAccessibility.css": {
+      "bytes": 2264,
+      "sha256": "ceaaae3f7bf665a3fff81555d95efcc83354d5acf024fd8a25105e43b16a17e9"
+    },
+    "source/frontend/src/rehearsal_v3/V3Rehearsal.css": {
+      "bytes": 8515,
+      "sha256": "8a491280942f33deb7c273982a4390126f12bc16f7347ee4c0c2e06deba4d7df"
+    },
+    "source/frontend/tsconfig.json": {
+      "bytes": 486,
+      "sha256": "f522c132717e82c6ca43b7820a23129eadbe6319d25145afe3264d470108d5ac"
+    },
+    "source/integration/pa_seed_test_grant.py": {
+      "bytes": 856,
+      "sha256": "743c47509ca6cbf433b9c10e51c32163be3be495640a7996b34645c9f74ed63f"
+    },
+    "source/integration/r4_native_api_acceptance.py": {
+      "bytes": 6756,
+      "sha256": "97083895da62a84afac13f2392fe09ea57214e04b1e6d72d80825869f92872ab"
+    },
+    "source/integration/r5_statement_api_acceptance.py": {
+      "bytes": 3236,
+      "sha256": "a87521cedb9faca195368adef5394093ca02e5966d43253d360e43e347a508bd"
+    },
+    "source/integration/r6_cogs_source_classification_acceptance.py": {
+      "bytes": 1800,
+      "sha256": "664ada60d9be66d4d973f2f69e8af57d611fb874d9535a58e43cee0be603c8b2"
+    },
+    "source/integration/r6_integrated_sof_ar_acceptance.py": {
+      "bytes": 10525,
+      "sha256": "ac6e331f6f4aa986a714cc7ffb0693b464049fed6cfe7057f21ffa96ad93b942"
+    },
+    "source/integration/r6_native_w_n_acceptance.py": {
+      "bytes": 3665,
+      "sha256": "b0e80ef877a23c611f60c3be3422dc6a79a1505d65b4646cae535fb8d4ce0ec8"
+    },
+    "source/integration/r7_unified_chromium_acceptance.py": {
+      "bytes": 4793,
+      "sha256": "e53cfaddc7d83e013d8ec4fa085bf29876ec494bbd698e1d26213172f4242511"
+    },
+    "source/integration/r7_unified_native_acceptance.py": {
+      "bytes": 7918,
+      "sha256": "1c8a82be71e56cec4a8b21250a77d33a4edf80c00a2c3cd951859c4ac710c9cd"
+    },
+    "source/integration/seed_synthetic.py": {
+      "bytes": 1495,
+      "sha256": "61c3f0a7626d9a96af3283415e4fbde96c93cd4b37f8cc12fd0013a42a16c85e"
+    },
+    "source/integration/test_v24_pk_config_preflight.py": {
+      "bytes": 10204,
+      "sha256": "c53140265f630ce7d036b1185a0b3fc9d862249dc50320141e2a28399d12c406"
+    }
+  },
+  "permissions": {
+    "canonical_kernel_route_mount": false,
+    "genuine_pc5": false,
+    "live_wnd": false,
+    "official_finance": false,
+    "production_release": false,
+    "protected_merge": false,
+    "real_psp": false
+  },
+  "schema": "XCOMP_G4A_R7_CANONICAL_DETACHED_SOURCE_V1",
+  "source_grade": "SYNTHETIC_DETACHED_TEST_ONLY_NOT_RELEASED"
+}
